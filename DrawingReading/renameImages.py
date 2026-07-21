@@ -5,17 +5,17 @@ from google.genai import types
 from pydantic import BaseModel
 
 class Scale(BaseModel):
-    unit: str
+    unit: str | None
     valuesMarked: list[int]
     confidence: str | None
 
 class Credits(BaseModel):
-    creator: str
-    year: str
+    creator: str | None
+    year: str | None
 
 class NotableFeature(BaseModel):
-    feature: str
-    location: str
+    feature: str | None
+    location: str | None
     shapePoints: list[BoundaryPoint] | None
     description: str
 
@@ -26,34 +26,35 @@ class BoundaryPoint(BaseModel):
     confidence: str | None
 
 class Layer(BaseModel):
-    layerName: str
-    inferredMaterial: str
-    description: str
+    layerName: str | None
+    inferredMaterial: str | None
+    description: str | None
+    visualPattern: str | None
     featuresInLayer: list[NotableFeature] | None
     topBoundary: list[BoundaryPoint] | None
     bottomBoundary: list[BoundaryPoint] | None
 
 class LegendItem(BaseModel):
-    visualPattern: str
-    material: str
+    visualPattern: str | None
+    material: str | None
 
 class TrenchProfile(BaseModel):
-    face: str
-    gridLabels: list[str]
-    layers: list[Layer]
+    face: str | None
+    gridLabels: list[str] | None
+    layers: list[Layer] | None
 
 class Metadata(BaseModel):
-    currentFilePath: str
-    suggestedFilename: str
-    trenchLabel: str
-    scale: Scale
-    credits: Credits
-    marginalia: list[str]
+    currentFilePath: str | None
+    suggestedFilename: str | None
+    trenchLabel: str | None
+    scale: Scale | None
+    credits: Credits | None
+    marginalia: list[str] | None
 
 class ArchaeologicalDiagram(BaseModel):
-    metadata: Metadata
+    metadata: Metadata | None
     trenchProfiles: list[TrenchProfile]
-    legend: list[LegendItem]
+    legend: list[LegendItem] | None
     inferred_notes: list[str] | None = None
 
 
