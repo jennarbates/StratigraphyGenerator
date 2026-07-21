@@ -1,22 +1,23 @@
 import os
+import time
 from google import genai
+from google.genai import errors
 from PIL import Image
 from google.genai import types
 from pydantic import BaseModel
 
 
 # ---------------------------------------------------------------------------
-# SCHEMA
+# SCHEMA  (single-agent variant)
 #
-# Coordinate convention:
+# Same coordinate convention as the two-agent version:
 #   x = horizontal position ALONG the face (meters, 0 at the left edge).
-#   y = depth DOWNWARD from the ground surface (meters, positive down, 0 at
-#       the top of the topsoil).
-# These are FACE-LOCAL coordinates. Converting to site-wide X/Y/Z is a
-# separate deterministic step and is never done by the LLM.
+#   y = depth DOWNWARD from the surface (meters, positive down, 0 at surface).
+# Face-local; site-wide X/Y/Z conversion is a separate deterministic step.
 #
-# NOTE: BoundaryPoint must be defined BEFORE NotableFeature, because
-# NotableFeature.shapePoints references it.
+# The one addition vs the two-agent schema is `rawTranscription` on the top
+# object: since there's no separate description pass, we keep the model's own
+# narrative here so nothing is lost.
 # ---------------------------------------------------------------------------
 
 class Scale(BaseModel):
@@ -84,284 +85,165 @@ class ArchaeologicalDiagram(BaseModel):
     trenchProfiles: list[TrenchProfile]
     legend: list[LegendItem] | None
     inferred_notes: list[str] | None = None
+    # Single-agent only: the model's own narrative pass, kept for reference.
+    rawTranscription: str | None = None
 
 
 client = genai.Client()
 
 
-def ProcessImageAgentically(imagePath: str):
+def generate_with_retry(max_attempts: int = 5, **kwargs):
+    """Retry transient server errors (503/500/429) with exponential backoff."""
+    for attempt in range(max_attempts):
+        try:
+            return client.models.generate_content(**kwargs)
+        except errors.ServerError as e:
+            transient = getattr(e, "code", None) in (500, 503, 429)
+            if transient and attempt < max_attempts - 1:
+                wait = 2 ** attempt
+                print(f"  API returned {e.code}; retrying in {wait}s "
+                      f"(attempt {attempt + 1}/{max_attempts})...")
+                time.sleep(wait)
+            else:
+                raise
+
+
+def ProcessImageSingleAgent(imagePath: str):
     if not os.path.exists(imagePath):
         print(f"file not found: {imagePath}")
         return
 
-    print("analyzing image...")
+    print("analyzing image (single agent)...")
     img = Image.open('./images/qwertyTest.png')
 
-    imageAnalysisAgentPrompt = f"""
-You are transcribing a single archaeological trench profile drawing into
-structured, measurable data that will later be converted into a 3D geological
-model (GemPy). Downstream software treats your numbers as real measurements, so
-measurement fidelity and honest uncertainty matter far more than completeness.
-A null value is always better than a plausible-sounding guess.
+    prompt = f"""
+You are transcribing a single archaeological trench profile drawing DIRECTLY
+into the provided JSON schema. There is no second pass - what you emit IS the
+final data, and downstream software (GemPy) treats your numbers as real
+measurements. Measurement fidelity and honest uncertainty matter far more than
+completeness. A null value is always better than a plausible-sounding guess.
 
-The dig is Poggio Civitate, Murlo, Italy. Transcribe the filePath as {imagePath}.
-
-============================================================
-COORDINATE SYSTEM  (use this exact convention for every number)
-============================================================
-- x = horizontal position ALONG the face, in METERS, measured from the LEFT
-  edge of that face's drawn profile. The leftmost point of each face is x = 0.
-  Each face has its own independent x origin.
-- y = depth DOWNWARD from the ground surface, in METERS, POSITIVE DOWNWARD.
-  The ground surface is y = 0; a point 40 cm below the surface is y = 0.4.
-- Never use negative y. Never mix the two axes.
+The dig is Poggio Civitate, Murlo, Italy. Set metadata.currentFilePath to
+exactly {imagePath}.
 
 ============================================================
-STEP 1 - READ THE SCALE BAR CAREFULLY  (do this before any measuring)
+COORDINATE SYSTEM
 ============================================================
-Scale bars vary between drawings. Some have a SINGLE bar; some have TWO stacked
-bars (e.g. an old unit like "PECK" on one line and a metric "0 1 2 3 M" scale on
-another). Do not assume which case you are in - look at what is actually printed.
+- x = horizontal position ALONG the face, in METERS, from the LEFT edge of that
+  face's profile (each face has its own x=0).
+- y = depth DOWNWARD from the ground surface, in METERS, positive down; surface
+  is y=0.
+- Never negative y; never mix axes.
 
-- Identify every scale present and read its printed values verbatim into the
-  `scale` object (unit + valuesMarked).
-- If there are TWO bars, choose the METRIC one (marked in M / meters) as the
-  ONLY ruler you measure with. Use it for BOTH depth (y) and horizontal (x)
-  distances. Do NOT measure with a non-metric bar.
-- If a non-metric bar is present, record it and, if you relate it to meters,
-  put that reasoning in `scale.metricConversionAssumption` as an explicit,
-  flagged assumption (e.g. "1 PECK read as ~0.2 m vs the metric bar;
-  approximate"). Never silently convert; never measure the drawing with it.
-- If ONLY a non-metric bar exists, measure in its units, state the unit
-  honestly, and flag the conversion assumption. Do not pretend it is metric.
-- Establish how many drawn units = 1 meter on the metric bar, then apply that
-  same ratio consistently to every x and y. Sanity-check each face's total width
-  against the bar: if a face looks ~4-5 m wide, its x values should span ~4-5,
-  not compress to 3.
+============================================================
+STEP 1 - SCALE  (calibrate before measuring)
+============================================================
+Scale bars vary: some drawings have ONE bar, some have TWO stacked bars (e.g. an
+old unit like "PECK" and a metric "0 1 2 3 M"). Look at what is printed.
+- Read each bar's printed values verbatim into `scale`.
+- If a metric (M) bar exists, it is your ONLY measuring ruler, for BOTH x and y.
+- If a non-metric bar exists and you relate it to meters, record that in
+  `scale.metricConversionAssumption` as an explicit, flagged assumption; never
+  silently convert and never measure with it.
+- Establish drawn-units-per-meter from the metric bar and apply it consistently.
+  Sanity-check each face's total width against the bar.
 
 ============================================================
 STEP 2 - GRID LABELS
 ============================================================
-Find the grid labels along the top of each face. Using the metric bar, estimate
-the x-position IN METERS (from that face's left edge) of EACH label, and report
-them in `gridLabelXMeters` in the same order as `gridLabels`. Grid labels are a
-horizontal REFERENCE - they are NOT where you must place boundary points (see
-Step 3). Boundary points may fall between, before, or after grid labels.
+For each face, list gridLabels in order and estimate each label's x-position in
+meters (from that face's left edge) into gridLabelXMeters, same order. Grid
+labels are a reference, NOT where boundary points must go.
 
 ============================================================
-STEP 3 - TRACE BOUNDARIES BY THEIR ACTUAL SHAPE  (the core task)
+STEP 3 - MEASURE EACH BOUNDARY INDEPENDENTLY  (most important instruction)
 ============================================================
-For each layer, trace its bottom boundary (and its top boundary ONLY if drawn
-independently and different from the layer above) as a series of (x, y) points.
+For each layer, trace its bottom boundary (and top boundary only if drawn
+independently) as (x, y) points that follow the DRAWN LINE'S OWN shape.
 
-CRITICAL: follow the DRAWN LINE'S SHAPE. Boundaries in these drawings undulate -
-they sag into basins, rise over humps, dip into cuts. Your points must capture
-that shape, so the y VALUE CHANGES from point to point along the line.
+CRITICAL - do NOT trace one boundary and offset it for the others. Each layer's
+boundary has its OWN shape: its own bumps, dips, pinch-outs, and thickness
+changes. Adjacent layers are usually NOT parallel - the gap between two
+boundaries widens and narrows along the face. Read every boundary line on its
+own, directly from the drawing, even if that is slower.
 
-- Sample a point wherever the line BENDS: every local high, every local low,
-  every clear change of slope. Put points where the geometry happens.
-- Between bends, on a genuinely straight run, 2-3 points suffice.
-- A grid label is worth a point only if it adds shape information; do NOT place
-  a point at every grid label out of habit.
-- Read each point's y off the metric bar independently. Do not copy a neighbour's
-  y unless the line is truly flat there.
+Warning signs you are doing it wrong (fix before finalizing):
+  - Two boundaries have the SAME up/down pattern shifted by a constant depth.
+  - Every layer has the same number of points at the same x-positions.
+  - The vertical gap between two layers is constant across the whole face.
+Real sections almost never look like that. If your boundaries do, you have
+copied a shape instead of measuring - go back and read each line separately.
 
-ANTI-FLATNESS SELF-CHECK (apply before finalizing each boundary):
-  If most or all points on a boundary share the same y value, you have almost
-  certainly NOT measured - you have assumed a flat line. Real boundaries here are
-  rarely flat. Go back to that line, find its high and low points, and re-read
-  the depths. A boundary reported as a single repeated y is a red flag that the
-  measurement was skipped.
-
-If a layer's top is simply the bottom of the layer above, leave topBoundary
-null - do not duplicate the line.
+Also:
+  - Sample points where each line BENDS (local highs/lows, slope changes), not
+    mechanically at every grid label.
+  - A truly flat stretch can use 2-3 points; a complex one needs many.
+  - If a layer's top = the bottom of the layer above, leave topBoundary null.
+  - Read each y off the metric bar; do not copy a neighbour's y.
 
 ============================================================
-STEP 4 - LAYER INVENTORY  (do not drop layers)
+STEP 4 - LAYER INVENTORY
 ============================================================
-Work top to bottom and list EVERY distinct layer you can see on each face,
-matching its fill pattern to the legend. Faces can legitimately differ from one
-another (a narrower/deeper cut may have a different sequence) - report each face
-on its own evidence rather than copying another face. But within a single face,
-do not skip or merge bands that are visibly distinct. If two bands are hard to
-tell apart, include both and flag the uncertainty rather than dropping one.
+List EVERY distinct layer on each face, matching fill patterns to the legend.
+Faces may legitimately differ from one another - read each on its own evidence.
+Within a face, do not skip or merge visibly distinct bands.
 
 ============================================================
-STEP 5 - FEATURES  (stones, carbon lenses, pits, trench floor)
+STEP 5 - FEATURES
 ============================================================
-- A feature with a traced OUTLINE (a carbon lens/streak, a pit cut, the trench-
-  floor profile, the outline of a stone cluster) goes in `shapePoints` as (x, y)
-  points, same convention as boundaries, capturing its real undulation. Carbon
-  lenses here visibly dip and swell - trace that, do not flatten it.
-- A single discrete object (one stone) goes in the numeric fields
-  approxXMeters / approxYMeters / approxWidthMeters / approxHeightMeters. Put the
-  NUMBERS in those fields; put only prose in `description`.
-- Record each feature's position from where it is actually DRAWN, not from where
-  its text label sits - labels are often offset from the thing they name (e.g. a
-  "LARGE STONES" label may sit above or beside a cluster drawn lower down).
-- Note which layer each feature sits in.
+- Traced outline (carbon lens, pit cut, trench-floor profile, stone-cluster
+  outline): put geometry in `shapePoints` as (x, y), capturing real undulation.
+- Single discrete object (one stone): use approxXMeters / approxYMeters /
+  approxWidthMeters / approxHeightMeters. Numbers in the numeric fields; only
+  prose in `description`.
+- Assign each feature to the ONE layer it primarily sits in. If it spans layers,
+  pick the primary layer and say so in its description - do NOT duplicate the
+  same feature into multiple layers.
+- Do NOT also duplicate the trench-floor profile as both a layer bottomBoundary
+  and a separate feature - choose one (prefer the layer bottomBoundary for the
+  deepest layer; only add a floor feature if it differs from that boundary).
+- Take a feature's position from where it is DRAWN, not from where its label sits.
 
 ============================================================
-STEP 6 - UNCERTAINTY  (flag, never fabricate)
+STEP 6 - UNCERTAINTY
 ============================================================
-- If a point is faded, obscured, ambiguous, or runs off the drawing's edge, set
-  its coordinate value(s) to null and give the reason in that point's
-  `confidence` field (e.g. "line faded near grid B", "runs off right edge").
-- Uncertainty lives at the point/feature level, not as a global note.
+If a point is faded/obscured/ambiguous/off-edge, set its coordinate(s) to null
+and give the reason in that point's `confidence` field. Uncertainty is per
+point/feature, not global.
 
 ============================================================
 NO INTERPRETATION BEYOND WHAT IS DRAWN
 ============================================================
-- Do NOT infer historical context, chronology, period, or links to known events,
-  buildings, fires, or destruction layers, here or at any site.
-- Do NOT state what a feature "likely represents" beyond its observable physical
-  description (material, shape, size, position).
-- The Poggio Civitate background below is ONLY to help you read labels and
-  abbreviations. It is NOT license to add interpretation. If a term is not
-  written on the drawing, do not introduce it.
-- Report only what is visibly depicted, labeled, or written.
+Do NOT infer history, chronology, period, or links to known events/buildings/
+fires here or elsewhere. Do NOT say what a feature "likely represents" beyond
+its observable physical description. Site background below is ONLY to read
+labels correctly, not license to interpret. Report only what is visibly drawn,
+labeled, or written. Transcribe unclear text/units EXACTLY as written.
 
 ============================================================
-TRANSCRIPTION FIDELITY
+FIELDS TO FILL
 ============================================================
-- Transcribe unclear/unfamiliar text, labels, abbreviations, and units EXACTLY
-  as written. Do not expand or guess meanings.
-- Signatures and dates are usually in the bottom corners.
+- metadata (currentFilePath, suggestedFilename = lowercase_underscored trench+
+  year e.g. trench_23_1980, trenchLabel, scale, credits, marginalia)
+- trenchProfiles[] (face, gridLabels, gridLabelXMeters, layers[])
+- each layer: inferredMaterial, visualPattern, featuresInLayer, topBoundary,
+  bottomBoundary
+- legend[]
+- inferred_notes[]: METHODOLOGY/READABILITY only (scale calibration, unreadable
+  items, missing-metadata assumptions). NEVER historical interpretation.
+- rawTranscription: your full natural-language reading of the drawing, for
+  reference. Put narrative here; keep the structured fields clean and numeric.
 
-============================================================
-inferred_notes  (you, the vision agent, own this field)
-============================================================
-Because only you can see the image, YOU write inferred_notes - restricted to
-METHODOLOGY and READABILITY only:
-  - how you read/calibrated the scale bar and any unit conversion,
-  - what was unreadable/ambiguous and how you handled it,
-  - which metadata was missing and what you assumed.
-NEVER put archaeological or historical interpretation in inferred_notes.
+Reference terms for reading labels only (do NOT inject unless written): Poggio
+Aguzzo; Civitate A/B/C/D; Civitatine B; Piano del Tesoro / Tesoro and its Flanks/
+Terraces/Rectangle; Agger; Lower Building / OC1; Courtyard.
 
-Reference terms for reading labels only (do NOT inject unless written on the
-drawing): Poggio Aguzzo (necropolis); Civitate A/B/C/D and Civitatine B
-(property/trench zones); Piano del Tesoro / Tesoro and its Flanks, Terraces,
-and Rectangle (excavation zones); Agger (earthwork mound); Lower Building /
-OC1; Courtyard.
-
-============================================================
-COMPLETENESS CHECKLIST  (your transcription MUST supply all of this)
-============================================================
-A separate agent will structure your description into a fixed schema. It CANNOT
-see the image - if you omit something, it is lost. Confirm you provide every
-item; where a value is genuinely unreadable, say so and why.
-
-Document level:
-  [ ] trench label
-  [ ] scale bar(s): how many, each unit, each set of marked values
-  [ ] which bar you measured with, and (if any) the non-metric conversion
-      assumption
-  [ ] creator and year (usually bottom corners); say "not stated" if absent
-  [ ] all marginalia text, verbatim
-  [ ] the legend: every visual pattern paired with its material
-
-For EACH face:
-  [ ] the face name
-  [ ] the grid labels in order, and each label's x-position in meters
-  [ ] the approximate total width of the face in meters (from the metric bar)
-
-For EACH layer, top to bottom:
-  [ ] name/material and the legend pattern that denotes it
-  [ ] its BOTTOM boundary as (x, y) points that follow the line's real shape,
-      with y varying at every bend - NOT a single repeated y
-  [ ] TOP boundary only if drawn independently; else "top = bottom of above"
-  [ ] any per-point uncertainty
-
-For EACH feature:
-  [ ] which layer it sits in
-  [ ] traced outlines as (x, y) points; discrete objects as approx x/y/width/
-      height in meters
-  [ ] a short physical description (no interpretation)
-  [ ] position taken from where it is DRAWN, not from its label
-
-Methodology notes (inferred_notes): scale calibration, unreadable items, missing
-metadata assumptions.
-
-Now produce a thorough, measurement-focused transcription that follows the steps
-above, face by face and layer by layer. Prioritise reading the true undulating
-shape of every boundary over speed.
+Emit ONLY the JSON conforming to the schema.
 """
 
-    imageAnalysisAgentResponse = client.models.generate_content(
+    response = generate_with_retry(
         model='gemini-2.5-flash',
-        contents=[img, imageAnalysisAgentPrompt]
-    )
-
-    description = imageAnalysisAgentResponse.text
-    print("Description: ", description)
-
-    print("\n  Structuring Data into JSON...")
-
-    dataStructuringAgentPrompt = f"""
-Convert the archaeological trench description below into JSON matching the schema
-exactly. You are a FAITHFUL TRANSCRIBER of the description - you did NOT see the
-image, so never add, infer, recompute, or embellish. Copy what the description
-states into the correct fields.
-
-GENERAL RULES
-- Use ONLY information present in the description. If it does not state something,
-  use a real JSON null - never the string "null".
-- Coordinate convention: x = meters along the face from the left edge;
-  y (yCoordinateMeters) = meters positive DOWNWARD. Copy numbers verbatim; do not
-  clean up, round, or flatten them.
-- Boundaries: populate bottomBoundary (and topBoundary only when the description
-  says the top is drawn independently) as point lists of
-  {{xCoordinateMeters, yCoordinateMeters}}, carrying over any per-point confidence.
-  Preserve the varying y values exactly as given - do NOT collapse them to one.
-- Map visual patterns to materials via the legend.
-- currentFilePath must be exactly: {imagePath}
-- suggestedFilename: lowercase, underscores, no extension, trench label + year
-  (e.g. trench_23_1980).
-- inferred_notes: copy ONLY the methodological/readability notes already in the
-  description. Do NOT invent notes or add any historical/interpretive content.
-  If there are none, use an empty list or null.
-
-FEATURES - READ THIS CAREFULLY
-Each feature is EITHER a traced outline OR a discrete object. Route its numbers to
-the correct fields and keep them OUT of the description string.
-
-- Traced outline (carbon lens, pit cut, trench floor, stone-cluster outline):
-  put its listed points in `shapePoints`. `description` holds prose only.
-
-- Discrete object (a single stone): parse its approximate measurements into the
-  numeric fields approxXMeters, approxYMeters, approxWidthMeters,
-  approxHeightMeters. `description` holds prose only - it must NOT contain the
-  coordinates or dimensions.
-
-  WORKED EXAMPLE - given this in the description:
-      Feature: Stone (discrete object)
-        Layer: TOP SOIL
-        Description: A large rounded stone projecting above the surface.
-        approxXMeters: 0.15
-        approxYMeters: 0.05
-        approxWidthMeters: 0.10
-        approxHeightMeters: 0.10
-  emit exactly:
-      {{
-        "feature": "Stone",
-        "description": "A large rounded stone projecting above the surface.",
-        "shapePoints": null,
-        "approxXMeters": 0.15,
-        "approxYMeters": 0.05,
-        "approxWidthMeters": 0.10,
-        "approxHeightMeters": 0.10,
-        "confidence": null
-      }}
-  The four numbers went into the numeric fields; the description kept ONLY the
-  sentence. Never leave "Approx x: 0.15m ..." inside the description.
-
-Description:
-{description}
-"""
-
-    dataStructuringAgentResponse = client.models.generate_content(
-        model='gemini-2.5-flash',
-        contents=dataStructuringAgentPrompt,
+        contents=[img, prompt],
         config=types.GenerateContentConfig(
             response_mime_type="application/json",
             response_schema=ArchaeologicalDiagram,
@@ -369,15 +251,15 @@ Description:
         )
     )
 
-    rawJson = dataStructuringAgentResponse.text
+    rawJson = response.text
     print(f"here is the raw json: {rawJson} ")
 
-    with open("output.json", "w") as f:
+    with open("output_single.json", "w") as f:
         f.write(rawJson)
 
-    extractedData: ArchaeologicalDiagram = dataStructuringAgentResponse.parsed
+    extractedData: ArchaeologicalDiagram = response.parsed
     return extractedData
 
 
 if __name__ == "__main__":
-    ProcessImageAgentically('./images/qwertyTest.png')
+    ProcessImageSingleAgent('./images/qwertyTest.png')
