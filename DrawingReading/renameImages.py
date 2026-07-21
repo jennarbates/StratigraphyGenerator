@@ -68,69 +68,154 @@ def ProcessImageAgentically(imagePath: str):
     img = Image.open('./images/qwertyTest.png')
 
     imageAnalysisAgentPrompt = f"""
-        Look at this image. Transcribe everything you see in the image and describe any pictures. Be precise and include as much detail as possible. Include the filePath as {imagePath}. Accurately categorize the stratigraphy descriptions and notable features for each specific trench face (e.g. East face, South Face). If any metadata is missing, let me know and provide an inference for what it could be and why. Be as descriptive as possible with the visual patterns that might describe different elevations. Keep in mind the grid and where things are in the grid. If there are any rocks or tree stumps or stones that are visibly drawn in the layers, take note of those and which layer they are in and where.
-
-        You are transcribing an archaeological trench profile drawing into structured data. 
-        Accuracy and honesty about uncertainty matter more than completeness — a null value 
-        is far better than a plausible-sounding guess.
-
-        SCALE REFERENCE: Identify the scale bar and its marked values (e.g., 0, 1, 2, 3 
-        meters). Use this as your ruler for all depth measurements. Identify the grid 
-        labels along the top of the profile and use their horizontal spacing as your 
-        ruler for x-position measurements.
-
-        LAYER BOUNDARIES: For each layer, trace its top and bottom boundary as a series 
-        of points along the face — NOT a single depth value. A layer's boundary is 
-        rarely flat: capture the actual shape as drawn.
-        - Place a point at every grid label intersection the boundary crosses.
-        - Place additional points wherever the boundary visibly bends, dips, rises, 
-            or forms a distinct feature (e.g., a pit, a U-shaped cut, an undulation).
-        - Flat, unremarkable boundaries may need only 2-3 points. Complex or irregular 
-            boundaries may need many more. Let the actual line's complexity determine 
-            point count — do not force a uniform number of points across all layers.
-        - Measure each point's depth against the scale bar and x-position against the 
-            grid labels, as precisely as the drawing allows.
-
-         UNCERTAINTY: If a boundary is faded, obscured, ambiguous, or extends outside 
-            the visible drawing, do NOT estimate or interpolate a plausible-looking value. 
-            Leave the coordinate values as null, and note the issue in a "confidence" 
-            field (e.g., "boundary faded near grid square B", "line unclear, estimated 
-            from adjacent points").
-
- NO INTERPRETATION BEYOND WHAT IS DRAWN: Do not infer historical context, site 
-   chronology, archaeological period, or connections to known events, buildings, 
-   or destruction layers at this or any other site. Do not guess what a feature 
-   "likely represents" beyond its directly observable physical description 
-   (material, shape, approximate size, position). Report only what is visibly 
-   depicted, labeled, or written on the drawing itself.
-
-If any text, label, or unit on the drawing is unclear or unfamiliar (e.g., 
-   an abbreviation you don't recognize), transcribe it exactly as written rather 
-   than guessing its meaning or expanding it.
-
-Output must conform exactly to the provided schema.
-
-        Drawing signatures and dates tend to be in the bottom corners.
-
-        The dig that these images are from is Poggio Civitate in Murlo, Italy
-        - Here are some terms that are important to Poggio Civitate:
-            - Poggio Aguzzo: A neighboring hill situated just a short distance from the main Poggio Civitate settlement. It served as the site's primary necropolis (cemetery). The tombs discovered here yielded many of the grave goods now exhibited in the Murlo archaeological museum.
-            - Civitate A: A modern property zone and excavation macro-area lying immediately west of the main Piano del Tesoro plateau.
-            - Civitate B, Civitate C, and Civitate D: Similarly designated modern cadastral parcels or property zones used by archaeologists to group and identify excavation trenches around the hill.
-            - Civitatine B: A subdivision of the broader "Civitatine" area. This is tied to historical local pathways (like the Via delle Civitate e Civitatine) and serves as a localized trench designation in the site's records.
-            - The Piano del Tesoro (Main Plateau): The summit of the Poggio Civitate hill is heavily terraced and subdivided by archaeologists to track where the monumental Etruscan complexes were found.
-            - Tesoro (Piano del Tesoro): The primary, flattened plateau at the very top of the hill. This is the main excavation zone where both the Orientalizing and Archaic monumental buildings were discovered.
-            - Tesoro North Flank & Tesoro South Flank: Specific excavation zones positioned along the northern and southern edges of the main plateau.
-            - Tesoro South Terrace, East Terrace, & North Terrace: Terraced areas extending down off the edges of the main Tesoro plateau. These flanks often contain debris, architectural terracottas, and domestic remains that washed or were pushed down from the main complexes above.
-            - Tesoro Rectangle: A specific designated excavation trench or architectural grid area located on the main plateau.
-            
-            - Agger: An earthwork or defensive mound. When the monumental Archaic building was destroyed and ritually buried around 525 BCE, its pisé (rammed earth) walls were deliberately pulled down and scraped to the western edges of the Piano del Tesoro to form this mound. The agger effectively sealed and preserved the foundations underneath it.
-            - Lower Building: Also referred to as Orientalizing Complex 1 (OC1) or the "Residence." This was a monumental building from the earlier Orientalizing period that was destroyed by a massive fire around 590–580 BCE. It is called "Lower" because its structural remains were discovered stratigraphically beneath the foundations of the later Archaic period building.
-            - Courtyard: The large central open-air space of the monumental Archaic Building (built early 6th century BCE). The complex consisted of four flanking structures that completely surrounded this central, colonnaded court
-
-            Break down the stratigraphy into distinct 'layers' and take note of their order from top to bottom, their material, and any other important information. If there are any notable features within each layer (like a rock or a tree stump) take note of that.
-    
-            Using the provided scale and the grid, provide an estimate of depth, size of objects, and any other useful information
+        sYou are transcribing a single archaeological trench profile drawing into
+structured, measurable data that will later be converted into a 3D geological
+model (GemPy). Downstream software will treat your numbers as real
+measurements, so accuracy and honest uncertainty matter far more than
+completeness. A null value is always better than a plausible-sounding guess.
+ 
+The dig is Poggio Civitate, Murlo, Italy. Transcribe the filePath as {imagePath}.
+ 
+============================================================
+COORDINATE SYSTEM  (use this exact convention for every number)
+============================================================
+- x = horizontal position ALONG the face, in METERS, measured from the LEFT
+  edge of the drawn profile. The leftmost point of the profile is x = 0.
+- depth = vertical distance DOWNWARD from the ground surface, in METERS,
+  POSITIVE DOWNWARD. The top of the topsoil is depth = 0. A point 40 cm below
+  the surface is depth = 0.4.
+- Never use negative depth. Never mix the two axes.
+ 
+============================================================
+SCALE & GRID  (establish your rulers first, then measure)
+============================================================
+1. Find the scale bar and read its marked values (e.g. 0,1,2,3 m). This is
+   your DEPTH ruler and your primary distance ruler.
+2. Find the grid labels along the top of the profile. Estimate the x-position
+   (in meters, from the left edge) of EACH grid label using the scale bar, and
+   report them in `gridLabelXMeters` in the same order as `gridLabels`.
+3. If the drawing has a non-metric or unfamiliar scale (e.g. an old "PECK"
+   bar), do NOT silently convert it. Read its marked values as-is into the
+   scale object, and if you relate it to meters by visual comparison, put that
+   reasoning in `scale.metricConversionAssumption` as an explicit assumption
+   (e.g. "1 PECK read as ~0.2 m by visual comparison to the metric bar;
+   approximate"). Flag it — do not present it as established fact.
+ 
+============================================================
+LAYER BOUNDARIES  (the core of the GemPy data)
+============================================================
+For each layer, trace its bottom boundary (and its top boundary ONLY if that
+top is drawn independently and differs from the layer above it) as a SERIES OF
+POINTS across the face — never a single depth value.
+- Place a point wherever the boundary crosses a grid label.
+- Place extra points wherever the line visibly bends, dips, rises, or forms a
+  feature (pit, U-shaped cut, undulation). Let the line's real complexity set
+  the point count: a flat boundary may need 2-3 points; an irregular one many.
+- Do NOT force a uniform number of points across layers.
+- If a layer's top is simply the bottom of the layer above, leave its
+  topBoundary null — do not duplicate the line.
+- Measure each point: depth against the scale bar, x against the grid/scale.
+ 
+============================================================
+FEATURES  (stones, carbon lenses, pits, trench floor)
+============================================================
+- A feature with a traced outline (U-shaped carbon lens, pit cut, trench-floor
+  profile, stone cluster edge) MUST have its geometry in `shapePoints` as
+  (xCoordinateMeters, depthMeters) pairs — the SAME coordinate convention as
+  boundaries. Do not bury coordinates inside prose.
+- A single discrete object (one stone) with no meaningful traced outline: use
+  approxXMeters / approxDepthMeters / approxWidthMeters / approxHeightMeters.
+- Put descriptive prose in `description`; put numbers in the numeric fields.
+ 
+============================================================
+UNCERTAINTY  (flag, never fabricate)
+============================================================
+- If a boundary or point is faded, obscured, ambiguous, or runs off the edge
+  of the drawing, set its coordinate value(s) to null and write the reason in
+  that point's `confidence` field (e.g. "line faded near grid B",
+  "estimated from neighbours", "runs off right edge").
+- Use confidence at the point/feature level, not as a global note.
+ 
+============================================================
+NO INTERPRETATION BEYOND WHAT IS DRAWN
+============================================================
+- Do NOT infer historical context, chronology, period, or connections to known
+  events, buildings, fires, or destruction layers here or at any site.
+- Do NOT state what a feature "likely represents" beyond its directly
+  observable physical description (material, shape, size, position).
+- The Poggio Civitate background below is ONLY to help you read labels and
+  abbreviations correctly. It is NOT license to add interpretation. If a term
+  is not actually written on the drawing, do not introduce it.
+- Report only what is visibly depicted, labeled, or written.
+ 
+============================================================
+TRANSCRIPTION FIDELITY
+============================================================
+- Transcribe any unclear/unfamiliar text, label, abbreviation, or unit EXACTLY
+  as written. Do not expand or guess its meaning.
+- Signatures and dates are usually in the bottom corners.
+ 
+============================================================
+inferred_notes  (you, the vision agent, own this field)
+============================================================
+Because only you can see the image, YOU write inferred_notes. Restrict them to
+METHODOLOGY and READABILITY:
+  - how a measurement or scale conversion was estimated and why,
+  - what was unreadable/ambiguous and how you handled it,
+  - which metadata was missing and what you assumed.
+NEVER put archaeological or historical interpretation in inferred_notes.
+ 
+Reference terms for reading labels only (do NOT inject these unless written on
+the drawing): Poggio Aguzzo (necropolis); Civitate A/B/C/D and Civitatine B
+(property/trench zones); Piano del Tesoro / Tesoro and its Flanks, Terraces,
+and Rectangle (excavation zones); Agger (earthwork mound); Lower Building /
+OC1; Courtyard.
+ 
+============================================================
+COMPLETENESS CHECKLIST  (your transcription MUST supply all of this)
+============================================================
+A separate agent will structure your description into a fixed schema. It CANNOT
+see the image — if you omit something here, it is lost. Before you finish,
+confirm your description explicitly provides every item below. Where a value is
+genuinely unreadable, say so and why (do not just leave it out silently).
+ 
+Document level:
+  [ ] trench label (e.g. "T 23")
+  [ ] scale bar: unit and the marked values (e.g. 0,1,2,3 m)
+  [ ] if a non-metric/unfamiliar scale: its marked values as-is + your explicit
+      meters assumption ("1 PECK read as ~0.2 m, approximate")
+  [ ] creator and year (usually bottom corners); say "not stated" if absent
+  [ ] all marginalia text, transcribed verbatim
+  [ ] the legend: every visual pattern paired with its material
+ 
+For EACH face (e.g. East, South, West):
+  [ ] the face name
+  [ ] the grid labels along the top, in order
+  [ ] the x-position IN METERS (from left edge) of each grid label
+ 
+For EACH layer, top to bottom:
+  [ ] layer order/name and its material
+  [ ] the visual pattern that denotes it
+  [ ] its BOTTOM boundary as a list of (x meters, depth meters) points, with
+      extra points at every bend/dip/feature — not a single depth
+  [ ] its TOP boundary ONLY if drawn independently of the layer above; else
+      state "top = bottom of layer above"
+  [ ] any per-point uncertainty (faded, estimated, off-edge)
+ 
+For EACH feature (stone, carbon lens, pit, trench floor):
+  [ ] which layer it sits in
+  [ ] traced outlines (U-shaped lens, pit cut, floor profile) as a list of
+      (x meters, depth meters) points
+  [ ] discrete objects (a stone) as approx x, depth, width, height in meters
+  [ ] a short physical description (no interpretation)
+ 
+Methodology notes (for inferred_notes):
+  [ ] how any measurement/scale conversion was estimated
+  [ ] what was unreadable/ambiguous and how you handled it
+  [ ] which metadata was missing and what you assumed
+ 
+Now produce a thorough, measurement-focused natural-language transcription that
+covers every checklist item above, layer by layer and face by face.
     """
 
     imageAnalysisAgentResponse = client.models.generate_content(
@@ -145,18 +230,36 @@ Output must conform exactly to the provided schema.
     print("\n  Structuring Data into JSON...")
 
     dataStructuringAgentPrompt = f"""
-        Read the following archaeological image description and extract the relevant information to populate the JSON schema.
-    
-        Extraction Rules:
-        - Map all visual patterns (like "stippling" or "crosshatching") to their identified materials in the legend.
-        - Accurately categorize the stratigraphy descriptions and notable features for each specific trench face (e.g., East Face, South Face).
-        - If there is any information that was inferred, include that as a note rather than in the other parts of the json. Include how it was inferred and why.
-        - The CurrentFilePath must be recorded exactly as: {imagePath}
-        - Generate a descriptive 'suggested_filename' combining the trench name and year. Use strictly lowercase letters, separate words with underscores, and do not include the file extension. (e.g., trench_23_carbon_layer_profile)
-        - If you observe historical context, tentative interpretations, or extra details that do not fit into the standard categories, add them as separate strings in the inferred_notes array
-        - Don't include repetitive phrasing.
-        Image Description:
-        {description}
+        Convert the archaeological trench description below into JSON matching the
+schema exactly. You are a FAITHFUL TRANSCRIBER of the description — you did not
+see the image, so you must not add, infer, or embellish anything.
+ 
+Rules:
+- Use ONLY information present in the description. If the description doesn't
+  state something, leave it null. Never invent coordinates, confidences, or
+  notes.
+- Coordinate convention: x = meters along the face from the left edge;
+  depth = meters positive DOWNWARD from the surface. Copy the numbers the
+  description gives; do not recompute or "clean up" values.
+- Boundaries: populate bottomBoundary (and topBoundary only when the
+  description says the top is drawn independently) as point lists with
+  xCoordinateMeters + depthMeters, carrying over any per-point confidence
+  the description mentions.
+- Features: if the description gives a traced outline (e.g. a U-shaped carbon
+  lens with listed points), put those in `shapePoints`. If it gives a single
+  location/size for a discrete object, use the approx* fields. Put descriptive
+  prose in `description`.
+- Map visual patterns to materials via the legend.
+- CurrentFilePath must be exactly: {imagePath}
+- suggestedFilename: lowercase, underscores, no extension, combining trench
+  label and year (e.g. trench_23_1980).
+- inferred_notes: copy ONLY the methodological/readability notes already
+  present in the description. DO NOT create new notes, and DO NOT add any
+  historical, chronological, or interpretive content. If the description has no
+  such notes, use an empty list or null.
+ 
+Description:
+{description}
     """
 
     dataStructuringAgentResponse = client.models.generate_content(
