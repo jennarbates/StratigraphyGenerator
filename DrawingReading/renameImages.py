@@ -27,9 +27,14 @@ class Scale(BaseModel):
     confidence: str | None = None
 
 
+class Attribution(BaseModel):
+    name: str | None
+    role: str | None = None
+
+
 class Credits(BaseModel):
-    creator: str | None
-    year: str | None
+    attributions: list[Attribution] | None = None
+    year: str | None = None
 
 
 class BoundaryPoint(BaseModel):
@@ -138,13 +143,19 @@ COORDINATE SYSTEM
 ============================================================
 STEP 1 - SCALE  (calibrate before measuring)
 ============================================================
-Scale bars vary: some drawings have ONE bar, some have TWO stacked bars (e.g. an
-old unit like "PECK" and a metric "0 1 2 3 M"). Look at what is printed.
-- Read each bar's printed values verbatim into `scale`.
-- If a metric (M) bar exists, it is your ONLY measuring ruler, for BOTH x and y.
-- If a non-metric bar exists and you relate it to meters, record that in
-  `scale.metricConversionAssumption` as an explicit, flagged assumption; never
-  silently convert and never measure with it.
+A word next to the scale bar is NOT automatically a unit. Units are short
+measurement abbreviations (M, m, cm, ft, in). A capitalized surname (e.g.
+"PECK") beside a year is a PERSON'S NAME/signature, not a unit — do NOT invent a
+conversion for it.
+- If it is a real unit: read the bar's printed values verbatim into `scale`.
+- If it is a name/signature or initials: put it in `credits.attributions` as
+  {{name, role}} (role ONLY if the drawing states it, else null — don't guess a
+  role). Also transcribe the raw text verbatim into `metadata.marginalia`.
+- Any signature/number/date string (e.g. "NR. 7/80") goes verbatim into
+  `metadata.marginalia`; don't force its meaning. If a year is clearly legible,
+  also record `credits.year`.
+- Measure ONLY with the metric (M) bar, for both x and y. Only a genuine second
+  UNIT scale (not a name) may go in `scale.metricConversionAssumption`.
 - Establish drawn-units-per-meter from the metric bar and apply it consistently.
   Sanity-check each face's total width against the bar.
 

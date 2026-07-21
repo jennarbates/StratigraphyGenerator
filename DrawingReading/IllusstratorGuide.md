@@ -45,9 +45,17 @@ and errors. Please follow the points below when producing new drawings.
 - Add a short **feature key** in a corner (e.g. "F1: carbon lens; F2: stone
   cluster") with matching labels on the drawing.
 
-## Metadata (fixed positions)
-- Put **trench label, face names, creator, date, and drawing number** in the
-  **same corner every time**, and **print** them (no cursive).
+## Metadata & signatures (fixed positions)
+- Put **trench label, face names, creator/illustrator names, date, and any
+  drawing number** in the **same corner every time**, and **print** them (no
+  cursive).
+- **Keep names, initials, and dates well clear of the scale bar.** When a
+  signature or date sits right next to the scale, automated reading can mistake a
+  name for a unit of measurement (a real drawing in this archive is signed "PECK"
+  beside the bar — a person's name — which the tool initially misread as a
+  measurement unit). Give the scale bar its own clear space.
+- If you can, **label each name with its role** ("architect: …", "illustrator:
+  …"). Roles that aren't written down have to be filled in by hand later.
 
 ## Scanning / digital capture
 - Scan at **300 DPI or higher**, **high contrast**, **minimal skew**, with the
@@ -64,5 +72,5 @@ and errors. Please follow the points below when producing new drawings.
 - [ ] Distinct fill patterns; each layer labeled on the profile
 - [ ] Legend maps one pattern → one material
 - [ ] Feature labels on/pointing to their features; feature key present
-- [ ] Metadata printed in the usual corner
+- [ ] Metadata printed in the usual corner; names/dates kept clear of the scale bar
 - [ ] High-res, high-contrast, lossless scan (or vector export)
