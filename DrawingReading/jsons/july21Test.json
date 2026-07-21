@@ -1,0 +1,297 @@
+{
+  "metadata": {
+    "currentFilePath": "./images/qwertyTest.png",
+    "suggestedFilename": "trench_23_1980_profile",
+    "trenchLabel": "T 23",
+    "scale": {
+      "unit": "meters",
+      "valuesMarked": [0, 1, 2, 3]
+    },
+    "credits": {
+      "creator": "NR",
+      "year": "1980"
+    },
+    "marginalia": [
+      "Poggio Civitate in Murlo, Italy",
+      "NR. 7/80",
+      "The grid lines in the drawings represent 1-meter squares.",
+      "The overall trench depth appears to be between 1.5 and 2 meters from the modern surface.",
+      "An additional unit 'PECK' is marked on the scale bar, but its conversion is not provided."
+    ]
+  },
+  "trenchProfiles": [
+    {
+      "face": "East Face",
+      "gridLabels": ["C", "B", "A", "AA", "BB", "CC"],
+      "layers": [
+        {
+          "layerName": "TOPSOIL",
+          "inferredMaterial": "TOPSOIL",
+          "description": "The uppermost layer, relatively thin, averaging about 20-30 cm in depth. It forms the immediate modern surface.",
+          "featuresInLayer": null
+        },
+        {
+          "layerName": "MIXED LIGHT SOIL, STONES AND TILE",
+          "inferredMaterial": "MIXED LIGHT SOIL, STONES AND TILE",
+          "description": "Approximately 30-40 cm thick, lying directly beneath the topsoil.",
+          "featuresInLayer": [
+            {
+              "feature": "rock/stone",
+              "location": "under grid square C",
+              "description": "Roughly 30x20 cm, embedded within the mixed soil matrix."
+            },
+            {
+              "feature": "rock/stone",
+              "location": "under grid square A",
+              "description": "Larger, about 50x30 cm, embedded within the mixed soil matrix."
+            }
+          ]
+        },
+        {
+          "layerName": "TILE LAYER",
+          "inferredMaterial": "TILE LAYER",
+          "description": "A distinct layer, about 10-20 cm thick, found below the mixed soil.",
+          "featuresInLayer": null
+        },
+        {
+          "layerName": "DARK GRAY",
+          "inferredMaterial": "DARK GRAY",
+          "description": "Approximately 20-30 cm thick, noticeable for its darker coloration and texture.",
+          "featuresInLayer": null
+        },
+        {
+          "layerName": "BUFF-GRAY",
+          "inferredMaterial": "BUFF-GRAY",
+          "description": "Around 20-30 cm thick.",
+          "featuresInLayer": [
+            {
+              "feature": "CARBON LAYER",
+              "location": "running horizontally through its upper half",
+              "description": "Prominent, wavy, about 5-10 cm thick at its maximum, indicating a significant burning event."
+            }
+          ]
+        },
+        {
+          "layerName": "BROWN-YELLOW",
+          "inferredMaterial": "BROWN-YELLOW",
+          "description": "A layer about 30-40 cm thick, directly beneath the Buff-Gray layer.",
+          "featuresInLayer": null
+        },
+        {
+          "layerName": "LIGHT",
+          "inferredMaterial": "LIGHT",
+          "description": "A thin, relatively undifferentiated layer, approximately 10-20 cm thick, marking a transition to the basal layer.",
+          "featuresInLayer": null
+        },
+        {
+          "layerName": "VIRGIN SOIL",
+          "inferredMaterial": "VIRGIN SOIL",
+          "description": "The lowest visible layer, representing the undisturbed natural soil before human occupation. It forms the base of the trench, with a slightly undulating bottom contour.",
+          "featuresInLayer": null
+        }
+      ]
+    },
+    {
+      "face": "South Face",
+      "gridLabels": ["I6", "I5", "I4"],
+      "layers": [
+        {
+          "layerName": "TOPSOIL",
+          "inferredMaterial": "TOPSOIL",
+          "description": "A thin topsoil layer, roughly 20-30 cm deep.",
+          "featuresInLayer": null
+        },
+        {
+          "layerName": "MIXED LIGHT SOIL, STONES AND TILE",
+          "inferredMaterial": "MIXED LIGHT SOIL, STONES AND TILE",
+          "description": "Approximately 20-30 cm thick, consistent with the mixed fill found in the East Face.",
+          "featuresInLayer": null
+        },
+        {
+          "layerName": "PINK-YELLOW WITH CARBON AND PLASTER",
+          "inferredMaterial": "PINK-YELLOW WITH CARBON AND PLASTER",
+          "description": "This distinctive layer is notably thick, especially in the center of the profile (under I5), where it forms a U-shaped deposit, suggesting a pit or cut feature filled with this material. It is approximately 40-50 cm thick at its deepest point. This layer is indicative of architectural debris (plaster) and burning.",
+          "featuresInLayer": [
+            {
+              "feature": "CARBON LAYER",
+              "location": "directly beneath this pink-yellow deposit, just above the Tile Layer",
+              "description": "Thin, about 5 cm thick."
+            }
+          ]
+        },
+        {
+          "layerName": "TILE LAYER",
+          "inferredMaterial": "TILE LAYER",
+          "description": "A consistent layer, about 10-20 cm thick, observed below the main Pink-Yellow deposit.",
+          "featuresInLayer": null
+        },
+        {
+          "layerName": "DARK GRAY",
+          "inferredMaterial": "DARK GRAY",
+          "description": "About 20-30 cm thick, similar in appearance to the East Face.",
+          "featuresInLayer": null
+        },
+        {
+          "layerName": "BUFF-GRAY",
+          "inferredMaterial": "BUFF-GRAY",
+          "description": "Approximately 20-30 cm thick, this layer shows no distinct carbon layers in this profile.",
+          "featuresInLayer": null
+        },
+        {
+          "layerName": "BROWN-YELLOW",
+          "inferredMaterial": "BROWN-YELLOW",
+          "description": "Roughly 30-40 cm thick.",
+          "featuresInLayer": null
+        },
+        {
+          "layerName": "LIGHT",
+          "inferredMaterial": "LIGHT",
+          "description": "A thin layer, about 10-20 cm thick.",
+          "featuresInLayer": null
+        },
+        {
+          "layerName": "VIRGIN SOIL",
+          "inferredMaterial": "VIRGIN SOIL",
+          "description": "The natural, undisturbed soil forming the base of the trench, with a relatively flat bottom.",
+          "featuresInLayer": null
+        }
+      ]
+    },
+    {
+      "face": "West Face",
+      "gridLabels": ["CC", "BB", "AA", "A", "B", "C"],
+      "layers": [
+        {
+          "layerName": "TOPSOIL",
+          "inferredMaterial": "TOPSOIL",
+          "description": "The uppermost layer, approximately 20-30 cm deep.",
+          "featuresInLayer": null
+        },
+        {
+          "layerName": "MIXED LIGHT SOIL, STONES AND TILE",
+          "inferredMaterial": "MIXED LIGHT SOIL, STONES AND TILE",
+          "description": "This layer, about 30-40 cm thick.",
+          "featuresInLayer": [
+            {
+              "feature": "LARGE STONES",
+              "location": "on the far right (under grid square C)",
+              "description": "Several large, irregular stones, extending from this layer downwards into the Tile Layer, measuring roughly 40-60 cm across."
+            }
+          ]
+        },
+        {
+          "layerName": "TILE LAYER",
+          "inferredMaterial": "TILE LAYER",
+          "description": "A distinct layer, 10-20 cm thick, showing integration with the 'LARGE STONES' on the right side.",
+          "featuresInLayer": null
+        },
+        {
+          "layerName": "DARK GRAY",
+          "inferredMaterial": "DARK GRAY",
+          "description": "Approximately 20-30 cm thick.",
+          "featuresInLayer": null
+        },
+        {
+          "layerName": "BUFF-GRAY",
+          "inferredMaterial": "BUFF-GRAY",
+          "description": "This layer, about 30-40 cm thick.",
+          "featuresInLayer": [
+            {
+              "feature": "CARBON LAYER",
+              "location": "throughout the layer",
+              "description": "Multiple, thin, undulating features, indicating multiple localized burning events or concentrations of organic material."
+            },
+            {
+              "feature": "TRACES OF CARBON",
+              "location": "scattered throughout the layer",
+              "description": "Indicating multiple localized burning events or concentrations of organic material."
+            }
+          ]
+        },
+        {
+          "layerName": "BROWN-YELLOW",
+          "inferredMaterial": "BROWN-YELLOW",
+          "description": "Roughly 30-40 cm thick.",
+          "featuresInLayer": null
+        },
+        {
+          "layerName": "LIGHT",
+          "inferredMaterial": "LIGHT",
+          "description": "A thin layer, about 10-20 cm thick.",
+          "featuresInLayer": null
+        },
+        {
+          "layerName": "VIRGIN SOIL",
+          "inferredMaterial": "VIRGIN SOIL",
+          "description": "The natural soil at the base of the trench, showing a slight dip towards the center.",
+          "featuresInLayer": null
+        }
+      ]
+    }
+  ],
+  "legend": [
+    {
+      "visualPattern": "Vertical squiggly lines",
+      "material": "TOPSOIL"
+    },
+    {
+      "visualPattern": "Horizontal wavy lines",
+      "material": "MIXED LIGHT SOIL, STONES AND TILE"
+    },
+    {
+      "visualPattern": "Horizontal brick-like pattern",
+      "material": "TILE LAYER"
+    },
+    {
+      "visualPattern": "Dense stippling",
+      "material": "DARK GRAY"
+    },
+    {
+      "visualPattern": "Sparse stippling",
+      "material": "BUFF-GRAY"
+    },
+    {
+      "visualPattern": "Vertical hatching",
+      "material": "BROWN-YELLOW"
+    },
+    {
+      "visualPattern": "Very sparse stippling",
+      "material": "LIGHT"
+    },
+    {
+      "visualPattern": "Small 'x' shapes",
+      "material": "PINK-YELLOW WITH CARBON AND PLASTER"
+    },
+    {
+      "visualPattern": "Small vertical dashes",
+      "material": "LIGHT GRAY WITH CARBON"
+    },
+    {
+      "visualPattern": "Small dots",
+      "material": "YELLOW"
+    },
+    {
+      "visualPattern": "Dots with crosses",
+      "material": "GRAY-YELLOW WITH CARBON"
+    },
+    {
+      "visualPattern": "Small crosses",
+      "material": "TRACES OF CARBON"
+    },
+    {
+      "visualPattern": "Horizontal hatching",
+      "material": "VIRGIN SOIL"
+    },
+    {
+      "visualPattern": "Thick black line",
+      "material": "CARBON LAYER"
+    }
+  ],
+  "inferred_notes": [
+    "The archaeological site name is Poggio Civitate in Murlo, Italy, inferred from the prompt.",
+    "The specific location of Trench 23 within Poggio Civitate is not provided. However, the presence of 'Tile Layer,' 'Pink-Yellow with Carbon and Plaster,' multiple 'Carbon Layer' features, and 'Large Stones' strongly suggests it is located within an area of significant architectural activity and destruction, likely aligning with areas like the Piano del Tesoro or its terraces, where monumental buildings and associated destruction layers are found. The 'Pink-Yellow with Carbon and Plaster' layer points towards plastered architectural remains, common in monumental buildings, and carbon layers are consistent with known fire destructions (e.g., 590-580 BCE fire of OC1).",
+    "The drawing purpose is inferred to be a formal archaeological record suitable for analysis and publication, given its detail and clarity.",
+    "The creator 'NR' is inferred to be initials of the draftsman, with '7/80' indicating July 1980. The full name is not provided.",
+    "The stratigraphy of Trench 23 reveals a complex sequence of deposition and disturbance typical of a long-occupied settlement area. The Virgin Soil represents natural ground before human activity. Layers like Light, Brown-Yellow, and Buff-Gray could be early fills or natural accumulation. Multiple Carbon Layer features, especially in the West and East Faces, indicate significant burning events, potentially linked to the destruction by fire of the Lower Building (Orientalizing Complex 1) around 590-580 BCE. The Tile Layer across all faces suggests fallen roof tiles from a structure. The Pink-Yellow with Carbon and Plaster layer in the South Face is a key indicator of architectural elements, specifically plastered walls, and its carbon content suggests a fire, further linking it to the destruction of the Lower Building. The U-shaped deposit might indicate a pit or localized collapse. The Mixed Light Soil, Stones and Tile layer, with 'LARGE STONES' on the West Face, represents structural debris, possibly related to the Agger (defensive mound). The Topsoil is the most recent deposit. Overall, Trench 23 shows strong evidence of human occupation, construction, and multiple destructive events consistent with Poggio Civitate's history."
+  ]
+}
