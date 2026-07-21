@@ -1,8 +1,8 @@
 """
-validate.py — sanity-checks the trench-extraction JSON before it feeds GemPy.
+validator.py — sanity-checks the trench-extraction JSON before it feeds GemPy.
 
 Usage:
-    python validate.py path/to/output.json
+    python validator.py path/to/output.json
 
 Exit code 0 = no errors (warnings allowed), 1 = at least one error.
 
@@ -25,6 +25,10 @@ from dataclasses import dataclass, field
 # meters) before we call it a crossing. Hand-drawn lines wobble, so a tiny
 # tolerance avoids false alarms.
 MONOTONIC_TOLERANCE_M = 0.02
+# Top-of-layer continuity is looser: an independently-drawn top may sit a bit
+# off the layer-above's bottom on purpose. Only a gap larger than this looks
+# like a genuine void or mis-scale worth flagging.
+TOP_CONTINUITY_TOLERANCE_M = 0.10
 # Max plausible depth (m). Anything beyond is flagged as a likely mis-read.
 MAX_PLAUSIBLE_DEPTH_M = 5.0
 
@@ -139,15 +143,21 @@ def check_face(face, report):
         top = check_boundary(layer.get("topBoundary"), f"{where} top", report)
         bottom = check_boundary(layer.get("bottomBoundary"), f"{where} bottom", report)
 
-        # 1) top of this layer should match bottom of the layer above.
+        # 1) top-of-layer continuity. A layer MAY carry an independently-drawn
+        #    top that legitimately differs slightly from the layer above's
+        #    bottom (that is often why it was drawn separately). So we only
+        #    flag a *large* discrepancy (a real void or a big overlap), using a
+        #    looser threshold than the crossing check below. Small offsets are
+        #    expected and not reported.
         if prev_bottom and top:
             for x, y in top:
                 above = depth_at_x(prev_bottom, x)
-                if above is not None and abs(y - above) > MONOTONIC_TOLERANCE_M:
+                if above is not None and abs(y - above) > TOP_CONTINUITY_TOLERANCE_M:
                     report.warn(
                         where,
-                        f"top at x={x} (depth {y:.2f}) doesn't meet "
-                        f"{prev_name} bottom (depth {above:.2f}) — gap/overlap")
+                        f"top at x={x} (depth {y:.2f}) is far from "
+                        f"{prev_name} bottom (depth {above:.2f}) — "
+                        f"possible void/overlap")
 
         # 2) monotonic stacking: this layer's bottom must not rise above the
         #    layer above's bottom (layers can't cross).

@@ -114,7 +114,7 @@ def ProcessImageSingleAgent(imagePath: str):
         return
 
     print("analyzing image (single agent)...")
-    img = Image.open('./images/qwertyTest.png')
+    img = Image.open(imagePath)
 
     prompt = f"""
 You are transcribing a single archaeological trench profile drawing DIRECTLY
@@ -262,4 +262,6 @@ Emit ONLY the JSON conforming to the schema.
 
 
 if __name__ == "__main__":
-    ProcessImageSingleAgent('./images/qwertyTest.png')
+    import sys
+    imagePath = sys.argv[1] if len(sys.argv) > 1 else './images/qwertyTest.png'
+    ProcessImageSingleAgent(imagePath)
