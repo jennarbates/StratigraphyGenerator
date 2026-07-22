@@ -35,6 +35,19 @@ import json
 import math
 
 
+def least_squares_slope(xs, ds):
+    """Best-fit slope (dz/dx) of depth vs. x over ALL points, not just the
+    endpoints. Falls back to 0.0 if x has no spread (can't determine a slope)."""
+    n = len(xs)
+    mean_x = sum(xs) / n
+    mean_d = sum(ds) / n
+    num = sum((x - mean_x) * (d - mean_d) for x, d in zip(xs, ds))
+    den = sum((x - mean_x) ** 2 for x in xs)
+    if den == 0:
+        return 0.0
+    return num / den
+
+
 def get_y(p):
     if p.get("yCoordinateMeters") is not None:
         return p["yCoordinateMeters"]
@@ -95,11 +108,12 @@ def convert(data, grid, out_csv):
                 X, Y, Z = to_site(x, d)
                 rows.append({"X": round(X, 4), "Y": round(Y, 4), "Z": round(Z, 4),
                              "surface": surface, "face": fname})
-            # one crude orientation seed per boundary: use the average dip along x
+            # one orientation seed per boundary: dip from a least-squares fit
+            # of depth vs x over ALL points (steadier than endpoints alone on
+            # a wavy, hand-drawn boundary).
             if len(pts) >= 2:
-                # slope of depth vs x -> dip; azimuth from bearing
                 xs = [p[0] for p in pts]; ds = [p[1] for p in pts]
-                dz_dx = (ds[-1] - ds[0]) / (xs[-1] - xs[0]) if xs[-1] != xs[0] else 0.0
+                dz_dx = least_squares_slope(xs, ds)
                 dip = math.degrees(math.atan(dz_dx))
                 midx = xs[len(xs)//2]; midd = ds[len(ds)//2]
                 X, Y, Z = to_site(midx, midd)

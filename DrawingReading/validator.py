@@ -3,6 +3,8 @@ validator.py — sanity-checks the trench-extraction JSON before it feeds GemPy.
 
 Usage:
     python validator.py path/to/output.json
+    python validator.py path/to/output.json --max-depth 6.0 \
+        --monotonic-tolerance 0.03 --top-continuity-tolerance 0.15
 
 Exit code 0 = no errors (warnings allowed), 1 = at least one error.
 
@@ -245,10 +247,31 @@ def validate(data):
 
 
 def main():
-    if len(sys.argv) != 2:
-        print("usage: python validate.py <output.json>")
-        sys.exit(2)
-    with open(sys.argv[1]) as f:
+    import argparse
+    global MONOTONIC_TOLERANCE_M, TOP_CONTINUITY_TOLERANCE_M, MAX_PLAUSIBLE_DEPTH_M
+
+    ap = argparse.ArgumentParser(
+        description="Sanity-check a trench-extraction JSON before it feeds GemPy.")
+    ap.add_argument("input", help="extraction JSON to validate")
+    ap.add_argument("--monotonic-tolerance", type=float, default=MONOTONIC_TOLERANCE_M,
+                    help=f"meters a lower layer's bottom may sit above the layer "
+                         f"above before it's flagged as crossing (default: "
+                         f"{MONOTONIC_TOLERANCE_M})")
+    ap.add_argument("--top-continuity-tolerance", type=float,
+                    default=TOP_CONTINUITY_TOLERANCE_M,
+                    help=f"meters a layer's independently-drawn top may sit off "
+                         f"the layer above's bottom before it's flagged as a "
+                         f"possible void/overlap (default: {TOP_CONTINUITY_TOLERANCE_M})")
+    ap.add_argument("--max-depth", type=float, default=MAX_PLAUSIBLE_DEPTH_M,
+                    help=f"depth (m) beyond which a point is flagged as an "
+                         f"implausible read (default: {MAX_PLAUSIBLE_DEPTH_M})")
+    args = ap.parse_args()
+
+    MONOTONIC_TOLERANCE_M = args.monotonic_tolerance
+    TOP_CONTINUITY_TOLERANCE_M = args.top_continuity_tolerance
+    MAX_PLAUSIBLE_DEPTH_M = args.max_depth
+
+    with open(args.input) as f:
         data = json.load(f)
 
     report = validate(data)
