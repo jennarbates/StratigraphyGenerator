@@ -6,6 +6,13 @@ Usage:
     python preprocess.py input.png [--outdir preprocessed] [--upscale 2]
                          [--deskew] [--highcontrast]
 
+PDF input: if the input ends in .pdf, the page is rasterized to a PNG first
+(via pdf2image/poppler) and the rest of the pipeline runs unchanged on that
+raster. Requires poppler (`apt install poppler-utils`) and
+`pip install pdf2image`. Use --pdf-dpi to control rasterization resolution
+(default 300, matching the IllusstratorGuide.md recommendation) and
+--pdf-page for multi-page PDFs (default 1, i.e. the first page).
+
 What it does (non-destructive — writes new files, never edits the original):
   1. Grayscale + background flattening: removes uneven paper tone / yellowing so
      faint ink stands out evenly across the sheet.
@@ -32,6 +39,34 @@ import argparse
 import os
 import cv2
 import numpy as np
+
+
+def load_image(path, pdf_dpi=300, pdf_page=1):
+    """Load an input scan as a BGR array, transparently rasterizing PDFs.
+
+    Every other stage of the pipeline (extraction scripts included) expects a
+    raster (PNG/JPEG). Drawings increasingly arrive as PDFs (e.g. a Photoshop
+    export straight from the illustrator), so this is the one place that gap
+    gets bridged rather than every downstream script re-solving it.
+    """
+    if path.lower().endswith(".pdf"):
+        try:
+            from pdf2image import convert_from_path
+        except ImportError:
+            raise SystemExit(
+                "PDF input requires pdf2image (`pip install pdf2image "
+                "--break-system-packages`) and poppler "
+                "(`apt install poppler-utils`)."
+            )
+        pages = convert_from_path(path, dpi=pdf_dpi)
+        if pdf_page < 1 or pdf_page > len(pages):
+            raise SystemExit(
+                f"{path} has {len(pages)} page(s); --pdf-page {pdf_page} "
+                "is out of range."
+            )
+        pil_img = pages[pdf_page - 1].convert("RGB")
+        return cv2.cvtColor(np.array(pil_img), cv2.COLOR_RGB2BGR)
+    return cv2.imread(path)
 
 
 def flatten_background(gray):
@@ -101,9 +136,13 @@ def main():
     ap.add_argument("--upscale", type=float, default=2.0)
     ap.add_argument("--deskew", action="store_true")
     ap.add_argument("--highcontrast", action="store_true")
+    ap.add_argument("--pdf-dpi", type=int, default=300,
+                     help="rasterization DPI if input is a .pdf (default 300)")
+    ap.add_argument("--pdf-page", type=int, default=1,
+                     help="1-indexed page to use if input is a .pdf (default 1)")
     args = ap.parse_args()
 
-    img = cv2.imread(args.input)
+    img = load_image(args.input, pdf_dpi=args.pdf_dpi, pdf_page=args.pdf_page)
     if img is None:
         raise SystemExit(f"could not read {args.input}")
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)

@@ -1,0 +1,712 @@
+{
+  "trenchLabel": "T104",
+  "faceLabel": "B11 NCF1 Stratigraphy - southern baulk wall",
+  "illustrators": [
+    "Lizzy Bruening",
+    "Heather Fusco"
+  ],
+  "date": "28.07.25",
+  "northArrowPresent": true,
+  "gridSquareCm": 20.0,
+  "gridTiePoints": [
+    {
+      "rawText": "194m",
+      "approxXMeters": 0.0
+    },
+    {
+      "rawText": "193",
+      "approxXMeters": 0.2
+    },
+    {
+      "rawText": "192",
+      "approxXMeters": 0.4
+    },
+    {
+      "rawText": "191",
+      "approxXMeters": 0.6
+    },
+    {
+      "rawText": "190m",
+      "approxXMeters": 0.8
+    },
+    {
+      "rawText": "27.90",
+      "approxXMeters": 0.0
+    },
+    {
+      "rawText": "27.87 MAE",
+      "approxXMeters": 0.8
+    },
+    {
+      "rawText": "20.79 MAE",
+      "approxXMeters": 0.0
+    }
+  ],
+  "loci": [
+    {
+      "locusNumber": "1",
+      "munsell": {
+        "raw": "5yr 4/2",
+        "colorName": "dark reddish gray"
+      },
+      "description": null,
+      "confidence": null
+    },
+    {
+      "locusNumber": "2",
+      "munsell": {
+        "raw": "10yr 3/1",
+        "colorName": "dark reddish gray"
+      },
+      "description": null,
+      "confidence": null
+    },
+    {
+      "locusNumber": "3",
+      "munsell": {
+        "raw": "10yr 5/3",
+        "colorName": "brown"
+      },
+      "description": null,
+      "confidence": null
+    },
+    {
+      "locusNumber": "4",
+      "munsell": {
+        "raw": "2.5yr 5/4",
+        "colorName": "reddish brown"
+      },
+      "description": null,
+      "confidence": null
+    },
+    {
+      "locusNumber": "5",
+      "munsell": {
+        "raw": "7.5yr 4/4",
+        "colorName": "brown"
+      },
+      "description": null,
+      "confidence": null
+    },
+    {
+      "locusNumber": "5",
+      "munsell": {
+        "raw": "5yr 4/4",
+        "colorName": "reddish brown"
+      },
+      "description": null,
+      "confidence": null
+    },
+    {
+      "locusNumber": "6",
+      "munsell": {
+        "raw": "10yr 3/2",
+        "colorName": "very dark gray brown"
+      },
+      "description": null,
+      "confidence": null
+    }
+  ],
+  "layers": [
+    {
+      "locusNumber": "1",
+      "topBoundary": [
+        {
+          "xMeters": 0.0,
+          "depthMeters": 0.0,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.8,
+          "depthMeters": 0.0,
+          "confidence": null
+        }
+      ],
+      "bottomBoundary": [
+        {
+          "xMeters": 0.0,
+          "depthMeters": 0.08,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.08,
+          "depthMeters": 0.12,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.16,
+          "depthMeters": 0.08,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.24,
+          "depthMeters": 0.12,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.32,
+          "depthMeters": 0.08,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.4,
+          "depthMeters": 0.12,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.48,
+          "depthMeters": 0.08,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.56,
+          "depthMeters": 0.12,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.64,
+          "depthMeters": 0.08,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.72,
+          "depthMeters": 0.12,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.8,
+          "depthMeters": 0.08,
+          "confidence": null
+        }
+      ],
+      "featuresInLayer": [
+        {
+          "feature": "stone",
+          "description": null,
+          "shapePoints": null,
+          "approxXMeters": 0.04,
+          "approxDepthMeters": 0.04,
+          "approxWidthMeters": 0.04,
+          "approxHeightMeters": 0.02,
+          "confidence": null
+        },
+        {
+          "feature": "stone",
+          "description": null,
+          "shapePoints": null,
+          "approxXMeters": 0.2,
+          "approxDepthMeters": 0.04,
+          "approxWidthMeters": 0.04,
+          "approxHeightMeters": 0.02,
+          "confidence": null
+        },
+        {
+          "feature": "stone",
+          "description": null,
+          "shapePoints": null,
+          "approxXMeters": 0.3,
+          "approxDepthMeters": 0.04,
+          "approxWidthMeters": 0.06,
+          "approxHeightMeters": 0.02,
+          "confidence": null
+        },
+        {
+          "feature": "stone",
+          "description": null,
+          "shapePoints": null,
+          "approxXMeters": 0.5,
+          "approxDepthMeters": 0.04,
+          "approxWidthMeters": 0.04,
+          "approxHeightMeters": 0.02,
+          "confidence": null
+        },
+        {
+          "feature": "stone",
+          "description": null,
+          "shapePoints": null,
+          "approxXMeters": 0.7,
+          "approxDepthMeters": 0.04,
+          "approxWidthMeters": 0.04,
+          "approxHeightMeters": 0.02,
+          "confidence": null
+        }
+      ]
+    },
+    {
+      "locusNumber": "2",
+      "topBoundary": null,
+      "bottomBoundary": [
+        {
+          "xMeters": 0.0,
+          "depthMeters": 0.16,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.08,
+          "depthMeters": 0.2,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.16,
+          "depthMeters": 0.16,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.24,
+          "depthMeters": 0.2,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.32,
+          "depthMeters": 0.16,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.4,
+          "depthMeters": 0.2,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.48,
+          "depthMeters": 0.16,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.56,
+          "depthMeters": 0.2,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.64,
+          "depthMeters": 0.16,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.72,
+          "depthMeters": 0.2,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.8,
+          "depthMeters": 0.16,
+          "confidence": null
+        }
+      ],
+      "featuresInLayer": [
+        {
+          "feature": "stone",
+          "description": null,
+          "shapePoints": null,
+          "approxXMeters": 0.04,
+          "approxDepthMeters": 0.12,
+          "approxWidthMeters": 0.04,
+          "approxHeightMeters": 0.02,
+          "confidence": null
+        },
+        {
+          "feature": "stone",
+          "description": null,
+          "shapePoints": null,
+          "approxXMeters": 0.2,
+          "approxDepthMeters": 0.12,
+          "approxWidthMeters": 0.04,
+          "approxHeightMeters": 0.02,
+          "confidence": null
+        },
+        {
+          "feature": "stone",
+          "description": null,
+          "shapePoints": null,
+          "approxXMeters": 0.3,
+          "approxDepthMeters": 0.12,
+          "approxWidthMeters": 0.06,
+          "approxHeightMeters": 0.02,
+          "confidence": null
+        },
+        {
+          "feature": "stone",
+          "description": null,
+          "shapePoints": null,
+          "approxXMeters": 0.5,
+          "approxDepthMeters": 0.12,
+          "approxWidthMeters": 0.04,
+          "approxHeightMeters": 0.02,
+          "confidence": null
+        },
+        {
+          "feature": "stone",
+          "description": null,
+          "shapePoints": null,
+          "approxXMeters": 0.7,
+          "approxDepthMeters": 0.12,
+          "approxWidthMeters": 0.04,
+          "approxHeightMeters": 0.02,
+          "confidence": null
+        }
+      ]
+    },
+    {
+      "locusNumber": "3",
+      "topBoundary": null,
+      "bottomBoundary": [
+        {
+          "xMeters": 0.0,
+          "depthMeters": 0.24,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.08,
+          "depthMeters": 0.28,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.16,
+          "depthMeters": 0.24,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.24,
+          "depthMeters": 0.28,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.32,
+          "depthMeters": 0.24,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.4,
+          "depthMeters": 0.28,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.48,
+          "depthMeters": 0.24,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.56,
+          "depthMeters": 0.28,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.64,
+          "depthMeters": 0.24,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.72,
+          "depthMeters": 0.28,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.8,
+          "depthMeters": 0.24,
+          "confidence": null
+        }
+      ],
+      "featuresInLayer": [
+        {
+          "feature": "stone",
+          "description": null,
+          "shapePoints": null,
+          "approxXMeters": 0.04,
+          "approxDepthMeters": 0.2,
+          "approxWidthMeters": 0.04,
+          "approxHeightMeters": 0.02,
+          "confidence": null
+        },
+        {
+          "feature": "stone",
+          "description": null,
+          "shapePoints": null,
+          "approxXMeters": 0.2,
+          "approxDepthMeters": 0.2,
+          "approxWidthMeters": 0.04,
+          "approxHeightMeters": 0.02,
+          "confidence": null
+        },
+        {
+          "feature": "stone",
+          "description": null,
+          "shapePoints": null,
+          "approxXMeters": 0.3,
+          "approxDepthMeters": 0.2,
+          "approxWidthMeters": 0.06,
+          "approxHeightMeters": 0.02,
+          "confidence": null
+        },
+        {
+          "feature": "stone",
+          "description": null,
+          "shapePoints": null,
+          "approxXMeters": 0.5,
+          "approxDepthMeters": 0.2,
+          "approxWidthMeters": 0.04,
+          "approxHeightMeters": 0.02,
+          "confidence": null
+        },
+        {
+          "feature": "stone",
+          "description": null,
+          "shapePoints": null,
+          "approxXMeters": 0.7,
+          "approxDepthMeters": 0.2,
+          "approxWidthMeters": 0.04,
+          "approxHeightMeters": 0.02,
+          "confidence": null
+        }
+      ]
+    },
+    {
+      "locusNumber": "4",
+      "topBoundary": null,
+      "bottomBoundary": [
+        {
+          "xMeters": 0.0,
+          "depthMeters": 0.32,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.08,
+          "depthMeters": 0.36,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.16,
+          "depthMeters": 0.32,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.24,
+          "depthMeters": 0.36,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.32,
+          "depthMeters": 0.32,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.4,
+          "depthMeters": 0.36,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.48,
+          "depthMeters": 0.32,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.56,
+          "depthMeters": 0.36,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.64,
+          "depthMeters": 0.32,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.72,
+          "depthMeters": 0.36,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.8,
+          "depthMeters": 0.32,
+          "confidence": null
+        }
+      ],
+      "featuresInLayer": [
+        {
+          "feature": "stone",
+          "description": null,
+          "shapePoints": null,
+          "approxXMeters": 0.04,
+          "approxDepthMeters": 0.28,
+          "approxWidthMeters": 0.04,
+          "approxHeightMeters": 0.02,
+          "confidence": null
+        },
+        {
+          "feature": "stone",
+          "description": null,
+          "shapePoints": null,
+          "approxXMeters": 0.2,
+          "approxDepthMeters": 0.28,
+          "approxWidthMeters": 0.04,
+          "approxHeightMeters": 0.02,
+          "confidence": null
+        },
+        {
+          "feature": "stone",
+          "description": null,
+          "shapePoints": null,
+          "approxXMeters": 0.3,
+          "approxDepthMeters": 0.28,
+          "approxWidthMeters": 0.06,
+          "approxHeightMeters": 0.02,
+          "confidence": null
+        },
+        {
+          "feature": "stone",
+          "description": null,
+          "shapePoints": null,
+          "approxXMeters": 0.5,
+          "approxDepthMeters": 0.28,
+          "approxWidthMeters": 0.04,
+          "approxHeightMeters": 0.02,
+          "confidence": null
+        },
+        {
+          "feature": "stone",
+          "description": null,
+          "shapePoints": null,
+          "approxXMeters": 0.7,
+          "approxDepthMeters": 0.28,
+          "approxWidthMeters": 0.04,
+          "approxHeightMeters": 0.02,
+          "confidence": null
+        }
+      ]
+    },
+    {
+      "locusNumber": "5",
+      "topBoundary": null,
+      "bottomBoundary": [
+        {
+          "xMeters": 0.0,
+          "depthMeters": 0.4,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.04,
+          "depthMeters": 0.44,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.08,
+          "depthMeters": 0.4,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.12,
+          "depthMeters": 0.44,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.16,
+          "depthMeters": 0.4,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.2,
+          "depthMeters": 0.44,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.24,
+          "depthMeters": 0.4,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.28,
+          "depthMeters": 0.44,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.32,
+          "depthMeters": 0.4,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.36,
+          "depthMeters": 0.44,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.4,
+          "depthMeters": 0.4,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.44,
+          "depthMeters": 0.44,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.48,
+          "depthMeters": 0.4,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.52,
+          "depthMeters": 0.44,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.56,
+          "depthMeters": 0.4,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.6,
+          "depthMeters": 0.44,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.64,
+          "depthMeters": 0.4,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.68,
+          "depthMeters": 0.44,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.72,
+          "depthMeters": 0.4,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.76,
+          "depthMeters": 0.44,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.8,
+          "depthMeters": 0.4,
+          "confidence": null
+        }
+      ],
+      "featuresInLayer": null
+    },
+    {
+      "locusNumber": "6",
+      "topBoundary": null,
+      "bottomBoundary": [
+        {
+          "xMeters": 0.0,
+          "depthMeters": 0.48,
+          "confidence": null
+        },
+        {
+          "xMeters": 0.8,
+          "depthMeters": 0.48,
+          "confidence": null
+        }
+      ],
+      "featuresInLayer": null
+    }
+  ],
+  "marginalia": [
+    "2022",
+    "2023",
+    "2023",
+    "2024",
+    "2024",
+    "2025"
+  ]
+}

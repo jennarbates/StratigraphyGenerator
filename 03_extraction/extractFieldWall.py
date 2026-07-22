@@ -103,8 +103,7 @@ class FieldWallProfile(BaseModel):
     loci: list[Locus] | None
     layers: list[LocusLayer] | None
     marginalia: list[str] | None       # any other verbatim text not captured above
-    rawTranscription: str | None = None
-
+#    rawTranscription: str | None = None
 
 client = genai.Client()
 
@@ -238,8 +237,6 @@ FIELDS TO FILL
 ============================================================
 trenchLabel, faceLabel, illustrators, date, northArrowPresent, gridSquareCm
 (echo {square_cm} back), gridTiePoints[], loci[], layers[], marginalia[],
-rawTranscription (your full natural-language reading, for reference — keep
-structured fields clean and numeric).
 
 Emit ONLY the JSON conforming to the schema.
 """
@@ -261,7 +258,7 @@ def process_field_wall(image_path: str, square_cm: float, out_path: str):
             response_mime_type="application/json",
             response_schema=FieldWallProfile,
             temperature=0.1,
-            max_output_tokens=16384,
+            max_output_tokens=32768,
         ),
     )
 
