@@ -6,7 +6,7 @@ Usage:
     (default output: <input>_clean.json)
 
 Idempotent and non-destructive: reads input, writes a cleaned copy, prints a
-change log. Safe to run on either the two-agent or single-agent output.
+change log.
 
 Fixes applied:
   1. Convert literal "null"/"none"/"n/a" strings to real null.

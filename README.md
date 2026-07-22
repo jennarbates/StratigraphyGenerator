@@ -72,7 +72,9 @@ Outputs `<name>_clean.png` (use this one downstream) and, optionally,
 ### 2. `renameImages.py` — vision extraction
 Sends a (preprocessed) image to Gemini (`gemini-2.5-flash`) with a detailed
 prompt and a strict Pydantic schema (`ArchaeologicalDiagram`), and writes
-the raw model output straight to `output_single.json`.
+the raw model output straight to `output_single.json` (a `rawTranscription`
+field on the top-level object preserves the model's own free-text reading
+of the drawing alongside the structured fields).
 
 Key instructions baked into the prompt:
 
@@ -96,10 +98,10 @@ python renameImages.py path/to/preprocessed/image_clean.png
 
 Includes retry-with-backoff for transient API errors (429/500/503).
 
-> `output.json` in this repo looks like the two-agent-schema variant, and
-> `output_single.json` is this script's single-agent output (it adds a
-> `rawTranscription` narrative field). Both share the same downstream
-> schema for `trenchProfiles`.
+> `output.json` in this repo predates the current schema (it's missing the
+> `rawTranscription` field and uses a slightly different `credits` shape).
+> `output_single.json` is the current script's output and reflects the
+> live schema — treat it as the reference example going forward.
 
 ### 3. `normalizer.py` — JSON cleanup
 Idempotent, non-destructive cleanup pass over an extraction JSON before it
