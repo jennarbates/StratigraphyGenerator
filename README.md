@@ -1,241 +1,180 @@
-# Poggio Civitate Trench Profile Digitization Pipeline
+# Trench Digitization Pipeline
 
-This project converts archival hand-drawn trench profile sheets from the
-Poggio Civitate (Murlo, Italy) excavation into structured geological data
-suitable for 3D modeling in [GemPy](https://www.gempy.org/). A vision model
-reads each scanned drawing into a structured JSON schema, deterministic
-scripts clean and validate that data, and a final conversion step places
-every point into real site coordinates.
+Turns a trench-profile drawing — archival illustrator sheet or modern field
+recording sheet — into a 3D GemPy geological model. Folders are numbered in
+the order the pipeline actually runs — each stage's output feeds the next
+stage's input. Two source drawings are in here so far:
 
-```
-scan (.png/.tif)
-   │
-   ▼
-preprocess.py            image cleanup for the vision model
-   │
-   ▼
-renameImages.py           Gemini vision extraction -> extraction JSON
-   │
-   ▼
-normalizer.py             dedupe / null-string cleanup -> *_clean.json
-   │
-   ▼
-validator.py               sanity checks (errors / warnings)
-   │
-   ▼
-convertCoords.py + gridConfig.JSON   face-local -> site (X, Y, Z)
-   │
-   ▼
-points.csv + points_orientations.csv   ready for GemPy
-```
+- **Trench 23** (Poggio Civitate, 1980) — illustrator sheet, hatch-pattern
+  legend, three faces (East/South/West).
+- **T104, southern baulk wall** (2025 field sheet, Lizzy Browning/Heather
+  Fusco) — hand-drawn on graph paper, Locus number + Munsell color instead
+  of a hatch legend, one wall only.
 
-`visualizer.html` is a standalone, no-build-step viewer for inspecting an
-extraction JSON in the browser. `IllusstratorGuide.md` is a guidelines
-document to hand to illustrators producing *new* drawings, so future sheets
-digitize cleanly.
-
-## Coordinate conventions
-
-Every drawing is authored in its own **face-local** frame:
-
-- `x` — meters along the face, measured from the face's **left edge**
-  (`x = 0`).
-- `y` / `depth` — meters **downward** from the ground surface
-  (`y = 0` at the surface, positive down, never negative).
-
-This face-local data has no relationship to the site grid until it's
-explicitly registered — see **Grid registration**, below.
-
-## Pipeline stages
-
-### 1. `preprocess.py` — scan cleanup
-Prepares an archival scan so the vision model can resolve boundary lines
-more reliably. Non-destructive: writes new files, never touches the
-original.
-
-- Flattens uneven paper tone/background illumination.
-- Upscales (default 2x, Lanczos) so thin ink lines survive.
-- Applies gentle local contrast (CLAHE) + mild sharpening, while
-  **preserving fill hatching** (needed later to identify materials).
-- Optional `--deskew` to straighten a rotated scan.
-- Optional `--highcontrast` to also emit an aggressively binarized version
-  for boundary tracing only — **do not** feed this one to the extraction
-  step, since it can wipe out the fill patterns used for material ID.
-
-```bash
-python preprocess.py input.png --outdir preprocessed --upscale 2 --deskew --highcontrast
-```
-
-Outputs `<name>_clean.png` (use this one downstream) and, optionally,
-`<name>_highcontrast.png`.
-
-### 2. `renameImages.py` — vision extraction
-Sends a (preprocessed) image to Gemini (`gemini-2.5-flash`) with a detailed
-prompt and a strict Pydantic schema (`ArchaeologicalDiagram`), and writes
-the raw model output straight to `output_single.json` (a `rawTranscription`
-field on the top-level object preserves the model's own free-text reading
-of the drawing alongside the structured fields).
-
-Key instructions baked into the prompt:
-
-- Calibrate against the **metric scale bar only** — a capitalized surname
-  next to the bar (e.g. "PECK") is a signature, not a unit, and must not be
-  used for conversion.
-- Trace each layer's boundary independently, following its own drawn shape
-  — never copy one boundary's shape and offset it to make another
-  ("parallel-izing" layers is a common failure mode this pipeline actively
-  guards against).
-- Assign each feature to a single, primary layer (no duplicating a feature
-  across layers).
-- Prefer `null` + a `confidence` note over a plausible-sounding guess for
-  any ambiguous point.
-- No historical/archaeological interpretation — only what is visibly
-  drawn, labeled, or written.
-
-```bash
-python renameImages.py path/to/preprocessed/image_clean.png
-```
-
-Includes retry-with-backoff for transient API errors (429/500/503).
-
-> `output.json` in this repo predates the current schema (it's missing the
-> `rawTranscription` field and uses a slightly different `credits` shape).
-> `output_single.json` is the current script's output and reflects the
-> live schema — treat it as the reference example going forward.
-
-### 3. `normalizer.py` — JSON cleanup
-Idempotent, non-destructive cleanup pass over an extraction JSON before it
-reaches validation/GemPy:
-
-- Converts literal `"null"` / `"none"` / `"n/a"` strings to real JSON
-  `null`.
-- Drops a trench-floor *feature* when it just duplicates the deepest
-  layer's `bottomBoundary` (keeps the boundary, removes the redundant
-  feature).
-- De-duplicates a feature copied into multiple layers, keeping only the
-  deepest occurrence.
-- Prints a change log; never alters geometry values themselves.
-
-```bash
-python normalizer.py output.json output_clean.json
-```
-
-### 4. `validator.py` — sanity checks
-Schema-tolerant checks (accepts either `yCoordinateMeters` or
-`depthMeters`) that catch problems before they corrupt the GemPy model.
-Exits `0` if there are no errors (warnings are still printed), `1`
-otherwise.
-
-Checks include:
-
-- **Errors**: null coordinates with no `confidence` explanation, negative
-  depths, layers whose boundaries cross (a lower layer rising above the
-  layer above it, beyond a small hand-drawn-line tolerance), missing
-  `trenchProfiles`.
-- **Warnings**: implausible depths (>5 m by default), non-left-to-right
-  `x` sequences, large gaps between an independently-drawn top boundary
-  and the layer above's bottom, mismatched `gridLabels`/
-  `gridLabelXMeters` lengths, features whose points fall outside their
-  layer's vertical band, leftover literal `"null"` strings.
-
-```bash
-python validator.py output_clean.json
-```
-
-Tunable thresholds live at the top of the file (`MONOTONIC_TOLERANCE_M`,
-`TOP_CONTINUITY_TOLERANCE_M`, `MAX_PLAUSIBLE_DEPTH_M`).
-
-### 5. `convertCoords.py` — face-local → site coordinates
-Turns cleaned, validated face-local points into real site coordinates
-`(X, Y, Z)` for GemPy, using a **grid config** that records where each
-face physically sits on site (this comes from site records, not the
-drawing itself, and cannot be inferred by the model).
-
-Per-point math, given a face's origin `(X0, Y0)`, surface elevation `Z0`,
-and compass bearing `θ` (degrees clockwise from north, the direction the
-face's local `+x` points):
+These two use **different extraction scripts** (see 03 below) because they
+record material differently, but feed the same downstream shape.
 
 ```
-X = X0 + x * sin(θ)
-Y = Y0 + x * cos(θ)
-Z = Z0 - depth
+00_docs                  reference material (not code)
+01_scans                 raw drawings: qwertyTest.png (Trench 23),
+                         T104_southern_baulk_wall.jpeg (T104)
+02_preprocess            image cleanup before vision extraction
+03_extraction            vision model -> structured JSON
+04_normalize_validate    clean + sanity-check that JSON
+05_convert_coords        face-local (x, depth) -> site-wide (X, Y, Z)
+06_gempy_model           build & compute the GemPy model, render sections
+07_visualizer            standalone HTML viewer
 ```
 
-```bash
-# generate a starter grid config with placeholder values to fill in:
-python convertCoords.py output_clean.json --make-config gridConfig.JSON
+## Pipeline, in order
 
-# once gridConfig.JSON has real site values:
-python convertCoords.py output_clean.json --grid gridConfig.JSON --out points.csv
+### 00_docs — `IllusstratorGuide.md`
+Guidelines for whoever *draws* the trench profiles (scale bars, line
+weight, labeling). Upstream of all code — read this before a new drawing
+is made, so the scan below is actually digitizable.
+
+### 01_scans — `qwertyTest.png`, `T104_southern_baulk_wall.jpeg`
+Raw source drawings. `qwertyTest.png` is the Trench 23 illustrator sheet
+(scanned well below the 300 DPI `IllusstratorGuide.md` recommends — see the
+open item on this in section 03). `T104_southern_baulk_wall.jpeg` is a
+modern phone photo of a graph-paper field sheet, much higher resolution
+(4284×5712) but a different recording convention entirely (Locus + Munsell,
+no printed scale bar — see 03).
+
+### 02_preprocess — `preprocess.py`
 ```
-
-Writes two files:
-
-- `points.csv` — one row per interface (boundary) point:
-  `X, Y, Z, surface, face`.
-- `points_orientations.csv` — one crude orientation seed per boundary
-  (dip estimated from the average slope of depth vs. x, azimuth from the
-  face bearing, polarity fixed at 1) for GemPy's orientation input.
-
-Faces missing from the grid config are skipped with a warning, not
-silently dropped.
-
-> **Note:** `buildGempy.py` was an exact duplicate of `convertCoords.py`
-> and has been removed — `convertCoords.py` is the single canonical
-> version of this step going forward.
-
-### `gridConfig.JSON` — site registration
-Maps each face name to its site registration:
-
-| field | meaning |
-|---|---|
-| `originX` / `originY` | site coordinates of the face's `x = 0` edge |
-| `surfaceZ` | ground-surface elevation at that edge |
-| `bearing_deg` | compass bearing (clockwise from north) the face's local `+x` axis points |
-
-This file **must be filled in with real surveyed values** before running
-the final conversion — the checked-in copy uses placeholder values
-(`bearing_deg: 90.0` for every face, origins spread 10 m apart) and will
-produce geometrically wrong output if used as-is.
-
-## Supporting files
-
-- **`visualizer.html`** — a self-contained, dependency-free HTML page for
-  loading and inspecting an extraction JSON (drag-and-drop) in the
-  browser: profiles, layers, features, legend. Useful for spot-checking
-  a `renameImages.py` / `normalizer.py` output before it goes through
-  coordinate conversion.
-- **`IllusstratorGuide.md`** — drawing guidelines for illustrators
-  producing new trench profile sheets, covering scale bars, origin/
-  orientation marking, boundary-line conventions, fill patterns and
-  legends, feature labeling, metadata placement, and scan settings. Follow
-  this for new drawings and extraction accuracy improves substantially
-  (e.g. it explains why a signature like "PECK" next to a scale bar can
-  get misread as a unit, and how to avoid it).
-
-## Typical end-to-end run
-
-```bash
-python preprocess.py raw_scans/trench23_1980.png --outdir preprocessed --deskew
-
-python renameImages.py preprocessed/trench23_1980_clean.png
-# -> output_single.json
-
-python normalizer.py output_single.json output_clean.json
-
-python validator.py output_clean.json
-# fix any [ERROR] lines before continuing
-
-python convertCoords.py output_clean.json --grid gridConfig.JSON --out points.csv
-# -> points.csv, points_orientations.csv, ready for GemPy
+python preprocess.py 01_scans/your_scan.png --outdir 02_preprocess/out
 ```
+Grayscale, background-flatten, upscale, CLAHE-sharpen a raw scan so the
+vision model can resolve boundary lines. Outputs `*_clean.png` (feed this
+forward) and, optionally, `*_highcontrast.png` (boundary-tracing only —
+don't feed this to material ID).
 
-## Requirements
+### 03_extraction — two scripts, for two kinds of source drawing
 
-- Python 3.10+ (uses `X | None` type unions)
-- `google-genai`, `pillow`, `pydantic` (for `renameImages.py`)
-- `opencv-python`, `numpy` (for `preprocess.py`)
-- A `GEMINI_API_KEY` (or equivalent client credentials) configured for the
-  `google.genai` client
-- GemPy (downstream of this pipeline, not included here) to consume
-  `points.csv` / `points_orientations.csv`
+**`renameImages.py` → `output.json`, `output_single.json`** (Trench 23,
+illustrator sheet)
+```
+python renameImages.py 02_preprocess/out/your_scan_clean.png
+```
+Calls Gemini with a structured schema (`ArchaeologicalDiagram`) to
+transcribe the drawing: layers matched to a drawn hatch-pattern legend,
+boundary points, features, scale, credits. `output.json` and
+`output_single.json` look like two runs of the same single-agent extraction
+over the same drawing — worth diffing if you're not sure which is
+authoritative, since they already disagree slightly (e.g.
+`gridLabelXMeters` and the scale's `metricConversionAssumption` differ
+between the two). Separately: cross-checking `output.json` against the
+scan turned up **5 of the legend's 14 materials never appearing as a layer
+or feature anywhere** in the extraction (Light, Pink-Yellow with Carbon and
+Plaster, Yellow, Gray-Yellow with Carbon, Traces of Carbon) — most likely
+folded into the neighboring "Dark Gray"/"Buff-Gray" calls rather than
+genuinely absent, and likely a resolution limit of the scan (well under
+300 DPI) rather than a prompting problem. Worth a rescan if the original
+artifact is available; `preprocess.py`'s upscaling won't recover what
+isn't there.
+
+**`extractFieldWall.py` → e.g. `field_wall_t104.json`** (T104, modern field
+sheet)
+```
+python extractFieldWall.py 01_scans/T104_southern_baulk_wall.jpeg \
+    --square-cm 20 --out field_wall_t104.json
+```
+Separate schema (`FieldWallProfile`) built for graph-paper field sheets
+recorded with **Locus number + Munsell soil color** rather than a hatch
+legend — forcing this drawing through `renameImages.py`'s
+`inferredMaterial`/`visualPattern` fields would mean inventing a fill
+pattern that was never drawn. `--square-cm` is a required, human-confirmed
+number (T104's bold squares measure 20cm, minor squares 2cm — verified
+computationally from the grid spacing in the photo, not just read off by
+eye) rather than something the model re-derives from the image each time.
+Any coordinate-looking labels along the top of the wall are transcribed
+verbatim into `gridTiePoints` but deliberately **not interpreted** — what
+they mean (northing/easting/elevation/something else) is still an open
+question, see below.
+
+**Not yet built:** a `convertCoords.py`-equivalent step for
+`FieldWallProfile` JSON — the illustrator-sheet converter expects
+`ArchaeologicalDiagram`'s shape (layers/surface/face), not
+`loci`/Locus-number shape. Needs writing once a real `extractFieldWall.py`
+run has been reviewed.
+
+### 04_normalize_validate — `normalizer.py`, `validator.py`
+```
+python normalizer.py 03_extraction/output.json 04_normalize_validate/output_clean.json
+python validator.py  04_normalize_validate/output_clean.json
+```
+`normalizer.py` fixes literal `"null"` strings and de-duplicates
+floor/cross-layer features — non-destructive, logs every change.
+`validator.py` then sanity-checks the cleaned JSON (monotonic layer
+stacking, depth plausibility, feature containment) and exits non-zero on
+error. Run validator **after** normalizer, and again after
+`convertCoords.py` if you touch the grid config.
+
+### 05_convert_coords — `convertCoords.py`, `gridConfig.JSON`, `gridConfigConnected.JSON` → `points.csv`, `points_orientations.csv`
+```
+python convertCoords.py 04_normalize_validate/output_clean.json \
+    --grid gridConfig.JSON --out points.csv
+```
+Converts each face's local (x, depth) into site-wide (X, Y, Z) using a
+grid-registration config that must come from real survey data.
+
+**Careful — `gridConfig.JSON` is a placeholder.** Its own `_comment`
+says the three faces are lined up end-to-end on one straight line "for a
+pipeline smoke-test" and do NOT reflect real corners.
+`gridConfigConnected.JSON` is a second, explicitly **hypothetical** test
+config modeling a U-shaped pit with faces meeting at real corners — also
+not survey data. The `points.csv` / `points_orientations.csv` in this
+folder were generated from one of these placeholders, not from a
+surveyed grid — treat the resulting model's absolute coordinates and
+inter-face geometry as illustrative, not final, until real
+`originX/originY/surfaceZ/bearing_deg` values replace them.
+
+### 06_gempy_model — `buildGempyModel.py` → `trench23.gempy` + section PNGs
+```
+python buildGempyModel.py 05_convert_coords/points.csv \
+    05_convert_coords/points_orientations.csv --out-prefix trench23
+```
+Builds the GemPy model (one conformable series, order inferred from
+mean Z per surface), computes it, and writes:
+- `trench23.gempy` — native save file
+- `trench23_section_y.png` — full cross-section
+- `trench23_section_y_zoom.png` — cropped/exaggerated view of the thin
+  middle layers
+- `test_section_y.png` — looks like an earlier/test run of the same
+  section plot (same content, different render pass) — worth confirming
+  whether it's still needed or safe to drop once `trench23_section_y.png`
+  is trusted.
+
+### 07_visualizer — `visualizer.html`
+Standalone HTML viewer (Poggio Civitate themed) for inspecting the
+digitized profile. No build step — open directly in a browser.
+
+## Known open items across the pipeline
+
+**Trench 23**
+1. **Grid registration is still placeholder data** (see 05 above) — the
+   single biggest thing standing between this and a real site model.
+2. **`output.json` vs `output_single.json`** — confirm which extraction
+   run is authoritative before it becomes the source of truth downstream.
+3. **5 of 14 legend materials are missing from the extraction** (see 03
+   above) — likely a scan-resolution limit, worth a rescan.
+4. **`test_section_y.png`** in 06 — likely safe to archive/delete once
+   confirmed superseded by `trench23_section_y.png`.
+
+**T104**
+5. **Is the southern baulk wall a cut feature** (pit/posthole/ditch/wall-
+   trench fill) rather than flat stratigraphy? The locus boundaries in the
+   photo read as steep/near-vertical wedges, not horizontal bands — if so,
+   `buildGempyModel.py`'s one-conformable-series assumption is the wrong
+   model for it (it needs a fault/unconformity relationship instead), and
+   `extractFieldWall.py`'s top/bottom-boundary convention may need
+   rethinking too. Unconfirmed as of this writing.
+6. **What do the coordinate-looking labels along the top of the T104
+   drawing mean?** (northing/easting, elevation, stake ID — unclear.)
+   Transcribed verbatim by `extractFieldWall.py` but not interpreted.
+   Confirming this could mean skipping manual grid-registration guesswork
+   entirely for this wall, unlike Trench 23.
+7. **No `points.csv` yet for T104** — `extractFieldWall.py` hasn't been run
+   for real (no network path to the Gemini API from this environment), and
+   its JSON output shape doesn't have a `convertCoords.py` equivalent yet.
