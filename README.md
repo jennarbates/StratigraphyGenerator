@@ -141,10 +141,6 @@ mean Z per surface), computes it, and writes:
 - `trench23_section_y.png` — full cross-section
 - `trench23_section_y_zoom.png` — cropped/exaggerated view of the thin
   middle layers
-- `test_section_y.png` — looks like an earlier/test run of the same
-  section plot (same content, different render pass) — worth confirming
-  whether it's still needed or safe to drop once `trench23_section_y.png`
-  is trusted.
 
 ### 07_visualizer — `visualizer.html`
 Standalone HTML viewer (Poggio Civitate themed) for inspecting the
@@ -153,28 +149,35 @@ digitized profile. No build step — open directly in a browser.
 ## Known open items across the pipeline
 
 **Trench 23**
-1. **Grid registration is still placeholder data** (see 05 above) — the
-   single biggest thing standing between this and a real site model.
-2. **`output.json` vs `output_single.json`** — confirm which extraction
-   run is authoritative before it becomes the source of truth downstream.
-3. **5 of 14 legend materials are missing from the extraction** (see 03
-   above) — likely a scan-resolution limit, worth a rescan.
-4. **`test_section_y.png`** in 06 — likely safe to archive/delete once
-   confirmed superseded by `trench23_section_y.png`.
+1. ~~Grid registration is placeholder data~~ — confirmed fine to leave as
+   the smoke-test placeholder for now.
+2. **`output.json` vs `output_single.json` disagree** — still unresolved;
+   no clear way to pick one by inspection alone. Recommended next step:
+   load the scan (`01_scans/qwertyTest.png`) plus both JSONs into
+   `07_visualizer/visualizer.html`'s A/B compare mode and eyeball where
+   they diverge, rather than guessing from the JSON text alone.
+3. **5 of 14 legend materials missing from the extraction** — tracking
+   down whether a higher-DPI original of the drawing exists (in progress).
+4. ~~`test_section_y.png` leftover test render~~ — deleted.
 
 **T104**
-5. **Is the southern baulk wall a cut feature** (pit/posthole/ditch/wall-
-   trench fill) rather than flat stratigraphy? The locus boundaries in the
-   photo read as steep/near-vertical wedges, not horizontal bands — if so,
-   `buildGempyModel.py`'s one-conformable-series assumption is the wrong
-   model for it (it needs a fault/unconformity relationship instead), and
-   `extractFieldWall.py`'s top/bottom-boundary convention may need
-   rethinking too. Unconfirmed as of this writing.
-6. **What do the coordinate-looking labels along the top of the T104
-   drawing mean?** (northing/easting, elevation, stake ID — unclear.)
-   Transcribed verbatim by `extractFieldWall.py` but not interpreted.
-   Confirming this could mean skipping manual grid-registration guesswork
-   entirely for this wall, unlike Trench 23.
-7. **No `points.csv` yet for T104** — `extractFieldWall.py` hasn't been run
-   for real (no network path to the Gemini API from this environment), and
-   its JSON output shape doesn't have a `convertCoords.py` equivalent yet.
+5. ~~Is the southern baulk wall a cut feature?~~ — no, it's an ordinary
+   trench wall (baulk face), same kind of thing as Trench 23's
+   East/South/West faces. `buildGempyModel.py`'s one-conformable-series
+   approach applies as-is; no fault/unconformity rework needed.
+6. ~~What do the coordinate labels along the top mean?~~ — they're
+   relative to the site's overall grid system. Still need the actual
+   registration values (equivalent of Trench 23's `gridConfig.JSON`) before
+   `convertCoords.py` can place this wall in site coordinates, but at
+   least we now know what kind of number to expect there.
+7. **Run `extractFieldWall.py` for real** — command below.
+8. **No `convertCoords.py`-equivalent for `FieldWallProfile` JSON yet** —
+   still needed once a real extraction run exists to build against.
+
+### Running extractFieldWall.py
+```
+python extractFieldWall.py 01_scans/T104_southern_baulk_wall.jpeg \
+    --square-cm 20 --out 03_extraction/field_wall_t104.json
+```
+Requires `GEMINI_API_KEY` set in the environment (same as `renameImages.py`)
+and `pip install google-genai pillow --break-system-packages`.
