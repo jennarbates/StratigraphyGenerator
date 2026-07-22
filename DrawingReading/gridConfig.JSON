@@ -1,0 +1,23 @@
+{
+  "_comment": "Fill in real site values. bearing_deg = compass direction (clockwise from north) that the face's local +x axis points. originX/Y = site coords of the face's x=0 edge. surfaceZ = ground-surface elevation at that edge.",
+  "faces": {
+    "EAST FACE": {
+      "originX": 0.0,
+      "originY": 0.0,
+      "surfaceZ": 100.0,
+      "bearing_deg": 90.0
+    },
+    "SOUTH FACE": {
+      "originX": 10.0,
+      "originY": 0.0,
+      "surfaceZ": 100.0,
+      "bearing_deg": 90.0
+    },
+    "WEST FACE": {
+      "originX": 20.0,
+      "originY": 0.0,
+      "surfaceZ": 100.0,
+      "bearing_deg": 90.0
+    }
+  }
+}
