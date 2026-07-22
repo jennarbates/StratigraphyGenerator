@@ -1,0 +1,23 @@
+{
+  "_comment": "Fill in real site values. These faces are WALLS OF ONE PIT, not independent slabs -- adjacent faces meet at real corners, so a face's far edge (origin + its width along bearing_deg) should land at the next face's origin, tracing the pit's actual footprint (e.g. bearings turning ~90 degrees corner to corner for a rectangular trench). bearing_deg = compass direction (clockwise from north) that the face's local +x axis points. originX/Y = site coords of the face's x=0 edge. surfaceZ = ground-surface elevation at that edge. The placeholder values below just line faces up end-to-end on one straight line for a pipeline smoke-test -- they do NOT reflect real corners and must be replaced with surveyed values.",
+  "faces": {
+    "EAST FACE": {
+      "originX": 0.0,
+      "originY": 0.0,
+      "surfaceZ": 100.0,
+      "bearing_deg": 90.0
+    },
+    "SOUTH FACE": {
+      "originX": 10.0,
+      "originY": 0.0,
+      "surfaceZ": 100.0,
+      "bearing_deg": 90.0
+    },
+    "WEST FACE": {
+      "originX": 20.0,
+      "originY": 0.0,
+      "surfaceZ": 100.0,
+      "bearing_deg": 90.0
+    }
+  }
+}

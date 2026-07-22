@@ -1,0 +1,677 @@
+{
+  "metadata": {
+    "currentFilePath": "./images/qwertyTest.png",
+    "suggestedFilename": "trench_23_1980",
+    "trenchLabel": "T 23",
+    "scale": {
+      "unit": "M",
+      "valuesMarked": [0, 1, 2, 3],
+      "metricConversionAssumption": "1 PECK visually corresponds to approximately 0.2 meters on the metric scale; not used for measurements.",
+      "confidence": null
+    },
+    "credits": {
+      "creator": "not stated",
+      "year": "1980"
+    },
+    "marginalia": [
+      "NR. 7/80"
+    ]
+  },
+  "trenchProfiles": [
+    {
+      "face": "EAST FACE",
+      "gridLabels": ["C", "B", "A", "AA", "BB", "CC"],
+      "gridLabelXMeters": [0.4, 1.4, 2.4, 3.4, 4.4, 5.4],
+      "layers": [
+        {
+          "layerName": "Topsoil",
+          "inferredMaterial": "Topsoil",
+          "description": null,
+          "visualPattern": "vertical squiggly lines",
+          "featuresInLayer": [
+            {
+              "feature": "Stone",
+              "description": "Roughly oval stone.",
+              "shapePoints": null,
+              "approxXMeters": 0.6,
+              "approxYMeters": 0.08,
+              "approxWidthMeters": 0.3,
+              "approxHeightMeters": 0.1,
+              "confidence": null
+            },
+            {
+              "feature": "Stone",
+              "description": "Roughly oval stone.",
+              "shapePoints": null,
+              "approxXMeters": 2.1,
+              "approxYMeters": 0.08,
+              "approxWidthMeters": 0.4,
+              "approxHeightMeters": 0.1,
+              "confidence": null
+            }
+          ],
+          "topBoundary": null,
+          "bottomBoundary": [
+            {"xCoordinateMeters": 0.0, "yCoordinateMeters": 0.15},
+            {"xCoordinateMeters": 0.4, "yCoordinateMeters": 0.15},
+            {"xCoordinateMeters": 1.0, "yCoordinateMeters": 0.17},
+            {"xCoordinateMeters": 1.4, "yCoordinateMeters": 0.17},
+            {"xCoordinateMeters": 1.8, "yCoordinateMeters": 0.15},
+            {"xCoordinateMeters": 2.4, "yCoordinateMeters": 0.15},
+            {"xCoordinateMeters": 3.0, "yCoordinateMeters": 0.16},
+            {"xCoordinateMeters": 3.4, "yCoordinateMeters": 0.15},
+            {"xCoordinateMeters": 4.0, "yCoordinateMeters": 0.15},
+            {"xCoordinateMeters": 4.4, "yCoordinateMeters": 0.16},
+            {"xCoordinateMeters": 5.0, "yCoordinateMeters": 0.17},
+            {"xCoordinateMeters": 5.4, "yCoordinateMeters": 0.17},
+            {"xCoordinateMeters": 5.8, "yCoordinateMeters": 0.17}
+          ]
+        },
+        {
+          "layerName": "Mixed Light Soil, Stones and Tile",
+          "inferredMaterial": "Mixed Light Soil, Stones and Tile",
+          "description": null,
+          "visualPattern": "vertical dashed lines",
+          "featuresInLayer": [],
+          "topBoundary": null,
+          "bottomBoundary": [
+            {"xCoordinateMeters": 0.0, "yCoordinateMeters": 0.30},
+            {"xCoordinateMeters": 0.4, "yCoordinateMeters": 0.30},
+            {"xCoordinateMeters": 1.0, "yCoordinateMeters": 0.30},
+            {"xCoordinateMeters": 1.4, "yCoordinateMeters": 0.30},
+            {"xCoordinateMeters": 1.8, "yCoordinateMeters": 0.28},
+            {"xCoordinateMeters": 2.4, "yCoordinateMeters": 0.29},
+            {"xCoordinateMeters": 3.0, "yCoordinateMeters": 0.28},
+            {"xCoordinateMeters": 3.4, "yCoordinateMeters": 0.28},
+            {"xCoordinateMeters": 4.0, "yCoordinateMeters": 0.29},
+            {"xCoordinateMeters": 4.4, "yCoordinateMeters": 0.30},
+            {"xCoordinateMeters": 5.0, "yCoordinateMeters": 0.30},
+            {"xCoordinateMeters": 5.4, "yCoordinateMeters": 0.30},
+            {"xCoordinateMeters": 5.8, "yCoordinateMeters": 0.30}
+          ]
+        },
+        {
+          "layerName": "Tile Layer",
+          "inferredMaterial": "Tile Layer",
+          "description": null,
+          "visualPattern": "horizontal dashed lines",
+          "featuresInLayer": [],
+          "topBoundary": null,
+          "bottomBoundary": [
+            {"xCoordinateMeters": 0.0, "yCoordinateMeters": 0.38},
+            {"xCoordinateMeters": 0.4, "yCoordinateMeters": 0.38},
+            {"xCoordinateMeters": 1.0, "yCoordinateMeters": 0.38},
+            {"xCoordinateMeters": 1.4, "yCoordinateMeters": 0.38},
+            {"xCoordinateMeters": 1.8, "yCoordinateMeters": 0.37},
+            {"xCoordinateMeters": 2.4, "yCoordinateMeters": 0.37},
+            {"xCoordinateMeters": 3.0, "yCoordinateMeters": 0.37},
+            {"xCoordinateMeters": 3.4, "yCoordinateMeters": 0.37},
+            {"xCoordinateMeters": 4.0, "yCoordinateMeters": 0.37},
+            {"xCoordinateMeters": 4.4, "yCoordinateMeters": 0.38},
+            {"xCoordinateMeters": 5.0, "yCoordinateMeters": 0.38},
+            {"xCoordinateMeters": 5.4, "yCoordinateMeters": 0.38},
+            {"xCoordinateMeters": 5.8, "yCoordinateMeters": 0.38}
+          ]
+        },
+        {
+          "layerName": "Dark Gray",
+          "inferredMaterial": "Dark Gray",
+          "description": null,
+          "visualPattern": "small, dense dots",
+          "featuresInLayer": [
+            {
+              "feature": "Carbon layer",
+              "description": "Thin carbon layer.",
+              "shapePoints": [
+                {"xCoordinateMeters": 1.7, "yCoordinateMeters": 0.49},
+                {"xCoordinateMeters": 2.0, "yCoordinateMeters": 0.51},
+                {"xCoordinateMeters": 2.4, "yCoordinateMeters": 0.51},
+                {"xCoordinateMeters": 2.8, "yCoordinateMeters": 0.50}
+              ],
+              "approxXMeters": null,
+              "approxYMeters": null,
+              "approxWidthMeters": null,
+              "approxHeightMeters": null,
+              "confidence": null
+            }
+          ],
+          "topBoundary": null,
+          "bottomBoundary": [
+            {"xCoordinateMeters": 0.0, "yCoordinateMeters": 0.48},
+            {"xCoordinateMeters": 0.4, "yCoordinateMeters": 0.48},
+            {"xCoordinateMeters": 1.0, "yCoordinateMeters": 0.48},
+            {"xCoordinateMeters": 1.4, "yCoordinateMeters": 0.49},
+            {"xCoordinateMeters": 1.8, "yCoordinateMeters": 0.50},
+            {"xCoordinateMeters": 2.0, "yCoordinateMeters": 0.51},
+            {"xCoordinateMeters": 2.4, "yCoordinateMeters": 0.51},
+            {"xCoordinateMeters": 2.8, "yCoordinateMeters": 0.50},
+            {"xCoordinateMeters": 3.4, "yCoordinateMeters": 0.49},
+            {"xCoordinateMeters": 4.0, "yCoordinateMeters": 0.49},
+            {"xCoordinateMeters": 4.4, "yCoordinateMeters": 0.49},
+            {"xCoordinateMeters": 5.0, "yCoordinateMeters": 0.48},
+            {"xCoordinateMeters": 5.4, "yCoordinateMeters": 0.48},
+            {"xCoordinateMeters": 5.8, "yCoordinateMeters": 0.48}
+          ]
+        },
+        {
+          "layerName": "Buff-Gray",
+          "inferredMaterial": "Buff-Gray",
+          "description": null,
+          "visualPattern": "larger, less dense dots",
+          "featuresInLayer": [],
+          "topBoundary": null,
+          "bottomBoundary": [
+            {"xCoordinateMeters": 0.0, "yCoordinateMeters": 0.58},
+            {"xCoordinateMeters": 0.4, "yCoordinateMeters": 0.58},
+            {"xCoordinateMeters": 1.0, "yCoordinateMeters": 0.59},
+            {"xCoordinateMeters": 1.4, "yCoordinateMeters": 0.60},
+            {"xCoordinateMeters": 2.0, "yCoordinateMeters": 0.61},
+            {"xCoordinateMeters": 2.4, "yCoordinateMeters": 0.61},
+            {"xCoordinateMeters": 2.8, "yCoordinateMeters": 0.60},
+            {"xCoordinateMeters": 3.4, "yCoordinateMeters": 0.59},
+            {"xCoordinateMeters": 4.0, "yCoordinateMeters": 0.58},
+            {"xCoordinateMeters": 4.4, "yCoordinateMeters": 0.58},
+            {"xCoordinateMeters": 5.0, "yCoordinateMeters": 0.58},
+            {"xCoordinateMeters": 5.4, "yCoordinateMeters": 0.58},
+            {"xCoordinateMeters": 5.8, "yCoordinateMeters": 0.58}
+          ]
+        },
+        {
+          "layerName": "Brown-Yellow",
+          "inferredMaterial": "Brown-Yellow",
+          "description": null,
+          "visualPattern": "vertical stripes",
+          "featuresInLayer": [],
+          "topBoundary": null,
+          "bottomBoundary": [
+            {"xCoordinateMeters": 0.0, "yCoordinateMeters": 0.72},
+            {"xCoordinateMeters": 0.4, "yCoordinateMeters": 0.72},
+            {"xCoordinateMeters": 1.0, "yCoordinateMeters": 0.72},
+            {"xCoordinateMeters": 1.4, "yCoordinateMeters": 0.73},
+            {"xCoordinateMeters": 1.8, "yCoordinateMeters": 0.74},
+            {"xCoordinateMeters": 2.4, "yCoordinateMeters": 0.74},
+            {"xCoordinateMeters": 2.8, "yCoordinateMeters": 0.74},
+            {"xCoordinateMeters": 3.4, "yCoordinateMeters": 0.73},
+            {"xCoordinateMeters": 4.0, "yCoordinateMeters": 0.72},
+            {"xCoordinateMeters": 4.4, "yCoordinateMeters": 0.72},
+            {"xCoordinateMeters": 5.0, "yCoordinateMeters": 0.72},
+            {"xCoordinateMeters": 5.4, "yCoordinateMeters": 0.72},
+            {"xCoordinateMeters": 5.8, "yCoordinateMeters": 0.72}
+          ]
+        },
+        {
+          "layerName": "Virgin Soil",
+          "inferredMaterial": "Virgin Soil",
+          "description": "Trench floor profile",
+          "visualPattern": "irregular wavy horizontal lines",
+          "featuresInLayer": [],
+          "topBoundary": null,
+          "bottomBoundary": [
+            {"xCoordinateMeters": 0.0, "yCoordinateMeters": 0.90},
+            {"xCoordinateMeters": 0.4, "yCoordinateMeters": 0.90},
+            {"xCoordinateMeters": 1.0, "yCoordinateMeters": 0.90},
+            {"xCoordinateMeters": 1.4, "yCoordinateMeters": 0.91},
+            {"xCoordinateMeters": 1.8, "yCoordinateMeters": 0.92},
+            {"xCoordinateMeters": 2.4, "yCoordinateMeters": 0.92},
+            {"xCoordinateMeters": 2.8, "yCoordinateMeters": 0.92},
+            {"xCoordinateMeters": 3.4, "yCoordinateMeters": 0.91},
+            {"xCoordinateMeters": 4.0, "yCoordinateMeters": 0.90},
+            {"xCoordinateMeters": 4.4, "yCoordinateMeters": 0.90},
+            {"xCoordinateMeters": 5.0, "yCoordinateMeters": 0.90},
+            {"xCoordinateMeters": 5.4, "yCoordinateMeters": 0.90},
+            {"xCoordinateMeters": 5.8, "yCoordinateMeters": 0.90}
+          ]
+        }
+      ]
+    },
+    {
+      "face": "SOUTH FACE",
+      "gridLabels": ["16", "15", "14"],
+      "gridLabelXMeters": [0.4, 1.4, 2.4],
+      "layers": [
+        {
+          "layerName": "Topsoil",
+          "inferredMaterial": "Topsoil",
+          "description": null,
+          "visualPattern": "vertical squiggly lines",
+          "featuresInLayer": [],
+          "topBoundary": null,
+          "bottomBoundary": [
+            {"xCoordinateMeters": 0.0, "yCoordinateMeters": 0.15},
+            {"xCoordinateMeters": 0.4, "yCoordinateMeters": 0.15},
+            {"xCoordinateMeters": 1.0, "yCoordinateMeters": 0.16},
+            {"xCoordinateMeters": 1.4, "yCoordinateMeters": 0.16},
+            {"xCoordinateMeters": 2.0, "yCoordinateMeters": 0.15},
+            {"xCoordinateMeters": 2.4, "yCoordinateMeters": 0.15},
+            {"xCoordinateMeters": 2.8, "yCoordinateMeters": 0.15}
+          ]
+        },
+        {
+          "layerName": "Mixed Light Soil, Stones and Tile",
+          "inferredMaterial": "Mixed Light Soil, Stones and Tile",
+          "description": null,
+          "visualPattern": "vertical dashed lines",
+          "featuresInLayer": [
+            {
+              "feature": "Light Gray with Carbon",
+              "description": "Lens of Light Gray with Carbon.",
+              "shapePoints": [
+                {"xCoordinateMeters": 0.7, "yCoordinateMeters": 0.30},
+                {"xCoordinateMeters": 1.0, "yCoordinateMeters": 0.31},
+                {"xCoordinateMeters": 1.3, "yCoordinateMeters": 0.30},
+                {"xCoordinateMeters": 1.3, "yCoordinateMeters": 0.35},
+                {"xCoordinateMeters": 1.0, "yCoordinateMeters": 0.36},
+                {"xCoordinateMeters": 0.7, "yCoordinateMeters": 0.35},
+                {"xCoordinateMeters": 0.7, "yCoordinateMeters": 0.30}
+              ],
+              "approxXMeters": null,
+              "approxYMeters": null,
+              "approxWidthMeters": null,
+              "approxHeightMeters": null,
+              "confidence": null
+            },
+            {
+              "feature": "Carbon Layer",
+              "description": "Thin carbon layer within the Light Gray with Carbon lens.",
+              "shapePoints": [
+                {"xCoordinateMeters": 0.7, "yCoordinateMeters": 0.34},
+                {"xCoordinateMeters": 1.0, "yCoordinateMeters": 0.35},
+                {"xCoordinateMeters": 1.3, "yCoordinateMeters": 0.34}
+              ],
+              "approxXMeters": null,
+              "approxYMeters": null,
+              "approxWidthMeters": null,
+              "approxHeightMeters": null,
+              "confidence": null
+            }
+          ],
+          "topBoundary": null,
+          "bottomBoundary": [
+            {"xCoordinateMeters": 0.0, "yCoordinateMeters": 0.30},
+            {"xCoordinateMeters": 0.6, "yCoordinateMeters": 0.30},
+            {"xCoordinateMeters": 0.8, "yCoordinateMeters": 0.33},
+            {"xCoordinateMeters": 1.2, "yCoordinateMeters": 0.34},
+            {"xCoordinateMeters": 1.6, "yCoordinateMeters": 0.33},
+            {"xCoordinateMeters": 1.8, "yCoordinateMeters": 0.30},
+            {"xCoordinateMeters": 2.8, "yCoordinateMeters": 0.30}
+          ]
+        },
+        {
+          "layerName": "Tile Layer",
+          "inferredMaterial": "Tile Layer",
+          "description": "Top boundary is depressed due to overlying Light Gray with Carbon lens",
+          "visualPattern": "horizontal dashed lines",
+          "featuresInLayer": [],
+          "topBoundary": [
+            {"xCoordinateMeters": 0.0, "yCoordinateMeters": 0.38},
+            {"xCoordinateMeters": 0.6, "yCoordinateMeters": 0.38},
+            {"xCoordinateMeters": 0.8, "yCoordinateMeters": 0.37},
+            {"xCoordinateMeters": 1.2, "yCoordinateMeters": 0.36},
+            {"xCoordinateMeters": 1.6, "yCoordinateMeters": 0.37},
+            {"xCoordinateMeters": 1.8, "yCoordinateMeters": 0.38},
+            {"xCoordinateMeters": 2.8, "yCoordinateMeters": 0.38}
+          ],
+          "bottomBoundary": [
+            {"xCoordinateMeters": 0.0, "yCoordinateMeters": 0.48},
+            {"xCoordinateMeters": 0.6, "yCoordinateMeters": 0.48},
+            {"xCoordinateMeters": 0.8, "yCoordinateMeters": 0.47},
+            {"xCoordinateMeters": 1.2, "yCoordinateMeters": 0.46},
+            {"xCoordinateMeters": 1.6, "yCoordinateMeters": 0.47},
+            {"xCoordinateMeters": 1.8, "yCoordinateMeters": 0.48},
+            {"xCoordinateMeters": 2.8, "yCoordinateMeters": 0.48}
+          ]
+        },
+        {
+          "layerName": "Dark Gray",
+          "inferredMaterial": "Dark Gray",
+          "description": null,
+          "visualPattern": "small, dense dots",
+          "featuresInLayer": [],
+          "topBoundary": null,
+          "bottomBoundary": [
+            {"xCoordinateMeters": 0.0, "yCoordinateMeters": 0.58},
+            {"xCoordinateMeters": 0.6, "yCoordinateMeters": 0.58},
+            {"xCoordinateMeters": 0.8, "yCoordinateMeters": 0.57},
+            {"xCoordinateMeters": 1.2, "yCoordinateMeters": 0.56},
+            {"xCoordinateMeters": 1.6, "yCoordinateMeters": 0.57},
+            {"xCoordinateMeters": 1.8, "yCoordinateMeters": 0.58},
+            {"xCoordinateMeters": 2.8, "yCoordinateMeters": 0.58}
+          ]
+        },
+        {
+          "layerName": "Buff-Gray",
+          "inferredMaterial": "Buff-Gray",
+          "description": null,
+          "visualPattern": "larger, less dense dots",
+          "featuresInLayer": [],
+          "topBoundary": null,
+          "bottomBoundary": [
+            {"xCoordinateMeters": 0.0, "yCoordinateMeters": 0.68},
+            {"xCoordinateMeters": 0.6, "yCoordinateMeters": 0.68},
+            {"xCoordinateMeters": 0.8, "yCoordinateMeters": 0.67},
+            {"xCoordinateMeters": 1.2, "yCoordinateMeters": 0.66},
+            {"xCoordinateMeters": 1.6, "yCoordinateMeters": 0.67},
+            {"xCoordinateMeters": 1.8, "yCoordinateMeters": 0.68},
+            {"xCoordinateMeters": 2.8, "yCoordinateMeters": 0.68}
+          ]
+        },
+        {
+          "layerName": "Brown-Yellow",
+          "inferredMaterial": "Brown-Yellow",
+          "description": null,
+          "visualPattern": "vertical stripes",
+          "featuresInLayer": [],
+          "topBoundary": null,
+          "bottomBoundary": [
+            {"xCoordinateMeters": 0.0, "yCoordinateMeters": 0.82},
+            {"xCoordinateMeters": 0.6, "yCoordinateMeters": 0.82},
+            {"xCoordinateMeters": 0.8, "yCoordinateMeters": 0.81},
+            {"xCoordinateMeters": 1.2, "yCoordinateMeters": 0.80},
+            {"xCoordinateMeters": 1.6, "yCoordinateMeters": 0.81},
+            {"xCoordinateMeters": 1.8, "yCoordinateMeters": 0.82},
+            {"xCoordinateMeters": 2.8, "yCoordinateMeters": 0.82}
+          ]
+        },
+        {
+          "layerName": "Virgin Soil",
+          "inferredMaterial": "Virgin Soil",
+          "description": "Trench floor profile",
+          "visualPattern": "irregular wavy horizontal lines",
+          "featuresInLayer": [],
+          "topBoundary": null,
+          "bottomBoundary": [
+            {"xCoordinateMeters": 0.0, "yCoordinateMeters": 1.00},
+            {"xCoordinateMeters": 0.6, "yCoordinateMeters": 1.00},
+            {"xCoordinateMeters": 0.8, "yCoordinateMeters": 0.99},
+            {"xCoordinateMeters": 1.2, "yCoordinateMeters": 0.98},
+            {"xCoordinateMeters": 1.6, "yCoordinateMeters": 0.99},
+            {"xCoordinateMeters": 1.8, "yCoordinateMeters": 1.00},
+            {"xCoordinateMeters": 2.8, "yCoordinateMeters": 1.00}
+          ]
+        }
+      ]
+    },
+    {
+      "face": "WEST FACE",
+      "gridLabels": ["CC", "BB", "AA", "A", "B", "C"],
+      "gridLabelXMeters": [0.4, 1.4, 2.4, 3.4, 4.4, 5.4],
+      "layers": [
+        {
+          "layerName": "Topsoil",
+          "inferredMaterial": "Topsoil",
+          "description": null,
+          "visualPattern": "vertical squiggly lines",
+          "featuresInLayer": [],
+          "topBoundary": null,
+          "bottomBoundary": [
+            {"xCoordinateMeters": 0.0, "yCoordinateMeters": 0.15},
+            {"xCoordinateMeters": 0.4, "yCoordinateMeters": 0.15},
+            {"xCoordinateMeters": 1.0, "yCoordinateMeters": 0.16},
+            {"xCoordinateMeters": 1.4, "yCoordinateMeters": 0.16},
+            {"xCoordinateMeters": 2.0, "yCoordinateMeters": 0.17},
+            {"xCoordinateMeters": 2.4, "yCoordinateMeters": 0.17},
+            {"xCoordinateMeters": 3.0, "yCoordinateMeters": 0.18},
+            {"xCoordinateMeters": 3.4, "yCoordinateMeters": 0.18},
+            {"xCoordinateMeters": 4.0, "yCoordinateMeters": 0.19},
+            {"xCoordinateMeters": 4.4, "yCoordinateMeters": 0.19},
+            {"xCoordinateMeters": 5.0, "yCoordinateMeters": 0.18},
+            {"xCoordinateMeters": 5.4, "yCoordinateMeters": 0.18},
+            {"xCoordinateMeters": 5.8, "yCoordinateMeters": 0.18}
+          ]
+        },
+        {
+          "layerName": "Mixed Light Soil, Stones and Tile",
+          "inferredMaterial": "Mixed Light Soil, Stones and Tile",
+          "description": null,
+          "visualPattern": "vertical dashed lines",
+          "featuresInLayer": [
+            {
+              "feature": "Light Gray with Carbon",
+              "description": "Lens of Light Gray with Carbon.",
+              "shapePoints": [
+                {"xCoordinateMeters": 1.0, "yCoordinateMeters": 0.29},
+                {"xCoordinateMeters": 1.3, "yCoordinateMeters": 0.30},
+                {"xCoordinateMeters": 1.6, "yCoordinateMeters": 0.29},
+                {"xCoordinateMeters": 1.6, "yCoordinateMeters": 0.33},
+                {"xCoordinateMeters": 1.3, "yCoordinateMeters": 0.34},
+                {"xCoordinateMeters": 1.0, "yCoordinateMeters": 0.33},
+                {"xCoordinateMeters": 1.0, "yCoordinateMeters": 0.29}
+              ],
+              "approxXMeters": null,
+              "approxYMeters": null,
+              "approxWidthMeters": null,
+              "approxHeightMeters": null,
+              "confidence": null
+            },
+            {
+              "feature": "Light Gray with Carbon",
+              "description": "Lens of Light Gray with Carbon.",
+              "shapePoints": [
+                {"xCoordinateMeters": 2.0, "yCoordinateMeters": 0.30},
+                {"xCoordinateMeters": 2.3, "yCoordinateMeters": 0.31},
+                {"xCoordinateMeters": 2.6, "yCoordinateMeters": 0.30},
+                {"xCoordinateMeters": 2.6, "yCoordinateMeters": 0.34},
+                {"xCoordinateMeters": 2.3, "yCoordinateMeters": 0.35},
+                {"xCoordinateMeters": 2.0, "yCoordinateMeters": 0.34},
+                {"xCoordinateMeters": 2.0, "yCoordinateMeters": 0.30}
+              ],
+              "approxXMeters": null,
+              "approxYMeters": null,
+              "approxWidthMeters": null,
+              "approxHeightMeters": null,
+              "confidence": null
+            }
+          ],
+          "topBoundary": null,
+          "bottomBoundary": [
+            {"xCoordinateMeters": 0.0, "yCoordinateMeters": 0.30},
+            {"xCoordinateMeters": 0.4, "yCoordinateMeters": 0.30},
+            {"xCoordinateMeters": 1.0, "yCoordinateMeters": 0.31},
+            {"xCoordinateMeters": 1.4, "yCoordinateMeters": 0.31},
+            {"xCoordinateMeters": 2.0, "yCoordinateMeters": 0.32},
+            {"xCoordinateMeters": 2.4, "yCoordinateMeters": 0.32},
+            {"xCoordinateMeters": 3.0, "yCoordinateMeters": 0.33},
+            {"xCoordinateMeters": 3.4, "yCoordinateMeters": 0.33},
+            {"xCoordinateMeters": 4.0, "yCoordinateMeters": 0.32},
+            {"xCoordinateMeters": 4.4, "yCoordinateMeters": 0.32},
+            {"xCoordinateMeters": 5.0, "yCoordinateMeters": 0.31},
+            {"xCoordinateMeters": 5.4, "yCoordinateMeters": 0.31},
+            {"xCoordinateMeters": 5.8, "yCoordinateMeters": 0.31}
+          ]
+        },
+        {
+          "layerName": "Tile Layer",
+          "inferredMaterial": "Tile Layer",
+          "description": null,
+          "visualPattern": "horizontal dashed lines",
+          "featuresInLayer": [],
+          "topBoundary": null,
+          "bottomBoundary": [
+            {"xCoordinateMeters": 0.0, "yCoordinateMeters": 0.38},
+            {"xCoordinateMeters": 0.4, "yCoordinateMeters": 0.38},
+            {"xCoordinateMeters": 1.0, "yCoordinateMeters": 0.39},
+            {"xCoordinateMeters": 1.4, "yCoordinateMeters": 0.39},
+            {"xCoordinateMeters": 2.0, "yCoordinateMeters": 0.40},
+            {"xCoordinateMeters": 2.4, "yCoordinateMeters": 0.40},
+            {"xCoordinateMeters": 3.0, "yCoordinateMeters": 0.41},
+            {"xCoordinateMeters": 3.4, "yCoordinateMeters": 0.41},
+            {"xCoordinateMeters": 4.0, "yCoordinateMeters": 0.40},
+            {"xCoordinateMeters": 4.4, "yCoordinateMeters": 0.40},
+            {"xCoordinateMeters": 5.0, "yCoordinateMeters": 0.39},
+            {"xCoordinateMeters": 5.4, "yCoordinateMeters": 0.39},
+            {"xCoordinateMeters": 5.8, "yCoordinateMeters": 0.39}
+          ]
+        },
+        {
+          "layerName": "Dark Gray",
+          "inferredMaterial": "Dark Gray",
+          "description": null,
+          "visualPattern": "small, dense dots",
+          "featuresInLayer": [],
+          "topBoundary": null,
+          "bottomBoundary": [
+            {"xCoordinateMeters": 0.0, "yCoordinateMeters": 0.48},
+            {"xCoordinateMeters": 0.4, "yCoordinateMeters": 0.48},
+            {"xCoordinateMeters": 1.0, "yCoordinateMeters": 0.49},
+            {"xCoordinateMeters": 1.4, "yCoordinateMeters": 0.49},
+            {"xCoordinateMeters": 2.0, "yCoordinateMeters": 0.50},
+            {"xCoordinateMeters": 2.4, "yCoordinateMeters": 0.50},
+            {"xCoordinateMeters": 3.0, "yCoordinateMeters": 0.51},
+            {"xCoordinateMeters": 3.4, "yCoordinateMeters": 0.51},
+            {"xCoordinateMeters": 4.0, "yCoordinateMeters": 0.50},
+            {"xCoordinateMeters": 4.4, "yCoordinateMeters": 0.50},
+            {"xCoordinateMeters": 5.0, "yCoordinateMeters": 0.49},
+            {"xCoordinateMeters": 5.4, "yCoordinateMeters": 0.49},
+            {"xCoordinateMeters": 5.8, "yCoordinateMeters": 0.49}
+          ]
+        },
+        {
+          "layerName": "Buff-Gray",
+          "inferredMaterial": "Buff-Gray",
+          "description": null,
+          "visualPattern": "larger, less dense dots",
+          "featuresInLayer": [],
+          "topBoundary": null,
+          "bottomBoundary": [
+            {"xCoordinateMeters": 0.0, "yCoordinateMeters": 0.58},
+            {"xCoordinateMeters": 0.4, "yCoordinateMeters": 0.58},
+            {"xCoordinateMeters": 1.0, "yCoordinateMeters": 0.59},
+            {"xCoordinateMeters": 1.4, "yCoordinateMeters": 0.59},
+            {"xCoordinateMeters": 2.0, "yCoordinateMeters": 0.60},
+            {"xCoordinateMeters": 2.4, "yCoordinateMeters": 0.60},
+            {"xCoordinateMeters": 3.0, "yCoordinateMeters": 0.61},
+            {"xCoordinateMeters": 3.4, "yCoordinateMeters": 0.61},
+            {"xCoordinateMeters": 4.0, "yCoordinateMeters": 0.60},
+            {"xCoordinateMeters": 4.4, "yCoordinateMeters": 0.60},
+            {"xCoordinateMeters": 5.0, "yCoordinateMeters": 0.59},
+            {"xCoordinateMeters": 5.4, "yCoordinateMeters": 0.59},
+            {"xCoordinateMeters": 5.8, "yCoordinateMeters": 0.59}
+          ]
+        },
+        {
+          "layerName": "Brown-Yellow",
+          "inferredMaterial": "Brown-Yellow",
+          "description": null,
+          "visualPattern": "vertical stripes",
+          "featuresInLayer": [],
+          "topBoundary": null,
+          "bottomBoundary": [
+            {"xCoordinateMeters": 0.0, "yCoordinateMeters": 0.72},
+            {"xCoordinateMeters": 0.4, "yCoordinateMeters": 0.72},
+            {"xCoordinateMeters": 1.0, "yCoordinateMeters": 0.73},
+            {"xCoordinateMeters": 1.4, "yCoordinateMeters": 0.73},
+            {"xCoordinateMeters": 2.0, "yCoordinateMeters": 0.74},
+            {"xCoordinateMeters": 2.4, "yCoordinateMeters": 0.74},
+            {"xCoordinateMeters": 3.0, "yCoordinateMeters": 0.75},
+            {"xCoordinateMeters": 3.4, "yCoordinateMeters": 0.75},
+            {"xCoordinateMeters": 4.0, "yCoordinateMeters": 0.74},
+            {"xCoordinateMeters": 4.4, "yCoordinateMeters": 0.74},
+            {"xCoordinateMeters": 5.0, "yCoordinateMeters": 0.73},
+            {"xCoordinateMeters": 5.4, "yCoordinateMeters": 0.73},
+            {"xCoordinateMeters": 5.8, "yCoordinateMeters": 0.73}
+          ]
+        },
+        {
+          "layerName": "Virgin Soil",
+          "inferredMaterial": "Virgin Soil",
+          "description": "Trench floor profile",
+          "visualPattern": "irregular wavy horizontal lines",
+          "featuresInLayer": [
+            {
+              "feature": "Stone Cluster",
+              "description": "Irregular cluster of large stones along the trench floor.",
+              "shapePoints": [
+                {"xCoordinateMeters": 4.8, "yCoordinateMeters": 0.90},
+                {"xCoordinateMeters": 5.1, "yCoordinateMeters": 0.88},
+                {"xCoordinateMeters": 5.4, "yCoordinateMeters": 0.90},
+                {"xCoordinateMeters": 5.7, "yCoordinateMeters": 0.89}
+              ],
+              "approxXMeters": null,
+              "approxYMeters": null,
+              "approxWidthMeters": null,
+              "approxHeightMeters": null,
+              "confidence": null
+            }
+          ],
+          "topBoundary": null,
+          "bottomBoundary": [
+            {"xCoordinateMeters": 0.0, "yCoordinateMeters": 0.90},
+            {"xCoordinateMeters": 0.4, "yCoordinateMeters": 0.90},
+            {"xCoordinateMeters": 1.0, "yCoordinateMeters": 0.91},
+            {"xCoordinateMeters": 1.4, "yCoordinateMeters": 0.91},
+            {"xCoordinateMeters": 2.0, "yCoordinateMeters": 0.92},
+            {"xCoordinateMeters": 2.4, "yCoordinateMeters": 0.92},
+            {"xCoordinateMeters": 3.0, "yCoordinateMeters": 0.93},
+            {"xCoordinateMeters": 3.4, "yCoordinateMeters": 0.93},
+            {"xCoordinateMeters": 4.0, "yCoordinateMeters": 0.92},
+            {"xCoordinateMeters": 4.4, "yCoordinateMeters": 0.92},
+            {"xCoordinateMeters": 5.0, "yCoordinateMeters": 0.91},
+            {"xCoordinateMeters": 5.4, "yCoordinateMeters": 0.91},
+            {"xCoordinateMeters": 5.8, "yCoordinateMeters": 0.91}
+          ]
+        }
+      ]
+    }
+  ],
+  "legend": [
+    {
+      "visualPattern": "vertical squiggly lines",
+      "material": "Topsoil"
+    },
+    {
+      "visualPattern": "vertical dashed lines",
+      "material": "Mixed Light Soil, Stones and Tile"
+    },
+    {
+      "visualPattern": "horizontal dashed lines",
+      "material": "Tile Layer"
+    },
+    {
+      "visualPattern": "small, dense dots",
+      "material": "Dark Gray"
+    },
+    {
+      "visualPattern": "larger, less dense dots",
+      "material": "Buff-Gray"
+    },
+    {
+      "visualPattern": "vertical stripes",
+      "material": "Brown-Yellow"
+    },
+    {
+      "visualPattern": "no fill pattern (white)",
+      "material": "Light"
+    },
+    {
+      "visualPattern": "random small crosses and dots",
+      "material": "Pink-Yellow with Carbon and Plaster"
+    },
+    {
+      "visualPattern": "horizontal short, thick dashed lines",
+      "material": "Light Gray with Carbon"
+    },
+    {
+      "visualPattern": "larger, sparse dots",
+      "material": "Yellow"
+    },
+    {
+      "visualPattern": "horizontal squiggly lines",
+      "material": "Gray-Yellow with Carbon"
+    },
+    {
+      "visualPattern": "scattered small asterisks/star-like shapes",
+      "material": "Traces of Carbon"
+    },
+    {
+      "visualPattern": "irregular wavy horizontal lines",
+      "material": "Virgin Soil"
+    },
+    {
+      "visualPattern": "thick black horizontal line",
+      "material": "Carbon Layer"
+    }
+  ],
+  "inferred_notes": [
+    "Scale Calibration: The metric scale bar (0 to 3 M) was used for all measurements. The drawn length of 3 meters on the image was measured as approximately 458 pixels. Therefore, 1 meter was calibrated to 152.67 pixels. All x and y coordinates are derived using this pixel-to-meter ratio. Non-metric Scale: A 'PECK' scale bar is present but was not used for measurements; it visually corresponds to approximately 0.2 meters. Missing Metadata: Creator/Draftsman's name is not explicitly stated on the drawing. Feature Handling: Localized lenses with distinct fill patterns (e.g., 'Light Gray with Carbon') were treated as features with their own `shapePoints` (outlines) defining their top and bottom boundaries, rather than as continuous layers across the entire face. The main stratigraphic layers were described with boundaries that undulate to accommodate these features. For the 'Large Stones' feature in the West Face, the label 'LARGE STONES' is positioned above the actual stones; the `shapePoints` reflect the position of the drawn stones themselves. Boundary Point Density: Points were placed at key inflections and at regular intervals on relatively straight sections to accurately capture the undulating shape of the boundaries, as instructed. The 'y' values for boundaries are not constant for most layers, reflecting the drawn undulation."
+  ]
+}
