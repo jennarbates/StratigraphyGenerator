@@ -1,26 +1,10 @@
 """
 normalizer.py — clean an extraction JSON before it feeds GemPy.
-
-Usage:
-    python normalizer.py input.json [output.json]
-    (default output: <input>_clean.json)
-
-Idempotent and non-destructive: reads input, writes a cleaned copy, prints a
-change log.
-
-Fixes applied:
-  1. Convert literal "null"/"none"/"n/a" strings to real null.
-  2. Drop a trench-floor FEATURE when its points duplicate the deepest layer's
-     bottomBoundary (keep the boundary, remove the redundant feature).
-  3. De-duplicate a feature that was copied into more than one layer: keep it in
-     the single deepest layer it appears in, remove the copies. (Features that
-     "span layers" should live once, on their primary layer.)
-  4. Report — but do NOT alter — geometry, so you always see what changed.
+Adapted from 04_normalize_validate/normalizer.py into an importable function.
+Logic unchanged.
 """
 
 import json
-import sys
-
 
 NULLISH = {"null", "none", "n/a", ""}
 
@@ -39,7 +23,6 @@ def clean_null_strings(obj, log, path="root"):
 
 
 def points_key(pts):
-    """Hashable signature of a shapePoints/boundary list for comparison."""
     if not pts:
         return None
     out = []
@@ -52,7 +35,6 @@ def points_key(pts):
 
 
 def dedupe_floor(face, log):
-    """Remove a trench-floor feature that just repeats the deepest layer bottom."""
     layers = face.get("layers") or []
     if not layers:
         return
@@ -71,18 +53,14 @@ def dedupe_floor(face, log):
 
 
 def dedupe_cross_layer_features(face, log):
-    """If the same feature (by name+points) appears in multiple layers, keep it
-    only in the deepest occurrence."""
     layers = face.get("layers") or []
-    seen = {}   # signature -> index of deepest layer holding it
-    # first pass: find the deepest layer index per signature
+    seen = {}
     for i, layer in enumerate(layers):
         for f in (layer.get("featuresInLayer") or []):
             sig = ((f.get("feature") or "").lower(), points_key(f.get("shapePoints")))
             if sig[1] is None:
-                continue  # discrete objects (approx*) aren't cross-layer dupes
-            seen[sig] = i   # later i overwrites -> deepest wins
-    # second pass: drop copies not in the deepest layer
+                continue
+            seen[sig] = i
     for i, layer in enumerate(layers):
         feats = layer.get("featuresInLayer") or []
         kept = []
@@ -98,14 +76,9 @@ def dedupe_cross_layer_features(face, log):
         layer["featuresInLayer"] = kept or None
 
 
-def main():
-    if len(sys.argv) < 2:
-        print("usage: python normalize.py input.json [output.json]")
-        sys.exit(2)
-    inp = sys.argv[1]
-    out = sys.argv[2] if len(sys.argv) > 2 else inp.rsplit(".", 1)[0] + "_clean.json"
-
-    data = json.load(open(inp))
+def run_normalize(input_path: str, output_path: str):
+    """Returns (cleaned_data_dict, log_list)."""
+    data = json.load(open(input_path))
     log = []
 
     clean_null_strings(data, log)
@@ -113,16 +86,5 @@ def main():
         dedupe_floor(face, log)
         dedupe_cross_layer_features(face, log)
 
-    json.dump(data, open(out, "w"), indent=2)
-
-    if log:
-        print("Changes:")
-        for line in log:
-            print("  -", line)
-    else:
-        print("No changes needed.")
-    print(f"\nWrote {out} ({len(log)} change(s)).")
-
-
-if __name__ == "__main__":
-    main()
+    json.dump(data, open(output_path, "w"), indent=2)
+    return data, log

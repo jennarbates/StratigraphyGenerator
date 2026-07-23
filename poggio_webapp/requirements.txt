@@ -1,0 +1,13 @@
+flask
+opencv-python-headless
+numpy
+pandas
+pillow
+google-genai
+pydantic
+pdf2image
+
+# Required only for stage 06 (3D model). Heavier install, kept optional so
+# the rest of the pipeline works without it:
+# gempy
+# gempy_viewer

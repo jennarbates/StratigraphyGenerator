@@ -1,42 +1,13 @@
 """
-extractFieldWall.py — extraction schema + prompt for MODERN FIELD RECORDING
-SHEETS (hand-drawn on graph paper, in the field), as opposed to the archival
-illustrator-style profile handled by renameImages.py.
+extract_fieldwall.py — adapted from 03_extraction/extractFieldWall.py.
 
-Why this is a separate script, not a flag on renameImages.py
-============================================================
-renameImages.py's schema assumes a drawn LEGEND mapping hatch/fill patterns
-to named materials (`inferredMaterial` + `visualPattern`). Modern field
-sheets like this one don't draw fills at all — they label each layer with a
-**Locus number**, and separately record that locus's soil color as a
-**Munsell notation** (e.g. "10YR 5/3 brown") in a list at the edge of the
-sheet. Forcing that into `inferredMaterial`/`visualPattern` would mean
-inventing a fill-pattern description that was never drawn. Different
-recording convention -> different schema, same downstream CSV shape.
-
-Scale convention on these sheets
-================================
-There is usually no printed metric bar (unlike the illustrator sheets) —
-scale comes from the graph-paper grid itself. The model should NOT assume a
-square size; a human confirms it (this project's Trench T104 sheet: bold
-grid squares = 20 cm, minor squares = 1/10 of that = 2 cm) and it gets
-passed in via --square-cm, not re-derived from the drawing each time.
-
-Coordinate system (same convention as renameImages.py, to keep convertCoords.py
-reusable):
-    x     = horizontal position ALONG the face, meters, 0 at the left edge.
-    depth = downward from the ground surface, meters, positive down.
-Any site-grid tie-in numbers written on the sheet (stake labels, elevations,
-northing/easting-looking figures) are transcribed VERBATIM into
-`gridTiePoints` / `marginalia` and never interpreted into x/y — what they
-mean is a site-records question, not something to guess from the drawing.
-
-Usage:
-    python extractFieldWall.py IMG_9380.jpeg --square-cm 20 --out field_wall.json
+Same schema/prompt as the original script (for modern hand-drawn field
+recording sheets, Locus number + Munsell color instead of a hatch legend).
+Adapted to accept an explicit API key and output path, and to return the raw
+JSON / parse warnings instead of only printing.
 """
 
 import os
-import sys
 import time
 
 from google import genai
@@ -44,16 +15,34 @@ from google.genai import errors, types
 from PIL import Image
 from pydantic import BaseModel
 
+# See extract_illustrator.py — same rationale: locally-generated preprocessed
+# scans, not untrusted uploads, so raise PIL's decompression-bomb cap.
+Image.MAX_IMAGE_PIXELS = None
+
+# See extract_illustrator.py — preprocessing's upscale is tuned for scan line
+# resolution, not for what Gemini needs; cap the longest side before sending
+# regardless of upscale factor so a big field photo doesn't turn into a
+# multi-hundred-megapixel payload.
+MAX_SEND_DIMENSION = 3072
+
+
+def _cap_for_sending(img, max_dim=MAX_SEND_DIMENSION):
+    w, h = img.size
+    if max(w, h) <= max_dim:
+        return img
+    scale = max_dim / max(w, h)
+    return img.resize((int(w * scale), int(h * scale)), Image.LANCZOS)
+
 
 class MunsellColor(BaseModel):
-    raw: str | None          # verbatim as written, e.g. "10YR 5/3"
-    colorName: str | None    # verbatim color name if given, e.g. "brown"
+    raw: str | None
+    colorName: str | None
 
 
 class Locus(BaseModel):
     locusNumber: str | None
     munsell: MunsellColor | None
-    description: str | None = None   # any extra prose note by the locus
+    description: str | None = None
     confidence: str | None = None
 
 
@@ -64,10 +53,6 @@ class BoundaryPoint(BaseModel):
 
 
 class FieldFeature(BaseModel):
-    """Stone or other discrete/traced object within a locus layer. Same
-    shape as renameImages.py's NotableFeature, kept separate so this
-    schema has no bare `dict` fields (Gemini's structured-output schema
-    converter needs real named fields, not an untyped dict)."""
     feature: str | None
     description: str | None = None
     shapePoints: list[BoundaryPoint] | None = None
@@ -79,36 +64,31 @@ class FieldFeature(BaseModel):
 
 
 class LocusLayer(BaseModel):
-    locusNumber: str | None      # ties back to Locus.locusNumber
+    locusNumber: str | None
     topBoundary: list[BoundaryPoint] | None
     bottomBoundary: list[BoundaryPoint] | None
     featuresInLayer: list[FieldFeature] | None = None
 
 
 class GridTiePoint(BaseModel):
-    """A stake/coordinate label written along the top or side of the wall.
-    Transcribed verbatim; NOT interpreted into site coordinates here."""
     rawText: str | None
-    approxXMeters: float | None = None   # where along the face it sits, if clear
+    approxXMeters: float | None = None
 
 
 class FieldWallProfile(BaseModel):
-    trenchLabel: str | None            # e.g. "T104"
-    faceLabel: str | None              # e.g. "southern baulk wall"
+    trenchLabel: str | None
+    faceLabel: str | None
     illustrators: list[str] | None
-    date: str | None                   # verbatim, e.g. "28.07.25"
+    date: str | None
     northArrowPresent: bool | None
-    gridSquareCm: float | None         # passed-in, echoed back for the record
+    gridSquareCm: float | None
     gridTiePoints: list[GridTiePoint] | None
     loci: list[Locus] | None
     layers: list[LocusLayer] | None
-    marginalia: list[str] | None       # any other verbatim text not captured above
-#    rawTranscription: str | None = None
-
-client = genai.Client()
+    marginalia: list[str] | None
 
 
-def generate_with_retry(max_attempts: int = 5, **kwargs):
+def _generate_with_retry(client, max_attempts=5, **kwargs):
     for attempt in range(max_attempts):
         try:
             return client.models.generate_content(**kwargs)
@@ -116,8 +96,6 @@ def generate_with_retry(max_attempts: int = 5, **kwargs):
             transient = getattr(e, "code", None) in (500, 503, 429)
             if transient and attempt < max_attempts - 1:
                 wait = 2 ** attempt
-                print(f"  API returned {e.code}; retrying in {wait}s "
-                      f"(attempt {attempt + 1}/{max_attempts})...")
                 time.sleep(wait)
             else:
                 raise
@@ -154,12 +132,12 @@ LOCUS + MUNSELL, NOT A HATCH LEGEND
 ============================================================
 This sheet records material with a **Locus number** per layer (e.g. "Locus
 3") and a **Munsell soil color** written in a list at the edge of the sheet
-(e.g. "10YR 5/3 brown" = hue, value/chroma, color name). This is NOT a
-fill-pattern legend — do not invent a `visualPattern` description. Read each
-locus's Munsell notation and color name VERBATIM into `loci[]`, exactly as
-written, including hue/value/chroma punctuation. If a color name is not
-given alongside the code, leave `colorName` null rather than guessing one
-from the code.
+(e.g. "10YR 5/3 brown") in a list at the edge of the sheet (hue, value/chroma,
+color name). This is NOT a fill-pattern legend — do not invent a
+`visualPattern` description. Read each locus's Munsell notation and color name
+VERBATIM into `loci[]`, exactly as written, including hue/value/chroma
+punctuation. If a color name is not given alongside the code, leave
+`colorName` null rather than guessing one from the code.
 
 ============================================================
 GRID TIE-IN / COORDINATE LABELS
@@ -242,50 +220,44 @@ Emit ONLY the JSON conforming to the schema.
 """
 
 
-def process_field_wall(image_path: str, square_cm: float, out_path: str):
+def run_extraction(image_path: str, square_cm: float, out_path: str,
+                    api_key: str, max_output_tokens: int = 65536, progress_cb=None):
+    """Runs the field-wall extraction. Returns (raw_json_text, warning_or_None)."""
     if not os.path.exists(image_path):
-        print(f"file not found: {image_path}")
-        return None
+        raise RuntimeError(f"file not found: {image_path}")
 
-    print("analyzing field wall drawing...")
+    if progress_cb:
+        progress_cb("analyzing field wall drawing...")
+
+    client = genai.Client(api_key=api_key,
+                           http_options=types.HttpOptions(timeout=240_000))  # 4 min
     img = Image.open(image_path)
+    orig_size = img.size
+    img = _cap_for_sending(img)
+    if img.size != orig_size and progress_cb:
+        progress_cb(f"resized {orig_size[0]}x{orig_size[1]} -> {img.size[0]}x{img.size[1]} before sending to Gemini")
     prompt = build_prompt(square_cm)
 
-    response = generate_with_retry(
+    response = _generate_with_retry(
+        client,
         model="gemini-2.5-flash",
         contents=[img, prompt],
         config=types.GenerateContentConfig(
             response_mime_type="application/json",
             response_schema=FieldWallProfile,
             temperature=0.1,
-            max_output_tokens=32768,
+            max_output_tokens=max_output_tokens,
         ),
     )
 
     raw_json = response.text
-    try:
-        finish_reason = response.candidates[0].finish_reason
-        if str(finish_reason).endswith("MAX_TOKENS"):
-            print(f"WARNING: response was cut off by the token limit "
-                  f"(finish_reason={finish_reason}). The written JSON is "
-                  f"almost certainly incomplete/invalid — raise "
-                  f"max_output_tokens further and re-run rather than "
-                  f"trying to use this file as-is.")
-    except (AttributeError, IndexError):
-        pass
     with open(out_path, "w") as f:
         f.write(raw_json)
-    print(f"wrote {out_path}")
-    return response.parsed
 
+    from pipeline._extract_common import check_response
+    warning = check_response(response, raw_json)
 
-if __name__ == "__main__":
-    import argparse
-    ap = argparse.ArgumentParser()
-    ap.add_argument("image")
-    ap.add_argument("--square-cm", type=float, required=True,
-                    help="real-world size of one BOLD grid square, in cm "
-                         "(measure/confirm by hand — do not guess)")
-    ap.add_argument("--out", default="field_wall.json")
-    args = ap.parse_args()
-    process_field_wall(args.image, args.square_cm, args.out)
+    if progress_cb:
+        progress_cb(f"wrote {out_path}")
+
+    return raw_json, warning

@@ -1,23 +1,48 @@
-import os
+"""
+extract_illustrator.py — adapted from 03_extraction/renameImages.py.
+
+Same schema and prompt as the original single-agent script. Adapted to:
+  - accept an API key explicitly (rather than only reading GEMINI_API_KEY at
+    import time), so the web app can pass a key entered in the browser.
+  - write to an explicit output path instead of a hardcoded
+    "output_single.json" in the current directory.
+  - return (parsed_dict, raw_json_text) instead of only printing.
+"""
+
 import time
+
 from google import genai
 from google.genai import errors
 from PIL import Image
 from google.genai import types
 from pydantic import BaseModel
 
+# These are locally-generated preprocessed scans (this app's own 02_preprocess
+# output, often upscaled 2x+), not untrusted uploads from the internet — raise
+# PIL's default decompression-bomb cap so a legitimately large sheet doesn't
+# get rejected as a suspected attack.
+Image.MAX_IMAGE_PIXELS = None
+
+# Preprocessing's upscale is tuned for keeping thin ink lines from vanishing
+# on LOW-DPI scans — it has nothing to do with what Gemini needs to read the
+# drawing, and an upscale factor picked for a scan can produce an enormous
+# image on an already high-res photo (e.g. a 4284x5712 field photo at 3x+
+# upscale). Sending that whole thing as base64 makes the request slow to the
+# point of looking hung, with no accuracy benefit. Cap the longest side right
+# before sending, independent of whatever upscale preprocessing used.
+MAX_SEND_DIMENSION = 3072
+
+
+def _cap_for_sending(img, max_dim=MAX_SEND_DIMENSION):
+    w, h = img.size
+    if max(w, h) <= max_dim:
+        return img
+    scale = max_dim / max(w, h)
+    return img.resize((int(w * scale), int(h * scale)), Image.LANCZOS)
+
 
 # ---------------------------------------------------------------------------
-# SCHEMA  (single-agent variant)
-#
-# Same coordinate convention as the two-agent version:
-#   x = horizontal position ALONG the face (meters, 0 at the left edge).
-#   y = depth DOWNWARD from the surface (meters, positive down, 0 at surface).
-# Face-local; site-wide X/Y/Z conversion is a separate deterministic step.
-#
-# The one addition vs the two-agent schema is `rawTranscription` on the top
-# object: since there's no separate description pass, we keep the model's own
-# narrative here so nothing is lost.
+# SCHEMA (unchanged from renameImages.py)
 # ---------------------------------------------------------------------------
 
 class Scale(BaseModel):
@@ -90,38 +115,10 @@ class ArchaeologicalDiagram(BaseModel):
     trenchProfiles: list[TrenchProfile]
     legend: list[LegendItem] | None
     inferred_notes: list[str] | None = None
-    # Single-agent only: the model's own narrative pass, kept for reference.
     rawTranscription: str | None = None
 
 
-client = genai.Client()
-
-
-def generate_with_retry(max_attempts: int = 5, **kwargs):
-    """Retry transient server errors (503/500/429) with exponential backoff."""
-    for attempt in range(max_attempts):
-        try:
-            return client.models.generate_content(**kwargs)
-        except errors.ServerError as e:
-            transient = getattr(e, "code", None) in (500, 503, 429)
-            if transient and attempt < max_attempts - 1:
-                wait = 2 ** attempt
-                print(f"  API returned {e.code}; retrying in {wait}s "
-                      f"(attempt {attempt + 1}/{max_attempts})...")
-                time.sleep(wait)
-            else:
-                raise
-
-
-def ProcessImageSingleAgent(imagePath: str):
-    if not os.path.exists(imagePath):
-        print(f"file not found: {imagePath}")
-        return
-
-    print("analyzing image (single agent)...")
-    img = Image.open(imagePath)
-
-    prompt = f"""
+PROMPT_TEMPLATE = """
 You are transcribing a single archaeological trench profile drawing DIRECTLY
 into the provided JSON schema. There is no second pass - what you emit IS the
 final data, and downstream software (GemPy) treats your numbers as real
@@ -129,7 +126,7 @@ measurements. Measurement fidelity and honest uncertainty matter far more than
 completeness. A null value is always better than a plausible-sounding guess.
 
 The dig is Poggio Civitate, Murlo, Italy. Set metadata.currentFilePath to
-exactly {imagePath}.
+exactly {image_path}.
 
 ============================================================
 COORDINATE SYSTEM
@@ -252,27 +249,56 @@ Terraces/Rectangle; Agger; Lower Building / OC1; Courtyard.
 Emit ONLY the JSON conforming to the schema.
 """
 
-    response = generate_with_retry(
-        model='gemini-2.5-flash',
+
+def _generate_with_retry(client, max_attempts=5, **kwargs):
+    for attempt in range(max_attempts):
+        try:
+            return client.models.generate_content(**kwargs)
+        except errors.ServerError as e:
+            transient = getattr(e, "code", None) in (500, 503, 429)
+            if transient and attempt < max_attempts - 1:
+                wait = 2 ** attempt
+                time.sleep(wait)
+            else:
+                raise
+
+
+def run_extraction(image_path: str, out_path: str, api_key: str,
+                    max_output_tokens: int = 65536, progress_cb=None):
+    """Runs the single-agent illustrator-sheet extraction.
+    Returns (raw_json_text, warning_or_None)."""
+    if progress_cb:
+        progress_cb("analyzing image (single agent)...")
+
+    client = genai.Client(api_key=api_key,
+                           http_options=types.HttpOptions(timeout=240_000))  # 4 min
+    img = Image.open(image_path)
+    orig_size = img.size
+    img = _cap_for_sending(img)
+    if img.size != orig_size and progress_cb:
+        progress_cb(f"resized {orig_size[0]}x{orig_size[1]} -> {img.size[0]}x{img.size[1]} before sending to Gemini")
+    prompt = PROMPT_TEMPLATE.format(image_path=image_path)
+
+    response = _generate_with_retry(
+        client,
+        model="gemini-2.5-flash",
         contents=[img, prompt],
         config=types.GenerateContentConfig(
             response_mime_type="application/json",
             response_schema=ArchaeologicalDiagram,
-            temperature=0.1
-        )
+            temperature=0.1,
+            max_output_tokens=max_output_tokens,
+        ),
     )
 
-    rawJson = response.text
-    print(f"here is the raw json: {rawJson} ")
+    raw_json = response.text
+    with open(out_path, "w") as f:
+        f.write(raw_json)
 
-    with open("output_single.json", "w") as f:
-        f.write(rawJson)
+    from pipeline._extract_common import check_response
+    warning = check_response(response, raw_json)
 
-    extractedData: ArchaeologicalDiagram = response.parsed
-    return extractedData
+    if progress_cb:
+        progress_cb(f"wrote {out_path}")
 
-
-if __name__ == "__main__":
-    import sys
-    imagePath = sys.argv[1] if len(sys.argv) > 1 else './images/qwertyTest.png'
-    ProcessImageSingleAgent(imagePath)
+    return raw_json, warning
