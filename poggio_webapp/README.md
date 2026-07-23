@@ -16,7 +16,9 @@ poggio_webapp/
   static/style.css      styling
   static/visualizer.html  your original 07_visualizer, served as-is
   tools/                standalone helpers NOT wired into the GUI
-                        (detectFieldWallMarkers.py, pixel_picker.html)
+                        (pixel_picker.html; detectFieldWallMarkers.py is
+                        superseded by pipeline/detect_markers.py, which is
+                        wired in)
   jobs/                 created at runtime — one folder per session,
                         mirroring 01_scan .. 06_gempy_model
 ```
@@ -72,6 +74,15 @@ respected if you want a different port or the auto-reloading dev server.
    sheets, confirm the bold-grid-square size in cm by hand first. This is
    the one stage that calls out to the network and can take a bit — progress
    streams into a log box.
+   - **Field-wall sheets have an alternative, more trustworthy path**:
+     marker detection. Click the wall's top-left/top-right/lowest point and
+     give the real width between the top corners; CV finds the recorder's
+     circle-marked vertices (a marker can't be fabricated the way a traced
+     boundary can). Review/toggle the candidates, then Gemini only
+     *classifies* each confirmed point (surface / bottom of locus N / noise)
+     and reads the sheet's labels — it never touches coordinates. Finalize
+     assembles the classification plus the untouched CV coordinates into the
+     extraction, with no further network call.
 4. **Normalize** — one click, shows the change log.
 5. **Validate** — adjust tolerances if needed, see errors (would corrupt the
    model) vs. warnings (worth a look).
@@ -100,10 +111,15 @@ respected if you want a different port or the auto-reloading dev server.
   are warnings rather than errors — strong signals, not proof. Every
   extraction produced so far trips at least one of them; read stage 5's
   warnings before trusting a model.
-- `tools/detectFieldWallMarkers.py` (CV-based marker detection for T104-style
-  photos) isn't wired into this GUI; it's a standalone pre-step you'd run by
-  hand before extraction. It finds markers but does not yet assign them to
-  loci.
+- **CV-based marker detection is currently broken past the "confirm" step.**
+  `pipeline/detect_markers.py` (preview/detect/confirm) works. But
+  `app.py`'s `/markers/assign` and `/markers/finalize` routes call
+  `pipeline.assign_markers.classify_markers` /
+  `.finalize_assignments` — function names that don't exist in
+  `assign_markers.py` (it only defines the older `run_assign`). Clicking
+  "assign" in step 3 above will 400/error until that mismatch is fixed. See
+  the top-level README's *How it works* and *Known open items* sections for
+  the full detail.
 - Each job's working files live under `jobs/<job_id>/` on this server and
   are not cleaned up automatically — delete old job folders periodically if
   disk space matters.
