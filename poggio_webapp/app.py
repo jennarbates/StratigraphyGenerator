@@ -126,8 +126,9 @@ def visualizer():
 @app.route("/api/jobs/<job_id>/visualizer-files")
 def visualizer_files(job_id):
     """Everything the visualizer can auto-load for this job, so the user
-    doesn't have to re-pick files the server already has. JSONs are served
-    as-is; the visualizer normalizes either extraction shape client-side."""
+    doesn't have to re-pick files the server already has. Field-wall JSON
+    isn't in the trenchProfiles shape the visualizer reads, so for those
+    jobs the fieldwall_to_profiles adapter output is served instead."""
     meta = load_meta(job_id)
     out = {"sheet_type": meta.get("sheet_type"), "jsons": []}
 
@@ -145,11 +146,24 @@ def visualizer_files(job_id):
     add("normalized", meta.get("normalized_path"))
     add("raw extraction", meta.get("extraction_path"))
 
-    # Field-wall JSON is served raw: the visualizer adapts the
-    # FieldWallProfile shape itself (see ingest() in visualizer.html), and
-    # unlike fieldwall_to_profiles() it keeps topBoundary and features —
-    # the Python adapter only carries what convert() needs. Serving both
-    # raw and normalized also keeps A/B compare working for field sheets.
+    if meta.get("sheet_type") == "fieldwall" and out["jsons"]:
+        src = meta.get("normalized_path") or meta.get("extraction_path")
+        try:
+            with open(src) as f:
+                data = json.load(f)
+            if p_convert_coords.is_field_wall(data):
+                adapted, _notes = p_convert_coords.fieldwall_to_profiles(data)
+                apath = (job_dir(job_id) / "04_normalize_validate"
+                         / "adapted_for_visualizer.json")
+                apath.parent.mkdir(parents=True, exist_ok=True)
+                with open(apath, "w") as f:
+                    json.dump(adapted, f, indent=2)
+                # the only entry the visualizer can actually draw for a
+                # field sheet, so it goes first
+                out["jsons"] = [{"label": "adapted for visualizer",
+                                 "url": rel_url(job_id, apath)}]
+        except Exception:
+            pass  # non-fatal: the manual file pickers still work
 
     return jsonify(out)
 
@@ -305,8 +319,56 @@ def run_extract(job_id):
 
     meta["extraction_path"] = str(out_path)
     meta["extraction_task_id"] = task_id
+    # a normalize run from a previous extraction no longer describes this one
+    meta.pop("normalized_path", None)
     save_meta(job_id, meta)
     return jsonify({"task_id": task_id})
+
+
+@app.route("/api/jobs/<job_id>/extract/upload", methods=["POST"])
+def upload_extraction(job_id):
+    """Reuse a previous extraction JSON instead of calling Gemini.
+
+    Accepts a multipart .json upload, checks that it parses and matches one
+    of the two known schemas, and installs it as this job's extraction so
+    normalize / validate / convert / visualize pick it up unchanged. Does
+    not require preprocess to have run — the whole point is skipping the
+    image-analysis path.
+    """
+    meta = load_meta(job_id)
+
+    file = request.files.get("file")
+    if not file or not file.filename:
+        abort(400, description="no file uploaded")
+    if os.path.splitext(file.filename)[1].lower() != ".json":
+        abort(400, description="expected a .json file")
+
+    raw = file.read().decode("utf-8", errors="replace")
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError as e:
+        return jsonify({"error": f"not valid JSON: {e}"}), 400
+
+    if isinstance(data, dict) and "trenchProfiles" in data:
+        detected = "illustrator"
+    elif isinstance(data, dict) and p_convert_coords.is_field_wall(data):
+        detected = "fieldwall"
+    else:
+        return jsonify({"error": "this JSON is neither an illustrator extraction "
+                                  "(trenchProfiles) nor a field-wall extraction "
+                                  "(loci/layers) — refusing to install it"}), 400
+
+    out_path = job_dir(job_id) / "03_extraction" / "uploaded.json"
+    out_path.write_text(raw)
+
+    meta["extraction_path"] = str(out_path)
+    meta["sheet_type"] = detected
+    meta.pop("extraction_task_id", None)
+    meta.pop("normalized_path", None)  # belongs to the previous extraction
+    save_meta(job_id, meta)
+
+    return jsonify({"raw_json": raw, "sheet_type": detected,
+                    "file_url": rel_url(job_id, out_path)})
 
 
 @app.route("/api/tasks/<task_id>")

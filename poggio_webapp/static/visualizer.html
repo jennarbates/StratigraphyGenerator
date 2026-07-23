@@ -127,17 +127,6 @@
       <label class="toggle"><input type="checkbox" id="tLabels"> Layer names</label>
       <h2 class="section">Layers</h2>
       <div id="legend"></div>
-      <h2 class="section">Overlay alignment</h2>
-      <div class="row">
-        <button class="filebtn" id="alignBtn">Align overlay to drawing</button>
-      </div>
-      <div class="row">
-        <button class="filebtn" id="alignReset">Reset alignment</button>
-      </div>
-      <p class="hint" style="font-size:11.5px;margin:2px 0 0">The overlay assumes the
-      drawn section fills the whole image. For a photo with margins, click
-      <b>Align</b> then drag a box over just the drawn wall (frame line to
-      frame line).</p>
     </div>
   </aside>
 
@@ -166,9 +155,44 @@ function colorFor(m){const k=(m||"?").toUpperCase().trim();
 let DATA_A=null, DATA_B=null, IMG_URL=null, activeFace=0, compare=false;
 const $=id=>document.getElementById(id);
 
+// The visualizer draws the illustrator schema (trenchProfiles). Field-wall
+// extractions (loci/layers, points keyed xMeters/depthMeters) are adapted
+// into that shape on load — the JS twin of convert_coords.fieldwall_to_profiles,
+// so a T104-style JSON renders as one face instead of "no face #1".
+function asProfiles(d){
+  if(!d||typeof d!=="object"||d.trenchProfiles||!(d.loci||d.layers)) return d;
+  const munsell={};
+  (d.loci||[]).forEach(e=>{
+    const num=String(e.locusNumber??"").trim();
+    if(!num||num in munsell)return;   // duplicate loci: keep the first, like the Python adapter
+    let m=e.munsell;
+    if(m&&typeof m==="object")
+      m=[m.raw,m.colorName].filter(v=>v&&String(v).trim().toLowerCase()!=="none").join(" ");
+    munsell[num]=(m&&String(m).trim())||null;
+  });
+  const pt=p=>({
+    xCoordinateMeters:(typeof p.xMeters==="number")?p.xMeters:p.xCoordinateMeters,
+    yCoordinateMeters:(typeof p.depthMeters==="number")?p.depthMeters:p.yCoordinateMeters,
+    confidence:p.confidence});
+  const layers=(d.layers||[]).map((l,i)=>{
+    const num=String(l.locusNumber??"").trim();
+    const name=num?(munsell[num]?`Locus ${num} (${munsell[num]})`:`Locus ${num}`):`layer_${i}`;
+    return {layerName:name, inferredMaterial:name,
+            topBoundary:(l.topBoundary||[]).map(pt),
+            bottomBoundary:(l.bottomBoundary||[]).map(pt),
+            featuresInLayer:(l.featuresInLayer||[]).map(ft=>({
+              feature:ft.feature, description:ft.description,
+              shapePoints:(ft.shapePoints||[]).map(pt),
+              approxXMeters:ft.approxXMeters, approxYMeters:ft.approxDepthMeters,
+              approxWidthMeters:ft.approxWidthMeters, approxHeightMeters:ft.approxHeightMeters}))};
+  });
+  return {metadata:{trenchLabel:d.trenchLabel||d.faceLabel||"field wall"},
+          trenchProfiles:[{face:d.faceLabel||d.trenchLabel||"field wall", layers}]};
+}
+
 function readJSON(file, which){
   const r=new FileReader();
-  r.onload=()=>{try{const d=JSON.parse(r.result);
+  r.onload=()=>{try{const d=asProfiles(JSON.parse(r.result));
     if(which==="A"){DATA_A=d; mark("jsonLabelA",file.name);}
     else {DATA_B=d; mark("jsonLabelB",file.name);}
     ready();}catch(e){alert("Not valid JSON:\n"+e.message);}};
@@ -208,6 +232,9 @@ function ready(){
   const primary = DATA_A || DATA_B;
   if(!primary) return;
   const faces = primary.trenchProfiles || [];
+  // switching to a JSON with fewer faces must not leave activeFace pointing
+  // past the end (the old "no face #3" after a 3-face -> 1-face swap)
+  if(activeFace >= faces.length) activeFace = 0;
   const m = primary.metadata || {};
   $("meta").innerHTML = m.trenchLabel
     ? `Trench <b>${m.trenchLabel}</b> · ${(m.credits&&m.credits.year)||"—"} · ${faces.length} face(s)` : "";
@@ -302,77 +329,7 @@ function buildSVG(face, maxX, maxY, wrap){
   s.push(`</svg>`);
   const old=wrap.querySelector("svg"); if(old)old.remove();
   wrap.insertAdjacentHTML("beforeend", s.join(""));
-  applyAlign(wrap.querySelector("svg"));
 }
-
-// --- overlay alignment ----------------------------------------------------
-// The SVG's meter-space viewBox is stretched over a rectangle of the image.
-// Default: the whole image (the pre-webapp assumption — true for cropped
-// scans, wrong for photos with margins). ALIGN holds that rectangle as
-// fractions of the image, user-adjustable by dragging a box.
-let ALIGN = {x:0, y:0, w:1, h:1};
-function alignKey(){ return "viz_align_" + (new URLSearchParams(location.search).get("job") || "manual"); }
-try{ const saved = localStorage.getItem(alignKey());
-     if(saved) ALIGN = JSON.parse(saved); }catch(e){}
-
-function applyAlign(svg){
-  if(!svg) return;
-  svg.style.inset = "auto";
-  svg.style.left   = (ALIGN.x*100) + "%";
-  svg.style.top    = (ALIGN.y*100) + "%";
-  svg.style.width  = (ALIGN.w*100) + "%";
-  svg.style.height = (ALIGN.h*100) + "%";
-}
-
-let alignArming = false;
-document.getElementById("alignBtn").onclick = ()=>{
-  alignArming = true;
-  document.getElementById("alignBtn").textContent = "now drag a box on the image\u2026";
-  document.body.style.cursor = "crosshair";
-};
-document.getElementById("alignReset").onclick = ()=>{
-  ALIGN = {x:0, y:0, w:1, h:1};
-  try{ localStorage.removeItem(alignKey()); }catch(e){}
-  document.querySelectorAll(".canvas-wrap svg").forEach(applyAlign);
-};
-
-document.addEventListener("mousedown", e=>{
-  if(!alignArming) return;
-  const wrap = e.target.closest(".canvas-wrap");
-  if(!wrap) return;
-  e.preventDefault();
-  const r0 = wrap.getBoundingClientRect();
-  const x0 = e.clientX, y0 = e.clientY;
-  const band = document.createElement("div");
-  band.style.cssText = "position:fixed;border:2px dashed var(--accent);"+
-    "background:rgba(124,74,45,.08);z-index:60;pointer-events:none;";
-  document.body.appendChild(band);
-  const move = ev=>{
-    const x=Math.min(x0,ev.clientX), y=Math.min(y0,ev.clientY);
-    band.style.left=x+"px"; band.style.top=y+"px";
-    band.style.width=Math.abs(ev.clientX-x0)+"px";
-    band.style.height=Math.abs(ev.clientY-y0)+"px";
-  };
-  const up = ev=>{
-    document.removeEventListener("mousemove", move);
-    document.removeEventListener("mouseup", up);
-    band.remove();
-    document.body.style.cursor = "";
-    alignArming = false;
-    document.getElementById("alignBtn").textContent = "Align overlay to drawing";
-    const x=Math.min(x0,ev.clientX), y=Math.min(y0,ev.clientY);
-    const w=Math.abs(ev.clientX-x0), h=Math.abs(ev.clientY-y0);
-    if(w<10 || h<10) return;              // accidental click — ignore
-    ALIGN = {
-      x:(x-r0.left)/r0.width,  y:(y-r0.top)/r0.height,
-      w:w/r0.width,            h:h/r0.height,
-    };
-    try{ localStorage.setItem(alignKey(), JSON.stringify(ALIGN)); }catch(e){}
-    document.querySelectorAll(".canvas-wrap svg").forEach(applyAlign);
-  };
-  document.addEventListener("mousemove", move);
-  document.addEventListener("mouseup", up);
-});
 
 function panelHTML(tag, label, face){
   const {maxX,maxY}=faceExtent(face);
@@ -394,7 +351,17 @@ function draw(){
 
   const faceA = A ? (A.trenchProfiles||[])[activeFace] : null;
   const faceB = B ? (B.trenchProfiles||[])[activeFace] : null;
-  if(!faceA && !faceB){ main.innerHTML=`<div class="empty">This run has no face #${activeFace+1}.</div>`; return; }
+  if(!faceA && !faceB){
+    const anyFaces = [A,B].some(D=>D && (D.trenchProfiles||[]).length);
+    main.innerHTML = anyFaces
+      ? `<div class="empty">This run has no face #${activeFace+1}.</div>`
+      : `<div class="empty">No faces found in this JSON.<br>
+         Expected either an illustrator extraction (<code>trenchProfiles</code>)
+         or a field-wall extraction (<code>loci</code>/<code>layers</code>) —
+         this file has neither, so there is nothing to draw.
+         Grid configs, points.csv exports, and GemPy outputs are not visualizer inputs.</div>`;
+    return;
+  }
 
   const html=[];
   html.push(`<p class="hint">Coordinates are face-local: x along the face, depth positive downward. Hover any point for its value.</p>`);
@@ -458,13 +425,13 @@ function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;","
     }
     if(f.jsons && f.jsons.length){
       const a = f.jsons[0];
-      DATA_A = await (await fetch(a.url)).json();
+      DATA_A = asProfiles(await (await fetch(a.url)).json());
       mark("jsonLabelA", "auto: " + a.label);
       if(f.jsons.length > 1){
         // pre-fetch the runner-up (e.g. raw extraction vs normalized) into
         // slot B so ticking "Compare two runs" shows it instantly
         const b = f.jsons[1];
-        DATA_B = await (await fetch(b.url)).json();
+        DATA_B = asProfiles(await (await fetch(b.url)).json());
         mark("jsonLabelB", "auto: " + b.label);
       }
     }
