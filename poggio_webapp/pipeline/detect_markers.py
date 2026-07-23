@@ -518,10 +518,39 @@ def run_detect(image_path, origin_px, ref_px, ref_meters, bottom_px_y,
         writer.writeheader()
         writer.writerows(markers)
 
+    # The route and review UI consume the rejected candidates too (red,
+    # toggleable dots), so a person can rescue a real vertex the filters
+    # wrongly dropped. Only NEAR MISSES are worth showing: a reject far
+    # outside the marker size band (graph-paper texture below it, stone
+    # outlines and the whole-sheet contour above it) was never a plausible
+    # marker, and rendering thousands of them buries the drawing. Shown:
+    # diameter within [0.5*min_d, 1.5*max_d] and roughly round, capped at
+    # the most circular 300. x_m/depth_m are deliberately absent:
+    # /markers/confirm recomputes them from pixel coordinates.
+    near_misses = [
+        entry for entry in rejected
+        if 0.5 * min_d <= entry["diam"] <= 1.5 * max_d
+        and entry.get("circularity", 0.0) >= 0.4
+    ]
+    near_misses.sort(key=lambda entry: -entry.get("circularity", 0.0))
+    near_misses = near_misses[:300]
+
+    rejected_out = [
+        {
+            "pixel_x": round(float(entry["cx"]), 1),
+            "pixel_y": round(float(entry["cy"]), 1),
+            "diam_px": round(float(entry["diam"]), 1),
+            "circularity": round(float(entry.get("circularity", 0.0)), 3),
+        }
+        for entry in near_misses
+    ]
+
     return {
         "markers": markers,
+        "rejected": rejected_out,
         "n_accepted": len(markers),
         "n_rejected_in_box": len(rejected),
+        "origin_px": [round(float(ox), 1), round(float(oy), 1)],
         "px_per_m": round(px_per_m, 2),
         "px_per_paper_mm": round(mm_px, 2),
         "rotated_image": rotated_path,
