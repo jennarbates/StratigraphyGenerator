@@ -15,14 +15,23 @@ poggio_webapp/
   static/app.js         all frontend logic (vanilla JS, no build step)
   static/style.css      styling
   static/visualizer.html  your original 07_visualizer, served as-is
+  tools/                standalone helpers NOT wired into the GUI
+                        (detectFieldWallMarkers.py, pixel_picker.html)
   jobs/                 created at runtime — one folder per session,
                         mirroring 01_scan .. 06_gempy_model
 ```
 
-Nothing in `pipeline/` changes the original scripts' behavior — same schemas,
-same prompts, same math, same defaults. They were only restructured from
-`argparse` CLI scripts into functions the Flask routes can call directly, so
-results should match the original CLI byte-for-byte given the same inputs.
+`pipeline/` keeps the original scripts' schemas, prompts and defaults; they
+were restructured from `argparse` CLI scripts into functions the Flask routes
+can call directly. Interface points still match the original CLI byte-for-byte
+given the same inputs. Two deliberate departures from the pre-webapp CLI:
+
+- `convert_coords` computes orientation dip from a least-squares fit over all
+  boundary points, restoring commit `b01638d` — that improvement was silently
+  dropped during the `file organize` commit and the webapp had inherited the
+  endpoint-only slope. Interface points are unaffected; only dips change.
+- `validator` accepts `FieldWallProfile` JSON instead of rejecting it with
+  "no trenchProfiles", and adds the fabrication checks described below.
 
 ## Setup
 
@@ -69,9 +78,11 @@ respected if you want a different port or the auto-reloading dev server.
 6. **Convert coordinates** — edit the grid-registration table (originX/Y,
    surfaceZ, bearing_deg per face). *Real survey values, not the smoke-test
    placeholders, are what make the absolute coordinates trustworthy* — same
-   caveat as the original `gridConfig.JSON`. Illustrator-sheet extractions
-   only for now (matches the open item on `FieldWallProfile` conversion in
-   the original README).
+   caveat as the original `gridConfig.JSON`. Works for both sheet types: a
+   field sheet is adapted to the same single-face shape, with surfaces named
+   `Locus N (munsell)`, and any tie-in labels transcribed off the drawing are
+   listed under `_tiePointsFromSheet` for reference — verbatim, not
+   interpreted.
 7. **3D model** — set resolution/section direction/vertical exaggeration,
    optionally override the stratigraphic order, build. Renders the same
    cross-section + zoomed-middle-layers PNGs as the CLI, plus downloadable
@@ -80,13 +91,19 @@ respected if you want a different port or the auto-reloading dev server.
    file pickers still drive it — A/B compare two extraction runs against the
    scan).
 
-## Notes / known limits carried over from the original pipeline
+## Notes / known limits
 
-- Field-wall (`FieldWallProfile`) JSON has no coordinate-conversion step yet
-  — same open item as the CLI README.
-- `detectFieldWallMarkers.py` (CV-based marker detection for T104-style
-  photos) isn't wired into this GUI; it's a standalone pre-step you'd still
-  run by hand before extraction if you need it.
+- **Grid registration is still placeholder data.** This is the single biggest
+  limiter on model quality — see the open items in the top-level README.
+- **The validator now flags fabricated geometry** (vertices on a perfectly
+  regular interval; layers whose boundaries are one shape copied down). These
+  are warnings rather than errors — strong signals, not proof. Every
+  extraction produced so far trips at least one of them; read stage 5's
+  warnings before trusting a model.
+- `tools/detectFieldWallMarkers.py` (CV-based marker detection for T104-style
+  photos) isn't wired into this GUI; it's a standalone pre-step you'd run by
+  hand before extraction. It finds markers but does not yet assign them to
+  loci.
 - Each job's working files live under `jobs/<job_id>/` on this server and
   are not cleaned up automatically — delete old job folders periodically if
   disk space matters.

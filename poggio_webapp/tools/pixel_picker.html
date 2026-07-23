@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Field wall pixel picker</title>
+<style>
+  :root {
+    --ink:#1c2230; --paper:#f4f1ea; --panel:#fff; --line:#d8d3c4;
+    --accent:#b0532e; --accent-soft:#e7c9b8; --mono:'SF Mono',Consolas,monospace;
+    --origin:#c73e3e; --box:#1f7a5c;
+  }
+  * { box-sizing:border-box; }
+  html,body { margin:0; background:var(--paper); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+  .wrap { display:grid; grid-template-columns:1fr 340px; gap:0; min-height:100vh; }
+  .stage { position:relative; padding:16px; display:flex; flex-direction:column; gap:10px; }
+  .toolbar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  button { font:13px var(--mono); padding:7px 12px; border:1px solid var(--line);
+    background:var(--panel); border-radius:5px; cursor:pointer; color:var(--ink); }
+  button.active { background:var(--ink); color:var(--paper); border-color:var(--ink); }
+  button:hover:not(.active) { border-color:var(--accent); }
+  .sep { width:1px; height:22px; background:var(--line); margin:0 4px; }
+  #dropzone { border:2px dashed var(--line); border-radius:8px; padding:60px 20px;
+    text-align:center; color:#8a8577; cursor:pointer; }
+  #dropzone.drag { border-color:var(--accent); color:var(--accent); }
+  #canvasHolder { position:relative; border:1px solid var(--line); border-radius:8px;
+    overflow:hidden; background:#2b2a26; }
+  canvas { display:block; cursor:crosshair; }
+  canvas.pan-mode { cursor:grab; }
+  canvas.pan-mode:active { cursor:grabbing; }
+  .hint { font-size:12px; color:#8a8577; }
+  .panel { background:var(--panel); padding:20px; border-left:1px solid var(--line);
+    overflow-y:auto; }
+  .panel h2 { font-size:13px; text-transform:uppercase; letter-spacing:.06em;
+    color:#8a8577; margin:0 0 8px; font-weight:600; }
+  .panel h2:not(:first-child) { margin-top:22px; }
+  .readout { font:13px var(--mono); background:var(--paper); border:1px solid var(--line);
+    border-radius:5px; padding:8px 10px; margin-bottom:4px; }
+  .readout .k { color:#8a8577; }
+  .readout .unset { color:#b8b2a0; font-style:italic; }
+  .swatch { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px; }
+  label { display:block; font-size:12px; color:#5c5748; margin:10px 0 4px; }
+  input[type=text], input[type=number] { width:100%; font:13px var(--mono); padding:7px 8px;
+    border:1px solid var(--line); border-radius:5px; background:var(--paper); color:var(--ink); }
+  pre#cmd { font:12px var(--mono); background:var(--ink); color:#e8e4d8; padding:12px;
+    border-radius:6px; white-space:pre-wrap; word-break:break-all; margin:8px 0 0; line-height:1.6; }
+  .copybtn { width:100%; margin-top:8px; }
+  .zoom-readout { font:12px var(--mono); color:#8a8577; margin-left:auto; }
+  .warn { font-size:12px; color:var(--accent); margin-top:6px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="stage">
+    <div id="dropzone">
+      Drop the wall photo here, or click to choose a file<br>
+      <span class="hint">Nothing is uploaded anywhere — this runs entirely in your browser.</span>
+      <input type="file" id="fileInput" accept="image/*" style="display:none">
+    </div>
+    <div id="controls" style="display:none">
+      <div class="toolbar">
+        <button id="modeOrigin">Set origin</button>
+        <button id="modeBox">Set grid box</button>
+        <button id="modePan" class="active">Pan / zoom</button>
+        <div class="sep"></div>
+        <button data-rot="0">0&deg;</button>
+        <button data-rot="90">90&deg;</button>
+        <button data-rot="180">180&deg;</button>
+        <button data-rot="270">270&deg;</button>
+        <div class="sep"></div>
+        <button id="zoomFit">Fit</button>
+        <span class="zoom-readout" id="zoomReadout"></span>
+      </div>
+      <div class="hint" id="modeHint">Pan: drag to move, scroll to zoom.</div>
+      <div id="canvasHolder">
+        <canvas id="view" width="900" height="620"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="panel">
+    <h2>Origin (x=0, depth=0)</h2>
+    <div class="readout"><span class="swatch" style="background:var(--origin)"></span>
+      <span id="originReadout" class="unset">not set — click "Set origin", then click the wall's top-left corner</span></div>
+
+    <h2>Grid sample box</h2>
+    <div class="readout"><span class="swatch" style="background:var(--box)"></span>
+      <span id="boxReadout" class="unset">not set — click "Set grid box", then drag over a blank patch of grid</span></div>
+
+    <h2>Settings</h2>
+    <label for="imgPath">Image path (as it appears in your repo)</label>
+    <input type="text" id="imgPath" value="01_scans/T104_southern_baulk_wall.jpeg">
+    <label for="squareCm">Bold grid square size (cm)</label>
+    <input type="number" id="squareCm" value="20" step="0.1">
+    <label for="outCsv">Output CSV path</label>
+    <input type="text" id="outCsv" value="03_extraction/markers.csv">
+    <label for="outDebug">Debug image path</label>
+    <input type="text" id="outDebug" value="03_extraction/markers_debug.png">
+
+    <h2>Command</h2>
+    <pre id="cmd">Load an image and set both points to generate this.</pre>
+    <button class="copybtn" id="copyBtn">Copy command</button>
+    <div class="warn" id="rotWarn" style="display:none">
+      Rotation changed after points were set — origin/box were cleared, re-pick them at the new rotation.
+    </div>
+  </div>
+</div>
+<script>
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+const controls = document.getElementById('controls');
+const view = document.getElementById('view');
+const ctx = view.getContext('2d');
+const modeHint = document.getElementById('modeHint');
+const rotWarn = document.getElementById('rotWarn');
+
+let srcCanvas = null;
+let rawBitmap = null;
+let rotation = 0;
+let scale = 1, tx = 0, ty = 0;
+let mode = 'pan';
+let origin = null;
+let gridBox = null;
+let dragging = false, dragStart = null, panStart = null, boxPreview = null;
+
+function fullToScreen(x, y) { return { x: x * scale + tx, y: y * scale + ty }; }
+function screenToFull(x, y) { return { x: (x - tx) / scale, y: (y - ty) / scale }; }
+
+async function loadFile(file) {
+  rawBitmap = await createImageBitmap(file, { imageOrientation: 'none' });
+  rotation = 0;
+  origin = null; gridBox = null;
+  rotWarn.style.display = 'none';
+  buildSrcCanvas();
+  fitToView();
+  controls.style.display = 'block';
+  dropzone.style.display = 'none';
+  updatePanel();
+}
+
+function buildSrcCanvas() {
+  const w = rawBitmap.width, h = rawBitmap.height;
+  const swapped = (rotation === 90 || rotation === 270);
+  const cw = swapped ? h : w, ch = swapped ? w : h;
+  srcCanvas = document.createElement('canvas');
+  srcCanvas.width = cw; srcCanvas.height = ch;
+  const c = srcCanvas.getContext('2d');
+  c.save();
+  c.translate(cw / 2, ch / 2);
+  c.rotate(rotation * Math.PI / 180);
+  c.drawImage(rawBitmap, -w / 2, -h / 2);
+  c.restore();
+}
+
+function fitToView() {
+  const pad = 0.96;
+  scale = Math.min(view.width / srcCanvas.width, view.height / srcCanvas.height) * pad;
+  tx = (view.width - srcCanvas.width * scale) / 2;
+  ty = (view.height - srcCanvas.height * scale) / 2;
+  redraw();
+}
+
+function redraw() {
+  ctx.fillStyle = '#2b2a26';
+  ctx.fillRect(0, 0, view.width, view.height);
+  if (!srcCanvas) return;
+  ctx.save();
+  ctx.translate(tx, ty);
+  ctx.scale(scale, scale);
+  ctx.drawImage(srcCanvas, 0, 0);
+  ctx.restore();
+
+  if (gridBox) drawBoxScreen(gridBox.x0, gridBox.y0, gridBox.x1, gridBox.y1, '#1f7a5c');
+  if (boxPreview) drawBoxScreen(boxPreview.x0, boxPreview.y0, boxPreview.x1, boxPreview.y1, '#1f7a5c88');
+  if (origin) drawOrigin(origin.x, origin.y);
+
+  document.getElementById('zoomReadout').textContent = Math.round(scale * 100) + '%';
+}
+
+function drawBoxScreen(fx0, fy0, fx1, fy1, color) {
+  const a = fullToScreen(fx0, fy0), b = fullToScreen(fx1, fy1);
+  ctx.strokeStyle = color; ctx.lineWidth = 2;
+  ctx.strokeRect(a.x, a.y, b.x - a.x, b.y - a.y);
+}
+
+function drawOrigin(fx, fy) {
+  const p = fullToScreen(fx, fy);
+  ctx.strokeStyle = '#c73e3e'; ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(p.x - 14, p.y); ctx.lineTo(p.x + 14, p.y);
+  ctx.moveTo(p.x, p.y - 14); ctx.lineTo(p.x, p.y + 14);
+  ctx.stroke();
+  ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, Math.PI * 2); ctx.stroke();
+}
+
+function setMode(m) {
+  mode = m;
+  ['modeOrigin', 'modeBox', 'modePan'].forEach(id => document.getElementById(id).classList.remove('active'));
+  document.getElementById({ origin: 'modeOrigin', box: 'modeBox', pan: 'modePan' }[m]).classList.add('active');
+  view.classList.toggle('pan-mode', m === 'pan');
+  modeHint.textContent = {
+    origin: 'Click the wall\'s top-left corner (x=0, depth=0).',
+    box: 'Drag a rectangle over a blank patch of grid (no ink).',
+    pan: 'Pan: drag to move, scroll to zoom.'
+  }[m];
+}
+
+view.addEventListener('wheel', e => {
+  e.preventDefault();
+  const rect = view.getBoundingClientRect();
+  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+  const before = screenToFull(mx, my);
+  const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
+  scale = Math.min(Math.max(scale * factor, 0.05), 12);
+  tx = mx - before.x * scale;
+  ty = my - before.y * scale;
+  redraw();
+}, { passive: false });
+
+view.addEventListener('mousedown', e => {
+  const rect = view.getBoundingClientRect();
+  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+  dragging = true;
+  dragStart = { x: mx, y: my };
+  panStart = { tx, ty };
+  if (mode === 'box') {
+    const f = screenToFull(mx, my);
+    boxPreview = { x0: f.x, y0: f.y, x1: f.x, y1: f.y };
+  }
+});
+
+view.addEventListener('mousemove', e => {
+  if (!dragging) return;
+  const rect = view.getBoundingClientRect();
+  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+  if (mode === 'pan') {
+    tx = panStart.tx + (mx - dragStart.x);
+    ty = panStart.ty + (my - dragStart.y);
+    redraw();
+  } else if (mode === 'box') {
+    const f = screenToFull(mx, my);
+    boxPreview.x1 = f.x; boxPreview.y1 = f.y;
+    redraw();
+  }
+});
+
+window.addEventListener('mouseup', e => {
+  if (!dragging) return;
+  dragging = false;
+  const rect = view.getBoundingClientRect();
+  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+  const moved = Math.hypot(mx - dragStart.x, my - dragStart.y) > 3;
+
+  if (mode === 'origin' && !moved) {
+    const f = screenToFull(mx, my);
+    origin = { x: Math.round(f.x), y: Math.round(f.y) };
+  } else if (mode === 'box' && boxPreview) {
+    const x0 = Math.round(Math.min(boxPreview.x0, boxPreview.x1));
+    const x1 = Math.round(Math.max(boxPreview.x0, boxPreview.x1));
+    const y0 = Math.round(Math.min(boxPreview.y0, boxPreview.y1));
+    const y1 = Math.round(Math.max(boxPreview.y0, boxPreview.y1));
+    if (x1 - x0 > 5 && y1 - y0 > 5) gridBox = { x0, y0, x1, y1 };
+    boxPreview = null;
+  }
+  redraw();
+  updatePanel();
+});
+
+document.getElementById('modeOrigin').onclick = () => setMode('origin');
+document.getElementById('modeBox').onclick = () => setMode('box');
+document.getElementById('modePan').onclick = () => setMode('pan');
+document.getElementById('zoomFit').onclick = fitToView;
+
+document.querySelectorAll('[data-rot]').forEach(btn => {
+  btn.onclick = () => {
+    const had = origin || gridBox;
+    rotation = parseInt(btn.dataset.rot, 10);
+    origin = null; gridBox = null;
+    rotWarn.style.display = had ? 'block' : 'none';
+    buildSrcCanvas();
+    fitToView();
+    updatePanel();
+  };
+});
+
+['imgPath', 'squareCm', 'outCsv', 'outDebug'].forEach(id => {
+  document.getElementById(id).addEventListener('input', updatePanel);
+});
+
+function updatePanel() {
+  const originEl = document.getElementById('originReadout');
+  if (origin) {
+    originEl.classList.remove('unset');
+    originEl.textContent = `x=${origin.x}, y=${origin.y}`;
+  } else {
+    originEl.classList.add('unset');
+    originEl.textContent = 'not set — click "Set origin", then click the wall\'s top-left corner';
+  }
+
+  const boxEl = document.getElementById('boxReadout');
+  if (gridBox) {
+    boxEl.classList.remove('unset');
+    boxEl.textContent = `y0=${gridBox.y0}, y1=${gridBox.y1}, x0=${gridBox.x0}, x1=${gridBox.x1}`;
+  } else {
+    boxEl.classList.add('unset');
+    boxEl.textContent = 'not set — click "Set grid box", then drag over a blank patch of grid';
+  }
+
+  const cmdEl = document.getElementById('cmd');
+  if (origin && gridBox) {
+    const img = document.getElementById('imgPath').value || 'image.jpeg';
+    const sq = document.getElementById('squareCm').value || '20';
+    const out = document.getElementById('outCsv').value || 'markers.csv';
+    const dbg = document.getElementById('outDebug').value || 'markers_debug.png';
+    cmdEl.textContent =
+`python3 03_extraction/detectFieldWallMarkers.py ${img} \\
+    --rotate ${rotation} --square-cm ${sq} \\
+    --origin-px ${origin.x} ${origin.y} \\
+    --grid-sample-box ${gridBox.y0} ${gridBox.y1} ${gridBox.x0} ${gridBox.x1} \\
+    --out ${out} \\
+    --debug-image ${dbg}`;
+  } else {
+    cmdEl.textContent = 'Set both the origin and the grid box to generate this.';
+  }
+}
+
+document.getElementById('copyBtn').onclick = () => {
+  navigator.clipboard.writeText(document.getElementById('cmd').textContent);
+  const b = document.getElementById('copyBtn');
+  const orig = b.textContent;
+  b.textContent = 'Copied';
+  setTimeout(() => b.textContent = orig, 1200);
+};
+
+dropzone.onclick = () => fileInput.click();
+fileInput.onchange = e => { if (e.target.files[0]) loadFile(e.target.files[0]); };
+['dragover', 'dragleave', 'drop'].forEach(evt => {
+  dropzone.addEventListener(evt, e => {
+    e.preventDefault();
+    dropzone.classList.toggle('drag', evt === 'dragover');
+    if (evt === 'drop' && e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]);
+  });
+});
+</script>
+</body>
+</html>

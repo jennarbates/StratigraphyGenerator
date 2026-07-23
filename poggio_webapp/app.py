@@ -367,10 +367,10 @@ def gridconfig_starter(job_id):
     if not path:
         abort(400, description="run extraction first")
     data = json.loads(Path(path).read_text())
-    if "trenchProfiles" not in data:
-        return jsonify({"error": "coordinate conversion currently supports illustrator-sheet "
-                                  "extractions only (ArchaeologicalDiagram shape) — see README "
-                                  "open item on FieldWallProfile"}), 400
+    if "trenchProfiles" not in data and not p_convert_coords.is_field_wall(data):
+        return jsonify({"error": "this extraction is neither an illustrator sheet "
+                                  "(trenchProfiles) nor a field-wall sheet (loci/layers) — "
+                                  "nothing to register"}), 400
     cfg = p_convert_coords.make_starter_config(data)
     return jsonify(cfg)
 
@@ -394,6 +394,12 @@ def run_convert(job_id):
         result = p_convert_coords.run_convert(data, grid, str(out_csv))
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+
+    if result["n_points"] == 0:
+        return jsonify({"error": "conversion produced 0 points. Either no face in the "
+                                  "extraction matched a name in the grid config "
+                                  f"(unmatched: {', '.join(result['missing_faces']) or 'none'}), "
+                                  "or the layers carry no usable boundary coordinates."}), 400
 
     meta["points_csv"] = result["points_csv"]
     meta["orientations_csv"] = result["orientations_csv"]
