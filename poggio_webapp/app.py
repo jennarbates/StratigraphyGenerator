@@ -421,11 +421,19 @@ def markers_detect(job_id):
 
     markers_path = out_dir / "markers.json"
     markers_path.write_text(json.dumps(result["markers"]))
+    # Not the final markers_path used downstream — /markers/confirm
+    # overwrites this once a person has reviewed the candidates. Keeping it
+    # here too means "confirm" is optional: assign still works on the raw
+    # CV output if someone skips straight past review.
     meta["markers_path"] = str(markers_path)
     meta["marker_square_cm"] = float(body["square_cm"])
+    meta["marker_calib"] = {"origin_px": result["origin_px"],
+                            "px_per_m": result["px_per_m"]}
     save_meta(job_id, meta)
 
     return jsonify({
+        "markers": result["markers"],
+        "rejected": result["rejected"],
         "n_accepted": result["n_accepted"],
         "n_rejected_in_box": result["n_rejected_in_box"],
         "px_per_m": result["px_per_m"],
@@ -434,13 +442,60 @@ def markers_detect(job_id):
     })
 
 
+@app.route("/api/jobs/<job_id>/markers/confirm", methods=["POST"])
+def markers_confirm(job_id):
+    """Install the user-reviewed feature list (CV candidates with some
+    toggled off, plus any manually added) as this job's markers. Pixel
+    coordinates are trusted as given; x_m/depth_m are always recomputed
+    from them here (not taken from the client) so a manually-added point
+    and a CV point are calibrated identically."""
+    meta = load_meta(job_id)
+    calib = meta.get("marker_calib")
+    if not calib:
+        abort(400, description="run marker detection first")
+    body = request.get_json(force=True, silent=True) or {}
+    points = body.get("markers") or []
+    if not points:
+        return jsonify({"error": "at least one confirmed feature is required"}), 400
+
+    ox, oy = calib["origin_px"]
+    px_per_m = calib["px_per_m"]
+    out = []
+    for i, p in enumerate(points):
+        try:
+            px, py = float(p["pixel_x"]), float(p["pixel_y"])
+        except (KeyError, TypeError, ValueError):
+            return jsonify({"error": f"feature {i} is missing pixel_x/pixel_y"}), 400
+        out.append({
+            "id": i,
+            "pixel_x": round(px, 1), "pixel_y": round(py, 1),
+            "x_m": round((px - ox) / px_per_m, 3),
+            "depth_m": round((py - oy) / px_per_m, 3),
+            "diam_px": round(float(p.get("diam_px") or 0), 1),
+            "circularity": round(float(p.get("circularity") if p.get("circularity") is not None else 1.0), 3),
+            "manual": bool(p.get("manual", False)),
+        })
+
+    out_dir = job_dir(job_id) / "03_extraction"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    markers_path = out_dir / "markers_confirmed.json"
+    markers_path.write_text(json.dumps(out, indent=2))
+    meta["markers_path"] = str(markers_path)
+    save_meta(job_id, meta)
+    return jsonify({"markers": out, "n_confirmed": len(out)})
+
+
 @app.route("/api/jobs/<job_id>/markers/assign", methods=["POST"])
 def markers_assign(job_id):
-    """Async (calls Gemini): classify the detected markers, assemble the
-    extraction JSON, and install it as this job's extraction."""
+    """Async (calls Gemini): classify the confirmed markers into
+    surface/bottom-of-locus/noise and read the sheet's labels. Does NOT
+    assemble geometry or install an extraction yet — the result is a
+    proposal for the user to review/correct; call /markers/finalize with
+    the (possibly edited) result to actually build the extraction."""
     meta = load_meta(job_id)
     if "markers_path" not in meta:
-        abort(400, description="run marker detection first")
+        abort(400, description="run marker detection (and ideally confirm "
+                               "features) first")
     body = request.get_json(force=True, silent=True) or {}
     api_key = body.get("api_key") or os.environ.get("GEMINI_API_KEY")
     if not api_key:
@@ -453,14 +508,12 @@ def markers_assign(job_id):
     if not rotated.exists():
         abort(400, description="rotated working image missing — re-run "
                                "marker detection")
-    out_path = job_dir(job_id) / "03_extraction" / "field_wall_cv.json"
 
     try:
         from pipeline import assign_markers as p_assign_markers
         task_id = start_task(
-            p_assign_markers.run_assign,
-            str(rotated), markers, meta.get("marker_square_cm", 20.0),
-            str(out_path), api_key,
+            p_assign_markers.classify_markers,
+            str(rotated), markers, meta.get("marker_square_cm", 20.0), api_key,
             max_output_tokens=int(body.get("max_output_tokens", 65536)),
         )
     except ImportError as e:
@@ -468,12 +521,37 @@ def markers_assign(job_id):
                                   f"`pip install google-genai pillow pydantic "
                                   f"--break-system-packages`."}), 400
 
+    return jsonify({"task_id": task_id})
+
+
+@app.route("/api/jobs/<job_id>/markers/finalize", methods=["POST"])
+def markers_finalize(job_id):
+    """Synchronous, no network call: assemble the (possibly user-edited)
+    classification result + the immutable CV marker coordinates into the
+    extraction JSON, and install it as this job's extraction."""
+    meta = load_meta(job_id)
+    if "markers_path" not in meta:
+        abort(400, description="run marker detection first")
+    body = request.get_json(force=True, silent=True) or {}
+    result_dict = body.get("result")
+    if not result_dict or not result_dict.get("assignments"):
+        return jsonify({"error": "no classification to finalize — run "
+                                  "/markers/assign first"}), 400
+
+    markers = json.loads(Path(meta["markers_path"]).read_text())
+    out_path = job_dir(job_id) / "03_extraction" / "field_wall_cv.json"
+    try:
+        from pipeline import assign_markers as p_assign_markers
+        raw_json, warning = p_assign_markers.finalize_assignments(
+            markers, result_dict, str(out_path))
+    except Exception as e:
+        return jsonify({"error": _friendly_error(e)}), 400
+
     meta["extraction_path"] = str(out_path)
-    meta["extraction_task_id"] = task_id
     meta["sheet_type"] = "fieldwall"
     meta.pop("normalized_path", None)
     save_meta(job_id, meta)
-    return jsonify({"task_id": task_id})
+    return jsonify({"raw_json": raw_json, "warning": warning})
 
 
 @app.route("/api/tasks/<task_id>")

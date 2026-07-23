@@ -621,8 +621,47 @@ function renderExtract() {
         <button class="secondary" id="mkDetect" disabled>2 · Detect markers</button>
       </div>
       <div id="mkResult"></div>
-      <div class="btn-row">
-        <button id="mkAssign" disabled>3 · Assign markers with Gemini &amp; build extraction</button>
+
+      <div id="mkReviewWrap" style="display:none">
+        <h3 style="margin-top:22px">Review detected features</h3>
+        <p class="hint">Click a dot to accept/reject it — green = CV-accepted,
+        red = CV-rejected, blue = manually added. Turn on "add feature" and
+        click empty space to mark a vertex CV missed.</p>
+        <div class="btn-row">
+          <button class="secondary" id="mkAddMode">+ Add feature</button>
+          <span id="mkAddModeStatus" class="hint"></span>
+        </div>
+        <div style="position:relative;display:inline-block;max-width:100%;margin-top:8px">
+          <img id="mkReviewImg" style="max-width:100%;display:block">
+          <div id="mkReviewDots" style="position:absolute;inset:0"></div>
+        </div>
+        <p class="hint" id="mkReviewCount"></p>
+        <div class="btn-row">
+          <button id="mkConfirm">3 · Confirm features</button>
+        </div>
+      </div>
+
+      <div id="mkAssignWrap" style="display:none">
+        <div class="btn-row">
+          <button id="mkAssign">4 · Classify boundaries with Gemini</button>
+        </div>
+      </div>
+
+      <div id="mkBoundaryReviewWrap" style="display:none">
+        <h3 style="margin-top:22px">Review boundary assignment</h3>
+        <p class="hint">Each dot is colored by Gemini's proposed classification.
+        Click a dot to cycle it: noise → surface → bottom of locus 1 → bottom
+        of locus 2 → … → back to noise. The line geometry is assembled
+        deterministically from whatever classification is showing when you
+        finalize — nothing here calls Gemini again.</p>
+        <div style="position:relative;display:inline-block;max-width:100%;margin-top:8px">
+          <img id="mkBoundaryImg" style="max-width:100%;display:block">
+          <div id="mkBoundaryDots" style="position:absolute;inset:0"></div>
+        </div>
+        <div id="mkLegend" class="hint" style="margin-top:8px"></div>
+        <div class="btn-row">
+          <button id="mkFinalize">5 · Finalize boundaries &amp; build extraction</button>
+        </div>
       </div>
       ` : ""}
 
@@ -685,6 +724,12 @@ function renderExtract() {
     ];
     const COLORS = ["#c0269a", "#d17a1f", "#2a7ab5"];
     let clicks = [];
+    let previewImageUrl = null;   // rotated working copy, reused by every overlay below
+    let features = [];            // stage 1: {pixel_x, pixel_y, diam_px, circularity, accepted, manual}
+    let addMode = false;
+    let confirmedMarkers = [];    // stage 2 input: server-computed {id, pixel_x, pixel_y, x_m, depth_m, ...}
+    let boundaryResult = null;    // stage 2 output: {result_dict, warning} from /markers/assign
+    let classifyById = {};        // markerId -> {kind, locusNumber} — the editable state for stage 2
 
     const hintEl = () => document.getElementById("mkPickHint");
     const errEl = () => document.getElementById("exError");
@@ -711,6 +756,7 @@ function renderExtract() {
       try {
         const rotate = parseInt(document.getElementById("mkRotate").value, 10);
         const r = await apiJson(`/api/jobs/${state.jobId}/markers/preview`, { rotate });
+        previewImageUrl = r.image_url;
         const img = document.getElementById("mkImg");
         img.src = r.image_url + "&t=" + Date.now();  // bust cache on rotation change
         clicks = [];
@@ -730,6 +776,8 @@ function renderExtract() {
       drawDots();
     });
 
+    // --- stage 1: detect, then accept/reject/add -----------------------------
+
     document.getElementById("mkDetect").addEventListener("click", async () => {
       errEl().innerHTML = "";
       const resEl = document.getElementById("mkResult");
@@ -744,17 +792,98 @@ function renderExtract() {
           rotate: parseInt(document.getElementById("mkRotate").value, 10),
         });
         resEl.innerHTML =
-          banner("ok", `Found <strong>${r.n_accepted}</strong> candidate markers inside the wall ` +
-            `(${r.n_rejected_in_box} shapes rejected; scale ${r.px_per_m} px/m). ` +
-            `<strong>Inspect the debug image before continuing</strong> — green = accepted, ` +
-            `red = rejected, magenta box = search area.`) +
+          banner("ok", `Found <strong>${r.n_accepted}</strong> candidate features inside the wall ` +
+            `(${r.n_rejected_in_box} rejected by size/shape filters; scale ${r.px_per_m} px/m). ` +
+            `Review them below — CV's filters aren't always right, and it can't ` +
+            `mark a vertex that never got a filled-in dot.`) +
           `<div class="btn-row"><a class="secondary" style="text-decoration:none" ` +
           `href="${r.debug_image_url}" target="_blank"><button class="secondary">` +
-          `Open debug image</button></a>` +
+          `Open raw debug image</button></a>` +
           `<a href="${r.csv_url}" download><button class="secondary">Download markers.csv</button></a></div>`;
-        document.getElementById("mkAssign").disabled = false;
+
+        features = [
+          ...r.markers.map(m => ({ ...m, accepted: true, manual: false })),
+          ...r.rejected.map(m => ({ ...m, accepted: false, manual: false })),
+        ];
+        addMode = false;
+        document.getElementById("mkAddMode").textContent = "+ Add feature";
+        document.getElementById("mkAddModeStatus").textContent = "";
+        document.getElementById("mkReviewWrap").style.display = "block";
+        document.getElementById("mkAssignWrap").style.display = "none";
+        document.getElementById("mkBoundaryReviewWrap").style.display = "none";
+        const img = document.getElementById("mkReviewImg");
+        img.src = previewImageUrl + "&t=" + Date.now();
+        img.onload = drawReviewDots;
+        window.addEventListener("resize", drawReviewDots);
       } catch (e) { errEl().innerHTML = errorBanner(e); }
     });
+
+    function drawReviewDots() {
+      const img = document.getElementById("mkReviewImg");
+      const dots = document.getElementById("mkReviewDots");
+      dots.innerHTML = "";
+      const sx = img.clientWidth / img.naturalWidth;
+      const sy = img.clientHeight / img.naturalHeight;
+      features.forEach((f) => {
+        const d = document.createElement("div");
+        const r = Math.max((f.diam_px || 20) / 2, 8) * Math.max(sx, sy);
+        const color = f.manual ? "#2a7ab5" : (f.accepted ? "#3f9142" : "#c0392b");
+        d.style.cssText = `position:absolute;width:${r*2}px;height:${r*2}px;border-radius:50%;
+          transform:translate(-50%,-50%);left:${f.pixel_x*sx}px;top:${f.pixel_y*sy}px;
+          border:3px solid ${color};background:rgba(255,255,255,.15);
+          cursor:pointer;box-sizing:border-box;`;
+        d.title = f.manual ? "manually added — click to remove"
+                            : `circularity ${f.circularity} — click to ${f.accepted ? "reject" : "accept"}`;
+        d.addEventListener("click", (ev) => {
+          ev.stopPropagation();
+          if (f.manual) { features = features.filter(x => x !== f); }
+          else { f.accepted = !f.accepted; }
+          drawReviewDots();
+        });
+        dots.appendChild(d);
+      });
+      const nAccepted = features.filter(f => f.accepted).length;
+      document.getElementById("mkReviewCount").textContent =
+        `${nAccepted} of ${features.length} features accepted.`;
+    }
+
+    document.getElementById("mkAddMode").addEventListener("click", () => {
+      addMode = !addMode;
+      document.getElementById("mkAddMode").textContent =
+        addMode ? "+ Add feature (click the image; click here to stop)" : "+ Add feature";
+      document.getElementById("mkAddModeStatus").textContent =
+        addMode ? "Click anywhere on the image to place a feature." : "";
+    });
+
+    document.getElementById("mkReviewDots").addEventListener("click", (ev) => {
+      if (!addMode) return;
+      const img = document.getElementById("mkReviewImg");
+      const rect = img.getBoundingClientRect();
+      const px = (ev.clientX - rect.left) * img.naturalWidth / rect.width;
+      const py = (ev.clientY - rect.top) * img.naturalHeight / rect.height;
+      features.push({ pixel_x: Math.round(px), pixel_y: Math.round(py),
+                      diam_px: 20, circularity: 1, accepted: true, manual: true });
+      drawReviewDots();
+    });
+
+    document.getElementById("mkConfirm").addEventListener("click", async () => {
+      errEl().innerHTML = "";
+      const accepted = features.filter(f => f.accepted);
+      if (!accepted.length) {
+        errEl().innerHTML = banner("err", "Accept at least one feature before confirming.");
+        return;
+      }
+      try {
+        const r = await apiJson(`/api/jobs/${state.jobId}/markers/confirm`, { markers: accepted });
+        confirmedMarkers = r.markers;
+        boundaryResult = null;
+        document.getElementById("mkAssignWrap").style.display = "block";
+        document.getElementById("mkBoundaryReviewWrap").style.display = "none";
+      } catch (e) { errEl().innerHTML = errorBanner(e); }
+    });
+
+    // --- stage 2: classify (Gemini), then review/edit which boundary each
+    // point belongs to, then assemble (no network call) -----------------------
 
     document.getElementById("mkAssign").addEventListener("click", async () => {
       errEl().innerHTML = "";
@@ -762,29 +891,132 @@ function renderExtract() {
       const logEl = document.getElementById("exLog");
       const apiKey = document.getElementById("exApiKey").value.trim();
       if (!apiKey) { errEl().innerHTML = banner("err", "API key is required (top of this panel)."); return; }
+      if (!confirmedMarkers.length) { errEl().innerHTML = banner("err", "Confirm features first."); return; }
       state.apiKey = apiKey;
       btn.disabled = true;
-      btn.innerHTML = `<span class="spinner"></span>Assigning...`;
+      btn.innerHTML = `<span class="spinner"></span>Classifying...`;
       logEl.style.display = "block"; logEl.textContent = "";
       try {
         const r = await apiJson(`/api/jobs/${state.jobId}/markers/assign`, { api_key: apiKey });
         const t = await pollTask(r.task_id, (log, elapsed) => {
           logEl.textContent = `[${elapsed}s elapsed]\n` + log.join("\n");
         });
-        state.extract.rawJson = t.raw_json;
-        state.extract.warning = t.warning;
+        boundaryResult = t.result;  // {result_dict, warning}
+        classifyById = {};
+        const byId = {};
+        (boundaryResult.result_dict.assignments || []).forEach(a => { byId[a.markerId] = a; });
+        confirmedMarkers.forEach(m => {
+          const a = byId[m.id];
+          classifyById[m.id] = a ? { kind: a.kind, locusNumber: a.locusNumber || null }
+                                  : { kind: "noise", locusNumber: null };
+        });
+        renderBoundaryReview();
+      } catch (e) {
+        errEl().innerHTML = errorBanner(e);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "4 · Classify boundaries with Gemini";
+      }
+    });
+
+    function lociNumbers() {
+      return [...new Set(
+        Object.values(classifyById)
+          .filter(a => a.kind === "bottom" && a.locusNumber)
+          .map(a => String(a.locusNumber))
+      )].sort();
+    }
+
+    function kindColor(a, loci) {
+      if (!a || a.kind === "noise") return "#9aa39a";
+      if (a.kind === "surface") return "#222";
+      const idx = loci.indexOf(String(a.locusNumber || ""));
+      return STRATA[(idx >= 0 ? idx : 0) % STRATA.length];
+    }
+
+    function renderBoundaryReview() {
+      document.getElementById("mkBoundaryReviewWrap").style.display = "block";
+      const img = document.getElementById("mkBoundaryImg");
+      img.src = previewImageUrl + "&t=" + Date.now();
+      img.onload = drawBoundaryDots;
+      window.addEventListener("resize", drawBoundaryDots);
+      drawBoundaryDots();
+      const loci = lociNumbers();
+      const legendItems = loci.map((n, i) =>
+        `<span style="color:${STRATA[i % STRATA.length]}">●</span> locus ${esc(n)}`).join(" &nbsp; ");
+      document.getElementById("mkLegend").innerHTML =
+        `<strong>Legend:</strong> <span style="color:#9aa39a">●</span> noise &nbsp; ` +
+        `<span style="color:#222">●</span> surface ${loci.length ? "&nbsp; " + legendItems : ""}` +
+        (boundaryResult.warning ? banner("warn", boundaryResult.warning) : "");
+    }
+
+    function drawBoundaryDots() {
+      const img = document.getElementById("mkBoundaryImg");
+      const dots = document.getElementById("mkBoundaryDots");
+      dots.innerHTML = "";
+      const sx = img.clientWidth / img.naturalWidth;
+      const sy = img.clientHeight / img.naturalHeight;
+      const loci = lociNumbers();
+      confirmedMarkers.forEach((m) => {
+        const a = classifyById[m.id];
+        const d = document.createElement("div");
+        const r = Math.max((m.diam_px || 20) / 2, 8) * Math.max(sx, sy);
+        d.style.cssText = `position:absolute;width:${r*2}px;height:${r*2}px;border-radius:50%;
+          transform:translate(-50%,-50%);left:${m.pixel_x*sx}px;top:${m.pixel_y*sy}px;
+          border:3px solid ${kindColor(a, loci)};background:rgba(255,255,255,.2);
+          cursor:pointer;box-sizing:border-box;`;
+        d.title = a.kind === "bottom" ? `bottom of locus ${a.locusNumber} — click to cycle`
+                                       : `${a.kind} — click to cycle`;
+        d.addEventListener("click", (ev) => {
+          ev.stopPropagation();
+          cycleClassification(m.id);
+          drawBoundaryDots();
+        });
+        dots.appendChild(d);
+      });
+    }
+
+    function cycleClassification(markerId) {
+      const loci = lociNumbers();
+      const a = classifyById[markerId];
+      const seq = ["noise", "surface", ...loci.map(n => "bottom:" + n)];
+      const cur = a.kind === "bottom" ? "bottom:" + a.locusNumber : a.kind;
+      let idx = seq.indexOf(cur);
+      idx = (idx + 1) % seq.length;
+      const next = seq[idx];
+      if (next.startsWith("bottom:")) {
+        a.kind = "bottom"; a.locusNumber = next.slice(7);
+      } else {
+        a.kind = next; a.locusNumber = null;
+      }
+    }
+
+    document.getElementById("mkFinalize").addEventListener("click", async () => {
+      errEl().innerHTML = "";
+      const btn = document.getElementById("mkFinalize");
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner"></span>Finalizing...`;
+      try {
+        const assignments = confirmedMarkers.map(m => ({
+          markerId: m.id, kind: classifyById[m.id].kind,
+          locusNumber: classifyById[m.id].locusNumber,
+        }));
+        const finalResult = { ...boundaryResult.result_dict, assignments };
+        const r = await apiJson(`/api/jobs/${state.jobId}/markers/finalize`, { result: finalResult });
+        state.extract.rawJson = r.raw_json;
+        state.extract.warning = r.warning;
         state.sheetType = "fieldwall";
         invalidateDownstream("extract");
         state.completed.extract = true;
-        showExtractionResult(t.raw_json,
-          "Extraction built from CV markers — Gemini assigned loci and labels " +
-          "but generated no geometry.", t.warning);
+        showExtractionResult(r.raw_json,
+          "Extraction built from CV markers — features and boundary assignment " +
+          "were both reviewed by hand before assembly.", r.warning);
         refreshChrome();
       } catch (e) {
         errEl().innerHTML = errorBanner(e);
       } finally {
         btn.disabled = false;
-        btn.textContent = "3 · Assign markers with Gemini & build extraction";
+        btn.textContent = "5 · Finalize boundaries & build extraction";
       }
     });
   }
