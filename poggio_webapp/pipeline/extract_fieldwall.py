@@ -93,7 +93,7 @@ def _generate_with_retry(client, max_attempts=5, **kwargs):
         try:
             return client.models.generate_content(**kwargs)
         except errors.ServerError as e:
-            transient = getattr(e, "code", None) in (500, 503, 429)
+            transient = getattr(e, "code", None) in (500, 502, 503, 504, 429)
             if transient and attempt < max_attempts - 1:
                 wait = 2 ** attempt
                 time.sleep(wait)
