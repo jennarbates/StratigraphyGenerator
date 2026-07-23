@@ -94,6 +94,12 @@ function stepEnabled(id) {
   return (prereqs[id] || []).every((p) => state.completed[p]);
 }
 
+function stepHasWarnings(id) {
+  if (id !== "validate") return false;
+  const report = state.validate && state.validate.report;
+  return !!(report && report.warnings && report.warnings.length);
+}
+
 function renderSidebar() {
   $steps.innerHTML = "";
   STEPS.forEach((s, i) => {
@@ -106,7 +112,9 @@ function renderSidebar() {
         <div class="step-title">${s.title}</div>
         <div class="step-sub">${s.sub}</div>
       </div>
-      ${state.completed[s.id] ? '<div class="step-check">&#10003;</div>' : ""}
+      ${state.completed[s.id]
+          ? `<div class="step-check${stepHasWarnings(s.id) ? " warn" : ""}">&#10003;</div>`
+          : ""}
     `;
     if (enabled) {
       el.addEventListener("click", () => {
@@ -546,9 +554,19 @@ function renderValidate() {
       state.validate.report = r;
       state.completed.validate = true;
       const resEl = document.getElementById("vResult");
-      resEl.innerHTML = r.ok
-        ? banner("ok", `${r.errors.length} error(s), ${r.warnings.length} warning(s).`)
-        : banner("err", `${r.errors.length} error(s), ${r.warnings.length} warning(s).`);
+      const counts = `${r.errors.length} error(s), ${r.warnings.length} warning(s).`;
+      // Fabrication warnings (evenly-spaced vertices / boundaries copied down)
+      // mean the geometry itself is untrustworthy even when nothing errors, so
+      // don't let a zero-error run show a green all-clear.
+      const fabricated = r.warnings.filter((w) =>
+        w.includes("evenly spaced") || w.includes("identical boundary shapes")).length;
+      resEl.innerHTML = !r.ok
+        ? banner("err", counts)
+        : r.warnings.length
+          ? banner("warn", fabricated
+              ? `${counts} ${fabricated} of them flag fabricated geometry — read these before building a model.`
+              : `${counts} Worth a look before continuing.`)
+          : banner("ok", counts);
       if (r.errors.length) {
         const box = document.createElement("div");
         box.className = "log-box";

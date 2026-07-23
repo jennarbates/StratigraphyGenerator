@@ -118,6 +118,7 @@ body{
 .step-title{ font-size: 13px; font-weight:600; }
 .step-sub{ font-size: 11px; color: var(--ink-soft); }
 .step-check{ margin-left:auto; font-size:12px; color: var(--ok); }
+.step-check.warn{ color: var(--warn); }
 
 .job-badge{
   margin-top: 14px;
