@@ -358,6 +358,40 @@ function attachTips(){
   });
 }
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+
+// --- auto-load from the pipeline job -------------------------------------
+// When opened from the app as /visualizer?job=<id>, fetch the job's scan and
+// extraction JSON from the server instead of making the user re-pick files
+// it already has. The pickers stay live as overrides — loading a different
+// JSON into slot B for an A/B compare works exactly as before.
+(async function autoloadFromJob(){
+  const job = new URLSearchParams(location.search).get("job");
+  if(!job) return;
+  try{
+    const r = await fetch(`/api/jobs/${job}/visualizer-files`);
+    if(!r.ok) return;               // unknown job — fall back to manual pickers
+    const f = await r.json();
+    if(f.image_url){
+      IMG_URL = f.image_url;        // plain URL; revokeObjectURL no-ops on it
+      mark("imgLabel", "auto: job scan");
+    }
+    if(f.jsons && f.jsons.length){
+      const a = f.jsons[0];
+      DATA_A = await (await fetch(a.url)).json();
+      mark("jsonLabelA", "auto: " + a.label);
+      if(f.jsons.length > 1){
+        // pre-fetch the runner-up (e.g. raw extraction vs normalized) into
+        // slot B so ticking "Compare two runs" shows it instantly
+        const b = f.jsons[1];
+        DATA_B = await (await fetch(b.url)).json();
+        mark("jsonLabelB", "auto: " + b.label);
+      }
+    }
+    if(DATA_A || IMG_URL) ready();
+  }catch(e){
+    console.warn("autoload from job failed; use the file pickers", e);
+  }
+})();
 </script>
 </body>
 </html>

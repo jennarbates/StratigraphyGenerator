@@ -909,11 +909,13 @@ function renderVisualize() {
         <button id="openViz">Open visualizer</button>
         ${state.extract.rawJson ? `<button class="secondary" id="dlJson">Download extraction JSON</button>` : ""}
       </div>
-      <p class="hint">Opens in a new tab. Use its own file pickers to load the scan
-      (${state.scan.filename || "your scan"}) and one or two extraction JSONs to compare.</p>
+      <p class="hint">Opens in a new tab with this job's scan and extraction
+      pre-loaded from the server. The file pickers still work for loading a
+      second run to A/B compare, or files from another job.</p>
     </div>
   `;
-  document.getElementById("openViz").addEventListener("click", () => window.open("/visualizer", "_blank"));
+  document.getElementById("openViz").addEventListener("click", () =>
+    window.open(state.jobId ? `/visualizer?job=${state.jobId}` : "/visualizer", "_blank"));
   const dl = document.getElementById("dlJson");
   if (dl) dl.addEventListener("click", () => {
     const blob = new Blob([state.extract.rawJson], { type: "application/json" });
