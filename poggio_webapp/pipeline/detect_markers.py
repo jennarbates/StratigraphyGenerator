@@ -40,6 +40,120 @@ import os
 import cv2
 import numpy as np
 
+from dataclasses import dataclass
+from typing import Sequence
+
+
+@dataclass(frozen=True)
+class SectionCoordinateTransform:
+    """Transform image pixels into coordinates on a trench-profile plane."""
+
+    origin_x: float
+    origin_y: float
+
+    # Unit vector running from the selected top-left point toward top-right.
+    horizontal_x: float
+    horizontal_y: float
+
+    # Unit vector pointing downward on the trench profile.
+    downward_x: float
+    downward_y: float
+
+    pixels_per_meter: float
+
+
+def create_section_coordinate_transform(
+    top_left: Sequence[float],
+    top_right: Sequence[float],
+    lowest_point: Sequence[float],
+    reference_width_m: float,
+) -> SectionCoordinateTransform:
+    """
+    Create a rotation-aware pixel-to-section transform.
+
+    The line from top_left to top_right defines the section's horizontal axis.
+    lowest_point determines which perpendicular direction is downward.
+
+    This corrects measurements when the photographed or scanned section is
+    tilted in the image.
+    """
+    if reference_width_m <= 0:
+        raise ValueError("reference_width_m must be greater than zero")
+
+    origin_x = float(top_left[0])
+    origin_y = float(top_left[1])
+
+    right_x = float(top_right[0])
+    right_y = float(top_right[1])
+
+    lowest_x = float(lowest_point[0])
+    lowest_y = float(lowest_point[1])
+
+    horizontal_dx = right_x - origin_x
+    horizontal_dy = right_y - origin_y
+    reference_width_px = math.hypot(horizontal_dx, horizontal_dy)
+
+    if reference_width_px <= 1e-9:
+        raise ValueError(
+            "The top-left and top-right calibration points must be different"
+        )
+
+    horizontal_x = horizontal_dx / reference_width_px
+    horizontal_y = horizontal_dy / reference_width_px
+
+    # Clockwise perpendicular to the horizontal axis.
+    downward_x = -horizontal_y
+    downward_y = horizontal_x
+
+    # Ensure that the selected lowest point is in the positive-depth direction.
+    lowest_dx = lowest_x - origin_x
+    lowest_dy = lowest_y - origin_y
+
+    if lowest_dx * downward_x + lowest_dy * downward_y < 0:
+        downward_x = -downward_x
+        downward_y = -downward_y
+
+    pixels_per_meter = reference_width_px / reference_width_m
+
+    return SectionCoordinateTransform(
+        origin_x=origin_x,
+        origin_y=origin_y,
+        horizontal_x=horizontal_x,
+        horizontal_y=horizontal_y,
+        downward_x=downward_x,
+        downward_y=downward_y,
+        pixels_per_meter=pixels_per_meter,
+    )
+
+
+def pixel_to_section_coordinates(
+    pixel_x: float,
+    pixel_y: float,
+    transform: SectionCoordinateTransform,
+) -> tuple[float, float]:
+    """
+    Convert an image-pixel coordinate to section coordinates in meters.
+
+    Returns:
+        (horizontal_distance_m, depth_m)
+    """
+    relative_x = float(pixel_x) - transform.origin_x
+    relative_y = float(pixel_y) - transform.origin_y
+
+    horizontal_px = (
+        relative_x * transform.horizontal_x
+        + relative_y * transform.horizontal_y
+    )
+
+    depth_px = (
+        relative_x * transform.downward_x
+        + relative_y * transform.downward_y
+    )
+
+    return (
+        horizontal_px / transform.pixels_per_meter,
+        depth_px / transform.pixels_per_meter,
+    )
 
 def load_rotated(image_path, rotate=0):
     """Read the photo with EXIF auto-rotation explicitly DISABLED (so
@@ -92,7 +206,8 @@ def run_detect(image_path, origin_px, ref_px, ref_meters, bottom_px_y,
     ref_meters   : real distance between those two clicks, read from the
                    sheet's tie labels (e.g. 194 m ... 190 m -> 4.0).
     bottom_px_y  : pixel y of the wall's LOWEST point (third click) — the
-                   bottom of the search box.
+                   bottom of the search box and the positive-depth side of
+                   the calibrated top edge.
     square_cm    : real-world cm per bold (1 cm paper) grid square — used
                    only to convert paper-mm size limits into pixels.
 
@@ -102,102 +217,304 @@ def run_detect(image_path, origin_px, ref_px, ref_meters, bottom_px_y,
     """
     if not ref_meters or float(ref_meters) <= 0:
         raise RuntimeError("ref_meters must be a positive real distance")
+
     os.makedirs(out_dir, exist_ok=True)
+
     img = load_rotated(image_path, rotate)
     rotated_path = os.path.join(out_dir, "marker_source_rotated.png")
     cv2.imwrite(rotated_path, img)
 
     ox, oy = float(origin_px[0]), float(origin_px[1])
     rx, ry = float(ref_px[0]), float(ref_px[1])
-    ref_dist_px = math.hypot(rx - ox, ry - oy)
-    if ref_dist_px < 20:
-        raise RuntimeError("the top-left and top-right clicks are almost the "
-                           "same pixel — click the wall's two top corners")
-    px_per_m = ref_dist_px / float(ref_meters)
-    mm_px = px_per_m * float(square_cm) / 1000.0   # px per paper millimeter
-    if mm_px < 2:
-        raise RuntimeError("photo resolution too low for marker detection "
-                           f"({mm_px:.1f} px per paper mm) — retake closer or "
-                           "at higher resolution")
 
-    ink = _ink_mask(img, block_px=max(11, int(2.0 * mm_px) | 1))
-    k = max(3, int(line_kill_paper_mm * mm_px) | 1)
+    ref_dist_px = math.hypot(rx - ox, ry - oy)
+
+    if ref_dist_px < 20:
+        raise RuntimeError(
+            "the top-left and top-right clicks are almost the "
+            "same pixel — click the wall's two top corners"
+        )
+
+    px_per_m = ref_dist_px / float(ref_meters)
+
+    # The current API stores only the third click's y coordinate. Pair it
+    # with the midpoint of the top edge to determine which perpendicular
+    # direction points down into the section.
+    lowest_point = (
+        (ox + rx) / 2.0,
+        float(bottom_px_y),
+    )
+
+    section_transform = create_section_coordinate_transform(
+        top_left=(ox, oy),
+        top_right=(rx, ry),
+        lowest_point=lowest_point,
+        reference_width_m=float(ref_meters),
+    )
+
+    # Pixels per paper millimeter.
+    mm_px = px_per_m * float(square_cm) / 1000.0
+
+    if mm_px < 2:
+        raise RuntimeError(
+            "photo resolution too low for marker detection "
+            f"({mm_px:.1f} px per paper mm) — retake closer or "
+            "at higher resolution"
+        )
+
+    ink = _ink_mask(
+        img,
+        block_px=max(11, int(2.0 * mm_px) | 1),
+    )
+
+    k = max(
+        3,
+        int(line_kill_paper_mm * mm_px) | 1,
+    )
+
     opened = cv2.morphologyEx(
-        ink, cv2.MORPH_OPEN,
-        cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (k, k)))
+        ink,
+        cv2.MORPH_OPEN,
+        cv2.getStructuringElement(
+            cv2.MORPH_ELLIPSE,
+            (k, k),
+        ),
+    )
 
     margin = box_margin_paper_mm * mm_px
-    x_lo, x_hi = min(ox, rx) - margin, max(ox, rx) + margin
+
+    x_lo = min(ox, rx) - margin
+    x_hi = max(ox, rx) + margin
     y_lo = min(oy, ry) - margin
     y_hi = float(bottom_px_y) + margin
-    if y_hi <= y_lo + 20:
-        raise RuntimeError("the bottom click is above the wall's top edge — "
-                           "click the lowest point of the drawn wall")
 
-    min_d, max_d = min_marker_paper_mm * mm_px, max_marker_paper_mm * mm_px
-    contours, _ = cv2.findContours(opened, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-    cand, rejected = [], []
-    for c in contours:
-        area = cv2.contourArea(c)
-        perim = cv2.arcLength(c, True)
-        if area <= 0 or perim <= 0:
+    if y_hi <= y_lo + 20:
+        raise RuntimeError(
+            "the bottom click is above the wall's top edge — "
+            "click the lowest point of the drawn wall"
+        )
+
+    min_d = min_marker_paper_mm * mm_px
+    max_d = max_marker_paper_mm * mm_px
+
+    contours, _ = cv2.findContours(
+        opened,
+        cv2.RETR_LIST,
+        cv2.CHAIN_APPROX_SIMPLE,
+    )
+
+    cand = []
+    rejected = []
+
+    for contour in contours:
+        area = cv2.contourArea(contour)
+        perimeter = cv2.arcLength(contour, True)
+
+        if area <= 0 or perimeter <= 0:
             continue
-        (cx, cy), radius = cv2.minEnclosingCircle(c)
-        diam = radius * 2
-        entry = {"cx": float(cx), "cy": float(cy), "diam": float(diam)}
-        if not (x_lo <= cx <= x_hi and y_lo <= cy <= y_hi):
-            continue                       # outside the wall: not even shown
-        circularity = 4 * math.pi * area / (perim ** 2)
-        hull_area = cv2.contourArea(cv2.convexHull(c))
-        solidity = area / hull_area if hull_area > 0 else 0
-        fill = area / (math.pi * radius * radius) if radius > 0 else 0
+
+        (cx, cy), radius = cv2.minEnclosingCircle(contour)
+        diameter = radius * 2
+
+        entry = {
+            "cx": float(cx),
+            "cy": float(cy),
+            "diam": float(diameter),
+        }
+
+        if not (
+            x_lo <= cx <= x_hi
+            and y_lo <= cy <= y_hi
+        ):
+            # Outside the selected wall area.
+            continue
+
+        circularity = (
+            4 * math.pi * area / (perimeter ** 2)
+        )
+
+        hull_area = cv2.contourArea(
+            cv2.convexHull(contour)
+        )
+
+        solidity = (
+            area / hull_area
+            if hull_area > 0
+            else 0
+        )
+
+        fill = (
+            area / (math.pi * radius * radius)
+            if radius > 0
+            else 0
+        )
+
         entry["circularity"] = float(circularity)
-        if (min_d <= diam <= max_d and circularity >= min_circularity
-                and solidity >= min_solidity and fill >= 0.5):
+
+        if (
+            min_d <= diameter <= max_d
+            and circularity >= min_circularity
+            and solidity >= min_solidity
+            and fill >= 0.5
+        ):
             cand.append(entry)
         else:
             rejected.append(entry)
 
-    # nested-contour duplicates: keep the largest of any cluster closer
-    # together than half a minimum dot
-    cand.sort(key=lambda e: -e["diam"])
+    # Remove nested-contour duplicates. Keep the largest contour from each
+    # group whose centers are closer than half the minimum marker diameter.
+    cand.sort(
+        key=lambda entry: -entry["diam"]
+    )
+
     kept = []
-    for e in cand:
-        if all((e["cx"] - k2["cx"]) ** 2 + (e["cy"] - k2["cy"]) ** 2
-               > (0.5 * min_d) ** 2 for k2 in kept):
-            kept.append(e)
+
+    for entry in cand:
+        is_separate = all(
+            (
+                (entry["cx"] - existing["cx"]) ** 2
+                + (entry["cy"] - existing["cy"]) ** 2
+            )
+            > (0.5 * min_d) ** 2
+            for existing in kept
+        )
+
+        if is_separate:
+            kept.append(entry)
+
+    projected = []
+
+    for entry in kept:
+        x_m, depth_m = pixel_to_section_coordinates(
+            pixel_x=entry["cx"],
+            pixel_y=entry["cy"],
+            transform=section_transform,
+        )
+
+        projected.append(
+            (x_m, depth_m, entry)
+        )
+
+    # Sort by the corrected section-local x coordinate rather than raw image
+    # x. This remains left-to-right even when the photograph is tilted.
+    projected.sort(
+        key=lambda item: item[0]
+    )
 
     markers = []
-    for i, e in enumerate(sorted(kept, key=lambda e: e["cx"])):
+
+    for marker_id, (x_m, depth_m, entry) in enumerate(projected):
         markers.append({
-            "id": i,
-            "pixel_x": round(e["cx"], 1), "pixel_y": round(e["cy"], 1),
-            "x_m": round((e["cx"] - ox) / px_per_m, 3),
-            "depth_m": round((e["cy"] - oy) / px_per_m, 3),
-            "diam_px": round(e["diam"], 1),
-            "circularity": round(e["circularity"], 3),
+            "id": marker_id,
+            "pixel_x": round(entry["cx"], 1),
+            "pixel_y": round(entry["cy"], 1),
+            "x_m": round(x_m, 3),
+            "depth_m": round(depth_m, 3),
+            "diam_px": round(entry["diam"], 1),
+            "circularity": round(
+                entry["circularity"],
+                3,
+            ),
         })
 
-    dbg = img.copy()
-    for e in rejected:
-        cv2.circle(dbg, (int(e["cx"]), int(e["cy"])),
-                   max(int(e["diam"] / 2), 3), (0, 0, 255), 2)
-    for m in markers:
-        cv2.circle(dbg, (int(m["pixel_x"]), int(m["pixel_y"])),
-                   max(int(m["diam_px"] / 2), 4), (0, 255, 0), 4)
-    cv2.rectangle(dbg, (int(x_lo), int(y_lo)), (int(x_hi), int(y_hi)),
-                  (255, 0, 255), 4)
-    cv2.drawMarker(dbg, (int(ox), int(oy)), (255, 0, 255),
-                   markerType=cv2.MARKER_CROSS, markerSize=60, thickness=6)
-    cv2.drawMarker(dbg, (int(rx), int(ry)), (255, 160, 0),
-                   markerType=cv2.MARKER_CROSS, markerSize=60, thickness=6)
-    debug_path = os.path.join(out_dir, "markers_debug.png")
-    cv2.imwrite(debug_path, dbg)
+    debug_image = img.copy()
 
-    csv_path = os.path.join(out_dir, "markers.csv")
-    fields = ["id", "pixel_x", "pixel_y", "x_m", "depth_m", "diam_px", "circularity"]
-    with open(csv_path, "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=fields)
+    for entry in rejected:
+        cv2.circle(
+            debug_image,
+            (
+                int(entry["cx"]),
+                int(entry["cy"]),
+            ),
+            max(
+                int(entry["diam"] / 2),
+                3,
+            ),
+            (0, 0, 255),
+            2,
+        )
+
+    for marker in markers:
+        cv2.circle(
+            debug_image,
+            (
+                int(marker["pixel_x"]),
+                int(marker["pixel_y"]),
+            ),
+            max(
+                int(marker["diam_px"] / 2),
+                4,
+            ),
+            (0, 255, 0),
+            4,
+        )
+
+    cv2.rectangle(
+        debug_image,
+        (int(x_lo), int(y_lo)),
+        (int(x_hi), int(y_hi)),
+        (255, 0, 255),
+        4,
+    )
+
+    cv2.drawMarker(
+        debug_image,
+        (int(ox), int(oy)),
+        (255, 0, 255),
+        markerType=cv2.MARKER_CROSS,
+        markerSize=60,
+        thickness=6,
+    )
+
+    cv2.drawMarker(
+        debug_image,
+        (int(rx), int(ry)),
+        (255, 160, 0),
+        markerType=cv2.MARKER_CROSS,
+        markerSize=60,
+        thickness=6,
+    )
+
+    # Draw the calibrated horizontal section axis.
+    cv2.line(
+        debug_image,
+        (int(ox), int(oy)),
+        (int(rx), int(ry)),
+        (255, 255, 0),
+        3,
+    )
+
+    debug_path = os.path.join(
+        out_dir,
+        "markers_debug.png",
+    )
+
+    cv2.imwrite(
+        debug_path,
+        debug_image,
+    )
+
+    csv_path = os.path.join(
+        out_dir,
+        "markers.csv",
+    )
+
+    fields = [
+        "id",
+        "pixel_x",
+        "pixel_y",
+        "x_m",
+        "depth_m",
+        "diam_px",
+        "circularity",
+    ]
+
+    with open(csv_path, "w", newline="") as csv_file:
+        writer = csv.DictWriter(
+            csv_file,
+            fieldnames=fields,
+        )
+
         writer.writeheader()
         writer.writerows(markers)
 

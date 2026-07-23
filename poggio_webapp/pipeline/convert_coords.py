@@ -12,6 +12,33 @@ site-coordinate math below stays a single code path.
 import csv
 import math
 
+def slope_to_orientation(
+    slope: float,
+    face_bearing: float,
+) -> tuple[float, float]:
+    """
+    Convert a signed section slope into GemPy dip and azimuth values.
+
+    A positive slope dips in the direction of face_bearing.
+    A negative slope dips in the opposite direction.
+
+    Returns:
+        (dip_degrees, azimuth_degrees)
+    """
+    if not math.isfinite(slope):
+        raise ValueError("slope must be finite")
+
+    if not math.isfinite(face_bearing):
+        raise ValueError("face_bearing must be finite")
+
+    dip = math.degrees(math.atan(abs(slope)))
+
+    if slope >= 0:
+        azimuth = face_bearing % 360.0
+    else:
+        azimuth = (face_bearing + 180.0) % 360.0
+
+    return dip, azimuth
 
 def least_squares_slope(xs, ds):
     """Best-fit slope (dz/dx) of depth vs. x over ALL points, not just the
@@ -205,22 +232,33 @@ def convert(data, grid, out_csv):
                 X, Y, Z = to_site(x, d)
                 rows.append({"X": round(X, 4), "Y": round(Y, 4), "Z": round(Z, 4),
                              "surface": surface, "face": fname})
-            # one orientation seed per boundary: dip from a least-squares fit
-            # of depth vs x over ALL points (steadier than endpoints alone on
-            # a wavy, hand-drawn boundary).
             if len(pts) >= 2:
                 xs = [p[0] for p in pts]
                 ds = [p[1] for p in pts]
+
                 dz_dx = least_squares_slope(xs, ds)
-                dip = math.degrees(math.atan(dz_dx))
+
+                dip, azimuth = slope_to_orientation(
+                slope=dz_dx,
+                face_bearing=cfg["bearing_deg"],
+                )
+
                 midx = xs[len(xs) // 2]
                 midd = ds[len(ds) // 2]
-                X, Y, Z = to_site(midx, midd)
-                orient.append({"X": round(X, 4), "Y": round(Y, 4), "Z": round(Z, 4),
-                               "surface": surface, "face": fname,
-                               "dip": round(abs(dip), 2), "azimuth": round(cfg["bearing_deg"], 2),
-                               "polarity": 1})
 
+                X, Y, Z = to_site(midx, midd)
+
+                orient.append({
+                    "X": round(X, 4),
+                    "Y": round(Y, 4),
+                    "Z": round(Z, 4),
+                    "surface": surface,
+                    "face": fname,
+                    "dip": round(dip, 2),
+                    "azimuth": round(azimuth, 2),
+                    "polarity": 1,
+                }) 
+            
     with open(out_csv, "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=["X", "Y", "Z", "surface", "face"])
         w.writeheader()
