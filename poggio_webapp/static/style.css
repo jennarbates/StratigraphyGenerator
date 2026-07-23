@@ -120,6 +120,23 @@ body{
 .step-check{ margin-left:auto; font-size:12px; color: var(--ok); }
 .step-check.warn{ color: var(--warn); }
 
+/* ------------------------------- step nav ------------------------------ */
+
+.step-nav{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-top: 4px;
+  padding-top: 18px;
+  border-top: 1px solid var(--panel-border);
+}
+.step-nav-spacer{ flex:1; }
+.step-nav-hint{
+  font-size: 12px;
+  color: var(--ink-soft);
+  font-style: italic;
+}
+
 .job-badge{
   margin-top: 14px;
   font-family: var(--font-mono);

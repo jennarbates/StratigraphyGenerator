@@ -81,17 +81,30 @@ async function pollTask(taskId, onLog) {
 // sidebar
 // ---------------------------------------------------------------------------
 
+// Which steps must be completed before a given step opens. Hoisted so the
+// step-nav footer can say *why* a Next button is disabled, not just grey it out.
+const PREREQS = {
+  scan: [], preprocess: ["scan"], extract: ["preprocess"],
+  normalize: ["extract"], validate: ["extract"],
+  convert: ["normalize"], gempy: ["convert"], visualize: ["extract"],
+};
+
+function stepIndex(id) {
+  return STEPS.findIndex((s) => s.id === id);
+}
+
+function stepTitle(id) {
+  const s = STEPS.find((x) => x.id === id);
+  return s ? `${s.num} · ${s.title}` : id;
+}
+
+function missingPrereqs(id) {
+  return (PREREQS[id] || []).filter((p) => !state.completed[p]);
+}
+
 function stepEnabled(id) {
-  const order = STEPS.map((s) => s.id);
-  const idx = order.indexOf(id);
-  if (idx === 0) return true;
-  // walk backward: previous distinct-stage must be completed
-  const prereqs = {
-    scan: [], preprocess: ["scan"], extract: ["preprocess"],
-    normalize: ["extract"], validate: ["extract"],
-    convert: ["normalize"], gempy: ["convert"], visualize: ["extract"],
-  };
-  return (prereqs[id] || []).every((p) => state.completed[p]);
+  if (stepIndex(id) === 0) return true;
+  return missingPrereqs(id).length === 0;
 }
 
 function stepHasWarnings(id) {
@@ -117,13 +130,81 @@ function renderSidebar() {
           : ""}
     `;
     if (enabled) {
-      el.addEventListener("click", () => {
-        state.current = s.id;
-        render();
-      });
+      el.addEventListener("click", () => goToStep(s.id));
     }
     $steps.appendChild(el);
   });
+}
+
+// ---------------------------------------------------------------------------
+// step navigation footer
+// ---------------------------------------------------------------------------
+
+function goToStep(id) {
+  state.current = id;
+  render();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+/* Appended to the bottom of every panel by render(). Removed and rebuilt each
+   time so the Next button's enabled state tracks the current step's progress
+   -- stages call refreshChrome() when they complete. */
+function renderStepNav() {
+  const existing = document.getElementById("stepNav");
+  if (existing) existing.remove();
+
+  const idx = stepIndex(state.current);
+  if (idx < 0) return;
+
+  const prev = idx > 0 ? STEPS[idx - 1] : null;
+  const next = idx < STEPS.length - 1 ? STEPS[idx + 1] : null;
+
+  const nav = document.createElement("div");
+  nav.className = "step-nav";
+  nav.id = "stepNav";
+
+  if (prev) {
+    const back = document.createElement("button");
+    back.className = "secondary";
+    back.innerHTML = `&larr; ${stepTitle(prev.id)}`;
+    back.addEventListener("click", () => goToStep(prev.id));
+    nav.appendChild(back);
+  }
+
+  const spacer = document.createElement("div");
+  spacer.className = "step-nav-spacer";
+  nav.appendChild(spacer);
+
+  if (!next) {
+    const done = document.createElement("span");
+    done.className = "step-nav-hint";
+    done.textContent = "last step — nothing further to run";
+    nav.appendChild(done);
+    $content.appendChild(nav);
+    return;
+  }
+
+  const missing = missingPrereqs(next.id);
+  if (missing.length) {
+    const hint = document.createElement("span");
+    hint.className = "step-nav-hint";
+    hint.textContent = `run ${missing.map(stepTitle).join(" and ")} first`;
+    nav.appendChild(hint);
+  }
+
+  const fwd = document.createElement("button");
+  fwd.innerHTML = `Next: ${stepTitle(next.id)} &rarr;`;
+  fwd.disabled = missing.length > 0;
+  if (!fwd.disabled) fwd.addEventListener("click", () => goToStep(next.id));
+  nav.appendChild(fwd);
+
+  $content.appendChild(nav);
+}
+
+/* Sidebar + footer both reflect completion state, so they refresh together. */
+function refreshChrome() {
+  renderSidebar();
+  renderStepNav();
 }
 
 // ---------------------------------------------------------------------------
@@ -281,7 +362,7 @@ async function handleScanFile(file) {
     state.completed.scan = true;
     document.getElementById("dzLabel").textContent = `${file.name} uploaded`;
     renderScanPreview();
-    renderSidebar();
+    refreshChrome();
   } catch (e) {
     errEl.innerHTML = banner("err", e.message);
   }
@@ -355,7 +436,7 @@ function renderPreprocess() {
           ${r.outputs.highcontrast ? `<figure><img src="${r.outputs.highcontrast}"><figcaption>high-contrast (boundary only)</figcaption></figure>` : ""}
         </div>
       `;
-      renderSidebar();
+      refreshChrome();
     } catch (e) {
       errEl.innerHTML = banner("err", e.message);
     } finally {
@@ -448,7 +529,7 @@ function renderExtract() {
       if (data) treeHolder.appendChild(renderJsonTree(data));
       else treeHolder.textContent = t.raw_json;
       resEl.appendChild(treeHolder);
-      renderSidebar();
+      refreshChrome();
     } catch (e) {
       errEl.innerHTML = banner("err", e.message);
     } finally {
@@ -496,7 +577,7 @@ function renderNormalize() {
         resEl.appendChild(box);
       }
       resEl.innerHTML += `<div class="download-list"><a class="file-link" href="${r.file_url}" download>output_clean.json</a></div>`;
-      renderSidebar();
+      refreshChrome();
     } catch (e) {
       errEl.innerHTML = banner("err", e.message);
     } finally {
@@ -580,7 +661,7 @@ function renderValidate() {
         box.textContent = r.warnings.join("\n");
         resEl.appendChild(box);
       }
-      renderSidebar();
+      refreshChrome();
     } catch (e) {
       errEl.innerHTML = banner("err", e.message);
     } finally {
@@ -673,7 +754,7 @@ function renderGridConfigForm(cfg) {
       </div>`;
       html += dataTable(r.rows_preview);
       resEl.innerHTML = html;
-      renderSidebar();
+      refreshChrome();
     } catch (e) {
       errEl.innerHTML = banner("err", e.message);
     } finally {
@@ -761,7 +842,7 @@ function renderGempy() {
       (urls.outputs.meshes || []).forEach((m, i) => { html += `<a class="file-link" href="${m}" download>mesh ${i + 1}</a>`; });
       html += `</div>`;
       resEl.innerHTML = html;
-      renderSidebar();
+      refreshChrome();
     } catch (e) {
       errEl.innerHTML = banner("err", e.message);
     } finally {
@@ -814,6 +895,7 @@ const RENDERERS = {
 function render() {
   renderSidebar();
   (RENDERERS[state.current] || renderScan)();
+  renderStepNav();
 }
 
 render();
