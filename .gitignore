@@ -3,3 +3,5 @@ poggio_webapp/jobs/
 __pycache__/
 *.pyc
 .DS_Store
+poggio_webapp/static/modularize_app.py
+poggio_webapp/static/app.legacy.js
