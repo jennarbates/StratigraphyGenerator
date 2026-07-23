@@ -128,7 +128,10 @@ function errorBanner(e) {
 // checks live there, and they're the one step this pipeline shouldn't let
 // anyone breeze past on the way to a 3D model.
 const PREREQS = {
-  scan: [], preprocess: ["scan"], extract: ["preprocess"],
+  // extract opens after scan (not preprocess) so a previous extraction JSON
+  // can be uploaded without re-running the image pipeline; the Gemini path
+  // inside the stage still checks for preprocess itself.
+  scan: [], preprocess: ["scan"], extract: ["scan"],
   normalize: ["extract"], validate: ["extract"],
   convert: ["normalize", "validate"], gempy: ["convert"], visualize: ["extract"],
 };
@@ -571,17 +574,75 @@ function renderExtract() {
       <div class="btn-row">
         <button id="exRun">Run extraction</button>
       </div>
+
+      <p class="lede" style="margin-top:18px">Or reuse a JSON from a previous run —
+      no Gemini call, no API key needed. Accepts anything this pipeline produced:
+      a download from the Visualize step or an artifact recovered from git history
+      (e.g. <code>output_section001.json</code>).</p>
+      <div class="btn-row">
+        <input type="file" id="exJsonFile" accept=".json,application/json" style="display:none">
+        <button class="secondary" id="exUpload">Upload previous extraction JSON</button>
+      </div>
+
       <div id="exError"></div>
       <div id="exLog" class="log-box" style="display:none"></div>
       <div id="exResult"></div>
     </div>
   `;
 
+  function showExtractionResult(rawJson, okMessage, warning) {
+    const resEl = document.getElementById("exResult");
+    let data = null;
+    try { data = JSON.parse(rawJson); } catch (e) { /* show raw below */ }
+    resEl.innerHTML = "";
+    if (warning) resEl.innerHTML += banner("warn", warning);
+    resEl.innerHTML += banner("ok", okMessage);
+    const treeHolder = document.createElement("div");
+    treeHolder.className = "json-tree";
+    if (data) treeHolder.appendChild(renderJsonTree(data));
+    else treeHolder.textContent = rawJson;
+    resEl.appendChild(treeHolder);
+  }
+
+  const fileInput = document.getElementById("exJsonFile");
+  document.getElementById("exUpload").addEventListener("click", () => fileInput.click());
+  fileInput.addEventListener("change", async () => {
+    const errEl = document.getElementById("exError");
+    errEl.innerHTML = "";
+    const f = fileInput.files[0];
+    if (!f) return;
+    try {
+      const fd = new FormData();
+      fd.append("file", f);
+      const r = await api(`/api/jobs/${state.jobId}/extract/upload`,
+                          { method: "POST", body: fd });
+      state.extract.rawJson = r.raw_json;
+      state.extract.warning = null;
+      if (r.sheet_type) state.sheetType = r.sheet_type;
+      invalidateDownstream("extract");
+      state.completed.extract = true;
+      showExtractionResult(r.raw_json,
+        `Installed <strong>${f.name}</strong> as this job's extraction ` +
+        `(${r.sheet_type} schema) — Gemini was not called.`);
+      refreshChrome();
+    } catch (e) {
+      errEl.innerHTML = errorBanner(e);
+    } finally {
+      fileInput.value = "";  // allow re-selecting the same file
+    }
+  });
+
   document.getElementById("exRun").addEventListener("click", async () => {
     const btn = document.getElementById("exRun");
     const errEl = document.getElementById("exError");
     const logEl = document.getElementById("exLog");
     errEl.innerHTML = "";
+    if (!state.completed.preprocess) {
+      errEl.innerHTML = banner("err", "Run preprocess first (stage 02) — Gemini extraction " +
+        "works on the cleaned image. To skip Gemini entirely, upload a previous " +
+        "extraction JSON below instead.");
+      return;
+    }
     const apiKey = document.getElementById("exApiKey").value.trim();
     if (!apiKey) { errEl.innerHTML = banner("err", "API key is required."); return; }
     state.apiKey = apiKey;
@@ -609,17 +670,7 @@ function renderExtract() {
       state.extract.warning = t.warning;
       invalidateDownstream("extract");
       state.completed.extract = true;
-      const resEl = document.getElementById("exResult");
-      let data;
-      try { data = JSON.parse(t.raw_json); } catch (e) { data = null; }
-      resEl.innerHTML = "";
-      if (t.warning) resEl.innerHTML += banner("warn", t.warning);
-      resEl.innerHTML += banner("ok", "Extraction complete.");
-      const treeHolder = document.createElement("div");
-      treeHolder.className = "json-tree";
-      if (data) treeHolder.appendChild(renderJsonTree(data));
-      else treeHolder.textContent = t.raw_json;
-      resEl.appendChild(treeHolder);
+      showExtractionResult(t.raw_json, "Extraction complete.", t.warning);
       refreshChrome();
     } catch (e) {
       errEl.innerHTML = errorBanner(e);

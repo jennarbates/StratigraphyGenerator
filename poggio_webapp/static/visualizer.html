@@ -127,6 +127,17 @@
       <label class="toggle"><input type="checkbox" id="tLabels"> Layer names</label>
       <h2 class="section">Layers</h2>
       <div id="legend"></div>
+      <h2 class="section">Overlay alignment</h2>
+      <div class="row">
+        <button class="filebtn" id="alignBtn">Align overlay to drawing</button>
+      </div>
+      <div class="row">
+        <button class="filebtn" id="alignReset">Reset alignment</button>
+      </div>
+      <p class="hint" style="font-size:11.5px;margin:2px 0 0">The overlay assumes the
+      drawn section fills the whole image. For a photo with margins, click
+      <b>Align</b> then drag a box over just the drawn wall (frame line to
+      frame line).</p>
     </div>
   </aside>
 
@@ -157,10 +168,34 @@ const $=id=>document.getElementById(id);
 
 // The visualizer draws the illustrator schema (trenchProfiles). Field-wall
 // extractions (loci/layers, points keyed xMeters/depthMeters) are adapted
-// into that shape on load — the JS twin of convert_coords.fieldwall_to_profiles,
-// so a T104-style JSON renders as one face instead of "no face #1".
-function asProfiles(d){
-  if(!d||typeof d!=="object"||d.trenchProfiles||!(d.loci||d.layers)) return d;
+// into that shape here — the JS twin of convert_coords.fieldwall_to_profiles,
+// so a T104-style JSON renders as one face instead of "no face #1". Unlike
+// the Python adapter it keeps topBoundary and features. Illustrator JSONs
+// pass through untouched.
+function ingest(d){
+  if(!d||typeof d!=="object") return d;
+  // Already in trenchProfiles shape (a real illustrator extraction, OR a
+  // field sheet pre-adapted server-side by fieldwall_to_profiles). The
+  // server adapter keys depth as `depthMeters` because that is what the
+  // coordinate converter reads — remap in place so the visualizer's
+  // xCoordinateMeters/yCoordinateMeters filter can see the points.
+  if(d.trenchProfiles){
+    const fix=p=>{ if(!p||typeof p!=="object")return;
+      if(typeof p.xCoordinateMeters!=="number"&&typeof p.xMeters==="number")
+        p.xCoordinateMeters=p.xMeters;
+      if(typeof p.yCoordinateMeters!=="number"&&typeof p.depthMeters==="number")
+        p.yCoordinateMeters=p.depthMeters; };
+    (d.trenchProfiles||[]).forEach(f=>(f.layers||[]).forEach(l=>{
+      (l.topBoundary||[]).forEach(fix);
+      (l.bottomBoundary||[]).forEach(fix);
+      (l.featuresInLayer||[]).forEach(ft=>{
+        (ft.shapePoints||[]).forEach(fix);
+        if(typeof ft.approxYMeters!=="number"&&typeof ft.approxDepthMeters==="number")
+          ft.approxYMeters=ft.approxDepthMeters; });
+    }));
+    return d;
+  }
+  if(!(d.loci||d.layers)) return d;
   const munsell={};
   (d.loci||[]).forEach(e=>{
     const num=String(e.locusNumber??"").trim();
@@ -192,7 +227,7 @@ function asProfiles(d){
 
 function readJSON(file, which){
   const r=new FileReader();
-  r.onload=()=>{try{const d=asProfiles(JSON.parse(r.result));
+  r.onload=()=>{try{const d=ingest(JSON.parse(r.result));
     if(which==="A"){DATA_A=d; mark("jsonLabelA",file.name);}
     else {DATA_B=d; mark("jsonLabelB",file.name);}
     ready();}catch(e){alert("Not valid JSON:\n"+e.message);}};
@@ -329,15 +364,107 @@ function buildSVG(face, maxX, maxY, wrap){
   s.push(`</svg>`);
   const old=wrap.querySelector("svg"); if(old)old.remove();
   wrap.insertAdjacentHTML("beforeend", s.join(""));
+  applyAlign(wrap.querySelector("svg"));
+}
+
+// --- overlay alignment ----------------------------------------------------
+// The SVG's meter-space viewBox is stretched over a rectangle of the image.
+// Default: the whole image (the pre-webapp assumption — true for cropped
+// scans, wrong for photos with margins). ALIGN holds that rectangle as
+// fractions of the image, user-adjustable by dragging a box.
+let ALIGN = {x:0, y:0, w:1, h:1};
+function alignKey(){ return "viz_align_" + (new URLSearchParams(location.search).get("job") || "manual"); }
+try{ const saved = localStorage.getItem(alignKey());
+     if(saved) ALIGN = JSON.parse(saved); }catch(e){}
+// a corrupt or sliver-thin saved box would make the overlay invisible with no
+// hint why — snap back to full-image and forget it
+if(!(ALIGN.w>0.02 && ALIGN.h>0.02 && ALIGN.x>=0 && ALIGN.y>=0 &&
+     ALIGN.x+ALIGN.w<=1.001 && ALIGN.y+ALIGN.h<=1.001)){
+  ALIGN = {x:0, y:0, w:1, h:1};
+  try{ localStorage.removeItem(alignKey()); }catch(e){}
+}
+
+function applyAlign(svg){
+  if(!svg) return;
+  svg.style.inset = "auto";
+  svg.style.left   = (ALIGN.x*100) + "%";
+  svg.style.top    = (ALIGN.y*100) + "%";
+  svg.style.width  = (ALIGN.w*100) + "%";
+  svg.style.height = (ALIGN.h*100) + "%";
+}
+
+let alignArming = false;
+document.getElementById("alignBtn").onclick = ()=>{
+  alignArming = true;
+  document.getElementById("alignBtn").textContent = "now drag a box on the image\u2026";
+  document.body.style.cursor = "crosshair";
+};
+document.getElementById("alignReset").onclick = ()=>{
+  ALIGN = {x:0, y:0, w:1, h:1};
+  try{ localStorage.removeItem(alignKey()); }catch(e){}
+  document.querySelectorAll(".canvas-wrap svg").forEach(applyAlign);
+};
+
+document.addEventListener("mousedown", e=>{
+  if(!alignArming) return;
+  const wrap = e.target.closest(".canvas-wrap");
+  if(!wrap) return;
+  e.preventDefault();
+  const r0 = wrap.getBoundingClientRect();
+  const x0 = e.clientX, y0 = e.clientY;
+  const band = document.createElement("div");
+  band.style.cssText = "position:fixed;border:2px dashed var(--accent);"+
+    "background:rgba(124,74,45,.08);z-index:60;pointer-events:none;";
+  document.body.appendChild(band);
+  const move = ev=>{
+    const x=Math.min(x0,ev.clientX), y=Math.min(y0,ev.clientY);
+    band.style.left=x+"px"; band.style.top=y+"px";
+    band.style.width=Math.abs(ev.clientX-x0)+"px";
+    band.style.height=Math.abs(ev.clientY-y0)+"px";
+  };
+  const up = ev=>{
+    document.removeEventListener("mousemove", move);
+    document.removeEventListener("mouseup", up);
+    band.remove();
+    document.body.style.cursor = "";
+    alignArming = false;
+    document.getElementById("alignBtn").textContent = "Align overlay to drawing";
+    const x=Math.min(x0,ev.clientX), y=Math.min(y0,ev.clientY);
+    const w=Math.abs(ev.clientX-x0), h=Math.abs(ev.clientY-y0);
+    if(w<10 || h<10) return;              // accidental click — ignore
+    ALIGN = {
+      x:(x-r0.left)/r0.width,  y:(y-r0.top)/r0.height,
+      w:w/r0.width,            h:h/r0.height,
+    };
+    try{ localStorage.setItem(alignKey(), JSON.stringify(ALIGN)); }catch(e){}
+    document.querySelectorAll(".canvas-wrap svg").forEach(applyAlign);
+  };
+  document.addEventListener("mousemove", move);
+  document.addEventListener("mouseup", up);
+});
+
+function drawablePoints(face){
+  let n=0;
+  const scan=pts=>(pts||[]).forEach(p=>{
+    if(typeof p.xCoordinateMeters==="number"&&typeof p.yCoordinateMeters==="number")n++;});
+  (face.layers||[]).forEach(l=>{scan(l.topBoundary);scan(l.bottomBoundary);
+    (l.featuresInLayer||[]).forEach(ft=>scan(ft.shapePoints));});
+  return n;
 }
 
 function panelHTML(tag, label, face){
   const {maxX,maxY}=faceExtent(face);
+  const nPts=drawablePoints(face);
   return `<div class="panel">
     <div class="panel-head"><span class="${tag}">${label}</span>
       <div class="face-title">${esc(face.face||"Face")}
         <span class="chip">${(face.layers||[]).length} layers</span>
+        <span class="chip">${nPts} points</span>
         <span class="chip">~${maxX.toFixed(1)}m × ${maxY.toFixed(1)}m</span></div></div>
+    ${nPts===0?`<p class="hint" style="color:#8a3b2c;margin:4px 0 8px">This face has
+      <b>no drawable boundary points</b> — its layers carry empty or non-numeric
+      coordinates, so there is nothing to overlay. The extraction itself is the
+      problem (e.g. a run where no vertex markers were found), not the visualizer.</p>`:""}
     <div class="canvas-wrap" id="wrap_${tag}">${IMG_URL?`<img src="${IMG_URL}">`:
       `<div style="width:640px;height:280px;background:repeating-linear-gradient(90deg,#faf7f0,#faf7f0 39px,#f0ebe0 40px)"></div>`}</div>
   </div>`;
@@ -425,13 +552,13 @@ function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;","
     }
     if(f.jsons && f.jsons.length){
       const a = f.jsons[0];
-      DATA_A = asProfiles(await (await fetch(a.url)).json());
+      DATA_A = ingest(await (await fetch(a.url)).json());
       mark("jsonLabelA", "auto: " + a.label);
       if(f.jsons.length > 1){
         // pre-fetch the runner-up (e.g. raw extraction vs normalized) into
         // slot B so ticking "Compare two runs" shows it instantly
         const b = f.jsons[1];
-        DATA_B = asProfiles(await (await fetch(b.url)).json());
+        DATA_B = ingest(await (await fetch(b.url)).json());
         mark("jsonLabelB", "auto: " + b.label);
       }
     }
