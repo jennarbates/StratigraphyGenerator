@@ -123,6 +123,51 @@ def visualizer():
     return send_from_directory(app.static_folder, "visualizer.html")
 
 
+@app.route("/api/jobs/<job_id>/visualizer-files")
+def visualizer_files(job_id):
+    """Everything the visualizer can auto-load for this job, so the user
+    doesn't have to re-pick files the server already has. Field-wall JSON
+    isn't in the trenchProfiles shape the visualizer reads, so for those
+    jobs the fieldwall_to_profiles adapter output is served instead."""
+    meta = load_meta(job_id)
+    out = {"sheet_type": meta.get("sheet_type"), "jsons": []}
+
+    # Image: preprocessed clean image if present, else the raw scan —
+    # unless the scan is a PDF, which a browser <img> can't show.
+    img = meta.get("clean_image_path") or meta.get("scan_path")
+    if img and Path(img).exists() and not img.lower().endswith(".pdf"):
+        out["image_url"] = rel_url(job_id, Path(img))
+
+    def add(label, path_str, front=False):
+        if path_str and Path(path_str).exists():
+            entry = {"label": label, "url": rel_url(job_id, Path(path_str))}
+            out["jsons"].insert(0, entry) if front else out["jsons"].append(entry)
+
+    add("normalized", meta.get("normalized_path"))
+    add("raw extraction", meta.get("extraction_path"))
+
+    if meta.get("sheet_type") == "fieldwall" and out["jsons"]:
+        src = meta.get("normalized_path") or meta.get("extraction_path")
+        try:
+            with open(src) as f:
+                data = json.load(f)
+            if p_convert_coords.is_field_wall(data):
+                adapted, _notes = p_convert_coords.fieldwall_to_profiles(data)
+                apath = (job_dir(job_id) / "04_normalize_validate"
+                         / "adapted_for_visualizer.json")
+                apath.parent.mkdir(parents=True, exist_ok=True)
+                with open(apath, "w") as f:
+                    json.dump(adapted, f, indent=2)
+                # the only entry the visualizer can actually draw for a
+                # field sheet, so it goes first
+                out["jsons"] = [{"label": "adapted for visualizer",
+                                 "url": rel_url(job_id, apath)}]
+        except Exception:
+            pass  # non-fatal: the manual file pickers still work
+
+    return jsonify(out)
+
+
 # ---------------------------------------------------------------------------
 # job lifecycle
 # ---------------------------------------------------------------------------

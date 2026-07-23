@@ -124,11 +124,57 @@ function errorBanner(e) {
 
 // Which steps must be completed before a given step opens. Hoisted so the
 // step-nav footer can say *why* a Next button is disabled, not just grey it out.
+// validate is a hard prerequisite for convert on purpose: the fabrication
+// checks live there, and they're the one step this pipeline shouldn't let
+// anyone breeze past on the way to a 3D model.
 const PREREQS = {
   scan: [], preprocess: ["scan"], extract: ["preprocess"],
   normalize: ["extract"], validate: ["extract"],
-  convert: ["normalize"], gempy: ["convert"], visualize: ["extract"],
+  convert: ["normalize", "validate"], gempy: ["convert"], visualize: ["extract"],
 };
+
+// Everything downstream of stepId in the PREREQS graph loses its completed
+// flag and cached outputs. Called whenever a stage (re-)runs: without this,
+// re-uploading a scan left every later step marked complete, so the sidebar
+// and Next button let you jump ahead carrying results from the previous
+// image — the exact step-skipping the greyed-out states are meant to stop.
+const FRESH_STATE = {
+  preprocess: () => ({ cleanUrl: null }),
+  extract: () => ({ rawJson: null, warning: null }),
+  normalize: () => ({ data: null, log: [] }),
+  validate: () => ({ report: null }),
+  convert: () => ({ gridConfig: null, result: null }),
+  gempy: () => ({ result: null }),
+};
+
+function invalidateDownstream(stepId) {
+  // PREREQS is the gating graph (what must run before a step opens). For
+  // staleness there's one extra edge: the server validates the normalized
+  // file when it exists, so re-running normalize makes a previous
+  // validation report stale even though normalize isn't required to OPEN
+  // the validate step.
+  const EXTRA_STALE_EDGES = { validate: ["normalize"] };
+  const depsOf = (id) =>
+    (PREREQS[id] || []).concat(EXTRA_STALE_EDGES[id] || []);
+  const stale = new Set();
+  let grew = true;
+  while (grew) {
+    grew = false;
+    for (const id of Object.keys(PREREQS)) {
+      if (stale.has(id)) continue;
+      const reqs = depsOf(id);
+      if (reqs.includes(stepId) || reqs.some((r) => stale.has(r))) {
+        stale.add(id);
+        grew = true;
+      }
+    }
+  }
+  stale.forEach((id) => {
+    delete state.completed[id];
+    if (FRESH_STATE[id]) state[id] = FRESH_STATE[id]();
+  });
+  return stale;
+}
 
 function stepIndex(id) {
   return STEPS.findIndex((s) => s.id === id);
@@ -400,6 +446,7 @@ async function handleScanFile(file) {
     state.scan.filename = file.name;
     state.scan.dims = r.dimensions;
     state.scan.recommendedUpscale = r.recommended_upscale;
+    invalidateDownstream("scan");
     state.completed.scan = true;
     document.getElementById("dzLabel").textContent = `${file.name} uploaded`;
     renderScanPreview();
@@ -468,6 +515,7 @@ function renderPreprocess() {
       }
       const r = await apiJson(`/api/jobs/${state.jobId}/preprocess`, body);
       state.preprocess.cleanUrl = r.outputs.clean;
+      invalidateDownstream("preprocess");
       state.completed.preprocess = true;
       const resEl = document.getElementById("ppResult");
       resEl.innerHTML = `
@@ -559,6 +607,7 @@ function renderExtract() {
       });
       state.extract.rawJson = t.raw_json;
       state.extract.warning = t.warning;
+      invalidateDownstream("extract");
       state.completed.extract = true;
       const resEl = document.getElementById("exResult");
       let data;
@@ -607,6 +656,7 @@ function renderNormalize() {
       const r = await apiJson(`/api/jobs/${state.jobId}/normalize`, {});
       state.normalize.data = r.data;
       state.normalize.log = r.log;
+      invalidateDownstream("normalize");
       state.completed.normalize = true;
       const resEl = document.getElementById("nResult");
       resEl.innerHTML = r.log.length
@@ -786,6 +836,7 @@ function renderGridConfigForm(cfg) {
     try {
       const r = await apiJson(`/api/jobs/${state.jobId}/convert`, { grid_config: grid });
       state.convert.result = r;
+      invalidateDownstream("convert");
       state.completed.convert = true;
       const resEl = document.getElementById("cvResult");
       let html = banner("ok", `Wrote ${r.n_points} interface point(s), ${r.n_orientations} orientation seed(s).`);
