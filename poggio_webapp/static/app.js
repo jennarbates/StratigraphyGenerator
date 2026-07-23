@@ -584,6 +584,48 @@ function renderExtract() {
         <button class="secondary" id="exUpload">Upload previous extraction JSON</button>
       </div>
 
+      ${isField ? `
+      <h2 style="margin-top:26px">CV marker detection (recommended for field sheets)</h2>
+      <p class="lede">Gemini tracing keeps fabricating boundary geometry on these sheets
+      (even spacing, copy-pasted layers). This path finds the recorder's actual
+      circle-marked vertices with computer vision — which can't invent a dot that
+      isn't on the paper — then has Gemini only <em>label</em> those fixed points
+      and read the loci/Munsell text.</p>
+
+      <label class="field">
+        <span class="label-text">Photo rotation</span>
+        <select id="mkRotate">
+          <option value="0">0° (already upright)</option>
+          <option value="90">90° clockwise</option>
+          <option value="180">180°</option>
+          <option value="270">270° clockwise</option>
+        </select>
+        <span class="hint">If the photo was shot sideways, pick the rotation that makes it upright.</span>
+      </label>
+      <div class="btn-row">
+        <button class="secondary" id="mkShow">1 · Show photo &amp; click reference points</button>
+      </div>
+      <div id="mkPickWrap" style="display:none">
+        <p class="hint" id="mkPickHint"></p>
+        <div style="position:relative;display:inline-block;max-width:100%">
+          <img id="mkImg" style="max-width:100%;display:block;cursor:crosshair">
+          <div id="mkDots" style="position:absolute;inset:0;pointer-events:none"></div>
+        </div>
+      </div>
+      <label class="field">
+        <span class="label-text">Real width between the two top corners (m)</span>
+        <input type="number" id="mkRefM" step="0.5" min="0.1" placeholder="e.g. 4 (194 m → 190 m)">
+        <span class="hint">Read it off the sheet's own tie labels along the top edge.</span>
+      </label>
+      <div class="btn-row">
+        <button class="secondary" id="mkDetect" disabled>2 · Detect markers</button>
+      </div>
+      <div id="mkResult"></div>
+      <div class="btn-row">
+        <button id="mkAssign" disabled>3 · Assign markers with Gemini &amp; build extraction</button>
+      </div>
+      ` : ""}
+
       <div id="exError"></div>
       <div id="exLog" class="log-box" style="display:none"></div>
       <div id="exResult"></div>
@@ -631,6 +673,121 @@ function renderExtract() {
       fileInput.value = "";  // allow re-selecting the same file
     }
   });
+
+  // --- CV marker detection (field sheets only) ------------------------------
+  if (isField) {
+    // clicks[0]=top-left (origin), [1]=top-right, [2]=lowest point of the wall
+    const CLICK_LABELS = [
+      "Click the wall's TOP-LEFT corner (x=0, depth=0).",
+      "Now click the wall's TOP-RIGHT corner.",
+      "Now click the LOWEST point of the drawn wall.",
+      "All 3 points set — adjust by clicking again from the start, or continue below.",
+    ];
+    const COLORS = ["#c0269a", "#d17a1f", "#2a7ab5"];
+    let clicks = [];
+
+    const hintEl = () => document.getElementById("mkPickHint");
+    const errEl = () => document.getElementById("exError");
+
+    function drawDots() {
+      const img = document.getElementById("mkImg");
+      const dots = document.getElementById("mkDots");
+      dots.innerHTML = "";
+      const sx = img.clientWidth / img.naturalWidth;
+      const sy = img.clientHeight / img.naturalHeight;
+      clicks.forEach((c, i) => {
+        const d = document.createElement("div");
+        d.style.cssText = `position:absolute;width:14px;height:14px;border-radius:50%;
+          border:3px solid ${COLORS[i]};background:rgba(255,255,255,.5);
+          transform:translate(-50%,-50%);left:${c[0]*sx}px;top:${c[1]*sy}px`;
+        dots.appendChild(d);
+      });
+      hintEl().textContent = CLICK_LABELS[clicks.length];
+      document.getElementById("mkDetect").disabled = clicks.length < 3;
+    }
+
+    document.getElementById("mkShow").addEventListener("click", async () => {
+      errEl().innerHTML = "";
+      try {
+        const rotate = parseInt(document.getElementById("mkRotate").value, 10);
+        const r = await apiJson(`/api/jobs/${state.jobId}/markers/preview`, { rotate });
+        const img = document.getElementById("mkImg");
+        img.src = r.image_url + "&t=" + Date.now();  // bust cache on rotation change
+        clicks = [];
+        document.getElementById("mkPickWrap").style.display = "block";
+        img.onload = drawDots;
+        window.addEventListener("resize", drawDots);
+      } catch (e) { errEl().innerHTML = errorBanner(e); }
+    });
+
+    document.getElementById("mkImg")?.addEventListener("click", (ev) => {
+      const img = ev.target;
+      const rect = img.getBoundingClientRect();
+      const px = (ev.clientX - rect.left) * img.naturalWidth / rect.width;
+      const py = (ev.clientY - rect.top) * img.naturalHeight / rect.height;
+      if (clicks.length >= 3) clicks = [];
+      clicks.push([Math.round(px), Math.round(py)]);
+      drawDots();
+    });
+
+    document.getElementById("mkDetect").addEventListener("click", async () => {
+      errEl().innerHTML = "";
+      const resEl = document.getElementById("mkResult");
+      const sc = parseFloat(document.getElementById("exSquareCm").value);
+      const refM = parseFloat(document.getElementById("mkRefM").value);
+      if (!sc) { errEl().innerHTML = banner("err", "Bold grid square size (cm) is required — see the field above."); return; }
+      if (!refM) { errEl().innerHTML = banner("err", "Real width between the top corners is required."); return; }
+      try {
+        const r = await apiJson(`/api/jobs/${state.jobId}/markers/detect`, {
+          square_cm: sc, ref_meters: refM,
+          origin_px: clicks[0], ref_px: clicks[1], bottom_px_y: clicks[2][1],
+          rotate: parseInt(document.getElementById("mkRotate").value, 10),
+        });
+        resEl.innerHTML =
+          banner("ok", `Found <strong>${r.n_accepted}</strong> candidate markers inside the wall ` +
+            `(${r.n_rejected_in_box} shapes rejected; scale ${r.px_per_m} px/m). ` +
+            `<strong>Inspect the debug image before continuing</strong> — green = accepted, ` +
+            `red = rejected, magenta box = search area.`) +
+          `<div class="btn-row"><a class="secondary" style="text-decoration:none" ` +
+          `href="${r.debug_image_url}" target="_blank"><button class="secondary">` +
+          `Open debug image</button></a>` +
+          `<a href="${r.csv_url}" download><button class="secondary">Download markers.csv</button></a></div>`;
+        document.getElementById("mkAssign").disabled = false;
+      } catch (e) { errEl().innerHTML = errorBanner(e); }
+    });
+
+    document.getElementById("mkAssign").addEventListener("click", async () => {
+      errEl().innerHTML = "";
+      const btn = document.getElementById("mkAssign");
+      const logEl = document.getElementById("exLog");
+      const apiKey = document.getElementById("exApiKey").value.trim();
+      if (!apiKey) { errEl().innerHTML = banner("err", "API key is required (top of this panel)."); return; }
+      state.apiKey = apiKey;
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner"></span>Assigning...`;
+      logEl.style.display = "block"; logEl.textContent = "";
+      try {
+        const r = await apiJson(`/api/jobs/${state.jobId}/markers/assign`, { api_key: apiKey });
+        const t = await pollTask(r.task_id, (log, elapsed) => {
+          logEl.textContent = `[${elapsed}s elapsed]\n` + log.join("\n");
+        });
+        state.extract.rawJson = t.raw_json;
+        state.extract.warning = t.warning;
+        state.sheetType = "fieldwall";
+        invalidateDownstream("extract");
+        state.completed.extract = true;
+        showExtractionResult(t.raw_json,
+          "Extraction built from CV markers — Gemini assigned loci and labels " +
+          "but generated no geometry.", t.warning);
+        refreshChrome();
+      } catch (e) {
+        errEl().innerHTML = errorBanner(e);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "3 · Assign markers with Gemini & build extraction";
+      }
+    });
+  }
 
   document.getElementById("exRun").addEventListener("click", async () => {
     const btn = document.getElementById("exRun");

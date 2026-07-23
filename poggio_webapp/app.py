@@ -126,9 +126,8 @@ def visualizer():
 @app.route("/api/jobs/<job_id>/visualizer-files")
 def visualizer_files(job_id):
     """Everything the visualizer can auto-load for this job, so the user
-    doesn't have to re-pick files the server already has. Field-wall JSON
-    isn't in the trenchProfiles shape the visualizer reads, so for those
-    jobs the fieldwall_to_profiles adapter output is served instead."""
+    doesn't have to re-pick files the server already has. JSONs are served
+    as-is; the visualizer normalizes either extraction shape client-side."""
     meta = load_meta(job_id)
     out = {"sheet_type": meta.get("sheet_type"), "jsons": []}
 
@@ -146,24 +145,11 @@ def visualizer_files(job_id):
     add("normalized", meta.get("normalized_path"))
     add("raw extraction", meta.get("extraction_path"))
 
-    if meta.get("sheet_type") == "fieldwall" and out["jsons"]:
-        src = meta.get("normalized_path") or meta.get("extraction_path")
-        try:
-            with open(src) as f:
-                data = json.load(f)
-            if p_convert_coords.is_field_wall(data):
-                adapted, _notes = p_convert_coords.fieldwall_to_profiles(data)
-                apath = (job_dir(job_id) / "04_normalize_validate"
-                         / "adapted_for_visualizer.json")
-                apath.parent.mkdir(parents=True, exist_ok=True)
-                with open(apath, "w") as f:
-                    json.dump(adapted, f, indent=2)
-                # the only entry the visualizer can actually draw for a
-                # field sheet, so it goes first
-                out["jsons"] = [{"label": "adapted for visualizer",
-                                 "url": rel_url(job_id, apath)}]
-        except Exception:
-            pass  # non-fatal: the manual file pickers still work
+    # Field-wall JSON is served raw: the visualizer adapts the
+    # FieldWallProfile shape itself (see ingest() in visualizer.html), and
+    # unlike fieldwall_to_profiles() it keeps topBoundary and features —
+    # the Python adapter only carries what convert() needs. Serving both
+    # raw and normalized also keeps A/B compare working for field sheets.
 
     return jsonify(out)
 
@@ -369,6 +355,125 @@ def upload_extraction(job_id):
 
     return jsonify({"raw_json": raw, "sheet_type": detected,
                     "file_url": rel_url(job_id, out_path)})
+
+
+# ---------------------------------------------------------------------------
+# stage 3 alternative for field-wall sheets: CV marker detection
+# (detect_markers finds the recorder's circle-marked vertices — geometry CV
+# can't fabricate; assign_markers has Gemini only CLASSIFY those fixed
+# points and read the sheet's labels)
+# ---------------------------------------------------------------------------
+
+@app.route("/api/jobs/<job_id>/markers/preview", methods=["POST"])
+def markers_preview(job_id):
+    """Write the rotated working copy the user clicks reference points on.
+    All later pixel coordinates are in this rotated frame."""
+    meta = load_meta(job_id)
+    if "scan_path" not in meta:
+        abort(400, description="upload a scan first")
+    if meta["scan_path"].lower().endswith(".pdf"):
+        return jsonify({"error": "marker detection works on photo scans, not "
+                                  "PDFs — upload the photo directly"}), 400
+    body = request.get_json(force=True, silent=True) or {}
+    rotate = int(body.get("rotate", 0))
+    from pipeline import detect_markers as p_detect_markers
+    out_dir = job_dir(job_id) / "03_extraction"
+    out_path = out_dir / "marker_source_rotated.png"
+    try:
+        w, h = p_detect_markers.write_rotated_preview(
+            meta["scan_path"], rotate, str(out_path))
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+    meta["marker_rotate"] = rotate
+    save_meta(job_id, meta)
+    return jsonify({"image_url": rel_url(job_id, out_path),
+                    "width": w, "height": h})
+
+
+@app.route("/api/jobs/<job_id>/markers/detect", methods=["POST"])
+def markers_detect(job_id):
+    meta = load_meta(job_id)
+    if "scan_path" not in meta:
+        abort(400, description="upload a scan first")
+    body = request.get_json(force=True, silent=True) or {}
+    for k in ("square_cm", "origin_px", "ref_px", "ref_meters", "bottom_px_y"):
+        if body.get(k) in (None, "", []):
+            return jsonify({"error": f"{k} is required — click the wall's "
+                                      "top-left, top-right, and lowest point, "
+                                      "and give the real width between the top "
+                                      "corners"}), 400
+    from pipeline import detect_markers as p_detect_markers
+    out_dir = job_dir(job_id) / "03_extraction"
+    try:
+        result = p_detect_markers.run_detect(
+            meta["scan_path"],
+            origin_px=body["origin_px"], ref_px=body["ref_px"],
+            ref_meters=float(body["ref_meters"]),
+            bottom_px_y=float(body["bottom_px_y"]),
+            square_cm=float(body["square_cm"]),
+            out_dir=str(out_dir),
+            rotate=int(body.get("rotate", meta.get("marker_rotate", 0))),
+            min_marker_paper_mm=float(body.get("min_marker_paper_mm", 0.5)),
+            max_marker_paper_mm=float(body.get("max_marker_paper_mm", 2.5)),
+        )
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+    markers_path = out_dir / "markers.json"
+    markers_path.write_text(json.dumps(result["markers"]))
+    meta["markers_path"] = str(markers_path)
+    meta["marker_square_cm"] = float(body["square_cm"])
+    save_meta(job_id, meta)
+
+    return jsonify({
+        "n_accepted": result["n_accepted"],
+        "n_rejected_in_box": result["n_rejected_in_box"],
+        "px_per_m": result["px_per_m"],
+        "debug_image_url": rel_url(job_id, result["debug_image"]),
+        "csv_url": rel_url(job_id, result["csv"]),
+    })
+
+
+@app.route("/api/jobs/<job_id>/markers/assign", methods=["POST"])
+def markers_assign(job_id):
+    """Async (calls Gemini): classify the detected markers, assemble the
+    extraction JSON, and install it as this job's extraction."""
+    meta = load_meta(job_id)
+    if "markers_path" not in meta:
+        abort(400, description="run marker detection first")
+    body = request.get_json(force=True, silent=True) or {}
+    api_key = body.get("api_key") or os.environ.get("GEMINI_API_KEY")
+    if not api_key:
+        return jsonify({"error": "no Gemini API key provided (and "
+                                  "GEMINI_API_KEY not set in the server "
+                                  "environment)"}), 400
+
+    markers = json.loads(Path(meta["markers_path"]).read_text())
+    rotated = job_dir(job_id) / "03_extraction" / "marker_source_rotated.png"
+    if not rotated.exists():
+        abort(400, description="rotated working image missing — re-run "
+                               "marker detection")
+    out_path = job_dir(job_id) / "03_extraction" / "field_wall_cv.json"
+
+    try:
+        from pipeline import assign_markers as p_assign_markers
+        task_id = start_task(
+            p_assign_markers.run_assign,
+            str(rotated), markers, meta.get("marker_square_cm", 20.0),
+            str(out_path), api_key,
+            max_output_tokens=int(body.get("max_output_tokens", 65536)),
+        )
+    except ImportError as e:
+        return jsonify({"error": f"missing dependency: {e}. Install with "
+                                  f"`pip install google-genai pillow pydantic "
+                                  f"--break-system-packages`."}), 400
+
+    meta["extraction_path"] = str(out_path)
+    meta["extraction_task_id"] = task_id
+    meta["sheet_type"] = "fieldwall"
+    meta.pop("normalized_path", None)
+    save_meta(job_id, meta)
+    return jsonify({"task_id": task_id})
 
 
 @app.route("/api/tasks/<task_id>")
