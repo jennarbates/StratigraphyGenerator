@@ -101,6 +101,87 @@ available.
 
 Both are warnings, not errors: they are strong signals, not proof.
 
+## Roadmap
+
+Ordered by leverage, not effort. The organizing principle: make the existing
+results scientifically valid first, then make the pipeline trustworthy, then
+make it general. Phase 1 restates the open items above as a sequence; nothing
+in phases 2–3 matters while the underlying geometry is still invalid.
+
+### Phase 1 — unblock the science
+
+1. **Real grid registration** (open item 1). Get the four numbers per face
+   from the site records. Also add a provenance field to the grid config
+   (`"source": "surveyed" | "placeholder"`) and have `build_gempy` refuse —
+   or at least watermark its output PNGs — when building from placeholders.
+   Right now nothing stops a placeholder model from being mistaken for a real
+   one once it leaves the app.
+2. **Wire `detectFieldWallMarkers.py` into the GUI and close the
+   marker→locus gap** (open item 2). Either auto-assign markers to the
+   nearest boundary with a confidence score, or — probably better — overlay
+   the detected markers on the scan in the browser and click-assign the
+   ambiguous ones. Then re-extract T104 constrained to those markers: pass
+   the detected coordinates into the prompt as ground truth, or snap output
+   vertices to the nearest marker and flag boundaries that needed big snaps.
+3. **Re-extract Trench 23 South and West faces.** The evidence so far (East
+   genuine in the per-section run, the all-faces-at-once run fully
+   fabricated) says extract one face per API call. Make per-face extraction
+   the default for illustrator sheets and validate each face independently.
+4. **Rescan Trench 23 at 300+ DPI** if the original sheet is accessible
+   (open item 3), then re-check the five missing legend materials. That
+   settles resolution-limit vs. prompting-problem — currently a hypothesis.
+
+### Phase 2 — verification infrastructure
+
+5. **Tests.** The highest-value targets are all pure functions:
+   `least_squares_slope`, the coordinate transform,
+   `fieldwall_to_profiles`, and the two fabrication heuristics — which can
+   be fed the known-fabricated and known-genuine extractions already sitting
+   in git history as fixtures. Add a golden-file test running
+   `output_section001.json` through convert → validate, then CI.
+6. **Scan-vs-extraction scoring.** Today's A/B check is eyeballing in
+   `visualizer.html`. Cheap objective metric: rasterize each extracted
+   boundary polyline and measure overlap with ink pixels in the preprocessed
+   scan. A boundary that doesn't lie on ink is fabricated by definition —
+   this upgrades the fabrication checks from statistical signatures to
+   direct evidence, and can run automatically at stage 5.
+7. **Hygiene.** Route uploads through `safe_job_path`/`secure_filename`
+   (the download route is guarded; the upload route saves the raw client
+   filename). Pin versions in `requirements.txt`. Add a license. Persist the
+   in-memory task registry to the job folder, or document that a server
+   restart orphans running tasks. Age-based sweep for `jobs/`.
+
+### Phase 3 — generalize past these two drawings
+
+8. **Ensemble extraction as an uncertainty signal.** Run extraction twice
+   (different temperature or provider) and diff the geometries: agreement is
+   cheap evidence of genuine tracing, divergence flags regions for review.
+   Pairs naturally with putting the Gemini client behind an interface so
+   other vision models can slot in.
+9. **In-browser boundary editor.** Extraction will never be perfect, so the
+   pragmatic endgame is human-in-the-loop: show the extraction overlaid on
+   the scan, drag/add/delete vertices before validation. Turns every
+   "discard and re-extract" cycle into a five-minute correction — probably
+   the single biggest usability win available.
+10. **Schema unification.** `ArchaeologicalDiagram` and `FieldWallProfile`
+    currently converge via an adapter inside `convert_coords`. Promote the
+    converged form to a first-class internal schema with the two extraction
+    formats as input adapters, so validator/converter/builder stop needing
+    the dual `get_x`/`get_y` fallbacks.
+11. **Batch mode.** Poggio Civitate has decades of trench documentation.
+    Once single-sheet extraction is trustworthy: a batch queue (the async
+    task registry already half-exists), persistent job naming, and
+    site-level aggregation of multiple trenches into one GemPy model.
+12. **Standards-compliant export.** Harris matrix from the stratigraphic
+    order, GeoJSON in site coordinates for GIS, and propagate the per-point
+    `confidence` fields (captured in the schema, unused downstream) into
+    the exports.
+
+If effort is limited, items 6 and 9 deserve to jump the queue: together they
+turn the workflow from "extract, inspect statistically, hope" into "extract,
+score against the scan, correct by hand" — the realistic shape of a
+production digitization tool.
+
 ## Recovering old artifacts
 
 The pre-`webapp` outputs and CLI scripts are all still in git:

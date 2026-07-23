@@ -17,6 +17,8 @@ from PIL import Image
 from google.genai import types
 from pydantic import BaseModel
 
+from pipeline._extract_common import generate_with_retry
+
 # These are locally-generated preprocessed scans (this app's own 02_preprocess
 # output, often upscaled 2x+), not untrusted uploads from the internet — raise
 # PIL's default decompression-bomb cap so a legitimately large sheet doesn't
@@ -250,17 +252,6 @@ Emit ONLY the JSON conforming to the schema.
 """
 
 
-def _generate_with_retry(client, max_attempts=5, **kwargs):
-    for attempt in range(max_attempts):
-        try:
-            return client.models.generate_content(**kwargs)
-        except errors.ServerError as e:
-            transient = getattr(e, "code", None) in (500, 503, 429)
-            if transient and attempt < max_attempts - 1:
-                wait = 2 ** attempt
-                time.sleep(wait)
-            else:
-                raise
 
 
 def run_extraction(image_path: str, out_path: str, api_key: str,
@@ -279,8 +270,9 @@ def run_extraction(image_path: str, out_path: str, api_key: str,
         progress_cb(f"resized {orig_size[0]}x{orig_size[1]} -> {img.size[0]}x{img.size[1]} before sending to Gemini")
     prompt = PROMPT_TEMPLATE.format(image_path=image_path)
 
-    response = _generate_with_retry(
+    response = generate_with_retry(
         client,
+        progress_cb=progress_cb,
         model="gemini-2.5-flash",
         contents=[img, prompt],
         config=types.GenerateContentConfig(
@@ -288,6 +280,12 @@ def run_extraction(image_path: str, out_path: str, api_key: str,
             response_schema=ArchaeologicalDiagram,
             temperature=0.1,
             max_output_tokens=max_output_tokens,
+            # 2.5-flash "thinks" before writing any JSON by default; on a
+            # dense sheet that reasoning alone can push the request past
+            # Google's server-side deadline (504). Cap it — raise or drop
+            # this if extraction quality visibly suffers, set 0 to disable
+            # thinking entirely.
+            thinking_config=types.ThinkingConfig(thinking_budget=1024),
         ),
     )
 

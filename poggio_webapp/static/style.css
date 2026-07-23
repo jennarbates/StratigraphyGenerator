@@ -371,3 +371,9 @@ a.file-link{
 a.file-link:hover{ color: var(--strata-5); }
 
 .download-list{ display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
+
+/* collapsed technical detail under friendly error banners */
+.err-detail { margin-top: 6px; font-size: 12px; }
+.err-detail summary { cursor: pointer; color: #a15c07; }
+.err-detail pre { max-height: 240px; overflow: auto; background: #1e1e1e0d;
+                  padding: 8px; border-radius: 4px; white-space: pre-wrap; }

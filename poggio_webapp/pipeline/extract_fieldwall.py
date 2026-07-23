@@ -15,6 +15,8 @@ from google.genai import errors, types
 from PIL import Image
 from pydantic import BaseModel
 
+from pipeline._extract_common import generate_with_retry
+
 # See extract_illustrator.py — same rationale: locally-generated preprocessed
 # scans, not untrusted uploads, so raise PIL's decompression-bomb cap.
 Image.MAX_IMAGE_PIXELS = None
@@ -88,17 +90,6 @@ class FieldWallProfile(BaseModel):
     marginalia: list[str] | None
 
 
-def _generate_with_retry(client, max_attempts=5, **kwargs):
-    for attempt in range(max_attempts):
-        try:
-            return client.models.generate_content(**kwargs)
-        except errors.ServerError as e:
-            transient = getattr(e, "code", None) in (500, 502, 503, 504, 429)
-            if transient and attempt < max_attempts - 1:
-                wait = 2 ** attempt
-                time.sleep(wait)
-            else:
-                raise
 
 
 def build_prompt(square_cm: float) -> str:
@@ -238,8 +229,9 @@ def run_extraction(image_path: str, square_cm: float, out_path: str,
         progress_cb(f"resized {orig_size[0]}x{orig_size[1]} -> {img.size[0]}x{img.size[1]} before sending to Gemini")
     prompt = build_prompt(square_cm)
 
-    response = _generate_with_retry(
+    response = generate_with_retry(
         client,
+        progress_cb=progress_cb,
         model="gemini-2.5-flash",
         contents=[img, prompt],
         config=types.GenerateContentConfig(
@@ -247,6 +239,12 @@ def run_extraction(image_path: str, square_cm: float, out_path: str,
             response_schema=FieldWallProfile,
             temperature=0.1,
             max_output_tokens=max_output_tokens,
+            # 2.5-flash "thinks" before writing any JSON by default; on a
+            # dense sheet that reasoning alone can push the request past
+            # Google's server-side deadline (504). Cap it — raise or drop
+            # this if extraction quality visibly suffers, set 0 to disable
+            # thinking entirely.
+            thinking_config=types.ThinkingConfig(thinking_budget=1024),
         ),
     )
 

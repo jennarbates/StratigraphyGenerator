@@ -72,9 +72,50 @@ async function pollTask(taskId, onLog) {
     const t = await api(`/api/tasks/${taskId}`);
     if (onLog) onLog(t.log || [], t.elapsed_seconds);
     if (t.status === "done") return t;
-    if (t.status === "error") throw new Error(t.error);
+    if (t.status === "error") {
+      const err = new Error(t.error);
+      err.detail = t.error_detail || null;
+      throw err;
+    }
     await new Promise((r) => setTimeout(r, 1200));
   }
+}
+
+// How long is too long for the extraction stage? Derived from the actual
+// ceilings in the code: each attempt has a 4-minute client timeout
+// (http_options in extract_*.py), up to 5 attempts with backoff, capped at
+// a 10-minute total retry budget (generate_with_retry). So ~11 min is the
+// true worst case; anything past that means the server thread is stuck.
+const EXTRACT_TYPICAL_S = 240;   // most sheets finish well inside 4 min
+const EXTRACT_HARD_S = 660;      // past the retry budget -- nothing good is coming
+function extractWaitStatus(elapsed) {
+  if (elapsed < EXTRACT_TYPICAL_S) {
+    return `Typically finishes in 1\u20134 minutes.`;
+  }
+  if (elapsed < EXTRACT_HARD_S) {
+    return `\u26a0 Longer than typical. If the log shows "retrying", Gemini's ` +
+      `servers are having trouble \u2014 the app retries automatically (max ~11 ` +
+      `min total), so leave it be; re-running now would just spend more quota.`;
+  }
+  return `\u26a0 ${Math.round(elapsed / 60)} min is past the worst case this app ` +
+    `allows (~11 min). The server thread is likely stuck \u2014 safe to close ` +
+    `this tab and restart app.py. Before re-running: wait a while (each run ` +
+    `re-sends the whole image and uses quota), check ` +
+    `https://status.cloud.google.com, and if this keeps happening, report ` +
+    `it on the project's issue tracker with the log below.`;
+}
+
+// Renders a friendly error banner with the raw traceback tucked into a
+// collapsed <details> so it's available without being the message.
+function errorBanner(e) {
+  let html = banner("err", e.message);
+  if (e.detail) {
+    const pre = document.createElement("pre");
+    pre.textContent = e.detail;
+    html += `<details class="err-detail"><summary>Technical detail</summary>` +
+            pre.outerHTML + `</details>`;
+  }
+  return html;
 }
 
 // ---------------------------------------------------------------------------
@@ -364,7 +405,7 @@ async function handleScanFile(file) {
     renderScanPreview();
     refreshChrome();
   } catch (e) {
-    errEl.innerHTML = banner("err", e.message);
+    errEl.innerHTML = errorBanner(e);
   }
 }
 
@@ -438,7 +479,7 @@ function renderPreprocess() {
       `;
       refreshChrome();
     } catch (e) {
-      errEl.innerHTML = banner("err", e.message);
+      errEl.innerHTML = errorBanner(e);
     } finally {
       btn.disabled = false;
       btn.textContent = "Run preprocessing";
@@ -513,7 +554,8 @@ function renderExtract() {
     try {
       const r = await apiJson(`/api/jobs/${state.jobId}/extract`, body);
       const t = await pollTask(r.task_id, (log, elapsed) => {
-        logEl.textContent = `[${elapsed}s elapsed]\n` + log.join("\n");
+        logEl.textContent = `[${elapsed}s elapsed] ${extractWaitStatus(elapsed)}\n` +
+          log.join("\n");
       });
       state.extract.rawJson = t.raw_json;
       state.extract.warning = t.warning;
@@ -531,7 +573,7 @@ function renderExtract() {
       resEl.appendChild(treeHolder);
       refreshChrome();
     } catch (e) {
-      errEl.innerHTML = banner("err", e.message);
+      errEl.innerHTML = errorBanner(e);
     } finally {
       btn.disabled = false;
       btn.textContent = "Run extraction";
@@ -579,7 +621,7 @@ function renderNormalize() {
       resEl.innerHTML += `<div class="download-list"><a class="file-link" href="${r.file_url}" download>output_clean.json</a></div>`;
       refreshChrome();
     } catch (e) {
-      errEl.innerHTML = banner("err", e.message);
+      errEl.innerHTML = errorBanner(e);
     } finally {
       btn.disabled = false;
       btn.textContent = "Run normalizer";
@@ -663,7 +705,7 @@ function renderValidate() {
       }
       refreshChrome();
     } catch (e) {
-      errEl.innerHTML = banner("err", e.message);
+      errEl.innerHTML = errorBanner(e);
     } finally {
       btn.disabled = false;
       btn.textContent = "Run validator";
@@ -700,7 +742,7 @@ async function loadGridConfig() {
     renderGridConfigForm(cfg);
   } catch (e) {
     formEl.innerHTML = "";
-    errEl.innerHTML = banner("err", e.message);
+    errEl.innerHTML = errorBanner(e);
   }
 }
 
@@ -756,7 +798,7 @@ function renderGridConfigForm(cfg) {
       resEl.innerHTML = html;
       refreshChrome();
     } catch (e) {
-      errEl.innerHTML = banner("err", e.message);
+      errEl.innerHTML = errorBanner(e);
     } finally {
       btn.disabled = false;
       btn.textContent = "Convert coordinates";
@@ -844,7 +886,7 @@ function renderGempy() {
       resEl.innerHTML = html;
       refreshChrome();
     } catch (e) {
-      errEl.innerHTML = banner("err", e.message);
+      errEl.innerHTML = errorBanner(e);
     } finally {
       btn.disabled = false;
       btn.textContent = "Build model";
