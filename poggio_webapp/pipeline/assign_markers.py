@@ -213,15 +213,24 @@ def _assemble(markers, result_dict):
 
 
 # ---------------------------------------------------------------------------
-# entry point
+# entry points
+#
+# Two-phase API used by the webapp (/markers/assign then /markers/finalize):
+#   classify_markers()     network call, returns the proposal for user review
+#   finalize_assignments() no network, assembles the reviewed proposal + the
+#                          immutable CV coordinates into the extraction JSON
+# run_assign() below composes the two for one-shot/CLI use.
 # ---------------------------------------------------------------------------
 
-def run_assign(image_path, markers, square_cm, out_path, api_key,
-               max_output_tokens=65536, progress_cb=None):
-    """Classify the detected markers and assemble the extraction JSON.
-    `image_path` must be the SAME rotated frame the markers were measured
-    in (run_detect's marker_source_rotated.png). Returns
-    (raw_json_text, warning_or_None) like the other extraction runners."""
+def classify_markers(image_path, markers, square_cm, api_key,
+                     max_output_tokens=65536, progress_cb=None):
+    """Phase 1 (calls Gemini): classify each detected marker
+    (surface / bottom of locus N / noise) and read the sheet's labels.
+    Generates no geometry and writes nothing to disk. `image_path` must be
+    the SAME rotated frame the markers were measured in (run_detect's
+    marker_source_rotated.png). Returns
+    {"result_dict": <parsed MarkerAssignmentResult>, "warning": str|None}
+    — the shape the frontend review step expects."""
     if not markers:
         raise RuntimeError("no markers to assign — run detection first")
     if not os.path.exists(image_path):
@@ -258,14 +267,50 @@ def run_assign(image_path, markers, square_cm, out_path, api_key,
     api_warning = check_response(response, raw)
 
     result_dict = json.loads(raw)
+    n = len(result_dict.get("assignments") or [])
+    if progress_cb:
+        progress_cb(f"received {n} marker assignments — review them, then "
+                    f"finalize to build the extraction")
+    return {"result_dict": result_dict, "warning": api_warning}
+
+
+def finalize_assignments(markers, result_dict, out_path):
+    """Phase 2 (no network call): assemble the (possibly user-edited)
+    classification `result_dict` plus the immutable CV marker coordinates
+    into the FieldWallProfile extraction JSON, write it to `out_path`, and
+    return (raw_json_text, warning_or_None) like the other extraction
+    runners."""
+    if not markers:
+        raise RuntimeError("no markers to finalize — run detection first")
+    if not result_dict or not (result_dict.get("assignments") or []):
+        raise RuntimeError("no assignments to finalize — run classification "
+                           "first")
+
     profile, warnings = _assemble(markers, result_dict)
 
     raw_json = json.dumps(profile, indent=2)
     with open(out_path, "w") as f:
         f.write(raw_json)
+
+    warning = " | ".join(warnings) if warnings else None
+    return raw_json, warning
+
+
+def run_assign(image_path, markers, square_cm, out_path, api_key,
+               max_output_tokens=65536, progress_cb=None):
+    """One-shot convenience wrapper: classify then immediately finalize,
+    with no review step in between. Preserved for CLI/script use; the
+    webapp calls the two phases separately. Returns
+    (raw_json_text, warning_or_None) exactly as before the split."""
+    classified = classify_markers(
+        image_path, markers, square_cm, api_key,
+        max_output_tokens=max_output_tokens, progress_cb=progress_cb)
+
+    raw_json, assemble_warning = finalize_assignments(
+        markers, classified["result_dict"], out_path)
     if progress_cb:
         progress_cb(f"wrote {out_path}")
 
-    parts = [w for w in ([api_warning] if api_warning else []) + warnings]
+    parts = [w for w in (classified["warning"], assemble_warning) if w]
     warning = " | ".join(parts) if parts else None
     return raw_json, warning

@@ -1,1 +1,5 @@
 poggio_webapp/jobs/
+poggio_webapp/jobs/
+__pycache__/
+*.pyc
+.DS_Store
