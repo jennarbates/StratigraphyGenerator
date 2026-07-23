@@ -127,6 +127,17 @@
       <label class="toggle"><input type="checkbox" id="tLabels"> Layer names</label>
       <h2 class="section">Layers</h2>
       <div id="legend"></div>
+      <h2 class="section">Overlay alignment</h2>
+      <div class="row">
+        <button class="filebtn" id="alignBtn">Align overlay to drawing</button>
+      </div>
+      <div class="row">
+        <button class="filebtn" id="alignReset">Reset alignment</button>
+      </div>
+      <p class="hint" style="font-size:11.5px;margin:2px 0 0">The overlay assumes the
+      drawn section fills the whole image. For a photo with margins, click
+      <b>Align</b> then drag a box over just the drawn wall (frame line to
+      frame line).</p>
     </div>
   </aside>
 
@@ -291,7 +302,77 @@ function buildSVG(face, maxX, maxY, wrap){
   s.push(`</svg>`);
   const old=wrap.querySelector("svg"); if(old)old.remove();
   wrap.insertAdjacentHTML("beforeend", s.join(""));
+  applyAlign(wrap.querySelector("svg"));
 }
+
+// --- overlay alignment ----------------------------------------------------
+// The SVG's meter-space viewBox is stretched over a rectangle of the image.
+// Default: the whole image (the pre-webapp assumption — true for cropped
+// scans, wrong for photos with margins). ALIGN holds that rectangle as
+// fractions of the image, user-adjustable by dragging a box.
+let ALIGN = {x:0, y:0, w:1, h:1};
+function alignKey(){ return "viz_align_" + (new URLSearchParams(location.search).get("job") || "manual"); }
+try{ const saved = localStorage.getItem(alignKey());
+     if(saved) ALIGN = JSON.parse(saved); }catch(e){}
+
+function applyAlign(svg){
+  if(!svg) return;
+  svg.style.inset = "auto";
+  svg.style.left   = (ALIGN.x*100) + "%";
+  svg.style.top    = (ALIGN.y*100) + "%";
+  svg.style.width  = (ALIGN.w*100) + "%";
+  svg.style.height = (ALIGN.h*100) + "%";
+}
+
+let alignArming = false;
+document.getElementById("alignBtn").onclick = ()=>{
+  alignArming = true;
+  document.getElementById("alignBtn").textContent = "now drag a box on the image\u2026";
+  document.body.style.cursor = "crosshair";
+};
+document.getElementById("alignReset").onclick = ()=>{
+  ALIGN = {x:0, y:0, w:1, h:1};
+  try{ localStorage.removeItem(alignKey()); }catch(e){}
+  document.querySelectorAll(".canvas-wrap svg").forEach(applyAlign);
+};
+
+document.addEventListener("mousedown", e=>{
+  if(!alignArming) return;
+  const wrap = e.target.closest(".canvas-wrap");
+  if(!wrap) return;
+  e.preventDefault();
+  const r0 = wrap.getBoundingClientRect();
+  const x0 = e.clientX, y0 = e.clientY;
+  const band = document.createElement("div");
+  band.style.cssText = "position:fixed;border:2px dashed var(--accent);"+
+    "background:rgba(124,74,45,.08);z-index:60;pointer-events:none;";
+  document.body.appendChild(band);
+  const move = ev=>{
+    const x=Math.min(x0,ev.clientX), y=Math.min(y0,ev.clientY);
+    band.style.left=x+"px"; band.style.top=y+"px";
+    band.style.width=Math.abs(ev.clientX-x0)+"px";
+    band.style.height=Math.abs(ev.clientY-y0)+"px";
+  };
+  const up = ev=>{
+    document.removeEventListener("mousemove", move);
+    document.removeEventListener("mouseup", up);
+    band.remove();
+    document.body.style.cursor = "";
+    alignArming = false;
+    document.getElementById("alignBtn").textContent = "Align overlay to drawing";
+    const x=Math.min(x0,ev.clientX), y=Math.min(y0,ev.clientY);
+    const w=Math.abs(ev.clientX-x0), h=Math.abs(ev.clientY-y0);
+    if(w<10 || h<10) return;              // accidental click — ignore
+    ALIGN = {
+      x:(x-r0.left)/r0.width,  y:(y-r0.top)/r0.height,
+      w:w/r0.width,            h:h/r0.height,
+    };
+    try{ localStorage.setItem(alignKey(), JSON.stringify(ALIGN)); }catch(e){}
+    document.querySelectorAll(".canvas-wrap svg").forEach(applyAlign);
+  };
+  document.addEventListener("mousemove", move);
+  document.addEventListener("mouseup", up);
+});
 
 function panelHTML(tag, label, face){
   const {maxX,maxY}=faceExtent(face);

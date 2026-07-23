@@ -126,9 +126,8 @@ def visualizer():
 @app.route("/api/jobs/<job_id>/visualizer-files")
 def visualizer_files(job_id):
     """Everything the visualizer can auto-load for this job, so the user
-    doesn't have to re-pick files the server already has. Field-wall JSON
-    isn't in the trenchProfiles shape the visualizer reads, so for those
-    jobs the fieldwall_to_profiles adapter output is served instead."""
+    doesn't have to re-pick files the server already has. JSONs are served
+    as-is; the visualizer normalizes either extraction shape client-side."""
     meta = load_meta(job_id)
     out = {"sheet_type": meta.get("sheet_type"), "jsons": []}
 
@@ -146,24 +145,11 @@ def visualizer_files(job_id):
     add("normalized", meta.get("normalized_path"))
     add("raw extraction", meta.get("extraction_path"))
 
-    if meta.get("sheet_type") == "fieldwall" and out["jsons"]:
-        src = meta.get("normalized_path") or meta.get("extraction_path")
-        try:
-            with open(src) as f:
-                data = json.load(f)
-            if p_convert_coords.is_field_wall(data):
-                adapted, _notes = p_convert_coords.fieldwall_to_profiles(data)
-                apath = (job_dir(job_id) / "04_normalize_validate"
-                         / "adapted_for_visualizer.json")
-                apath.parent.mkdir(parents=True, exist_ok=True)
-                with open(apath, "w") as f:
-                    json.dump(adapted, f, indent=2)
-                # the only entry the visualizer can actually draw for a
-                # field sheet, so it goes first
-                out["jsons"] = [{"label": "adapted for visualizer",
-                                 "url": rel_url(job_id, apath)}]
-        except Exception:
-            pass  # non-fatal: the manual file pickers still work
+    # Field-wall JSON is served raw: the visualizer adapts the
+    # FieldWallProfile shape itself (see ingest() in visualizer.html), and
+    # unlike fieldwall_to_profiles() it keeps topBoundary and features —
+    # the Python adapter only carries what convert() needs. Serving both
+    # raw and normalized also keeps A/B compare working for field sheets.
 
     return jsonify(out)
 
