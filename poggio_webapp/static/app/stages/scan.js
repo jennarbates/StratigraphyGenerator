@@ -4,19 +4,79 @@ import { invalidateDownstream, state } from "../core/state.js";
 import { $content, banner, errorBanner } from "../core/ui.js";
 
 export function renderScan() {
-  $content.innerHTML = `
-    <div class="panel">
-      <div class="stage-kicker">Step 1 of 8</div>
-      <h2>Add your trench drawing</h2>
-      <p class="lede">First, tell us what kind of drawing you have. Then choose
-      the image or PDF from your computer.</p>
-
+  const startContent = state.startMethod === "blank"
+    ? `
+      <div class="action-card blank-start">
+        <h3>Start with a blank grid</h3>
+        <p id="blankGridDescription">Open an empty drawing canvas with a grid,
+        then add the lines and details for your diagram.</p>
+        <button type="button" id="openBlankCanvas"
+                aria-describedby="blankGridDescription blankStartStatus">
+          Open blank drawing canvas
+        </button>
+        <div class="blank-start-status" id="blankStartStatus"
+             role="status" aria-live="polite" aria-atomic="true"></div>
+      </div>
+    `
+    : `
       <div class="plain-note">
         <span class="note-icon" aria-hidden="true">i</span>
         <span><strong>Your original file stays unchanged.</strong><br>
         The app makes a working copy for this drawing.</span>
       </div>
 
+      <div class="dropzone" id="dropzone" role="button" tabindex="0"
+           aria-label="Choose a trench drawing from your computer">
+        <input type="file" id="fileInput" accept=".png,.jpg,.jpeg,.pdf,.tif,.tiff">
+        <svg class="dropzone-icon" viewBox="0 0 48 48" aria-hidden="true">
+          <path fill="currentColor" d="M24 5 13 17h7v13h8V17h7L24 5Zm-15 27v8h30v-8h4v12H5V32h4Z"/>
+        </svg>
+        <strong id="dzLabel">${state.scan.filename ? `${state.scan.filename} is ready` : "Drag your drawing here"}</strong>
+        <span>or</span>
+        <button type="button" id="chooseFile">Choose a file</button>
+        <span class="file-types">PNG, JPEG, TIFF, or PDF</span>
+      </div>
+
+      <div id="scanError"></div>
+      <div id="scanPreview"></div>
+    `;
+
+  $content.innerHTML = `
+    <div class="panel">
+      <div class="stage-kicker">Step 1 of 8</div>
+      <h2>Add your trench drawing</h2>
+      <p class="lede">Choose how you want to begin, then tell us what kind of
+      diagram you are making.</p>
+
+      <fieldset class="start-method-choice">
+        <legend>How would you like to begin?</legend>
+        <div class="start-method-options">
+          <label class="start-method-card">
+            <input type="radio" name="startMethod" value="upload"
+                   ${state.startMethod === "upload" ? "checked" : ""}>
+            <span class="start-method-card-content">
+              <span class="start-method-indicator" aria-hidden="true"></span>
+              <span class="start-method-copy">
+                <strong>Use an existing drawing</strong>
+                <span>Upload an image or PDF that is ready to trace.</span>
+              </span>
+            </span>
+          </label>
+          <label class="start-method-card">
+            <input type="radio" name="startMethod" value="blank"
+                   ${state.startMethod === "blank" ? "checked" : ""}>
+            <span class="start-method-card-content">
+              <span class="start-method-indicator" aria-hidden="true"></span>
+              <span class="start-method-copy">
+                <strong>Create a diagram from scratch</strong>
+                <span>Begin on a blank grid and draw directly in the app.</span>
+              </span>
+            </span>
+          </label>
+        </div>
+      </fieldset>
+
+      <h3 class="choice-heading">What kind of diagram are you making?</h3>
       <div class="sheet-type-choice">
         <button type="button" class="sheet-card ${state.sheetType === "illustrator" ? "selected" : ""}"
                 data-type="illustrator" aria-pressed="${state.sheetType === "illustrator"}">
@@ -34,22 +94,17 @@ export function renderScan() {
         </button>
       </div>
 
-      <div class="dropzone" id="dropzone" role="button" tabindex="0"
-           aria-label="Choose a trench drawing from your computer">
-        <input type="file" id="fileInput" accept=".png,.jpg,.jpeg,.pdf,.tif,.tiff">
-        <svg class="dropzone-icon" viewBox="0 0 48 48" aria-hidden="true">
-          <path fill="currentColor" d="M24 5 13 17h7v13h8V17h7L24 5Zm-15 27v8h30v-8h4v12H5V32h4Z"/>
-        </svg>
-        <strong id="dzLabel">${state.scan.filename ? `${state.scan.filename} is ready` : "Drag your drawing here"}</strong>
-        <span>or</span>
-        <button type="button" id="chooseFile">Choose a file</button>
-        <span class="file-types">PNG, JPEG, TIFF, or PDF</span>
-      </div>
-
-      <div id="scanError"></div>
-      <div id="scanPreview"></div>
+      ${startContent}
     </div>
   `;
+
+  document.querySelectorAll('input[name="startMethod"]').forEach((input) => {
+    input.addEventListener("change", () => {
+      if (!input.checked) return;
+      state.startMethod = input.value;
+      renderScan();
+    });
+  });
 
   document.querySelectorAll(".sheet-card").forEach((c) => {
     c.addEventListener("click", () => {
@@ -61,6 +116,8 @@ export function renderScan() {
   const dz = document.getElementById("dropzone");
   const input = document.getElementById("fileInput");
   const choose = document.getElementById("chooseFile");
+  if (!dz) return;
+
   dz.addEventListener("click", (event) => {
     if (event.target !== choose) input.click();
   });

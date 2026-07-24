@@ -854,6 +854,101 @@ textarea{
   text-align: right;
 }
 
+.start-method-choice{
+  margin: 0 0 26px;
+  padding: 0;
+  border: 0;
+}
+
+.start-method-choice legend,
+.choice-heading{
+  margin: 0 0 10px;
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.start-method-options{
+  display: flex;
+  gap: 14px;
+}
+
+.start-method-card{
+  position: relative;
+  flex: 1;
+  cursor: pointer;
+}
+
+.start-method-card input{
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.start-method-card-content{
+  display: grid;
+  height: 100%;
+  min-height: 104px;
+  padding: 17px;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 11px;
+  color: var(--ink);
+  background: #fff;
+  border: 2px solid var(--panel-border);
+  border-radius: 10px;
+}
+
+.start-method-card:hover .start-method-card-content{
+  background: #fbfaf6;
+  border-color: #a9a79f;
+}
+
+.start-method-card input:focus-visible + .start-method-card-content{
+  outline: 3px solid var(--strata-1);
+  outline-offset: 2px;
+}
+
+.start-method-card input:checked + .start-method-card-content{
+  background: #fffaf3;
+  border-color: var(--strata-1);
+}
+
+.start-method-indicator{
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  background: #fff;
+  border: 2px solid var(--panel-border);
+  border-radius: 50%;
+}
+
+.start-method-card input:checked + .start-method-card-content .start-method-indicator{
+  background: var(--strata-1);
+  border-color: var(--strata-1);
+  box-shadow: inset 0 0 0 4px #fff;
+}
+
+.start-method-copy{
+  display: grid;
+  align-content: start;
+  gap: 6px;
+}
+
+.start-method-copy strong{
+  font-size: 15px;
+}
+
+.start-method-copy span{
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.choice-heading{
+  font-family: var(--font-body);
+}
+
 .sheet-type-choice{
   gap: 14px;
   margin-bottom: 22px;
@@ -953,6 +1048,24 @@ textarea{
 .upload-ready{
   color: var(--ok);
   font-weight: 700;
+}
+
+.blank-start{
+  margin-top: 0;
+}
+
+.blank-start p{
+  max-width: 62ch;
+  margin: 0 0 16px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+
+.blank-start-status{
+  min-height: 1.4em;
+  margin-top: 12px;
+  color: var(--ink-soft);
+  font-size: 13px;
 }
 
 .preview-card{
@@ -1168,6 +1281,7 @@ table.data-table td{
 }
 
 @media (max-width: 620px){
+  .start-method-options,
   .sheet-type-choice,
   .field-grid,
   .table-explainer{
