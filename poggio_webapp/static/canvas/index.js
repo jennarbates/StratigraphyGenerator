@@ -144,6 +144,8 @@ let saveSequence = Promise.resolve();
 let hasValidEditorSession = Boolean(jobId);
 let changeRevision = 0;
 let savedRevision = 0;
+let finalizationInProgress = false;
+let disabledControlStates = null;
 
 function showSaveState(state) {
   const messages = {
@@ -179,6 +181,24 @@ function updateEditorFinalizeControl() {
   );
 }
 
+async function responseError(response, fallbackMessage) {
+  let serverMessage = "";
+
+  try {
+    const payload = await response.json();
+
+    if (typeof payload.error === "string") {
+      serverMessage = payload.error.trim();
+    }
+  } catch {
+    // The status code and fallback still give the user an actionable error.
+  }
+
+  return new Error(
+    serverMessage || `${fallbackMessage} (HTTP ${response.status}).`,
+  );
+}
+
 function saveEditorSession({ keepalive = false } = {}) {
   if (!hasValidEditorSession) {
     showInvalidSessionError();
@@ -209,7 +229,7 @@ function saveEditorSession({ keepalive = false } = {}) {
         );
 
         if (!response.ok) {
-          throw new Error(`Autosave failed with status ${response.status}.`);
+          throw await responseError(response, "The server could not save changes");
         }
 
         savedRevision = Math.max(savedRevision, revisionToSave);
@@ -243,6 +263,63 @@ function scheduleAutosave() {
   changeRevision += 1;
   showSaveState("dirty");
   debouncedAutosave();
+}
+
+function disableEditorControls() {
+  const controls = document.querySelectorAll([
+    "#editor-app button",
+    "#editor-app input",
+    "#editor-app select",
+    "#editor-app textarea",
+    "#metadata-dialog button",
+    "#metadata-dialog input",
+    "#metadata-dialog select",
+    "#metadata-dialog textarea",
+    "#face-setup-dialog button",
+    "#face-setup-dialog input",
+  ].join(", "));
+  disabledControlStates = new Map(
+    [...controls].map((control) => [control, control.disabled]),
+  );
+
+  for (const control of controls) {
+    control.disabled = true;
+  }
+
+  pointerAction = null;
+  editorRoot.dataset.finalizationPending = "true";
+  editorRoot.setAttribute("aria-busy", "true");
+}
+
+function restoreEditorControls() {
+  if (disabledControlStates) {
+    for (const [control, wasDisabled] of disabledControlStates) {
+      control.disabled = wasDisabled;
+    }
+  }
+
+  disabledControlStates = null;
+  delete editorRoot.dataset.finalizationPending;
+  editorRoot.removeAttribute("aria-busy");
+  updateEditorFinalizeControl();
+}
+
+function showFinalizationProgress(message) {
+  finalizeStatus.dataset.state = "progress";
+  finalizeStatus.textContent = message;
+}
+
+function showFinalizationError(stage, error) {
+  const detail = error instanceof Error && error.message
+    ? ` ${error.message}`
+    : "";
+  const message = stage === "saving"
+    ? `Couldn’t save final changes.${detail} Finalization was not started.`
+    : `Couldn’t finalize this drawing.${detail}`;
+
+  finalizeStatus.dataset.state = "error";
+  finalizeStatus.textContent = `${message} You can keep editing and try again.`;
+  coordinateReport.textContent = finalizeStatus.textContent;
 }
 
 function saveInitialFaceSetup() {
@@ -745,7 +822,11 @@ function removeVertex(reference) {
 }
 
 function beginCanvasPointerAction(event) {
-  if (!event.isPrimary || (event.pointerType === "mouse" && event.button !== 0)) {
+  if (
+    finalizationInProgress
+    || !event.isPrimary
+    || (event.pointerType === "mouse" && event.button !== 0)
+  ) {
     return;
   }
 
@@ -1126,15 +1207,59 @@ registrationInputs.forEach((input) => {
   });
 });
 
-finalizeButton.addEventListener("click", (event) => {
+finalizeButton.addEventListener("click", async (event) => {
+  if (finalizationInProgress) {
+    return;
+  }
+  finalizationInProgress = true;
+  event.preventDefault();
+  persistCurrentFace();
   const validation = updateEditorFinalizeControl();
 
   if (!validation.canFinalize) {
-    event.preventDefault();
+    finalizeStatus.dataset.state = "error";
+    coordinateReport.textContent = validation.message;
+    finalizationInProgress = false;
     return;
   }
 
-  coordinateReport.textContent = validation.message;
+  disableEditorControls();
+  showFinalizationProgress("Saving final changes…");
+  debouncedAutosave.cancel();
+  let stage = "saving";
+
+  try {
+    await saveEditorSession();
+    showFinalizationProgress("Preparing your 3D model…");
+    stage = "finalizing";
+    const response = await fetch(
+      `/editor/${encodeURIComponent(jobId)}/finalize`,
+      { method: "POST" },
+    );
+
+    if (!response.ok) {
+      throw await responseError(
+        response,
+        "The server could not finalize this drawing",
+      );
+    }
+
+    const payload = await response.json();
+
+    if (
+      typeof payload.results_url !== "string"
+      || payload.results_url.trim() === ""
+    ) {
+      throw new Error("The server did not provide a results page.");
+    }
+
+    window.location.assign(payload.results_url);
+  } catch (error) {
+    console.error(error);
+    restoreEditorControls();
+    showFinalizationError(stage, error);
+    finalizationInProgress = false;
+  }
 });
 
 faceTabs.addEventListener("click", (event) => {

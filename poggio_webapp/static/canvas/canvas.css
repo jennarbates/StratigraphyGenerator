@@ -159,6 +159,11 @@ body {
   user-select: none;
 }
 
+.canvas-page[data-finalization-pending="true"] .face-canvas {
+  cursor: wait;
+  pointer-events: none;
+}
+
 .face-canvas[hidden] {
   display: none;
 }
@@ -230,6 +235,11 @@ body {
   margin: 12px 0 0;
   color: #514b43;
   font-variant-numeric: tabular-nums;
+}
+
+.coordinate-report[data-state="error"] {
+  color: #a72f3d;
+  font-weight: 650;
 }
 
 .metadata-sidebar {

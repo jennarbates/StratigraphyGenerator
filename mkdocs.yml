@@ -39,6 +39,11 @@ nav:
       - Choose your path: start-here/choose-your-path.md
       - Quickstart: start-here/quickstart.md
       - Glossary: start-here/glossary.md
+  - Workflows:
+      - Workflow overview: workflows/overview.md
+      - Add a drawing: workflows/01-add-drawing.md
+      - Prepare the image: workflows/02-prepare-image.md
+      - Trace the layers: workflows/03-trace-layers.md
   - Concepts:
       - Geometric normalization: concepts/geometric-normalization.md
       - Markers, features, and finds: concepts/markers-features-and-finds.md
