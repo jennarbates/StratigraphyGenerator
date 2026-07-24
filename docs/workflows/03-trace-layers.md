@@ -60,7 +60,7 @@ Callouts: top-left, top-right, lowest point, real width
 
 ## Under the hood
 
-The tracing editor in [poggio_webapp/static/app/stages/draw.js](../../poggio_webapp/static/app/stages/draw.js) lets you click on the image, collect calibration points, and build boundary and feature shapes. The server route in [poggio_webapp/backend/routes/manual.py](../../poggio_webapp/backend/routes/manual.py) converts those pixel points into metres and writes the extraction JSON.
+The tracing editor in `poggio_webapp/static/app/stages/draw.js` lets you click on the image, collect calibration points, and build boundary and feature shapes. The server route in `poggio_webapp/backend/routes/manual.py` converts those pixel points into metres and writes the extraction JSON.
 
 ## Next
 

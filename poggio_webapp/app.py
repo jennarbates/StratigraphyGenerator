@@ -39,6 +39,16 @@ PIPELINE_SUBDIRECTORIES = (
 )
 _EDITOR_FINALIZATION_LOCK = threading.Lock()
 _EDITOR_META_LOCK = threading.Lock()
+_STATUS_MESSAGES = {
+    "editing": "Continue editing the drawing.",
+    "finalizing": "Preparing the drawing for model processing.",
+    "normalizing": "Normalizing the drawing data.",
+    "validating": "Validating the normalized drawing data.",
+    "converting": "Converting the drawing to model coordinates.",
+    "building": "Building the 3D model.",
+    "complete": "The 3D model is ready.",
+    "error": "Model processing could not be completed.",
+}
 
 
 def _save_meta(job_directory, meta):
@@ -58,6 +68,8 @@ def _run_editor_build(job_directory, build_fn, *args, log_cb=None):
             meta = _load_meta(job_directory)
             meta.update({
                 "status": "error",
+                "stage": "building",
+                "message": "Model building failed.",
                 "pipeline_error": "Model building failed.",
             })
             _save_meta(job_directory, meta)
@@ -65,7 +77,13 @@ def _run_editor_build(job_directory, build_fn, *args, log_cb=None):
 
     with _EDITOR_META_LOCK:
         meta = _load_meta(job_directory)
-        meta["status"] = "complete"
+        meta.update({
+            "status": "complete",
+            "stage": "complete",
+            "message": _STATUS_MESSAGES["complete"],
+        })
+        if isinstance(result, dict) and isinstance(result.get("outputs"), dict):
+            meta["model_outputs"] = result["outputs"]
         meta.pop("pipeline_error", None)
         _save_meta(job_directory, meta)
     return result
@@ -92,6 +110,8 @@ def _run_editor_pipeline(job_id):
         "source": "manual_editor",
         "extraction_path": str(extraction_path),
         "status": "normalizing",
+        "stage": "normalizing",
+        "message": _STATUS_MESSAGES["normalizing"],
     })
     _save_meta(job_directory, meta)
 
@@ -106,6 +126,8 @@ def _run_editor_pipeline(job_id):
         "normalized_path": str(normalized_path),
         "normalization_log": normalization_log,
         "status": "validating",
+        "stage": "validating",
+        "message": _STATUS_MESSAGES["validating"],
     })
     _save_meta(job_directory, meta)
 
@@ -113,6 +135,8 @@ def _run_editor_pipeline(job_id):
     meta.update({
         "validation_report": validation_report,
         "status": "converting",
+        "stage": "converting",
+        "message": _STATUS_MESSAGES["converting"],
     })
     _save_meta(job_directory, meta)
 
@@ -132,6 +156,8 @@ def _run_editor_pipeline(job_id):
         "points_csv": conversion["points_csv"],
         "orientations_csv": conversion["orientations_csv"],
         "status": "building",
+        "stage": "building",
+        "message": _STATUS_MESSAGES["building"],
     })
     _save_meta(job_directory, meta)
 
@@ -220,6 +246,23 @@ def _job_file_url(job_id, job_directory, path):
         return None
     relative_path = Path(path).relative_to(job_directory).as_posix()
     return f"/api/jobs/{job_id}/file?path={relative_path}"
+
+
+def _durable_status_payload(job_id, meta):
+    status = meta.get("status", "extracted")
+    stage = meta.get("stage") or status
+    message = (
+        meta.get("message")
+        or meta.get("pipeline_error")
+        or _STATUS_MESSAGES.get(status, "Model processing is in progress.")
+    )
+    return {
+        "job_id": job_id,
+        "status": status,
+        "stage": stage,
+        "message": message,
+        "results_url": f"/jobs/{job_id}",
+    }
 
 
 def _job_record(job_directory):
@@ -417,6 +460,16 @@ def get_editor_state(job_id):
     return jsonify(state)
 
 
+@app.route("/api/jobs/<job_id>/status", methods=["GET"])
+def get_job_status(job_id):
+    job_directory = editor_pipeline.JOBS_DIR / job_id
+    try:
+        meta = _load_meta(job_directory)
+    except FileNotFoundError:
+        abort(404, description="unknown job id")
+    return jsonify(_durable_status_payload(job_id, meta))
+
+
 @app.route("/editor/<job_id>/finalize", methods=["POST"])
 def finalize_editor(job_id):
     job_directory = editor_pipeline.JOBS_DIR / job_id
@@ -444,7 +497,11 @@ def finalize_editor(job_id):
             abort(404, description="unknown editor session")
 
         output = finalized.model_dump(mode="json")
-        meta["status"] = "finalizing"
+        meta.update({
+            "status": "finalizing",
+            "stage": "finalizing",
+            "message": _STATUS_MESSAGES["finalizing"],
+        })
         meta.pop("pipeline_error", None)
         _save_meta(job_directory, meta)
 
@@ -454,6 +511,8 @@ def finalize_editor(job_id):
         meta = _load_meta(job_directory)
         meta.update({
             "status": "error",
+            "stage": meta.get("stage", "finalizing"),
+            "message": "Model processing could not be started.",
             "pipeline_error": "Pipeline startup failed.",
         })
         _save_meta(job_directory, meta)
@@ -474,7 +533,11 @@ def finalize_editor(job_id):
             "gempy_task_id": task_id,
         })
         if meta.get("status") not in {"complete", "error"}:
-            meta["status"] = "building"
+            meta.update({
+                "status": "building",
+                "stage": "building",
+                "message": _STATUS_MESSAGES["building"],
+            })
         _save_meta(job_directory, meta)
     payload = _finalization_payload(job_id, job_directory, meta, output)
     return jsonify(payload), _finalization_status_code(payload["status"])

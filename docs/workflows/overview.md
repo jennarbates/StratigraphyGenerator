@@ -55,7 +55,7 @@ For a safe example, use the generated fixtures described in [docs/fixtures/READM
 
 ## Under the hood
 
-The browser steps in [poggio_webapp/static/app/stages/scan.js](../../poggio_webapp/static/app/stages/scan.js), [poggio_webapp/static/app/stages/preprocess.js](../../poggio_webapp/static/app/stages/preprocess.js), and [poggio_webapp/static/app/stages/draw.js](../../poggio_webapp/static/app/stages/draw.js) drive the workflow. The server routes in [poggio_webapp/backend/routes/scans.py](../../poggio_webapp/backend/routes/scans.py), [poggio_webapp/backend/routes/preprocess.py](../../poggio_webapp/backend/routes/preprocess.py), and [poggio_webapp/backend/routes/manual.py](../../poggio_webapp/backend/routes/manual.py) store the uploaded file, the prepared image, and the manual extraction.
+The browser steps in `poggio_webapp/static/app/stages/scan.js`, `poggio_webapp/static/app/stages/preprocess.js`, and `poggio_webapp/static/app/stages/draw.js` drive the workflow. The server routes in `poggio_webapp/backend/routes/scans.py`, `poggio_webapp/backend/routes/preprocess.py`, and `poggio_webapp/backend/routes/manual.py` store the uploaded file, the prepared image, and the manual extraction.
 
 ## Next
 

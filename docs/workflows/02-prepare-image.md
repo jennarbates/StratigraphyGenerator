@@ -55,7 +55,7 @@ Callouts: upscale, deskew, high-contrast, preview
 
 ## Under the hood
 
-The user controls in [poggio_webapp/static/app/stages/preprocess.js](../../poggio_webapp/static/app/stages/preprocess.js) send the requested settings to the server route in [poggio_webapp/backend/routes/preprocess.py](../../poggio_webapp/backend/routes/preprocess.py). The preprocessing pipeline uses the uploaded file and writes the outputs into the job's preprocess directory.
+The user controls in `poggio_webapp/static/app/stages/preprocess.js` send the requested settings to the server route in `poggio_webapp/backend/routes/preprocess.py`. The preprocessing pipeline uses the uploaded file and writes the outputs into the job's preprocess directory.
 
 ## Next
 

@@ -52,7 +52,7 @@ Callouts: upload area, sheet type choice, preview
 
 ## Under the hood
 
-The upload screen is driven by [poggio_webapp/static/app/stages/scan.js](../../poggio_webapp/static/app/stages/scan.js). The server route in [poggio_webapp/backend/routes/scans.py](../../poggio_webapp/backend/routes/scans.py) accepts the file, saves it, checks the file extension, and stores the scan metadata for the job.
+The upload screen is driven by `poggio_webapp/static/app/stages/scan.js`. The server route in `poggio_webapp/backend/routes/scans.py` accepts the file, saves it, checks the file extension, and stores the scan metadata for the job.
 
 ## Next
 
