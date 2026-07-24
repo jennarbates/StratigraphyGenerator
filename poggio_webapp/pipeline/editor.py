@@ -420,4 +420,5 @@ def finalize_editor_session(job_id: str):
     (session_dir / "extraction_output.json").write_text(
         validated.model_dump_json(indent=2)
     )
+    sync_finds_to_output(job_id)
     return validated

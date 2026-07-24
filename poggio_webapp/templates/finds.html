@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Log a Find — Poggio Civitate</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/finds/finds.css">
+</head>
+<body>
+  <main class="finds-page">
+    <header class="finds-header">
+      <div>
+        <p class="finds-kicker">Poggio Civitate field recording</p>
+        <h1>Log a Find</h1>
+        <p>Record an artifact independently of the stratigraphy drawing.</p>
+      </div>
+      <a class="file-link" href="/">Back to trench digitization</a>
+    </header>
+
+    <section class="panel" aria-labelledby="job-heading">
+      <h2 id="job-heading">1. Choose a trench job</h2>
+      <p class="lede">
+        This is the same existing-job list used by the main application.
+        Stratigraphy does not need to be started or finalized.
+      </p>
+      <label class="field" for="job-select">
+        <span class="label-text">Existing job</span>
+        <select id="job-select" required>
+          <option value="">Choose a job</option>
+          {% for job in jobs %}
+            <option value="{{ job.job_id }}">
+              {{ job.job_id }} — {{ job.source_label }} · {{ job.status }}
+            </option>
+          {% endfor %}
+        </select>
+      </label>
+      {% if not jobs %}
+        <p class="banner warn">No existing jobs are available yet.</p>
+      {% endif %}
+    </section>
+
+    <section
+      id="location-panel"
+      class="panel"
+      aria-labelledby="location-heading"
+      hidden
+    >
+      <h2 id="location-heading">2. Mark the find location</h2>
+      <p class="lede">
+        Choose a face, then tap or click once on the read-only reference
+        canvas. Existing stratigraphy is shown faintly when available.
+      </p>
+
+      <label id="face-select-field" class="field" for="face-select" hidden>
+        <span class="label-text">Face</span>
+        <select id="face-select"></select>
+      </label>
+      <label id="face-input-field" class="field" for="face-input" hidden>
+        <span class="label-text">Face name</span>
+        <input
+          id="face-input"
+          type="text"
+          autocomplete="off"
+          placeholder="e.g. south"
+        >
+        <span class="hint">
+          No stratigraphy faces exist yet, so enter the face name.
+        </span>
+      </label>
+
+      <div class="reference-frame">
+        <svg
+          id="reference-canvas"
+          class="reference-canvas"
+          width="600"
+          height="400"
+          viewBox="0 0 600 400"
+          role="img"
+          aria-label="Read-only 3 metre by 2 metre find-location reference canvas"
+        ></svg>
+      </div>
+      <p id="point-status" class="point-status" aria-live="polite">
+        Tap or click the canvas to mark the find.
+      </p>
+    </section>
+
+    <section
+      id="details-panel"
+      class="panel"
+      aria-labelledby="details-heading"
+      hidden
+    >
+      <h2 id="details-heading">3. Describe the find</h2>
+      <form id="find-form">
+        <div class="row">
+          <label class="field" for="find-x">
+            <span class="label-text">X (metres)</span>
+            <input id="find-x" name="x" type="number" readonly required>
+          </label>
+          <label class="field" for="find-y">
+            <span class="label-text">Y / depth (metres)</span>
+            <input id="find-y" name="y" type="number" readonly required>
+          </label>
+          <label class="field" for="find-elevation">
+            <span class="label-text">Elevation</span>
+            <input
+              id="find-elevation"
+              name="elevation"
+              type="number"
+              step="any"
+              required
+            >
+          </label>
+        </div>
+        <label class="field" for="find-locus">
+          <span class="label-text">Locus</span>
+          <input id="find-locus" name="locus" type="text" required>
+        </label>
+        <label class="field" for="find-description">
+          <span class="label-text">Description</span>
+          <textarea id="find-description" name="description"></textarea>
+        </label>
+        <div class="btn-row">
+          <button id="submit-find" type="submit">Log find</button>
+          <span id="form-status" aria-live="polite"></span>
+        </div>
+      </form>
+    </section>
+
+    <section
+      id="finds-panel"
+      class="panel"
+      aria-labelledby="finds-heading"
+      hidden
+    >
+      <h2 id="finds-heading">Finds for this job</h2>
+      <div id="finds-list" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <script type="module" src="/static/finds/index.js"></script>
+</body>
+</html>

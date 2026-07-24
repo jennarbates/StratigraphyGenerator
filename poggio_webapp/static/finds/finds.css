@@ -1,0 +1,123 @@
+.finds-page {
+  width: min(920px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 32px 0 80px;
+}
+
+.finds-header {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.finds-header h1 {
+  margin: 2px 0 6px;
+  font-family: var(--font-display);
+  font-size: 32px;
+}
+
+.finds-header p {
+  margin: 0;
+  color: var(--ink-soft);
+}
+
+.finds-kicker {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.reference-frame {
+  width: fit-content;
+  max-width: 100%;
+  padding: 12px;
+  overflow: auto;
+  border: 1px solid var(--panel-border);
+  background: #e4e8df;
+}
+
+.reference-canvas {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--ink-soft);
+  background: #fff;
+  cursor: crosshair;
+  touch-action: none;
+  user-select: none;
+}
+
+.reference-grid-line {
+  stroke: #b8cfdf;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.reference-polygon {
+  fill-opacity: 0.12;
+  pointer-events: none;
+  stroke-opacity: 0.42;
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.find-point {
+  fill: var(--strata-5);
+  pointer-events: none;
+  stroke: #fff;
+  stroke-width: 3;
+  vector-effect: non-scaling-stroke;
+}
+
+.point-status {
+  margin: 10px 0 0;
+  color: var(--ink-soft);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.find-face-group + .find-face-group {
+  margin-top: 22px;
+}
+
+.find-face-group h3 {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+}
+
+.finds-table td:last-child,
+.finds-table th:last-child {
+  text-align: right;
+}
+
+.finds-table button {
+  padding: 6px 10px;
+  color: var(--err);
+  border-color: var(--err);
+  background: transparent;
+}
+
+.empty-finds {
+  margin: 0;
+  color: var(--ink-soft);
+}
+
+#form-status {
+  color: var(--ink-soft);
+  font-size: 12px;
+}
+
+@media (max-width: 680px) {
+  .finds-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .finds-page {
+    width: min(100% - 24px, 920px);
+    padding-top: 20px;
+  }
+}
