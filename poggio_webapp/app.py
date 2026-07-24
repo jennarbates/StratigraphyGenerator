@@ -2,11 +2,12 @@
 
 import json
 import os
+from datetime import datetime, timezone
 from pathlib import Path
 
 from backend import create_app
 from backend.tasks import TASKS, start_task
-from flask import abort, jsonify, render_template, request
+from flask import abort, jsonify, redirect, render_template, request, url_for
 from pipeline import convert_coords, editor as editor_pipeline, normalizer, validator
 from pipeline.editor import (
     create_editor_session,
@@ -111,6 +112,8 @@ def _run_editor_pipeline(job_id):
 
 
 def _job_status(job_directory, meta):
+    if meta.get("status") == "editing":
+        return "editing"
     task = TASKS.get(meta.get("gempy_task_id"))
     if task:
         return {
@@ -137,6 +140,7 @@ def _job_record(job_directory):
     meta = json.loads(meta_path.read_text())
     job_id = meta.get("job_id", job_directory.name)
     source = meta.get("source", "extraction")
+    status = _job_status(job_directory, meta)
     model_paths = sorted(
         (job_directory / "06_gempy_model").glob("*.gempy")
     )
@@ -149,10 +153,18 @@ def _job_record(job_directory):
         "job_id": job_id,
         "source": source,
         "source_label": (
-            "Editor" if source == "manual_editor" else "Extraction"
+            "Created from scratch"
+            if source == "manual_editor"
+            else "Extraction"
         ),
-        "status": _job_status(job_directory, meta),
-        "results_url": f"/jobs/{job_id}",
+        "status": status,
+        "results_url": (
+            f"/editor/{job_id}"
+            if status == "editing"
+            else f"/jobs/{job_id}"
+        ),
+        "created_at": meta.get("created_at"),
+        "updated_at": meta.get("updated_at"),
         "visualizer_url": f"/visualizer?job={job_id}",
         "model_url": _job_file_url(
             job_id,
@@ -167,6 +179,18 @@ def _job_record(job_directory):
     }
 
 
+def _timestamp_sort_value(value):
+    if not isinstance(value, str):
+        return float("-inf")
+    try:
+        parsed = datetime.fromisoformat(value)
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        return parsed.timestamp()
+    except (OverflowError, ValueError):
+        return float("-inf")
+
+
 def _job_list():
     jobs = []
     for job_directory in editor_pipeline.JOBS_DIR.iterdir():
@@ -174,7 +198,17 @@ def _job_list():
             job = _job_record(job_directory)
             if job:
                 jobs.append(job)
-    return sorted(jobs, key=lambda job: job["job_id"], reverse=True)
+    return sorted(
+        jobs,
+        key=lambda job: (
+            _timestamp_sort_value(
+                job.get("updated_at") or job.get("created_at")
+            ),
+            _timestamp_sort_value(job.get("created_at")),
+            job["job_id"],
+        ),
+        reverse=True,
+    )
 
 
 def render_index():
@@ -189,6 +223,8 @@ def job_results(job_id):
     job = _job_record(editor_pipeline.JOBS_DIR / job_id)
     if job is None:
         abort(404, description="unknown job id")
+    if job["status"] == "editing":
+        return redirect(url_for("editor_page", job_id=job_id))
     return render_template("index.html", jobs=_job_list(), result_job=job)
 
 

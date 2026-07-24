@@ -70,6 +70,9 @@
           <li data-job-source="{{ job.source }}" data-job-status="{{ job.status }}">
             <a href="{{ job.results_url }}">
               <strong>Drawing {{ job.job_id[-6:] }}</strong>
+              {% if job.source == "manual_editor" %}
+                <span>{{ job.source_label }}</span>
+              {% endif %}
               <span>
                 {% if job.status == "complete" %}
                   Ready to view

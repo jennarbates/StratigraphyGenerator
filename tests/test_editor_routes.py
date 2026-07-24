@@ -27,6 +27,29 @@ def _create_editor(client, schema_type="FieldWallProfile"):
     return response.get_json()["job_id"]
 
 
+def _write_job_meta(
+    tmp_path,
+    job_id,
+    *,
+    status,
+    source="extraction",
+    created_at=None,
+    updated_at=None,
+):
+    job_dir = tmp_path / "jobs" / job_id
+    job_dir.mkdir()
+    meta = {
+        "job_id": job_id,
+        "source": source,
+        "status": status,
+    }
+    if created_at is not None:
+        meta["created_at"] = created_at
+    if updated_at is not None:
+        meta["updated_at"] = updated_at
+    (job_dir / "meta.json").write_text(json.dumps(meta))
+
+
 def _valid_field_wall_state():
     return {
         "trenchLabel": "T104",
@@ -68,6 +91,80 @@ def test_get_editor_page_for_valid_job_returns_200(client):
     response = client.get(f"/editor/{job_id}")
 
     assert response.status_code == 200
+
+
+def test_new_editor_draft_appears_as_resumable_previous_work(client):
+    job_id = _create_editor(client)
+
+    response = client.get("/")
+
+    assert response.status_code == 200
+    assert f'href="/editor/{job_id}"'.encode() in response.data
+    assert b"Work in progress" in response.data
+    assert b"Created from scratch" in response.data
+    assert b"Creating 3D model" not in response.data
+
+
+@pytest.mark.parametrize("status", ["building", "complete"])
+def test_non_editing_job_keeps_results_link(client, tmp_path, status):
+    job_id = f"{status}-job"
+    _write_job_meta(tmp_path, job_id, status=status)
+
+    response = client.get("/")
+
+    assert f'href="/jobs/{job_id}"'.encode() in response.data
+
+
+def test_results_route_for_editor_draft_redirects_to_editor(client):
+    job_id = _create_editor(client)
+
+    response = client.get(f"/jobs/{job_id}")
+
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith(f"/editor/{job_id}")
+
+
+def test_previous_work_sorts_by_updated_at_then_created_at(client, tmp_path):
+    _write_job_meta(
+        tmp_path,
+        "z-old-update",
+        status="complete",
+        created_at="2026-07-24T12:00:00+00:00",
+        updated_at="2026-07-24T12:00:00+00:00",
+    )
+    _write_job_meta(
+        tmp_path,
+        "z-old-created",
+        status="complete",
+        created_at="2026-07-24T13:00:00+00:00",
+        updated_at="2026-07-24T14:00:00+00:00",
+    )
+    _write_job_meta(
+        tmp_path,
+        "a-new-created",
+        status="complete",
+        created_at="2026-07-24T13:30:00+00:00",
+        updated_at="2026-07-24T14:00:00+00:00",
+    )
+
+    response = client.get("/")
+    html = response.get_data(as_text=True)
+
+    assert (
+        html.index("/jobs/a-new-created")
+        < html.index("/jobs/z-old-created")
+        < html.index("/jobs/z-old-update")
+    )
+
+
+def test_legacy_job_without_timestamps_remains_listable(client, tmp_path):
+    job_id = "legacy-job"
+    _write_job_meta(tmp_path, job_id, status="complete")
+
+    response = client.get("/")
+
+    assert response.status_code == 200
+    assert f'href="/jobs/{job_id}"'.encode() in response.data
 
 
 def test_editor_page_contains_job_id_data_attribute(client):
