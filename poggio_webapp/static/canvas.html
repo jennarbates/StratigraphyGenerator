@@ -25,19 +25,82 @@
       </div>
     </header>
 
-    <section class="canvas-panel" aria-label="Single-face drawing surface">
-      <svg
-        id="face-canvas"
-        class="face-canvas"
-        role="img"
-        aria-label="Editable 3 metre by 2 metre polygon canvas with graph-paper grid"
-      ></svg>
-    </section>
+    <div class="canvas-workspace">
+      <section class="canvas-panel" aria-label="Single-face drawing surface">
+        <svg
+          id="face-canvas"
+          class="face-canvas"
+          role="img"
+          aria-label="Editable 3 metre by 2 metre polygon canvas with graph-paper grid"
+        ></svg>
+      </section>
+
+      <aside class="metadata-sidebar" aria-labelledby="polygon-list-heading">
+        <h2 id="polygon-list-heading">Polygons</h2>
+        <p id="polygon-list-empty">Close a polygon to assign its metadata.</p>
+        <ol id="polygon-list" class="polygon-list"></ol>
+      </aside>
+    </div>
 
     <p id="coordinate-report" class="coordinate-report" aria-live="polite">
       Tap or click the canvas to place the first vertex.
     </p>
   </main>
+
+  <dialog id="metadata-dialog" class="metadata-dialog">
+    <form id="metadata-form">
+      <h2 id="metadata-form-heading">Polygon metadata</h2>
+      <input id="metadata-polygon-id" type="hidden">
+
+      <label id="material-field">
+        Material
+        <select id="material" required>
+          <option value="">Choose a material</option>
+          <option>Soil</option>
+          <option>Stone</option>
+          <option>Clay</option>
+          <option>Sand</option>
+          <option>Ceramic</option>
+          <option>Plaster</option>
+          <option>Charcoal</option>
+          <option>Bedrock</option>
+          <option>Other</option>
+        </select>
+      </label>
+
+      <div id="fieldwall-fields" class="fieldwall-fields" hidden>
+        <label>
+          Locus number
+          <input id="locus" type="text" required>
+        </label>
+        <fieldset>
+          <legend>Munsell</legend>
+          <label>
+            Hue
+            <input id="munsell-hue" type="number" min="0" step="any" required>
+          </label>
+          <label>
+            Value
+            <input id="munsell-value" type="number" min="0" step="any" required>
+          </label>
+          <label>
+            Chroma
+            <input id="munsell-chroma" type="number" min="0" step="any" required>
+          </label>
+        </fieldset>
+      </div>
+
+      <label>
+        Note <span>(optional)</span>
+        <textarea id="metadata-note" rows="3"></textarea>
+      </label>
+
+      <div class="metadata-form-actions">
+        <button id="cancel-metadata" type="button">Cancel</button>
+        <button type="submit">Save metadata</button>
+      </div>
+    </form>
+  </dialog>
 
   <script type="module" src="/static/canvas/index.js"></script>
 </body>

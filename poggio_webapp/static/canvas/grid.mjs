@@ -140,3 +140,34 @@ export function hasSelfIntersection(vertices) {
 
   return false;
 }
+
+export function serializePolygons(polygons, metadataByPolygonId, schemaType) {
+  const fieldWall = schemaType === "FieldWallProfile";
+
+  return polygons
+    .filter((polygon) => (
+      Object.prototype.hasOwnProperty.call(metadataByPolygonId, polygon.id)
+    ))
+    .map((polygon) => {
+      const metadata = metadataByPolygonId[polygon.id];
+      const serialized = {
+        polygonId: polygon.id,
+        geometry: polygon.vertices.map(({ x, y }) => ({ x, y })),
+      };
+
+      if (fieldWall) {
+        return {
+          ...serialized,
+          locus: metadata.locus ?? "",
+          munsell: metadata.munsell ?? "",
+          note: metadata.note ?? "",
+        };
+      }
+
+      return {
+        ...serialized,
+        material: metadata.material ?? "",
+        note: metadata.note ?? "",
+      };
+    });
+}

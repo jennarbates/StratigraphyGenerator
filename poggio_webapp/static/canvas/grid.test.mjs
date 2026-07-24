@@ -7,6 +7,7 @@ import {
   metersToPixels,
   nearestGridPoint,
   pixelsToMeters,
+  serializePolygons,
 } from "./grid.mjs";
 
 const pixelsPerMeter = 200;
@@ -106,4 +107,71 @@ test("an edge midpoint is halfway between both endpoints", () => {
     edgeMidpoint({ x: 2, y: 6 }, { x: 8, y: 14 }),
     { x: 5, y: 10 },
   );
+});
+
+const polygonGeometry = [
+  {
+    id: 1,
+    vertices: [
+      { x: 0, y: 0 },
+      { x: 100, y: 0 },
+      { x: 100, y: 50 },
+    ],
+  },
+  {
+    id: 2,
+    vertices: [
+      { x: 50, y: 50 },
+      { x: 150, y: 50 },
+      { x: 100, y: 100 },
+    ],
+  },
+  {
+    id: 3,
+    vertices: [],
+  },
+];
+
+test("serialization includes every polygon with metadata", () => {
+  const serialized = serializePolygons(
+    polygonGeometry,
+    {
+      1: { material: "Soil", note: "Upper layer" },
+      2: { material: "Stone", note: "" },
+    },
+    "ArchaeologicalDiagram",
+  );
+
+  assert.deepEqual(
+    serialized.map(({ polygonId }) => polygonId),
+    [1, 2],
+  );
+  assert.doesNotThrow(() => JSON.stringify(serialized));
+});
+
+test("serialization shapes Archaeological and FieldWall metadata correctly", () => {
+  const archaeological = serializePolygons(
+    [polygonGeometry[0]],
+    { 1: { material: "Tile", note: "Burnt" } },
+    "ArchaeologicalDiagram",
+  );
+  const fieldWall = serializePolygons(
+    [polygonGeometry[0]],
+    { 1: { locus: "1042", munsell: "10 5/3", note: "Compact" } },
+    "FieldWallProfile",
+  );
+
+  assert.deepEqual(archaeological, [{
+    polygonId: 1,
+    geometry: polygonGeometry[0].vertices,
+    material: "Tile",
+    note: "Burnt",
+  }]);
+  assert.deepEqual(fieldWall, [{
+    polygonId: 1,
+    geometry: polygonGeometry[0].vertices,
+    locus: "1042",
+    munsell: "10 5/3",
+    note: "Compact",
+  }]);
 });
