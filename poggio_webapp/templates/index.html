@@ -31,14 +31,51 @@
     </nav>
 
     <div class="job-badge" id="jobBadge">no job yet</div>
+
+    <section aria-labelledby="job-list-heading">
+      <h2 id="job-list-heading">Jobs</h2>
+      <ul data-job-list>
+        {% for job in jobs %}
+          <li data-job-source="{{ job.source }}" data-job-status="{{ job.status }}">
+            <a href="{{ job.results_url }}">{{ job.job_id }}</a>
+            <span>{{ job.source_label }} · {{ job.status }}</span>
+          </li>
+        {% else %}
+          <li>No completed jobs yet.</li>
+        {% endfor %}
+      </ul>
+    </section>
   </aside>
 
+  {% if result_job %}
+  <main class="content" id="content" data-results-view data-job-source="{{ result_job.source }}">
+    <div class="panel">
+      <h2>Job {{ result_job.job_id }}</h2>
+      <p>{{ result_job.source_label }} · {{ result_job.status }}</p>
+      {% if result_job.section_url %}
+        <figure>
+          <img src="{{ result_job.section_url }}" alt="GemPy model cross-section">
+          <figcaption>GemPy model cross-section</figcaption>
+        </figure>
+      {% endif %}
+      <div class="download-list">
+        {% if result_job.model_url %}
+          <a class="file-link" href="{{ result_job.model_url }}" download>model.gempy</a>
+        {% endif %}
+        <a class="file-link" href="{{ result_job.visualizer_url }}">Open visualizer</a>
+      </div>
+    </div>
+  </main>
+  {% else %}
   <main class="content" id="content">
     <!-- populated by app.js -->
   </main>
+  {% endif %}
 
 </div>
 
+{% if not result_job %}
 <script src="/static/app.js"></script>
+{% endif %}
 </body>
 </html>
