@@ -13,10 +13,16 @@
         <h1>Single-face canvas</h1>
         <p>3m × 2m · grid spacing 0.25m</p>
       </div>
-      <label class="snap-toggle">
-        <input id="snap-to-grid" type="checkbox" checked>
-        Snap to grid
-      </label>
+      <div class="canvas-tools">
+        <label class="snap-toggle">
+          <input id="snap-to-grid" type="checkbox" checked>
+          Snap to grid
+        </label>
+        <button id="close-shape" type="button">Close shape</button>
+        <button id="delete-vertex" type="button" disabled>
+          Delete selected vertex
+        </button>
+      </div>
     </header>
 
     <section class="canvas-panel" aria-label="Single-face drawing surface">
@@ -24,12 +30,12 @@
         id="face-canvas"
         class="face-canvas"
         role="img"
-        aria-label="Blank 3 metre by 2 metre canvas with graph-paper grid"
+        aria-label="Editable 3 metre by 2 metre polygon canvas with graph-paper grid"
       ></svg>
     </section>
 
     <p id="coordinate-report" class="coordinate-report" aria-live="polite">
-      Click the canvas to report a coordinate.
+      Tap or click the canvas to place the first vertex.
     </p>
   </main>
 

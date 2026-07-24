@@ -1,6 +1,9 @@
 // Run with: node poggio_webapp/static/canvas/grid.test.mjs
 import assert from "node:assert/strict";
 import {
+  edgeMidpoint,
+  hasSelfIntersection,
+  isShapeClosed,
   metersToPixels,
   nearestGridPoint,
   pixelsToMeters,
@@ -58,5 +61,49 @@ test("non-positive grid spacing is rejected", () => {
   assert.throws(
     () => nearestGridPoint(10, 20, 0),
     RangeError,
+  );
+});
+
+test("a bow-tie polygon is self-intersecting", () => {
+  assert.equal(
+    hasSelfIntersection([
+      { x: 0, y: 0 },
+      { x: 4, y: 4 },
+      { x: 0, y: 4 },
+      { x: 4, y: 0 },
+    ]),
+    true,
+  );
+});
+
+test("a square polygon is not self-intersecting", () => {
+  assert.equal(
+    hasSelfIntersection([
+      { x: 0, y: 0 },
+      { x: 4, y: 0 },
+      { x: 4, y: 4 },
+      { x: 0, y: 4 },
+    ]),
+    false,
+  );
+});
+
+test("a shape is closed only when its path ends at its first point", () => {
+  const openPath = [
+    { x: 0, y: 0 },
+    { x: 4, y: 0 },
+    { x: 4, y: 4 },
+    { x: 0, y: 4 },
+  ];
+  const closedPath = [...openPath, openPath[0]];
+
+  assert.equal(isShapeClosed(openPath), false);
+  assert.equal(isShapeClosed(closedPath), true);
+});
+
+test("an edge midpoint is halfway between both endpoints", () => {
+  assert.deepEqual(
+    edgeMidpoint({ x: 2, y: 6 }, { x: 8, y: 14 }),
+    { x: 5, y: 10 },
   );
 });

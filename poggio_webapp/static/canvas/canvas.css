@@ -36,12 +36,41 @@ body {
   color: #6d665d;
 }
 
+.canvas-tools {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-left: 28px;
+}
+
 .snap-toggle {
   display: flex;
   gap: 8px;
   align-items: center;
   font-weight: 600;
   cursor: pointer;
+}
+
+.canvas-tools button {
+  min-height: 36px;
+  padding: 7px 12px;
+  border: 1px solid #81786c;
+  border-radius: 5px;
+  color: #27231f;
+  background: #fff;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.canvas-tools button:hover:not(:disabled) {
+  background: #f8f3eb;
+}
+
+.canvas-tools button:disabled {
+  color: #8c857c;
+  background: #e7e1d8;
+  cursor: not-allowed;
 }
 
 .canvas-panel {
@@ -57,12 +86,71 @@ body {
   border: 1px solid #504b44;
   background: #fff;
   cursor: crosshair;
+  touch-action: none;
+  user-select: none;
 }
 
 .grid-line {
   stroke: #b8cfdf;
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
+}
+
+.polygon-shape {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 3;
+  vector-effect: non-scaling-stroke;
+}
+
+.polygon-shape.self-intersecting {
+  stroke-dasharray: 8 5;
+}
+
+.polygon-number {
+  font-size: 14px;
+  font-weight: 800;
+  paint-order: stroke;
+  pointer-events: none;
+  stroke: #fff;
+  stroke-linejoin: round;
+  stroke-width: 4px;
+}
+
+.vertex-marker {
+  fill: #fff;
+  pointer-events: none;
+  stroke-width: 3;
+  vector-effect: non-scaling-stroke;
+}
+
+.vertex-marker.selected {
+  fill: #24211d;
+  stroke: #fff;
+  stroke-width: 2;
+}
+
+.vertex-hit-target {
+  fill: transparent;
+  cursor: grab;
+  pointer-events: all;
+}
+
+.vertex-hit-target:active {
+  cursor: grabbing;
+}
+
+.midpoint-marker {
+  fill: #fff;
+  pointer-events: none;
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.midpoint-hit-target {
+  fill: transparent;
+  cursor: copy;
+  pointer-events: all;
 }
 
 .coordinate-report {
