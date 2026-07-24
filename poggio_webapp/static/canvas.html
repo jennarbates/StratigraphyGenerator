@@ -3,15 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Single-face Canvas — Poggio Civitate</title>
+  <title>Multi-face Canvas — Poggio Civitate</title>
   <link rel="stylesheet" href="/static/canvas/canvas.css">
 </head>
 <body>
   <main class="canvas-page">
     <header class="canvas-header">
       <div>
-        <h1>Single-face canvas</h1>
-        <p>3m × 2m · grid spacing 0.25m</p>
+        <h1>Multi-face canvas</h1>
+        <p id="active-face-summary">3m × 2m · grid spacing 0.25m</p>
       </div>
       <div class="canvas-tools">
         <label class="snap-toggle">
@@ -25,20 +25,79 @@
       </div>
     </header>
 
+    <nav
+      id="face-tabs"
+      class="face-tabs"
+      aria-label="Profile faces"
+      role="tablist"
+      hidden
+    ></nav>
+
     <div class="canvas-workspace">
-      <section class="canvas-panel" aria-label="Single-face drawing surface">
-        <svg
-          id="face-canvas"
-          class="face-canvas"
-          role="img"
-          aria-label="Editable 3 metre by 2 metre polygon canvas with graph-paper grid"
-        ></svg>
+      <section class="canvas-panel" aria-label="Multi-face drawing surfaces">
+        <div id="face-canvas-container"></div>
       </section>
 
       <aside class="metadata-sidebar" aria-labelledby="polygon-list-heading">
-        <h2 id="polygon-list-heading">Polygons</h2>
-        <p id="polygon-list-empty">Close a polygon to assign its metadata.</p>
-        <ol id="polygon-list" class="polygon-list"></ol>
+        <section
+          class="grid-registration"
+          aria-labelledby="grid-registration-heading"
+        >
+          <h2 id="grid-registration-heading">Grid registration</h2>
+          <p id="grid-registration-face">Enter surveyed values for this face.</p>
+          <form id="grid-registration-form">
+            <div class="grid-registration-fields">
+              <label>
+                originX
+                <input
+                  id="origin-x"
+                  data-registration-field="originX"
+                  type="number"
+                  step="any"
+                  required
+                >
+              </label>
+              <label>
+                originY
+                <input
+                  id="origin-y"
+                  data-registration-field="originY"
+                  type="number"
+                  step="any"
+                  required
+                >
+              </label>
+              <label>
+                surfaceZ
+                <input
+                  id="surface-z"
+                  data-registration-field="surfaceZ"
+                  type="number"
+                  step="any"
+                  required
+                >
+              </label>
+              <label>
+                bearing_deg
+                <input
+                  id="bearing-deg"
+                  data-registration-field="bearing_deg"
+                  type="number"
+                  min="0"
+                  max="360"
+                  step="any"
+                  required
+                >
+              </label>
+            </div>
+          </form>
+        </section>
+
+        <section class="polygon-metadata">
+          <h2 id="polygon-list-heading">Polygons</h2>
+          <p id="polygon-list-empty">Close a polygon to assign its metadata.</p>
+          <ol id="polygon-list" class="polygon-list"></ol>
+        </section>
       </aside>
     </div>
 
@@ -98,6 +157,28 @@
       <div class="metadata-form-actions">
         <button id="cancel-metadata" type="button">Cancel</button>
         <button type="submit">Save metadata</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="face-setup-dialog" class="face-setup-dialog">
+    <form id="face-setup-form">
+      <h2>Set up profile faces</h2>
+      <p>Name every face before drawing. Each face keeps its own canvas,
+        polygons, metadata, and surveyed grid registration.</p>
+
+      <label id="face-count-field">
+        Number of faces
+        <input id="face-count" type="number" min="1" max="12" value="1" required>
+      </label>
+
+      <fieldset>
+        <legend>Face names</legend>
+        <div id="face-name-fields" class="face-name-fields"></div>
+      </fieldset>
+
+      <div class="metadata-form-actions">
+        <button type="submit">Start drawing</button>
       </div>
     </form>
   </dialog>

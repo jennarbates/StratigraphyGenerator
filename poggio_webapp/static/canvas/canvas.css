@@ -87,6 +87,36 @@ body {
   align-items: stretch;
 }
 
+.face-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+  padding: 0 4px;
+}
+
+.face-tabs[hidden] {
+  display: none;
+}
+
+.face-tabs button {
+  min-height: 38px;
+  padding: 7px 16px;
+  border: 1px solid #a89f93;
+  border-bottom-color: #81786c;
+  border-radius: 6px 6px 0 0;
+  color: #514b43;
+  background: #e8e2d9;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.face-tabs button[aria-selected="true"] {
+  border-color: #504b44;
+  color: #24211d;
+  background: #fff;
+}
+
 .face-canvas {
   display: block;
   border: 1px solid #504b44;
@@ -94,6 +124,10 @@ body {
   cursor: crosshair;
   touch-action: none;
   user-select: none;
+}
+
+.face-canvas[hidden] {
+  display: none;
 }
 
 .grid-line {
@@ -166,7 +200,7 @@ body {
 }
 
 .metadata-sidebar {
-  width: 230px;
+  width: 260px;
   padding: 16px;
   border: 1px solid #cbc2b6;
   border-radius: 8px;
@@ -182,6 +216,50 @@ body {
   margin: 0;
   color: #6d665d;
   font-size: 14px;
+}
+
+.grid-registration {
+  padding-bottom: 16px;
+  border-bottom: 1px solid #ddd5ca;
+}
+
+.grid-registration > p {
+  margin: -7px 0 12px;
+  color: #6d665d;
+  font-size: 13px;
+}
+
+.grid-registration-fields {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.grid-registration-fields label {
+  display: grid;
+  gap: 4px;
+  color: #514b43;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.grid-registration-fields input {
+  width: 100%;
+  min-width: 0;
+  padding: 7px;
+  border: 1px solid #9e9589;
+  border-radius: 4px;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+}
+
+.grid-registration-fields input:invalid:not(:placeholder-shown) {
+  border-color: #a72f3d;
+  outline-color: #a72f3d;
+}
+
+.polygon-metadata {
+  padding-top: 16px;
 }
 
 .polygon-list {
@@ -317,4 +395,69 @@ body {
 .metadata-form-actions button[type="submit"] {
   color: #fff;
   background: #4f493f;
+}
+
+.face-setup-dialog {
+  width: min(480px, calc(100vw - 32px));
+  padding: 0;
+  border: 1px solid #81786c;
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgb(36 33 29 / 28%);
+}
+
+.face-setup-dialog::backdrop {
+  background: rgb(36 33 29 / 48%);
+}
+
+.face-setup-dialog form {
+  display: grid;
+  gap: 16px;
+  padding: 22px;
+}
+
+.face-setup-dialog h2,
+.face-setup-dialog p {
+  margin: 0;
+}
+
+.face-setup-dialog p {
+  color: #625b52;
+  line-height: 1.45;
+}
+
+.face-setup-dialog label {
+  display: grid;
+  gap: 5px;
+  font-weight: 650;
+}
+
+.face-setup-dialog label[hidden] {
+  display: none;
+}
+
+.face-setup-dialog input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #9e9589;
+  border-radius: 4px;
+  color: #24211d;
+  background: #fff;
+  font: inherit;
+}
+
+.face-setup-dialog fieldset {
+  margin: 0;
+  padding: 12px;
+  border: 1px solid #cbc2b6;
+  border-radius: 5px;
+}
+
+.face-setup-dialog legend {
+  padding: 0 5px;
+  font-weight: 650;
+}
+
+.face-name-fields {
+  display: grid;
+  gap: 10px;
 }

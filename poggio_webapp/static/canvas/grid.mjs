@@ -171,3 +171,289 @@ export function serializePolygons(polygons, metadataByPolygonId, schemaType) {
       };
     });
 }
+
+export function selectFace(editorState, faceIndex) {
+  if (
+    !Number.isInteger(faceIndex)
+    || faceIndex < 0
+    || faceIndex >= editorState.faces.length
+  ) {
+    throw new RangeError("Face index is out of range.");
+  }
+
+  editorState.activeFaceIndex = faceIndex;
+  return editorState.faces[faceIndex];
+}
+
+export function validateBearingDeg(value) {
+  const bearing = Number(value);
+
+  if (value === "" || !Number.isFinite(bearing) || bearing < 0 || bearing > 360) {
+    throw new RangeError("Bearing must be a number from 0 through 360.");
+  }
+
+  return bearing;
+}
+
+function validateRegistrationNumber(value, fieldName) {
+  const number = Number(value);
+
+  if (value === "" || !Number.isFinite(number)) {
+    throw new TypeError(`${fieldName} must be a finite number.`);
+  }
+
+  return number;
+}
+
+export function validateGridRegistration(registration) {
+  return {
+    originX: validateRegistrationNumber(registration.originX, "originX"),
+    originY: validateRegistrationNumber(registration.originY, "originY"),
+    surfaceZ: validateRegistrationNumber(registration.surfaceZ, "surfaceZ"),
+    bearing_deg: validateBearingDeg(registration.bearing_deg),
+  };
+}
+
+function metadataForFace(face) {
+  return face.metadataByPolygonId ?? face.polygonMetadata ?? {};
+}
+
+function polygonsWithMetadata(face) {
+  const metadataByPolygonId = metadataForFace(face);
+
+  return (face.polygons ?? [])
+    .filter((polygon) => (
+      polygon.closed
+      && Object.prototype.hasOwnProperty.call(
+        metadataByPolygonId,
+        polygon.id,
+      )
+    ))
+    .map((polygon) => ({
+      polygon,
+      metadata: metadataByPolygonId[polygon.id],
+    }));
+}
+
+function pointCoordinate(point, finalKey, alternateFinalKey, pixelKey) {
+  if (Object.prototype.hasOwnProperty.call(point, finalKey)) {
+    return point[finalKey];
+  }
+
+  if (
+    alternateFinalKey
+    && Object.prototype.hasOwnProperty.call(point, alternateFinalKey)
+  ) {
+    return point[alternateFinalKey];
+  }
+
+  return pixelsToMeters(point[pixelKey], PIXELS_PER_METER);
+}
+
+function archaeologicalBoundary(points) {
+  return points.map((point) => ({
+    xCoordinateMeters: pointCoordinate(
+      point,
+      "xCoordinateMeters",
+      "xMeters",
+      "x",
+    ),
+    yCoordinateMeters: pointCoordinate(
+      point,
+      "yCoordinateMeters",
+      "depthMeters",
+      "y",
+    ),
+    confidence: point.confidence ?? "human-traced",
+  }));
+}
+
+function fieldWallBoundary(points) {
+  return points.map((point) => ({
+    xMeters: pointCoordinate(
+      point,
+      "xMeters",
+      "xCoordinateMeters",
+      "x",
+    ),
+    depthMeters: pointCoordinate(
+      point,
+      "depthMeters",
+      "yCoordinateMeters",
+      "y",
+    ),
+    confidence: point.confidence ?? "human-traced",
+  }));
+}
+
+function boundaryOrNull(metadata, polygon, boundaryName, serializer) {
+  if (metadata[boundaryName] === null) {
+    return null;
+  }
+
+  if (metadata[boundaryName] !== undefined) {
+    return serializer(metadata[boundaryName]);
+  }
+
+  if (boundaryName === "topBoundary") {
+    return null;
+  }
+
+  return serializer(polygon.vertices);
+}
+
+function archaeologicalLayers(face) {
+  return polygonsWithMetadata(face).map(({ polygon, metadata }) => ({
+    layerName: metadata.layerName ?? `Polygon ${polygon.id}`,
+    inferredMaterial: (
+      metadata.inferredMaterial
+      ?? metadata.material
+      ?? null
+    ),
+    description: metadata.description ?? metadata.note ?? null,
+    visualPattern: metadata.visualPattern ?? null,
+    featuresInLayer: metadata.featuresInLayer ?? [],
+    topBoundary: boundaryOrNull(
+      metadata,
+      polygon,
+      "topBoundary",
+      archaeologicalBoundary,
+    ),
+    bottomBoundary: boundaryOrNull(
+      metadata,
+      polygon,
+      "bottomBoundary",
+      archaeologicalBoundary,
+    ),
+  }));
+}
+
+function fieldWallLayers(face) {
+  return polygonsWithMetadata(face).map(({ polygon, metadata }) => ({
+    locusNumber: metadata.locus ?? null,
+    topBoundary: boundaryOrNull(
+      metadata,
+      polygon,
+      "topBoundary",
+      fieldWallBoundary,
+    ),
+    bottomBoundary: boundaryOrNull(
+      metadata,
+      polygon,
+      "bottomBoundary",
+      fieldWallBoundary,
+    ),
+    featuresInLayer: metadata.featuresInLayer ?? [],
+  }));
+}
+
+function fieldWallLoci(face) {
+  const loci = new Map();
+
+  for (const { metadata } of polygonsWithMetadata(face)) {
+    const locusNumber = metadata.locus ?? null;
+
+    if (loci.has(locusNumber)) {
+      continue;
+    }
+
+    loci.set(locusNumber, {
+      locusNumber,
+      munsell: metadata.munsell
+        ? {
+          raw: metadata.munsell,
+          colorName: metadata.colorName ?? null,
+        }
+        : null,
+      description: metadata.description ?? metadata.note ?? null,
+      confidence: metadata.confidence ?? null,
+    });
+  }
+
+  return [...loci.values()];
+}
+
+export function assembleFinalizeState(
+  editorState,
+  schemaType,
+  documentMetadata = {},
+) {
+  if (schemaType === "FieldWallProfile") {
+    const face = editorState.faces[0] ?? {
+      name: "Wall",
+      polygons: [],
+      polygonMetadata: {},
+    };
+
+    return {
+      trenchLabel: documentMetadata.trenchLabel ?? null,
+      faceLabel: documentMetadata.faceLabel ?? face.name,
+      illustrators: documentMetadata.illustrators ?? [],
+      date: documentMetadata.date ?? null,
+      northArrowPresent: documentMetadata.northArrowPresent ?? null,
+      gridSquareCm: documentMetadata.gridSquareCm ?? (
+        GRID_SPACING_METERS * 100
+      ),
+      gridTiePoints: documentMetadata.gridTiePoints ?? [],
+      loci: documentMetadata.loci ?? fieldWallLoci(face),
+      layers: fieldWallLayers(face),
+      marginalia: documentMetadata.marginalia ?? [],
+    };
+  }
+
+  if (schemaType !== "ArchaeologicalDiagram") {
+    throw new TypeError(`Unsupported schema type: ${schemaType}`);
+  }
+
+  return {
+    metadata: documentMetadata.metadata ?? {
+      currentFilePath: "manual-editor",
+      suggestedFilename: null,
+      trenchLabel: null,
+      scale: null,
+      credits: null,
+      marginalia: [],
+    },
+    trenchProfiles: editorState.faces.map((face) => ({
+      face: face.name,
+      gridLabels: face.gridLabels ?? [],
+      gridLabelXMeters: face.gridLabelXMeters ?? [],
+      layers: archaeologicalLayers(face),
+    })),
+    legend: documentMetadata.legend ?? [],
+    inferred_notes: documentMetadata.inferred_notes ?? [],
+    rawTranscription: (
+      documentMetadata.rawTranscription
+      ?? "Created with the manual editor."
+    ),
+  };
+}
+
+export function assembleGridConfig(editorState) {
+  const faces = {};
+
+  for (const face of editorState.faces) {
+    if (Object.prototype.hasOwnProperty.call(faces, face.name)) {
+      throw new TypeError(`Face names must be unique: ${face.name}`);
+    }
+
+    faces[face.name] = validateGridRegistration(face.gridRegistration);
+  }
+
+  return { faces };
+}
+
+export function assembleEditorSessionState(
+  editorState,
+  schemaType,
+  documentMetadata = {},
+) {
+  return {
+    finalizeState: assembleFinalizeState(
+      editorState,
+      schemaType,
+      documentMetadata,
+    ),
+    gridConfig: assembleGridConfig(editorState),
+  };
+}

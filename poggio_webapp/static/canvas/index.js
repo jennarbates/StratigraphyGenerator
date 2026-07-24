@@ -9,6 +9,8 @@ import {
   metersToPixels,
   nearestGridPoint,
   pixelsToMeters,
+  selectFace,
+  validateBearingDeg,
 } from "./grid.mjs";
 
 const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
@@ -22,7 +24,9 @@ const POLYGON_COLORS = [
 ];
 const DRAG_THRESHOLD_PIXELS = 4;
 const FIELD_WALL_SCHEMA = "FieldWallProfile";
-const canvas = document.querySelector("#face-canvas");
+const canvasContainer = document.querySelector("#face-canvas-container");
+const faceTabs = document.querySelector("#face-tabs");
+const activeFaceSummary = document.querySelector("#active-face-summary");
 const snapToggle = document.querySelector("#snap-to-grid");
 const closeShapeButton = document.querySelector("#close-shape");
 const deleteVertexButton = document.querySelector("#delete-vertex");
@@ -42,6 +46,16 @@ const munsellValueInput = document.querySelector("#munsell-value");
 const munsellChromaInput = document.querySelector("#munsell-chroma");
 const metadataNoteInput = document.querySelector("#metadata-note");
 const cancelMetadataButton = document.querySelector("#cancel-metadata");
+const registrationForm = document.querySelector("#grid-registration-form");
+const registrationFace = document.querySelector("#grid-registration-face");
+const registrationInputs = [
+  ...registrationForm.querySelectorAll("[data-registration-field]"),
+];
+const faceSetupDialog = document.querySelector("#face-setup-dialog");
+const faceSetupForm = document.querySelector("#face-setup-form");
+const faceCountField = document.querySelector("#face-count-field");
+const faceCountInput = document.querySelector("#face-count");
+const faceNameFields = document.querySelector("#face-name-fields");
 
 const widthPixels = metersToPixels(CANVAS_WIDTH_METERS, PIXELS_PER_METER);
 const heightPixels = metersToPixels(CANVAS_HEIGHT_METERS, PIXELS_PER_METER);
@@ -52,14 +66,18 @@ const schemaType = requestedSchemaType === FIELD_WALL_SCHEMA
   ? FIELD_WALL_SCHEMA
   : "ArchaeologicalDiagram";
 const isFieldWall = schemaType === FIELD_WALL_SCHEMA;
-const polygonMetadata = {};
-let nextPolygonId = 1;
+const editorState = {
+  activeFaceIndex: -1,
+  faces: [],
+};
+let currentFace = null;
+let canvas = null;
+let grid = null;
+let polygons = [];
+let polygonMetadata = {};
+let currentPolygon = null;
 let selectedVertex = null;
 let pointerAction = null;
-
-canvas.setAttribute("width", widthPixels);
-canvas.setAttribute("height", heightPixels);
-canvas.setAttribute("viewBox", `0 0 ${widthPixels} ${heightPixels}`);
 
 function createSvgElement(name, attributes = {}) {
   const element = document.createElementNS(SVG_NAMESPACE, name);
@@ -71,9 +89,9 @@ function createSvgElement(name, attributes = {}) {
   return element;
 }
 
-function createPolygon() {
-  const id = nextPolygonId;
-  nextPolygonId += 1;
+function createPolygon(face) {
+  const id = face.nextPolygonId;
+  face.nextPolygonId += 1;
 
   return {
     id,
@@ -83,31 +101,73 @@ function createPolygon() {
   };
 }
 
-const polygons = [createPolygon()];
-let currentPolygon = polygons[0];
-
-const grid = document.createElementNS(SVG_NAMESPACE, "g");
-grid.setAttribute("aria-hidden", "true");
-
-function addGridLine(x1, y1, x2, y2) {
+function addGridLine(gridElement, x1, y1, x2, y2) {
   const line = document.createElementNS(SVG_NAMESPACE, "line");
   line.setAttribute("class", "grid-line");
   line.setAttribute("x1", x1);
   line.setAttribute("y1", y1);
   line.setAttribute("x2", x2);
   line.setAttribute("y2", y2);
-  grid.append(line);
+  gridElement.append(line);
 }
 
-for (let x = 0; x <= widthPixels; x += gridSpacingPixels) {
-  addGridLine(x, 0, x, heightPixels);
+function createGrid() {
+  const gridElement = document.createElementNS(SVG_NAMESPACE, "g");
+  gridElement.setAttribute("aria-hidden", "true");
+
+  for (let x = 0; x <= widthPixels; x += gridSpacingPixels) {
+    addGridLine(gridElement, x, 0, x, heightPixels);
+  }
+
+  for (let y = 0; y <= heightPixels; y += gridSpacingPixels) {
+    addGridLine(gridElement, 0, y, widthPixels, y);
+  }
+
+  return gridElement;
 }
 
-for (let y = 0; y <= heightPixels; y += gridSpacingPixels) {
-  addGridLine(0, y, widthPixels, y);
+function createFaceState(name, faceIndex) {
+  const faceCanvas = createSvgElement("svg", {
+    id: `face-canvas-${faceIndex}`,
+    class: "face-canvas",
+    width: widthPixels,
+    height: heightPixels,
+    viewBox: `0 0 ${widthPixels} ${heightPixels}`,
+    role: "img",
+    "aria-label": (
+      `${name}: editable 3 metre by 2 metre polygon canvas`
+      + " with graph-paper grid"
+    ),
+    "aria-labelledby": `face-tab-${faceIndex}`,
+  });
+  const faceGrid = createGrid();
+  const face = {
+    name,
+    canvas: faceCanvas,
+    grid: faceGrid,
+    gridRegistration: {
+      originX: "",
+      originY: "",
+      surfaceZ: "",
+      bearing_deg: "",
+    },
+    polygons: [],
+    polygonMetadata: {},
+    nextPolygonId: 1,
+    currentPolygon: null,
+    selectedVertex: null,
+  };
+  face.currentPolygon = createPolygon(face);
+  face.polygons.push(face.currentPolygon);
+  faceCanvas.append(faceGrid);
+  faceCanvas.addEventListener("pointerdown", beginCanvasPointerAction);
+  faceCanvas.addEventListener("pointermove", continueCanvasPointerAction);
+  faceCanvas.addEventListener("pointerup", finishCanvasPointerAction);
+  faceCanvas.addEventListener("pointercancel", cancelCanvasPointerAction);
+  faceCanvas.setAttribute("hidden", "");
+  canvasContainer.append(faceCanvas);
+  return face;
 }
-
-canvas.append(grid);
 
 function findPolygon(polygonId) {
   return polygons.find((polygon) => polygon.id === polygonId);
@@ -147,6 +207,95 @@ function renderPolygonList() {
     item.append(button);
     polygonList.append(item);
   });
+}
+
+function persistCurrentFace() {
+  if (!currentFace) {
+    return;
+  }
+
+  currentFace.currentPolygon = currentPolygon;
+  currentFace.selectedVertex = selectedVertex;
+}
+
+function renderFaceTabs() {
+  faceTabs.replaceChildren();
+
+  editorState.faces.forEach((face, faceIndex) => {
+    const button = document.createElement("button");
+    const selected = faceIndex === editorState.activeFaceIndex;
+    button.id = `face-tab-${faceIndex}`;
+    button.type = "button";
+    button.setAttribute("role", "tab");
+    button.dataset.faceIndex = faceIndex;
+    button.setAttribute("aria-controls", `face-canvas-${faceIndex}`);
+    button.setAttribute("aria-selected", selected ? "true" : "false");
+    button.tabIndex = selected ? 0 : -1;
+    button.textContent = face.name;
+    faceTabs.append(button);
+  });
+}
+
+function validateRegistrationInput(input) {
+  input.setCustomValidity("");
+
+  if (input.dataset.registrationField !== "bearing_deg" || input.value === "") {
+    return;
+  }
+
+  try {
+    validateBearingDeg(input.value);
+  } catch (error) {
+    input.setCustomValidity(error.message);
+  }
+}
+
+function renderGridRegistration() {
+  registrationFace.textContent = (
+    `${currentFace.name}: enter surveyed values (no placeholder defaults).`
+  );
+
+  registrationInputs.forEach((input) => {
+    const field = input.dataset.registrationField;
+    input.value = currentFace.gridRegistration[field];
+    validateRegistrationInput(input);
+  });
+}
+
+function activateFace(faceIndex) {
+  persistCurrentFace();
+  pointerAction = null;
+
+  if (metadataDialog.open) {
+    metadataDialog.close();
+  }
+
+  currentFace = selectFace(editorState, faceIndex);
+  polygons = currentFace.polygons;
+  polygonMetadata = currentFace.polygonMetadata;
+  currentPolygon = currentFace.currentPolygon;
+  selectedVertex = currentFace.selectedVertex;
+  canvas = currentFace.canvas;
+  grid = currentFace.grid;
+
+  editorState.faces.forEach((face, index) => {
+    if (index === faceIndex) {
+      face.canvas.removeAttribute("hidden");
+    } else {
+      face.canvas.setAttribute("hidden", "");
+    }
+  });
+
+  renderFaceTabs();
+  renderGridRegistration();
+  renderPolygons();
+  renderPolygonList();
+  activeFaceSummary.textContent = (
+    `${currentFace.name} · 3m × 2m · grid spacing 0.25m`
+  );
+  coordinateReport.textContent = (
+    `${currentFace.name}: tap or click the canvas to place a vertex.`
+  );
 }
 
 function parseMunsell(munsell = "") {
@@ -465,11 +614,6 @@ function cancelCanvasPointerAction(event) {
   pointerAction = null;
 }
 
-canvas.addEventListener("pointerdown", beginCanvasPointerAction);
-canvas.addEventListener("pointermove", continueCanvasPointerAction);
-canvas.addEventListener("pointerup", finishCanvasPointerAction);
-canvas.addEventListener("pointercancel", cancelCanvasPointerAction);
-
 materialField.hidden = isFieldWall;
 materialSelect.disabled = isFieldWall;
 fieldWallFields.hidden = !isFieldWall;
@@ -478,7 +622,11 @@ for (const input of fieldWallFields.querySelectorAll("input")) {
 }
 
 closeShapeButton.addEventListener("pointerup", (event) => {
-  if (!event.isPrimary || currentPolygon.vertices.length < 3) {
+  if (
+    !event.isPrimary
+    || !currentPolygon
+    || currentPolygon.vertices.length < 3
+  ) {
     coordinateReport.textContent = "Add at least three vertices before closing.";
     return;
   }
@@ -492,7 +640,8 @@ closeShapeButton.addEventListener("pointerup", (event) => {
     `Closed polygon ${currentPolygon.id}.${intersectionWarning}`
   );
   const closedPolygonId = currentPolygon.id;
-  currentPolygon = createPolygon();
+  currentPolygon = createPolygon(currentFace);
+  currentFace.currentPolygon = currentPolygon;
   polygons.push(currentPolygon);
   selectedVertex = null;
   renderPolygons();
@@ -551,5 +700,89 @@ cancelMetadataButton.addEventListener("click", () => {
   metadataDialog.close();
 });
 
-renderPolygons();
-renderPolygonList();
+registrationForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+});
+
+registrationInputs.forEach((input) => {
+  input.addEventListener("input", () => {
+    if (!currentFace) {
+      return;
+    }
+
+    currentFace.gridRegistration[input.dataset.registrationField] = input.value;
+    validateRegistrationInput(input);
+  });
+});
+
+faceTabs.addEventListener("click", (event) => {
+  const tab = event.target.closest("button[data-face-index]");
+
+  if (tab) {
+    activateFace(Number(tab.dataset.faceIndex));
+  }
+});
+
+function renderFaceNameFields() {
+  const existingNames = [
+    ...faceNameFields.querySelectorAll("input"),
+  ].map((input) => input.value);
+  const requestedCount = isFieldWall
+    ? 1
+    : Math.max(1, Math.min(12, Number(faceCountInput.value) || 1));
+  faceNameFields.replaceChildren();
+
+  for (let faceIndex = 0; faceIndex < requestedCount; faceIndex += 1) {
+    const label = document.createElement("label");
+    const input = document.createElement("input");
+    label.textContent = requestedCount === 1
+      ? "Face name"
+      : `Face ${faceIndex + 1}`;
+    input.type = "text";
+    input.required = true;
+    input.dataset.faceName = "";
+    input.value = (
+      existingNames[faceIndex]?.trim()
+      || (isFieldWall ? "Wall" : `Face ${faceIndex + 1}`)
+    );
+    label.append(input);
+    faceNameFields.append(label);
+  }
+}
+
+faceCountInput.addEventListener("input", renderFaceNameFields);
+
+faceSetupForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const nameInputs = [...faceNameFields.querySelectorAll("[data-face-name]")];
+  const faceNames = nameInputs.map((input) => input.value.trim());
+  const normalizedNames = faceNames.map((name) => name.toLocaleLowerCase());
+
+  nameInputs.forEach((input) => input.setCustomValidity(""));
+  const duplicateIndex = normalizedNames.findIndex((name, index) => (
+    normalizedNames.indexOf(name) !== index
+  ));
+
+  if (duplicateIndex !== -1) {
+    nameInputs[duplicateIndex].setCustomValidity("Face names must be unique.");
+  }
+
+  if (!faceSetupForm.reportValidity()) {
+    return;
+  }
+
+  editorState.faces = faceNames.map(createFaceState);
+  faceTabs.hidden = false;
+  faceSetupDialog.close();
+  activateFace(0);
+});
+
+faceCountField.hidden = isFieldWall;
+faceCountInput.value = "1";
+renderFaceNameFields();
+
+if (typeof faceSetupDialog.showModal === "function") {
+  faceSetupDialog.showModal();
+} else {
+  faceSetupDialog.setAttribute("open", "");
+}
