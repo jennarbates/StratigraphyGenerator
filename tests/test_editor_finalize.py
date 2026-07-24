@@ -135,36 +135,68 @@ def _archaeological_diagram_state():
     }
 
 
-def _editor_state_envelope():
+def _polygon():
     return {
-        "finalizeState": _archaeological_diagram_state(),
+        "id": 1,
+        "closed": True,
+        "stackOrder": 0,
+        "vertices": [
+            {"x": 0.0, "y": 0.0},
+            {"x": 100.0, "y": 0.0},
+            {"x": 100.0, "y": 100.0},
+            {"x": 0.0, "y": 100.0},
+        ],
+    }
+
+
+def _grid_registration():
+    return {
+        "originX": 123.5,
+        "originY": 456.25,
+        "surfaceZ": 287.8,
+        "bearing_deg": 90.0,
+    }
+
+
+def _editor_state_envelope(schema_type="ArchaeologicalDiagram"):
+    face_name = (
+        "wall"
+        if schema_type == "FieldWallProfile"
+        else "south"
+    )
+    polygon_metadata = (
+        {"locus": "1", "munsell": "10YR 5/3", "note": "Brown soil"}
+        if schema_type == "FieldWallProfile"
+        else {"material": "soil", "note": "Brown soil"}
+    )
+    finalize_state = (
+        _field_wall_state()
+        if schema_type == "FieldWallProfile"
+        else _archaeological_diagram_state()
+    )
+    return {
+        "schemaType": schema_type,
+        "finalizeState": finalize_state,
         "gridConfig": {
             "faces": {
-                "south": {
-                    "originX": 123.5,
-                    "originY": 456.25,
-                    "surfaceZ": 287.8,
-                    "bearing_deg": 90.0,
-                }
+                face_name: _grid_registration(),
             }
         },
         "editorState": {
             "faces": [
                 {
-                    "name": "south",
-                    "polygons": [
-                        {
-                            "id": 1,
-                            "closed": True,
-                            "stackOrder": 0,
-                            "vertices": [
-                                {"x": 0.0, "y": 0.0},
-                                {"x": 100.0, "y": 0.0},
-                                {"x": 100.0, "y": 100.0},
-                                {"x": 0.0, "y": 100.0},
-                            ],
-                        }
-                    ],
+                    "name": face_name,
+                    "polygons": [_polygon()],
+                }
+            ]
+        },
+        "resumeState": {
+            "faces": [
+                {
+                    "name": face_name,
+                    "gridRegistration": _grid_registration(),
+                    "polygons": [_polygon()],
+                    "polygonMetadata": {1: polygon_metadata},
                 }
             ]
         },
@@ -231,6 +263,203 @@ def test_finalize_nonexistent_job_raises_file_not_found():
         editor.finalize_editor_session("missing-job")
 
 
+def test_finalize_empty_editor_raises_structural_error_without_output():
+    job_id = editor.create_editor_session("ArchaeologicalDiagram")
+    state = _editor_state_envelope()
+    state["editorState"]["faces"] = []
+    state["resumeState"]["faces"] = []
+    state["gridConfig"]["faces"] = {}
+    editor.save_editor_state(job_id, state)
+
+    with pytest.raises(
+        editor.EmptyEditorError,
+        match="at least one face",
+    ):
+        editor.finalize_editor_session(job_id)
+
+    assert not _output_path(job_id).exists()
+
+
+def test_finalize_face_without_completed_polygon_raises_structural_error():
+    job_id = editor.create_editor_session("ArchaeologicalDiagram")
+    state = _editor_state_envelope()
+    state["editorState"]["faces"][0]["polygons"] = []
+    state["resumeState"]["faces"][0]["polygons"] = []
+    state["resumeState"]["faces"][0]["polygonMetadata"] = {}
+    editor.save_editor_state(job_id, state)
+
+    with pytest.raises(
+        editor.FacePolygonError,
+        match=r'Face "south" needs at least one completed polygon',
+    ):
+        editor.finalize_editor_session(job_id)
+
+    assert not _output_path(job_id).exists()
+
+
+def test_finalize_duplicate_face_names_raise_structural_error():
+    job_id = editor.create_editor_session("ArchaeologicalDiagram")
+    state = _editor_state_envelope()
+    duplicate_face = {
+        "name": "SOUTH",
+        "polygons": [_polygon()],
+    }
+    duplicate_resume_face = {
+        "name": "SOUTH",
+        "gridRegistration": _grid_registration(),
+        "polygons": [_polygon()],
+        "polygonMetadata": {1: {"material": "soil"}},
+    }
+    state["editorState"]["faces"].append(duplicate_face)
+    state["resumeState"]["faces"].append(duplicate_resume_face)
+    editor.save_editor_state(job_id, state)
+
+    with pytest.raises(
+        editor.DuplicateFaceNameError,
+        match=r'Duplicate face name "SOUTH"',
+    ):
+        editor.finalize_editor_session(job_id)
+
+    assert not _output_path(job_id).exists()
+
+
+def test_finalize_unnamed_face_raises_structural_error():
+    job_id = editor.create_editor_session("ArchaeologicalDiagram")
+    state = _editor_state_envelope()
+    state["editorState"]["faces"][0]["name"] = " "
+    editor.save_editor_state(job_id, state)
+
+    with pytest.raises(
+        editor.FaceNameError,
+        match=r"Face 1 needs a name",
+    ):
+        editor.finalize_editor_session(job_id)
+
+    assert not _output_path(job_id).exists()
+
+
+def test_finalize_field_wall_with_multiple_faces_raises_structural_error():
+    job_id = editor.create_editor_session("FieldWallProfile")
+    state = _editor_state_envelope("FieldWallProfile")
+    state["editorState"]["faces"].append({
+        "name": "wall return",
+        "polygons": [_polygon()],
+    })
+    state["resumeState"]["faces"].append({
+        "name": "wall return",
+        "gridRegistration": _grid_registration(),
+        "polygons": [_polygon()],
+        "polygonMetadata": {
+            1: {"locus": "2", "munsell": "10YR 4/3"},
+        },
+    })
+    state["gridConfig"]["faces"]["wall return"] = _grid_registration()
+    editor.save_editor_state(job_id, state)
+
+    with pytest.raises(
+        editor.FieldWallFaceCountError,
+        match=r"FieldWallProfile must have exactly one face",
+    ):
+        editor.finalize_editor_session(job_id)
+
+    assert not _output_path(job_id).exists()
+
+
+def test_finalize_closed_polygon_without_metadata_raises_structural_error():
+    job_id = editor.create_editor_session("ArchaeologicalDiagram")
+    state = _editor_state_envelope()
+    state["resumeState"]["faces"][0]["polygonMetadata"] = {}
+    editor.save_editor_state(job_id, state)
+
+    with pytest.raises(
+        editor.PolygonMetadataError,
+        match=r'Face "south" polygon 1 needs metadata',
+    ):
+        editor.finalize_editor_session(job_id)
+
+    assert not _output_path(job_id).exists()
+
+
+def test_finalize_archaeological_polygon_without_material_raises_error():
+    job_id = editor.create_editor_session("ArchaeologicalDiagram")
+    state = _editor_state_envelope()
+    state["resumeState"]["faces"][0]["polygonMetadata"][1] = {
+        "note": "Unlabelled layer",
+    }
+    editor.save_editor_state(job_id, state)
+
+    with pytest.raises(
+        editor.PolygonMetadataError,
+        match=r'Face "south" polygon 1 needs a material',
+    ):
+        editor.finalize_editor_session(job_id)
+
+    assert not _output_path(job_id).exists()
+
+
+def test_finalize_field_wall_polygon_without_locus_raises_error():
+    job_id = editor.create_editor_session("FieldWallProfile")
+    state = _editor_state_envelope("FieldWallProfile")
+    state["resumeState"]["faces"][0]["polygonMetadata"][1]["locus"] = " "
+    editor.save_editor_state(job_id, state)
+
+    with pytest.raises(
+        editor.PolygonMetadataError,
+        match=r'Face "wall" polygon 1 needs a locus',
+    ):
+        editor.finalize_editor_session(job_id)
+
+    assert not _output_path(job_id).exists()
+
+
+def test_finalize_field_wall_polygon_without_munsell_raises_error():
+    job_id = editor.create_editor_session("FieldWallProfile")
+    state = _editor_state_envelope("FieldWallProfile")
+    del state["resumeState"]["faces"][0]["polygonMetadata"][1]["munsell"]
+    editor.save_editor_state(job_id, state)
+
+    with pytest.raises(
+        editor.PolygonMetadataError,
+        match=r'Face "wall" polygon 1 needs Munsell notation',
+    ):
+        editor.finalize_editor_session(job_id)
+
+    assert not _output_path(job_id).exists()
+
+
+def test_finalize_saved_schema_conflicting_with_session_raises_error():
+    job_id = editor.create_editor_session("ArchaeologicalDiagram")
+    state = _editor_state_envelope()
+    state["schemaType"] = "FieldWallProfile"
+    editor.save_editor_state(job_id, state)
+
+    with pytest.raises(
+        editor.EditorSchemaMismatchError,
+        match=(
+            r'Saved schemaType "FieldWallProfile" conflicts with '
+            r'session schema "ArchaeologicalDiagram"'
+        ),
+    ):
+        editor.finalize_editor_session(job_id)
+
+    assert not _output_path(job_id).exists()
+
+
+def test_finalize_state_with_zero_usable_layers_raises_structural_error():
+    job_id = editor.create_editor_session("ArchaeologicalDiagram")
+    state = _editor_state_envelope()
+    state["finalizeState"]["trenchProfiles"][0]["layers"] = []
+    editor.save_editor_state(job_id, state)
+
+    with pytest.raises(
+        editor.ZeroUsableLayersError,
+        match="at least one usable layer",
+    ):
+        editor.finalize_editor_session(job_id)
+
+    assert not _output_path(job_id).exists()
+
+
 def test_finalize_unclosed_polygon_raises_specific_error_without_output():
     job_id = editor.create_editor_session("ArchaeologicalDiagram")
     state = _editor_state_envelope()
@@ -240,6 +469,25 @@ def test_finalize_unclosed_polygon_raises_specific_error_without_output():
     with pytest.raises(
         editor.UnclosedPolygonError,
         match=r'Face "south" polygon 1 is not closed',
+    ):
+        editor.finalize_editor_session(job_id)
+
+    assert not _output_path(job_id).exists()
+
+
+def test_finalize_polygon_with_too_few_distinct_vertices_raises_error():
+    job_id = editor.create_editor_session("ArchaeologicalDiagram")
+    state = _editor_state_envelope()
+    state["editorState"]["faces"][0]["polygons"][0]["vertices"] = [
+        {"x": 0.0, "y": 0.0},
+        {"x": 100.0, "y": 0.0},
+        {"x": 0.0, "y": 0.0},
+    ]
+    editor.save_editor_state(job_id, state)
+
+    with pytest.raises(
+        editor.UnclosedPolygonError,
+        match=r'Face "south" polygon 1.*three distinct vertices',
     ):
         editor.finalize_editor_session(job_id)
 
@@ -296,7 +544,7 @@ def test_finalize_ambiguous_polygon_stacking_raises_specific_error():
     assert not _output_path(job_id).exists()
 
 
-def test_finalize_structurally_valid_editor_envelope_succeeds():
+def test_finalize_valid_archaeological_envelope_succeeds():
     job_id = editor.create_editor_session("ArchaeologicalDiagram")
     state = _editor_state_envelope()
     editor.save_editor_state(job_id, state)
@@ -304,6 +552,22 @@ def test_finalize_structurally_valid_editor_envelope_succeeds():
     result = editor.finalize_editor_session(job_id)
 
     assert isinstance(result, ArchaeologicalDiagram)
+    assert result.source == "manual_editor"
+    assert result.model_dump(exclude={"source"}) == {
+        **state["finalizeState"],
+        "finds": [],
+    }
+    assert _output_path(job_id).exists()
+
+
+def test_finalize_valid_field_wall_envelope_succeeds():
+    job_id = editor.create_editor_session("FieldWallProfile")
+    state = _editor_state_envelope("FieldWallProfile")
+    editor.save_editor_state(job_id, state)
+
+    result = editor.finalize_editor_session(job_id)
+
+    assert isinstance(result, FieldWallProfile)
     assert result.source == "manual_editor"
     assert result.model_dump(exclude={"source"}) == {
         **state["finalizeState"],
@@ -345,6 +609,9 @@ const validState = {{
         {{ x: 0, y: 100 }},
       ],
     }}],
+    polygonMetadata: {{
+      1: {{ material: "soil" }},
+    }},
   }}],
 }};
 
@@ -353,7 +620,12 @@ function assertBlocked(mutator, messagePattern) {{
   mutator(state);
   const button = {{ disabled: false }};
   const status = {{ textContent: "" }};
-  const result = updateFinalizeControl(button, status, state);
+  const result = updateFinalizeControl(
+    button,
+    status,
+    state,
+    "ArchaeologicalDiagram",
+  );
   assert.equal(result.canFinalize, false);
   assert.equal(button.disabled, true);
   assert.match(status.textContent, messagePattern);
@@ -361,7 +633,7 @@ function assertBlocked(mutator, messagePattern) {{
 
 assertBlocked(
   (state) => {{ state.faces[0].polygons[0].closed = false; }},
-  /not closed/,
+  /open/,
 );
 assertBlocked(
   (state) => {{
@@ -393,7 +665,12 @@ assertBlocked(
 
 const button = {{ disabled: true }};
 const status = {{ textContent: "" }};
-const result = updateFinalizeControl(button, status, validState);
+const result = updateFinalizeControl(
+  button,
+  status,
+  validState,
+  "ArchaeologicalDiagram",
+);
 assert.equal(result.canFinalize, true);
 assert.equal(button.disabled, false);
 assert.match(status.textContent, /ready to finalize/i);

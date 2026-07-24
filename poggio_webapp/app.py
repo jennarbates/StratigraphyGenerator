@@ -332,6 +332,8 @@ def get_editor_state(job_id):
 def finalize_editor(job_id):
     try:
         finalized = finalize_editor_session(job_id)
+    except editor_pipeline.EditorStructuralValidationError as error:
+        return jsonify({"error": str(error)}), 400
     except ValidationError as error:
         return jsonify({"error": str(error)}), 400
     except FileNotFoundError as error:

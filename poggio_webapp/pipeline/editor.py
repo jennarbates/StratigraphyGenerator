@@ -19,6 +19,13 @@ GRID_REGISTRATION_FIELDS = (
     "surfaceZ",
     "bearing_deg",
 )
+EDITOR_ENVELOPE_KEYS = {
+    "schemaType",
+    "finalizeState",
+    "gridConfig",
+    "editorState",
+    "resumeState",
+}
 REQUIRED_FIND_FIELDS = (
     "face_id",
     "x",
@@ -37,6 +44,30 @@ class EditorStateStructureError(EditorStructuralValidationError):
     """Raised when an assembled editor payload lacks its structural snapshot."""
 
 
+class EditorSchemaMismatchError(EditorStructuralValidationError):
+    """Raised when saved and session schema types do not agree."""
+
+
+class EmptyEditorError(EditorStructuralValidationError):
+    """Raised when an editor has no faces."""
+
+
+class FieldWallFaceCountError(EditorStructuralValidationError):
+    """Raised when a field-wall editor does not have exactly one face."""
+
+
+class FaceNameError(EditorStructuralValidationError):
+    """Raised when an editor face has no usable name."""
+
+
+class DuplicateFaceNameError(EditorStructuralValidationError):
+    """Raised when editor face names are not unique."""
+
+
+class FacePolygonError(EditorStructuralValidationError):
+    """Raised when an editor face has no usable completed polygon."""
+
+
 class UnclosedPolygonError(EditorStructuralValidationError):
     """Raised when a drawn polygon is not closed."""
 
@@ -51,6 +82,14 @@ class PolygonStackingError(EditorStructuralValidationError):
 
 class IncompleteGridRegistrationError(EditorStructuralValidationError):
     """Raised when any editor face lacks a complete grid registration."""
+
+
+class PolygonMetadataError(EditorStructuralValidationError):
+    """Raised when a completed polygon lacks required metadata."""
+
+
+class ZeroUsableLayersError(EditorStructuralValidationError):
+    """Raised when an assembled model contains no usable layers."""
 
 
 def create_editor_session(schema_type: str) -> str:
@@ -181,10 +220,15 @@ def sync_finds_to_output(job_id: str) -> None:
 
 
 def _drawable_polygons(face: dict) -> list[dict]:
+    polygons = face.get("polygons", [])
+    if not isinstance(polygons, list):
+        raise EditorStateStructureError(
+            f'Face "{face.get("name", "<unnamed>")}" polygons must be a list.'
+        )
     return [
         polygon
-        for polygon in face.get("polygons", [])
-        if polygon.get("vertices")
+        for polygon in polygons
+        if isinstance(polygon, dict) and polygon.get("vertices")
     ]
 
 
@@ -312,32 +356,116 @@ def _polygon_self_intersects(vertices: list[dict]) -> bool:
     return False
 
 
-def _validate_polygons(editor_state: dict) -> None:
-    for face in editor_state.get("faces", []):
+def _validate_face_names(faces: list[dict]) -> None:
+    normalized_names = set()
+    for face_index, face in enumerate(faces):
+        if not isinstance(face, dict):
+            raise EditorStateStructureError(
+                f"Face {face_index + 1} must be an object."
+            )
+
+        face_name = face.get("name")
+        if not isinstance(face_name, str) or not face_name.strip():
+            raise FaceNameError(f"Face {face_index + 1} needs a name.")
+
+        normalized_name = face_name.strip().lower()
+        if normalized_name in normalized_names:
+            raise DuplicateFaceNameError(
+                f'Duplicate face name "{face_name.strip()}"; '
+                "face names must be unique."
+            )
+        normalized_names.add(normalized_name)
+
+
+def _distinct_valid_vertex_count(vertices: list[dict]) -> int:
+    return len({
+        coordinates
+        for vertex in vertices
+        if isinstance(vertex, dict)
+        and (coordinates := _point_coordinates(vertex)) is not None
+    })
+
+
+def _validate_polygons(
+    state: dict,
+    editor_state: dict,
+    schema_type: str,
+) -> None:
+    resume_state = state.get("resumeState")
+    resume_faces = (
+        resume_state.get("faces")
+        if isinstance(resume_state, dict)
+        else None
+    )
+
+    for face_index, face in enumerate(editor_state["faces"]):
         face_name = face.get("name", "<unnamed>")
         polygons = _drawable_polygons(face)
         _validate_polygon_stacking(face_name, polygons)
 
+        if not polygons:
+            raise FacePolygonError(
+                f'Face "{face_name}" needs at least one completed polygon.'
+            )
+
+        metadata_face = face
+        if (
+            isinstance(resume_faces, list)
+            and face_index < len(resume_faces)
+            and isinstance(resume_faces[face_index], dict)
+        ):
+            metadata_face = resume_faces[face_index]
+        metadata_by_polygon_id = metadata_face.get(
+            "metadataByPolygonId",
+            metadata_face.get("polygonMetadata", {}),
+        )
+        if not isinstance(metadata_by_polygon_id, dict):
+            metadata_by_polygon_id = {}
+
         for polygon in polygons:
             polygon_id = polygon.get("id")
             vertices = polygon.get("vertices", [])
-            distinct_vertices = vertices
             if (
-                len(vertices) > 1
-                and _point_coordinates(vertices[0])
-                == _point_coordinates(vertices[-1])
+                polygon.get("closed") is not True
+                or not isinstance(vertices, list)
+                or _distinct_valid_vertex_count(vertices) < 3
             ):
-                distinct_vertices = vertices[:-1]
-
-            if polygon.get("closed") is not True or len(distinct_vertices) < 3:
                 raise UnclosedPolygonError(
                     f'Face "{face_name}" polygon {polygon_id} is not closed '
-                    "with at least three vertices."
+                    "with at least three distinct vertices."
                 )
             if _polygon_self_intersects(vertices):
                 raise SelfIntersectingPolygonError(
                     f'Face "{face_name}" polygon {polygon_id} '
                     "self-intersects."
+                )
+
+            metadata = metadata_by_polygon_id.get(polygon_id)
+            if metadata is None:
+                metadata = metadata_by_polygon_id.get(str(polygon_id))
+            if not isinstance(metadata, dict):
+                raise PolygonMetadataError(
+                    f'Face "{face_name}" polygon {polygon_id} needs metadata.'
+                )
+
+            if schema_type == "FieldWallProfile":
+                if not _has_required_text(metadata.get("locus")):
+                    raise PolygonMetadataError(
+                        f'Face "{face_name}" polygon {polygon_id} '
+                        "needs a locus."
+                    )
+                if not _has_required_text(metadata.get("munsell")):
+                    raise PolygonMetadataError(
+                        f'Face "{face_name}" polygon {polygon_id} '
+                        "needs Munsell notation."
+                    )
+            elif not (
+                _has_required_text(metadata.get("material"))
+                or _has_required_text(metadata.get("inferredMaterial"))
+            ):
+                raise PolygonMetadataError(
+                    f'Face "{face_name}" polygon {polygon_id} '
+                    "needs a material."
                 )
 
 
@@ -347,6 +475,10 @@ def _is_finite_number(value) -> bool:
         and not isinstance(value, bool)
         and math.isfinite(value)
     )
+
+
+def _has_required_text(value) -> bool:
+    return isinstance(value, str) and bool(value.strip())
 
 
 def _validate_grid_registration(
@@ -364,9 +496,13 @@ def _validate_grid_registration(
         if isinstance(grid_config, dict)
         else {}
     )
+    if not isinstance(registered_faces, dict):
+        registered_faces = {}
     for face in faces:
         face_name = face.get("name", "<unnamed>")
         registration = registered_faces.get(face_name, {})
+        if not isinstance(registration, dict):
+            registration = {}
         missing_fields = [
             field
             for field in GRID_REGISTRATION_FIELDS
@@ -386,9 +522,53 @@ def _validate_grid_registration(
             )
 
 
-def _validate_editor_structure(state: dict) -> dict:
+def _validate_usable_layers(
+    finalize_state: dict,
+    schema_type: str,
+) -> None:
+    if schema_type == "FieldWallProfile":
+        layers = finalize_state.get("layers")
+        usable_layers = (
+            [layer for layer in layers if isinstance(layer, dict)]
+            if isinstance(layers, list)
+            else []
+        )
+    else:
+        profiles = finalize_state.get("trenchProfiles")
+        usable_layers = []
+        if isinstance(profiles, list):
+            for profile in profiles:
+                if not isinstance(profile, dict):
+                    continue
+                layers = profile.get("layers")
+                if isinstance(layers, list):
+                    usable_layers.extend(
+                        layer for layer in layers if isinstance(layer, dict)
+                    )
+
+    if not usable_layers:
+        raise ZeroUsableLayersError(
+            "Assembled editor state must produce at least one usable layer."
+        )
+
+
+def _validate_editor_structure(
+    state: dict,
+    schema_type: str,
+) -> dict:
+    if not isinstance(state, dict):
+        raise EditorStateStructureError(
+            "Assembled editor state must be an object."
+        )
+
     finalize_state = state.get("finalizeState")
     editor_state = state.get("editorState")
+    saved_schema_type = state.get("schemaType")
+    if saved_schema_type != schema_type:
+        raise EditorSchemaMismatchError(
+            f'Saved schemaType "{saved_schema_type}" conflicts with '
+            f'session schema "{schema_type}".'
+        )
     if not isinstance(finalize_state, dict):
         raise EditorStateStructureError(
             "Assembled editor state must include a finalizeState object."
@@ -399,9 +579,28 @@ def _validate_editor_structure(state: dict) -> dict:
             "snapshot."
         )
 
-    _validate_polygons(editor_state)
+    faces = editor_state.get("faces")
+    if not isinstance(faces, list) or not faces:
+        raise EmptyEditorError(
+            "Set up at least one face before finalizing."
+        )
+    if schema_type == "FieldWallProfile" and len(faces) != 1:
+        raise FieldWallFaceCountError(
+            "A FieldWallProfile must have exactly one face."
+        )
+
+    _validate_face_names(faces)
+    _validate_polygons(state, editor_state, schema_type)
     _validate_grid_registration(editor_state, state.get("gridConfig"))
+    _validate_usable_layers(finalize_state, schema_type)
     return finalize_state
+
+
+def _is_editor_envelope(state) -> bool:
+    return (
+        isinstance(state, dict)
+        and bool(EDITOR_ENVELOPE_KEYS.intersection(state))
+    )
 
 
 def finalize_editor_session(job_id: str):
@@ -422,16 +621,17 @@ def finalize_editor_session(job_id: str):
 
     metadata = json.loads((session_dir / "editor_meta.json").read_text())
     state = json.loads((session_dir / "editor_state.json").read_text())
+    schema_type = metadata["schema_type"]
     model_state = (
-        _validate_editor_structure(state)
-        if "finalizeState" in state
+        _validate_editor_structure(state, schema_type)
+        if _is_editor_envelope(state)
         else state
     )
     schema_models = {
         "ArchaeologicalDiagram": ArchaeologicalDiagram,
         "FieldWallProfile": FieldWallProfile,
     }
-    model_class = schema_models[metadata["schema_type"]]
+    model_class = schema_models[schema_type]
     validated = model_class(**{**model_state, "source": "manual_editor"})
 
     (session_dir / "extraction_output.json").write_text(

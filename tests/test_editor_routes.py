@@ -65,6 +65,16 @@ def _valid_field_wall_state():
     }
 
 
+def _invalid_structural_field_wall_envelope():
+    return {
+        "schemaType": "FieldWallProfile",
+        "finalizeState": _valid_field_wall_state(),
+        "gridConfig": {"faces": {}},
+        "editorState": {"faces": []},
+        "resumeState": {"faces": []},
+    }
+
+
 def test_create_editor_with_valid_schema_type_returns_session_details(client):
     response = client.post(
         "/editor/new",
@@ -306,3 +316,18 @@ def test_finalize_invalid_saved_state_returns_400(client):
     assert save_response.status_code == 200
     assert response.status_code == 400
     assert "error" in response.get_json()
+
+
+def test_finalize_structural_error_returns_4xx_json(client):
+    job_id = _create_editor(client)
+    save_response = client.post(
+        f"/editor/{job_id}/save",
+        json=_invalid_structural_field_wall_envelope(),
+    )
+
+    response = client.post(f"/editor/{job_id}/finalize")
+
+    assert save_response.status_code == 200
+    assert response.status_code == 400
+    assert response.is_json
+    assert "at least one face" in response.get_json()["error"]
