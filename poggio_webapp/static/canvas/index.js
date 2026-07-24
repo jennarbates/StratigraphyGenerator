@@ -10,6 +10,7 @@ import {
   nearestGridPoint,
   pixelsToMeters,
   selectFace,
+  updateFinalizeControl,
   validateBearingDeg,
 } from "./grid.mjs";
 
@@ -30,6 +31,8 @@ const activeFaceSummary = document.querySelector("#active-face-summary");
 const snapToggle = document.querySelector("#snap-to-grid");
 const closeShapeButton = document.querySelector("#close-shape");
 const deleteVertexButton = document.querySelector("#delete-vertex");
+const finalizeButton = document.querySelector("#finalize-editor");
+const finalizeStatus = document.querySelector("#finalize-status");
 const coordinateReport = document.querySelector("#coordinate-report");
 const polygonList = document.querySelector("#polygon-list");
 const polygonListEmpty = document.querySelector("#polygon-list-empty");
@@ -434,6 +437,7 @@ function renderPolygons() {
   polygons.forEach((polygon) => renderPolygon(polygon, drawingLayer));
   canvas.replaceChildren(grid, drawingLayer);
   deleteVertexButton.disabled = !selectedVertexExists();
+  updateFinalizeControl(finalizeButton, finalizeStatus, editorState);
 }
 
 function canvasPoint(event, applySnap = true) {
@@ -712,7 +716,23 @@ registrationInputs.forEach((input) => {
 
     currentFace.gridRegistration[input.dataset.registrationField] = input.value;
     validateRegistrationInput(input);
+    updateFinalizeControl(finalizeButton, finalizeStatus, editorState);
   });
+});
+
+finalizeButton.addEventListener("click", (event) => {
+  const validation = updateFinalizeControl(
+    finalizeButton,
+    finalizeStatus,
+    editorState,
+  );
+
+  if (!validation.canFinalize) {
+    event.preventDefault();
+    return;
+  }
+
+  coordinateReport.textContent = validation.message;
 });
 
 faceTabs.addEventListener("click", (event) => {

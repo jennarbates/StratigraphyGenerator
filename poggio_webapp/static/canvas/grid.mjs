@@ -214,6 +214,109 @@ export function validateGridRegistration(registration) {
   };
 }
 
+function drawablePolygons(face) {
+  return (face.polygons ?? []).filter(
+    (polygon) => (polygon.vertices ?? []).length > 0,
+  );
+}
+
+function polygonStackingError(face, polygons) {
+  const polygonIds = new Set();
+
+  for (const polygon of polygons) {
+    if (polygonIds.has(polygon.id)) {
+      return `Face "${face.name}" has duplicate polygon id ${polygon.id}; `
+        + "stacking order is ambiguous.";
+    }
+    polygonIds.add(polygon.id);
+  }
+
+  const orderKeys = ["stackOrder", "zOrder", "zIndex"];
+  const explicitOrders = polygons.map((polygon) => {
+    const orderKey = orderKeys.find((key) => (
+      Object.prototype.hasOwnProperty.call(polygon, key)
+    ));
+    return orderKey === undefined ? undefined : polygon[orderKey];
+  });
+
+  if (
+    explicitOrders.some((order) => order !== undefined)
+    && explicitOrders.some((order, index) => order !== index)
+  ) {
+    return `Face "${face.name}" polygon stack order must be unique, `
+      + "contiguous, and match the saved polygon order.";
+  }
+
+  return null;
+}
+
+export function validateEditorStateForFinalize(editorState) {
+  if (!editorState.faces?.length) {
+    return {
+      canFinalize: false,
+      message: "Set up at least one face before finalizing.",
+    };
+  }
+
+  for (const face of editorState.faces) {
+    const polygons = drawablePolygons(face);
+    const stackingError = polygonStackingError(face, polygons);
+
+    if (stackingError) {
+      return { canFinalize: false, message: stackingError };
+    }
+
+    for (const polygon of polygons) {
+      if (!polygon.closed || polygon.vertices.length < 3) {
+        return {
+          canFinalize: false,
+          message: (
+            `Face "${face.name}" polygon ${polygon.id} is not closed`
+            + " with at least three vertices."
+          ),
+        };
+      }
+
+      if (hasSelfIntersection(polygon.vertices)) {
+        return {
+          canFinalize: false,
+          message: (
+            `Face "${face.name}" polygon ${polygon.id} self-intersects.`
+          ),
+        };
+      }
+    }
+
+    try {
+      validateGridRegistration(face.gridRegistration ?? {});
+    } catch (error) {
+      return {
+        canFinalize: false,
+        message: (
+          `Face "${face.name}" has incomplete grid registration: `
+          + error.message
+        ),
+      };
+    }
+  }
+
+  return {
+    canFinalize: true,
+    message: "All structural checks pass; ready to finalize.",
+  };
+}
+
+export function updateFinalizeControl(
+  finalizeButton,
+  statusElement,
+  editorState,
+) {
+  const validation = validateEditorStateForFinalize(editorState);
+  finalizeButton.disabled = !validation.canFinalize;
+  statusElement.textContent = validation.message;
+  return validation;
+}
+
 function metadataForFace(face) {
   return face.metadataByPolygonId ?? face.polygonMetadata ?? {};
 }
@@ -448,6 +551,18 @@ export function assembleEditorSessionState(
   schemaType,
   documentMetadata = {},
 ) {
+  const structuralEditorState = {
+    faces: editorState.faces.map((face) => ({
+      name: face.name,
+      polygons: drawablePolygons(face).map((polygon, stackOrder) => ({
+        id: polygon.id,
+        closed: polygon.closed,
+        stackOrder,
+        vertices: polygon.vertices.map(({ x, y }) => ({ x, y })),
+      })),
+    })),
+  };
+
   return {
     finalizeState: assembleFinalizeState(
       editorState,
@@ -455,5 +570,6 @@ export function assembleEditorSessionState(
       documentMetadata,
     ),
     gridConfig: assembleGridConfig(editorState),
+    editorState: structuralEditorState,
   };
 }

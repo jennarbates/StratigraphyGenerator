@@ -22,6 +22,14 @@
         <button id="delete-vertex" type="button" disabled>
           Delete selected vertex
         </button>
+        <button
+          id="finalize-editor"
+          type="button"
+          aria-describedby="finalize-status"
+          disabled
+        >
+          Finalize
+        </button>
       </div>
     </header>
 
@@ -103,6 +111,9 @@
 
     <p id="coordinate-report" class="coordinate-report" aria-live="polite">
       Tap or click the canvas to place the first vertex.
+    </p>
+    <p id="finalize-status" class="coordinate-report" aria-live="polite">
+      Set up at least one face before finalizing.
     </p>
   </main>
 
