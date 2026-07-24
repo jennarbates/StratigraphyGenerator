@@ -15,6 +15,7 @@ export const STEPS = [
 export const state = {
   jobId: null,
   sheetType: "illustrator",
+  startMethod: "upload",
   current: "scan",
   completed: {},
   scan: { url: null, isPdf: false, filename: null, dims: null, recommendedUpscale: null },
