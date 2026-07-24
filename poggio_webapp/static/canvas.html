@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Single-face Canvas — Poggio Civitate</title>
+  <link rel="stylesheet" href="/static/canvas/canvas.css">
+</head>
+<body>
+  <main class="canvas-page">
+    <header class="canvas-header">
+      <div>
+        <h1>Single-face canvas</h1>
+        <p>3m × 2m · grid spacing 0.25m</p>
+      </div>
+      <label class="snap-toggle">
+        <input id="snap-to-grid" type="checkbox" checked>
+        Snap to grid
+      </label>
+    </header>
+
+    <section class="canvas-panel" aria-label="Single-face drawing surface">
+      <svg
+        id="face-canvas"
+        class="face-canvas"
+        role="img"
+        aria-label="Blank 3 metre by 2 metre canvas with graph-paper grid"
+      ></svg>
+    </section>
+
+    <p id="coordinate-report" class="coordinate-report" aria-live="polite">
+      Click the canvas to report a coordinate.
+    </p>
+  </main>
+
+  <script type="module" src="/static/canvas/index.js"></script>
+</body>
+</html>

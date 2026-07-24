@@ -1,0 +1,72 @@
+:root {
+  color: #24211d;
+  background: #f2eee6;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 680px;
+}
+
+.canvas-page {
+  width: max-content;
+  margin: 0 auto;
+  padding: 32px;
+}
+
+.canvas-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.canvas-header h1 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.canvas-header p {
+  margin: 4px 0 0;
+  color: #6d665d;
+}
+
+.snap-toggle {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.canvas-panel {
+  padding: 18px;
+  border: 1px solid #cbc2b6;
+  border-radius: 8px;
+  background: #ddd6cb;
+  box-shadow: 0 3px 14px rgb(67 57 44 / 12%);
+}
+
+.face-canvas {
+  display: block;
+  border: 1px solid #504b44;
+  background: #fff;
+  cursor: crosshair;
+}
+
+.grid-line {
+  stroke: #b8cfdf;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.coordinate-report {
+  margin: 12px 0 0;
+  color: #514b43;
+  font-variant-numeric: tabular-nums;
+}
