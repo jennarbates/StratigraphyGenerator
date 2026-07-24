@@ -1,6 +1,6 @@
 import json
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pytest
 
@@ -26,6 +26,64 @@ def test_create_editor_session_writes_metadata():
     metadata = json.loads(meta_path.read_text())
     assert metadata["schema_type"] == "FieldWallProfile"
     assert datetime.fromisoformat(metadata["created_at"])
+
+
+def test_create_editor_session_writes_draft_meta():
+    job_id = editor.create_editor_session("FieldWallProfile")
+    job_dir = editor.JOBS_DIR / job_id
+    meta_path = job_dir / "meta.json"
+
+    assert meta_path.exists()
+    metadata = json.loads(meta_path.read_text())
+    assert set(metadata) == {
+        "job_id",
+        "schema_type",
+        "sheet_type",
+        "source",
+        "status",
+        "created_at",
+        "updated_at",
+    }
+    assert metadata["job_id"] == job_id
+    assert metadata["source"] == "manual_editor"
+    assert metadata["status"] == "editing"
+    assert not (job_dir / "extraction_output.json").exists()
+    assert not (job_dir / "06_gempy_model").exists()
+
+
+def test_create_editor_session_maps_archaeological_schema_to_illustrator():
+    job_id = editor.create_editor_session("ArchaeologicalDiagram")
+
+    metadata = json.loads(
+        (editor.JOBS_DIR / job_id / "meta.json").read_text()
+    )
+    assert metadata["schema_type"] == "ArchaeologicalDiagram"
+    assert metadata["sheet_type"] == "illustrator"
+
+
+def test_create_editor_session_maps_fieldwall_schema_to_fieldwall():
+    job_id = editor.create_editor_session("FieldWallProfile")
+
+    metadata = json.loads(
+        (editor.JOBS_DIR / job_id / "meta.json").read_text()
+    )
+    assert metadata["schema_type"] == "FieldWallProfile"
+    assert metadata["sheet_type"] == "fieldwall"
+
+
+def test_create_editor_session_writes_parseable_created_and_updated_timestamps():
+    job_id = editor.create_editor_session("FieldWallProfile")
+
+    metadata = json.loads(
+        (editor.JOBS_DIR / job_id / "meta.json").read_text()
+    )
+    created_at = datetime.fromisoformat(metadata["created_at"])
+    updated_at = datetime.fromisoformat(metadata["updated_at"])
+
+    assert created_at == updated_at
+    assert created_at.utcoffset() == timedelta(0)
+    assert updated_at.utcoffset() == timedelta(0)
+    assert metadata["created_at"] == metadata["updated_at"]
 
 
 def test_create_editor_session_rejects_unknown_schema_type():

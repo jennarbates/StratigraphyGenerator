@@ -9,6 +9,10 @@ from pathlib import Path
 
 JOBS_DIR = Path(__file__).resolve().parent.parent / "jobs"
 ALLOWED_SCHEMA_TYPES = {"ArchaeologicalDiagram", "FieldWallProfile"}
+SHEET_TYPES_BY_SCHEMA = {
+    "ArchaeologicalDiagram": "illustrator",
+    "FieldWallProfile": "fieldwall",
+}
 GRID_REGISTRATION_FIELDS = (
     "originX",
     "originY",
@@ -62,12 +66,25 @@ def create_editor_session(schema_type: str) -> str:
     session_dir = JOBS_DIR / job_id
     session_dir.mkdir(parents=True, exist_ok=True)
 
+    created_at = datetime.now(timezone.utc).isoformat()
     metadata = {
         "schema_type": schema_type,
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": created_at,
     }
     (session_dir / "editor_meta.json").write_text(
         json.dumps(metadata, indent=2)
+    )
+    draft_metadata = {
+        "job_id": job_id,
+        "schema_type": schema_type,
+        "sheet_type": SHEET_TYPES_BY_SCHEMA[schema_type],
+        "source": "manual_editor",
+        "status": "editing",
+        "created_at": created_at,
+        "updated_at": created_at,
+    }
+    (session_dir / "meta.json").write_text(
+        json.dumps(draft_metadata, indent=2)
     )
     return job_id
 
