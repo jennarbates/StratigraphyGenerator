@@ -112,7 +112,22 @@ export function draw(){
   render("tagA",faceA);
   if(B) render("tagB",faceB);
   attachTips();
+  updateAlignUI();
   window.onresize=()=>{render("tagA",faceA); if(B)render("tagB",faceB);};
+}
+
+function updateAlignUI(){
+  const btn=$("alignBtn"), reset=$("alignReset"), hint=$("alignHint");
+  if(!btn||!reset||!hint) return;
+  const calibrated = !!(state.markerCalib && state.markerCalib.px_per_m);
+  btn.disabled = calibrated;
+  reset.disabled = calibrated;
+  btn.style.opacity = reset.style.opacity = calibrated ? 0.5 : 1;
+  hint.innerHTML = calibrated
+    ? "Overlay is placed exactly from this job's marker calibration (origin + scale from the marker-detection step) — dragging is disabled since it would only be overridden on the next redraw."
+    : `The overlay assumes the drawn section fills the whole image. For a
+       photo with margins, click <b>Align</b> then drag a box over just the
+       drawn wall (frame line to frame line).`;
 }
 
 function attachTips(){

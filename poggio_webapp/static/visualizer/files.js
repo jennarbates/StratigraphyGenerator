@@ -13,7 +13,7 @@ function readJSON(file, which){
 }
 function mark(id,name){const el=$(id);el.classList.add("loaded");el.querySelector("span").textContent="✓ "+name;}
 function readIMG(file){if(state.imageUrl)URL.revokeObjectURL(state.imageUrl);state.imageUrl=URL.createObjectURL(file);
-  mark("imgLabel",file.name);ready();}
+  state.imageKey="file:"+file.name+":"+file.size;mark("imgLabel",file.name);ready();}
 
 $("jsonInputA").onchange=e=>e.target.files[0]&&readJSON(e.target.files[0],"A");
 $("jsonInputB").onchange=e=>e.target.files[0]&&readJSON(e.target.files[0],"B");
@@ -55,6 +55,7 @@ document.body.addEventListener("drop",e=>{
     const f = await r.json();
     if(f.image_url){
       state.imageUrl = f.image_url;        // plain URL; revokeObjectURL no-ops on it
+      state.imageKey = "job:"+job+":"+f.image_url;
       mark("imgLabel", "auto: job scan");
     }
     if(f.jsons && f.jsons.length){

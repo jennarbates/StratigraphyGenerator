@@ -9,7 +9,7 @@ from flask import (
     send_from_directory,
 )
 
-from ..jobs import load_meta, rel_url
+from ..jobs import job_dir, load_meta, rel_url
 
 
 bp = Blueprint("pages", __name__)
@@ -33,11 +33,26 @@ def visualizer_files(job_id):
     meta = load_meta(job_id)
     out = {"sheet_type": meta.get("sheet_type"), "jsons": []}
 
-    # Image: preprocessed clean image if present, else the raw scan —
-    # unless the scan is a PDF, which a browser <img> can't show.
-    img = meta.get("clean_image_path") or meta.get("scan_path")
-    if img and Path(img).exists() and not img.lower().endswith(".pdf"):
-        out["image_url"] = rel_url(job_id, Path(img))
+    # marker_calib (origin_px + px_per_m) was computed against the ROTATED
+    # working copy written by markers/detect, not the raw scan or the
+    # (possibly differently-sized) preprocessed clean image. Serving any
+    # other image alongside it would silently misplace the overlay, so if
+    # calibration exists, that rotated copy — not clean/scan — is the image
+    # this job hands to the visualizer.
+    calib = meta.get("marker_calib")
+    rotated_candidate = job_dir(job_id) / "03_extraction" / "marker_source_rotated.png"
+
+    if calib and rotated_candidate.exists():
+        out["image_url"] = rel_url(job_id, rotated_candidate)
+        out["marker_calib"] = calib
+    else:
+        # Image: preprocessed clean image if present, else the raw scan —
+        # unless the scan is a PDF, which a browser <img> can't show.
+        img = meta.get("clean_image_path") or meta.get("scan_path")
+        if img and Path(img).exists() and not img.lower().endswith(".pdf"):
+            out["image_url"] = rel_url(job_id, Path(img))
+        # calib exists but we can't trust it against whatever image we just
+        # served (rotated copy missing) — omit it rather than misalign.
 
     def add(label, path_str, front=False):
         if path_str and Path(path_str).exists():
