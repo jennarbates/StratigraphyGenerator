@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trench Profile Visualizer — Poggio Civitate</title>
+<style>
+  :root {
+    --paper:#efe9dd; --ink:#2b2620; --ink-soft:#6b6357; --line:#cdc3ae;
+    --panel:#f7f3ea; --accent:#7c4a2d; --accent-soft:#b07a54;
+    --surface-line:#1f1b16; --feature:#b0322b; --grid:#a99f88;
+    --shadow:rgba(43,38,32,.12);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;}
+  body{background:var(--paper);color:var(--ink);
+    font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+    display:flex;flex-direction:column;min-height:100vh;}
+  header{padding:18px 26px 14px;border-bottom:1px solid var(--line);
+    display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;
+    background:linear-gradient(180deg,#f2ecdf,var(--paper));}
+  header h1{font-size:20px;font-weight:600;margin:0;}
+  header .sub{font-size:12px;color:var(--ink-soft);letter-spacing:.14em;
+    text-transform:uppercase;font-family:ui-monospace,Menlo,monospace;}
+  header .meta{margin-left:auto;font-size:12.5px;color:var(--ink-soft);}
+  header .meta b{color:var(--ink);font-weight:600;}
+
+  .layout{display:flex;flex:1;min-height:0;}
+  aside{width:300px;flex-shrink:0;border-right:1px solid var(--line);
+    background:var(--panel);overflow-y:auto;padding:16px 16px 40px;}
+  main{flex:1;overflow:auto;padding:22px;display:flex;flex-direction:column;gap:20px;}
+
+  .drop{border:1.5px dashed var(--accent-soft);border-radius:10px;padding:22px 16px;
+    text-align:center;color:var(--ink-soft);background:#fbf8f1;transition:.15s;}
+  .drop.hot{background:#f3e8dc;border-color:var(--accent);color:var(--ink);}
+  .drop strong{color:var(--accent);} .drop small{display:block;margin-top:6px;font-size:11.5px;}
+
+  .row{display:flex;gap:8px;margin-bottom:10px;}
+  .filebtn{flex:1;font:inherit;font-size:12px;padding:8px 10px;cursor:pointer;
+    background:#fff;border:1px solid var(--line);border-radius:7px;color:var(--ink);
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .filebtn:hover{border-color:var(--accent-soft);}
+  .filebtn.loaded{background:#eef4ea;border-color:#9bb48a;}
+  .filebtn.b{background:#fff;} .filebtn.b.loaded{background:#eef0f6;border-color:#8a9bc4;}
+
+  h2.section{font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--ink-soft);margin:20px 0 8px;font-family:ui-monospace,Menlo,monospace;
+    border-bottom:1px solid var(--line);padding-bottom:5px;}
+  .toggle{display:flex;align-items:center;gap:8px;font-size:13px;padding:4px 0;cursor:pointer;}
+  .toggle input{accent-color:var(--accent);}
+
+  .face-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;}
+  .face-tab{font:inherit;font-size:12.5px;padding:6px 12px;cursor:pointer;background:#fff;
+    border:1px solid var(--line);border-radius:20px;color:var(--ink-soft);}
+  .face-tab.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+  .legend-item{display:flex;align-items:center;gap:9px;font-size:12.5px;padding:3px 0;}
+  .swatch{width:16px;height:16px;border-radius:3px;flex-shrink:0;border:1px solid rgba(0,0,0,.15);}
+
+  .panels{display:flex;gap:18px;flex-wrap:wrap;}
+  .panel{flex:1;min-width:340px;}
+  .panel-head{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+  .tagA,.tagB{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;font-weight:600;
+    padding:2px 7px;border-radius:4px;letter-spacing:.06em;}
+  .tagA{background:#f0e3d8;color:var(--accent);border:1px solid var(--accent-soft);}
+  .tagB{background:#e3e7f2;color:#3d4d7a;border:1px solid #8a9bc4;}
+  .canvas-wrap{position:relative;background:#fff;border:1px solid var(--line);
+    border-radius:8px;box-shadow:0 2px 14px var(--shadow);overflow:hidden;}
+  .canvas-wrap img{display:block;max-width:100%;height:auto;}
+  .canvas-wrap svg{position:absolute;inset:0;width:100%;height:100%;}
+  .face-title{font-size:14px;font-weight:600;margin:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .chip{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;font-weight:500;color:var(--ink-soft);
+    background:#f0eadd;padding:2px 8px;border-radius:4px;border:1px solid var(--line);}
+  .hint{color:var(--ink-soft);font-size:12.5px;margin:2px 0 12px;}
+  .empty{color:var(--ink-soft);font-size:14px;text-align:center;padding:60px 20px;line-height:1.6;}
+  .empty svg{display:block;margin:0 auto 14px;opacity:.5;}
+  .notes{font-size:12.5px;color:var(--ink-soft);line-height:1.55;}
+  .notes li{margin-bottom:6px;}
+  .pt{cursor:pointer;}
+  .tooltip{position:fixed;pointer-events:none;z-index:50;background:var(--ink);color:#fff;
+    font-family:ui-monospace,Menlo,monospace;font-size:11px;padding:5px 8px;border-radius:5px;
+    opacity:0;transition:opacity .1s;white-space:nowrap;}
+  .cmpnote{font-size:12px;color:var(--ink-soft);background:#faf6ee;border:1px solid var(--line);
+    border-radius:7px;padding:10px 12px;line-height:1.5;}
+  .cmpnote b{color:var(--ink);}
+  @media (max-width:760px){aside{display:none;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Trench Profile Visualizer</h1>
+  <span class="sub">Poggio Civitate · Murlo</span>
+  <div class="meta" id="meta"></div>
+</header>
+
+<div class="layout">
+  <aside>
+    <label class="toggle" style="margin-bottom:6px;font-weight:600">
+      <input type="checkbox" id="compareMode"> Compare two runs
+    </label>
+
+    <div class="row">
+      <label class="filebtn" id="jsonLabelA"><span>Load JSON (A)</span>
+        <input type="file" id="jsonInputA" accept=".json" hidden></label>
+    </div>
+    <div class="row" id="rowB" style="display:none">
+      <label class="filebtn b" id="jsonLabelB"><span>Load JSON (B)</span>
+        <input type="file" id="jsonInputB" accept=".json" hidden></label>
+    </div>
+    <div class="row">
+      <label class="filebtn" id="imgLabel"><span>Load drawing image</span>
+        <input type="file" id="imgInput" accept="image/*" hidden></label>
+    </div>
+    <div class="drop" id="drop">
+      Drag <strong>JSON</strong> + <strong>image</strong> here
+      <small id="dropSub">image + one JSON</small>
+    </div>
+
+    <div id="controls" style="display:none">
+      <h2 class="section">Faces</h2>
+      <div class="face-tabs" id="faceTabs"></div>
+      <h2 class="section">Show</h2>
+      <label class="toggle"><input type="checkbox" id="tBounds" checked> Layer boundaries</label>
+      <label class="toggle"><input type="checkbox" id="tPoints" checked> Boundary points</label>
+      <label class="toggle"><input type="checkbox" id="tFeatures" checked> Features</label>
+      <label class="toggle"><input type="checkbox" id="tGrid" checked> Grid labels</label>
+      <label class="toggle"><input type="checkbox" id="tLabels"> Layer names</label>
+      <h2 class="section">Layers</h2>
+      <div id="legend"></div>
+      <h2 class="section">Overlay alignment</h2>
+      <div class="row">
+        <button class="filebtn" id="alignBtn">Align overlay to drawing</button>
+      </div>
+      <div class="row">
+        <button class="filebtn" id="alignReset">Reset alignment</button>
+      </div>
+      <p class="hint" style="font-size:11.5px;margin:2px 0 0">The overlay assumes the
+      drawn section fills the whole image. For a photo with margins, click
+      <b>Align</b> then drag a box over just the drawn wall (frame line to
+      frame line).</p>
+    </div>
+  </aside>
+
+  <main id="main">
+    <div class="empty" id="empty">
+      <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
+        <path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 12l9 4 9-4"/><path d="M3 17l9 4 9-4"/>
+      </svg>
+      Load an <b>output.json</b> and its <b>drawing image</b> to see the extracted
+      layers and features overlaid on the section.<br>
+      Tick <b>Compare two runs</b> to load a second JSON and view them side by side.
+    </div>
+  </main>
+</div>
+
+<div class="tooltip" id="tip"></div>
+
+<script>
+const PALETTE=["#c9b79c","#a8895f","#8a6d45","#6f5637","#4f3b26","#b98b63",
+  "#9a9384","#7d7361","#c4a878","#8f7a52","#b0997a","#5c5240","#d8c8a8","#3a3128"];
+const MATERIAL_COLORS={};
+function colorFor(m){const k=(m||"?").toUpperCase().trim();
+  if(!(k in MATERIAL_COLORS))MATERIAL_COLORS[k]=PALETTE[Object.keys(MATERIAL_COLORS).length%PALETTE.length];
+  return MATERIAL_COLORS[k];}
+
+let DATA_A=null, DATA_B=null, IMG_URL=null, activeFace=0, compare=false;
+const $=id=>document.getElementById(id);
+
+// The visualizer draws the illustrator schema (trenchProfiles). Field-wall
+// extractions (loci/layers, points keyed xMeters/depthMeters) are adapted
+// into that shape here — the JS twin of convert_coords.fieldwall_to_profiles,
+// so a T104-style JSON renders as one face instead of "no face #1". Unlike
+// the Python adapter it keeps topBoundary and features. Illustrator JSONs
+// pass through untouched.
+function ingest(d){
+  if(!d||typeof d!=="object") return d;
+  // Already in trenchProfiles shape (a real illustrator extraction, OR a
+  // field sheet pre-adapted server-side by fieldwall_to_profiles). The
+  // server adapter keys depth as `depthMeters` because that is what the
+  // coordinate converter reads — remap in place so the visualizer's
+  // xCoordinateMeters/yCoordinateMeters filter can see the points.
+  if(d.trenchProfiles){
+    const fix=p=>{ if(!p||typeof p!=="object")return;
+      if(typeof p.xCoordinateMeters!=="number"&&typeof p.xMeters==="number")
+        p.xCoordinateMeters=p.xMeters;
+      if(typeof p.yCoordinateMeters!=="number"&&typeof p.depthMeters==="number")
+        p.yCoordinateMeters=p.depthMeters; };
+    (d.trenchProfiles||[]).forEach(f=>(f.layers||[]).forEach(l=>{
+      (l.topBoundary||[]).forEach(fix);
+      (l.bottomBoundary||[]).forEach(fix);
+      (l.featuresInLayer||[]).forEach(ft=>{
+        (ft.shapePoints||[]).forEach(fix);
+        if(typeof ft.approxYMeters!=="number"&&typeof ft.approxDepthMeters==="number")
+          ft.approxYMeters=ft.approxDepthMeters; });
+    }));
+    return d;
+  }
+  if(!(d.loci||d.layers)) return d;
+  const munsell={};
+  (d.loci||[]).forEach(e=>{
+    const num=String(e.locusNumber??"").trim();
+    if(!num||num in munsell)return;   // duplicate loci: keep the first, like the Python adapter
+    let m=e.munsell;
+    if(m&&typeof m==="object")
+      m=[m.raw,m.colorName].filter(v=>v&&String(v).trim().toLowerCase()!=="none").join(" ");
+    munsell[num]=(m&&String(m).trim())||null;
+  });
+  const pt=p=>({
+    xCoordinateMeters:(typeof p.xMeters==="number")?p.xMeters:p.xCoordinateMeters,
+    yCoordinateMeters:(typeof p.depthMeters==="number")?p.depthMeters:p.yCoordinateMeters,
+    confidence:p.confidence});
+  const layers=(d.layers||[]).map((l,i)=>{
+    const num=String(l.locusNumber??"").trim();
+    const name=num?(munsell[num]?`Locus ${num} (${munsell[num]})`:`Locus ${num}`):`layer_${i}`;
+    return {layerName:name, inferredMaterial:name,
+            topBoundary:(l.topBoundary||[]).map(pt),
+            bottomBoundary:(l.bottomBoundary||[]).map(pt),
+            featuresInLayer:(l.featuresInLayer||[]).map(ft=>({
+              feature:ft.feature, description:ft.description,
+              shapePoints:(ft.shapePoints||[]).map(pt),
+              approxXMeters:ft.approxXMeters, approxYMeters:ft.approxDepthMeters,
+              approxWidthMeters:ft.approxWidthMeters, approxHeightMeters:ft.approxHeightMeters}))};
+  });
+  return {metadata:{trenchLabel:d.trenchLabel||d.faceLabel||"field wall"},
+          trenchProfiles:[{face:d.faceLabel||d.trenchLabel||"field wall", layers}]};
+}
+
+function readJSON(file, which){
+  const r=new FileReader();
+  r.onload=()=>{try{const d=ingest(JSON.parse(r.result));
+    if(which==="A"){DATA_A=d; mark("jsonLabelA",file.name);}
+    else {DATA_B=d; mark("jsonLabelB",file.name);}
+    ready();}catch(e){alert("Not valid JSON:\n"+e.message);}};
+  r.readAsText(file);
+}
+function mark(id,name){const el=$(id);el.classList.add("loaded");el.querySelector("span").textContent="✓ "+name;}
+function readIMG(file){if(IMG_URL)URL.revokeObjectURL(IMG_URL);IMG_URL=URL.createObjectURL(file);
+  mark("imgLabel",file.name);ready();}
+
+$("jsonInputA").onchange=e=>e.target.files[0]&&readJSON(e.target.files[0],"A");
+$("jsonInputB").onchange=e=>e.target.files[0]&&readJSON(e.target.files[0],"B");
+$("imgInput").onchange=e=>e.target.files[0]&&readIMG(e.target.files[0]);
+
+$("compareMode").onchange=e=>{
+  compare=e.target.checked;
+  $("rowB").style.display=compare?"flex":"none";
+  $("dropSub").textContent=compare?"image + JSON A + JSON B":"image + one JSON";
+  ready();
+};
+
+const drop=$("drop");
+["dragover","dragenter"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add("hot");}));
+["dragleave","drop"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove("hot");}));
+document.body.addEventListener("dragover",e=>e.preventDefault());
+document.body.addEventListener("drop",e=>{
+  e.preventDefault();
+  const files=[...e.dataTransfer.files];
+  const imgs=files.filter(f=>f.type.startsWith("image/"));
+  const jsons=files.filter(f=>f.type.includes("json")||f.name.endsWith(".json"));
+  if(imgs[0])readIMG(imgs[0]);
+  if(jsons[0])readJSON(jsons[0], "A");
+  if(jsons[1]){ if(!compare){compare=true;$("compareMode").checked=true;$("rowB").style.display="flex";}
+    readJSON(jsons[1],"B"); }
+});
+
+function ready(){
+  const primary = DATA_A || DATA_B;
+  if(!primary) return;
+  const faces = primary.trenchProfiles || [];
+  // switching to a JSON with fewer faces must not leave activeFace pointing
+  // past the end (the old "no face #3" after a 3-face -> 1-face swap)
+  if(activeFace >= faces.length) activeFace = 0;
+  const m = primary.metadata || {};
+  $("meta").innerHTML = m.trenchLabel
+    ? `Trench <b>${m.trenchLabel}</b> · ${(m.credits&&m.credits.year)||"—"} · ${faces.length} face(s)` : "";
+
+  const tabs=$("faceTabs"); tabs.innerHTML="";
+  faces.forEach((f,i)=>{const b=document.createElement("button");
+    b.className="face-tab"+(i===activeFace?" active":"");
+    b.textContent=f.face||("Face "+(i+1));
+    b.onclick=()=>{activeFace=i;draw();document.querySelectorAll(".face-tab").forEach((t,j)=>t.classList.toggle("active",j===i));};
+    tabs.appendChild(b);});
+
+  const legend=$("legend"); legend.innerHTML=""; const seen=new Set();
+  [DATA_A,DATA_B].forEach(D=>{ if(!D)return;
+    (D.trenchProfiles||[]).forEach(f=>(f.layers||[]).forEach(l=>{
+      const mat=l.inferredMaterial||l.layerName||"?"; if(seen.has(mat))return; seen.add(mat);
+      const row=document.createElement("div");row.className="legend-item";
+      row.innerHTML=`<span class="swatch" style="background:${colorFor(mat)}"></span>${mat}`;
+      legend.appendChild(row);}));});
+
+  $("controls").style.display="block";
+  ["tBounds","tPoints","tFeatures","tGrid","tLabels"].forEach(id=>$(id).onchange=draw);
+  draw();
+}
+
+// extent across a face's points
+function faceExtent(face){
+  let maxX=0,maxY=0;
+  const scan=pts=>(pts||[]).forEach(p=>{if(typeof p.xCoordinateMeters==="number")maxX=Math.max(maxX,p.xCoordinateMeters);
+    if(typeof p.yCoordinateMeters==="number")maxY=Math.max(maxY,p.yCoordinateMeters);});
+  (face.layers||[]).forEach(l=>{scan(l.topBoundary);scan(l.bottomBoundary);
+    (l.featuresInLayer||[]).forEach(ft=>scan(ft.shapePoints));});
+  (face.gridLabelXMeters||[]).forEach(x=>{if(typeof x==="number")maxX=Math.max(maxX,x);});
+  return {maxX:maxX||1,maxY:maxY||1};
+}
+
+function buildSVG(face, maxX, maxY, wrap){
+  const vbPad=0.04, vbW=maxX*(1+2*vbPad), vbH=maxY*(1+2*vbPad);
+  const ox=maxX*vbPad, oy=maxY*vbPad;
+  const X=x=>x+ox, Y=y=>y+oy;
+  const show=id=>$(id).checked;
+  const s=[`<svg viewBox="0 0 ${vbW} ${vbH}" preserveAspectRatio="none">`];
+
+  if(show("tGrid")&&face.gridLabelXMeters){
+    face.gridLabelXMeters.forEach((x,i)=>{if(typeof x!=="number")return;
+      const lbl=(face.gridLabels||[])[i]||"";
+      s.push(`<line x1="${X(x)}" y1="${Y(0)}" x2="${X(x)}" y2="${Y(maxY)}" stroke="var(--grid)"
+        stroke-width="${vbW*0.0012}" stroke-dasharray="${vbW*0.004} ${vbW*0.004}"/>`);
+      s.push(`<text x="${X(x)}" y="${Y(0)-vbH*0.01}" font-size="${vbH*0.032}" fill="var(--ink-soft)"
+        text-anchor="middle" font-family="monospace">${esc(lbl)}</text>`);});
+  }
+
+  (face.layers||[]).forEach((l,li)=>{
+    const mat=l.inferredMaterial||l.layerName||"?", col=colorFor(mat);
+    const line=(pts,isSurf)=>{
+      const P=(pts||[]).filter(p=>typeof p.xCoordinateMeters==="number"&&typeof p.yCoordinateMeters==="number");
+      if(!P.length)return;
+      if(show("tBounds")&&P.length>1){
+        const d=P.map((p,k)=>`${k?"L":"M"}${X(p.xCoordinateMeters)},${Y(p.yCoordinateMeters)}`).join(" ");
+        s.push(`<path d="${d}" fill="none" stroke="${isSurf?'var(--surface-line)':col}"
+          stroke-width="${vbW*(isSurf?0.003:0.0022)}" stroke-linejoin="round" stroke-linecap="round" opacity="0.92"/>`);
+      }
+      if(show("tPoints"))P.forEach(p=>s.push(`<circle class="pt" cx="${X(p.xCoordinateMeters)}" cy="${Y(p.yCoordinateMeters)}"
+        r="${vbW*0.0035}" fill="${col}" stroke="#fff" stroke-width="${vbW*0.0008}" opacity="${p.confidence?0.5:1}"
+        data-info="${esc(mat)} · x=${p.xCoordinateMeters}m depth=${p.yCoordinateMeters}m${p.confidence?' · '+esc(p.confidence):''}"/>`));
+      if(show("tLabels")&&!isSurf&&P.length){const mid=P[Math.floor(P.length/2)];
+        s.push(`<text x="${X(mid.xCoordinateMeters)}" y="${Y(mid.yCoordinateMeters)-vbH*0.006}" font-size="${vbH*0.026}"
+          fill="${col}" text-anchor="middle" font-family="monospace" paint-order="stroke" stroke="#fff"
+          stroke-width="${vbH*0.006}">${esc(mat)}</text>`);}
+    };
+    line(l.topBoundary, li===0);
+    line(l.bottomBoundary, false);
+  });
+
+  if(show("tFeatures"))(face.layers||[]).forEach(l=>(l.featuresInLayer||[]).forEach(ft=>{
+    const P=(ft.shapePoints||[]).filter(p=>typeof p.xCoordinateMeters==="number");
+    if(P.length>1){
+      const d=P.map((p,k)=>`${k?"L":"M"}${X(p.xCoordinateMeters)},${Y(p.yCoordinateMeters)}`).join(" ");
+      s.push(`<path d="${d}" fill="none" stroke="var(--feature)" stroke-width="${vbW*0.0035}" stroke-linejoin="round" opacity="0.9"/>`);
+      P.forEach(p=>s.push(`<circle class="pt" cx="${X(p.xCoordinateMeters)}" cy="${Y(p.yCoordinateMeters)}" r="${vbW*0.003}"
+        fill="var(--feature)" stroke="#fff" stroke-width="${vbW*0.0007}"
+        data-info="${esc(ft.feature||'feature')} · x=${p.xCoordinateMeters}m depth=${p.yCoordinateMeters}m"/>`));
+    } else if(typeof ft.approxXMeters==="number"){
+      const x=ft.approxXMeters,y=ft.approxYMeters||0,w=ft.approxWidthMeters||maxX*0.03,h=ft.approxHeightMeters||maxY*0.03;
+      s.push(`<rect class="pt" x="${X(x-w/2)}" y="${Y(y-h/2)}" width="${w}" height="${h}" fill="var(--feature)"
+        fill-opacity="0.16" stroke="var(--feature)" stroke-width="${vbW*0.0018}"
+        data-info="${esc(ft.feature||'feature')} · x=${x}m depth=${y}m ${w}×${h}m"/>`);
+      s.push(`<circle class="pt" cx="${X(x)}" cy="${Y(y)}" r="${vbW*0.003}" fill="var(--feature)" stroke="#fff"
+        stroke-width="${vbW*0.0007}" data-info="${esc(ft.feature||'feature')} · x=${x}m depth=${y}m"/>`);
+    }
+  }));
+
+  s.push(`</svg>`);
+  const old=wrap.querySelector("svg"); if(old)old.remove();
+  wrap.insertAdjacentHTML("beforeend", s.join(""));
+  applyAlign(wrap.querySelector("svg"));
+}
+
+// --- overlay alignment ----------------------------------------------------
+// The SVG's meter-space viewBox is stretched over a rectangle of the image.
+// Default: the whole image (the pre-webapp assumption — true for cropped
+// scans, wrong for photos with margins). ALIGN holds that rectangle as
+// fractions of the image, user-adjustable by dragging a box.
+let ALIGN = {x:0, y:0, w:1, h:1};
+function alignKey(){ return "viz_align_" + (new URLSearchParams(location.search).get("job") || "manual"); }
+try{ const saved = localStorage.getItem(alignKey());
+     if(saved) ALIGN = JSON.parse(saved); }catch(e){}
+// a corrupt or sliver-thin saved box would make the overlay invisible with no
+// hint why — snap back to full-image and forget it
+if(!(ALIGN.w>0.02 && ALIGN.h>0.02 && ALIGN.x>=0 && ALIGN.y>=0 &&
+     ALIGN.x+ALIGN.w<=1.001 && ALIGN.y+ALIGN.h<=1.001)){
+  ALIGN = {x:0, y:0, w:1, h:1};
+  try{ localStorage.removeItem(alignKey()); }catch(e){}
+}
+
+function applyAlign(svg){
+  if(!svg) return;
+  svg.style.inset = "auto";
+  svg.style.left   = (ALIGN.x*100) + "%";
+  svg.style.top    = (ALIGN.y*100) + "%";
+  svg.style.width  = (ALIGN.w*100) + "%";
+  svg.style.height = (ALIGN.h*100) + "%";
+}
+
+let alignArming = false;
+document.getElementById("alignBtn").onclick = ()=>{
+  alignArming = true;
+  document.getElementById("alignBtn").textContent = "now drag a box on the image\u2026";
+  document.body.style.cursor = "crosshair";
+};
+document.getElementById("alignReset").onclick = ()=>{
+  ALIGN = {x:0, y:0, w:1, h:1};
+  try{ localStorage.removeItem(alignKey()); }catch(e){}
+  document.querySelectorAll(".canvas-wrap svg").forEach(applyAlign);
+};
+
+document.addEventListener("mousedown", e=>{
+  if(!alignArming) return;
+  const wrap = e.target.closest(".canvas-wrap");
+  if(!wrap) return;
+  e.preventDefault();
+  const r0 = wrap.getBoundingClientRect();
+  const x0 = e.clientX, y0 = e.clientY;
+  const band = document.createElement("div");
+  band.style.cssText = "position:fixed;border:2px dashed var(--accent);"+
+    "background:rgba(124,74,45,.08);z-index:60;pointer-events:none;";
+  document.body.appendChild(band);
+  const move = ev=>{
+    const x=Math.min(x0,ev.clientX), y=Math.min(y0,ev.clientY);
+    band.style.left=x+"px"; band.style.top=y+"px";
+    band.style.width=Math.abs(ev.clientX-x0)+"px";
+    band.style.height=Math.abs(ev.clientY-y0)+"px";
+  };
+  const up = ev=>{
+    document.removeEventListener("mousemove", move);
+    document.removeEventListener("mouseup", up);
+    band.remove();
+    document.body.style.cursor = "";
+    alignArming = false;
+    document.getElementById("alignBtn").textContent = "Align overlay to drawing";
+    const x=Math.min(x0,ev.clientX), y=Math.min(y0,ev.clientY);
+    const w=Math.abs(ev.clientX-x0), h=Math.abs(ev.clientY-y0);
+    if(w<10 || h<10) return;              // accidental click — ignore
+    ALIGN = {
+      x:(x-r0.left)/r0.width,  y:(y-r0.top)/r0.height,
+      w:w/r0.width,            h:h/r0.height,
+    };
+    try{ localStorage.setItem(alignKey(), JSON.stringify(ALIGN)); }catch(e){}
+    document.querySelectorAll(".canvas-wrap svg").forEach(applyAlign);
+  };
+  document.addEventListener("mousemove", move);
+  document.addEventListener("mouseup", up);
+});
+
+function drawablePoints(face){
+  let n=0;
+  const scan=pts=>(pts||[]).forEach(p=>{
+    if(typeof p.xCoordinateMeters==="number"&&typeof p.yCoordinateMeters==="number")n++;});
+  (face.layers||[]).forEach(l=>{scan(l.topBoundary);scan(l.bottomBoundary);
+    (l.featuresInLayer||[]).forEach(ft=>scan(ft.shapePoints));});
+  return n;
+}
+
+function panelHTML(tag, label, face){
+  const {maxX,maxY}=faceExtent(face);
+  const nPts=drawablePoints(face);
+  return `<div class="panel">
+    <div class="panel-head"><span class="${tag}">${label}</span>
+      <div class="face-title">${esc(face.face||"Face")}
+        <span class="chip">${(face.layers||[]).length} layers</span>
+        <span class="chip">${nPts} points</span>
+        <span class="chip">~${maxX.toFixed(1)}m × ${maxY.toFixed(1)}m</span></div></div>
+    ${nPts===0?`<p class="hint" style="color:#8a3b2c;margin:4px 0 8px">This face has
+      <b>no drawable boundary points</b> — its layers carry empty or non-numeric
+      coordinates, so there is nothing to overlay. The extraction itself is the
+      problem (e.g. a run where no vertex markers were found), not the visualizer.</p>`:""}
+    <div class="canvas-wrap" id="wrap_${tag}">${IMG_URL?`<img src="${IMG_URL}">`:
+      `<div style="width:640px;height:280px;background:repeating-linear-gradient(90deg,#faf7f0,#faf7f0 39px,#f0ebe0 40px)"></div>`}</div>
+  </div>`;
+}
+
+function draw(){
+  const main=$("main");
+  const A=DATA_A, B=compare?DATA_B:null;
+  const primary=A||B; if(!primary){return;}
+  $("empty").style.display="none";
+
+  const faceA = A ? (A.trenchProfiles||[])[activeFace] : null;
+  const faceB = B ? (B.trenchProfiles||[])[activeFace] : null;
+  if(!faceA && !faceB){
+    const anyFaces = [A,B].some(D=>D && (D.trenchProfiles||[]).length);
+    main.innerHTML = anyFaces
+      ? `<div class="empty">This run has no face #${activeFace+1}.</div>`
+      : `<div class="empty">No faces found in this JSON.<br>
+         Expected either an illustrator extraction (<code>trenchProfiles</code>)
+         or a field-wall extraction (<code>loci</code>/<code>layers</code>) —
+         this file has neither, so there is nothing to draw.
+         Grid configs, points.csv exports, and GemPy outputs are not visualizer inputs.</div>`;
+    return;
+  }
+
+  const html=[];
+  html.push(`<p class="hint">Coordinates are face-local: x along the face, depth positive downward. Hover any point for its value.</p>`);
+  html.push(`<div class="panels">`);
+  if(faceA) html.push(panelHTML("tagA", compare?"RUN A":"", faceA));
+  if(B && faceB) html.push(panelHTML("tagB","RUN B", faceB));
+  html.push(`</div>`);
+
+  if(compare && A && B){
+    html.push(`<div class="cmpnote">Same face, two runs. Compare boundary <b>shape</b> between panels:
+      if Run A and Run B track the drawing's lines differently, the extraction changed. If layers within a
+      panel are parallel copies of one another, that panel still has the offset artifact.</div>`);
+  }
+
+  const notes = primary.inferred_notes;
+  if(notes&&notes.length){
+    html.push(`<h2 class="section" style="border:none">Methodology notes${compare?" (Run A)":""}</h2><ul class="notes">`);
+    (Array.isArray(notes)?notes:[notes]).forEach(n=>html.push(`<li>${esc(n)}</li>`));
+    html.push(`</ul>`);
+  }
+  main.innerHTML=html.join("");
+
+  const render=(tag,face)=>{
+    if(!face)return;
+    const wrap=$("wrap_"+tag); const img=wrap.querySelector("img");
+    const {maxX,maxY}=faceExtent(face);
+    const go=()=>buildSVG(face,maxX,maxY,wrap);
+    if(img && !img.complete) img.onload=go; else go();
+  };
+  render("tagA",faceA);
+  if(B) render("tagB",faceB);
+  attachTips();
+  window.onresize=()=>{render("tagA",faceA); if(B)render("tagB",faceB);};
+}
+
+function attachTips(){
+  const tip=$("tip");
+  document.querySelectorAll(".pt").forEach(el=>{
+    el.addEventListener("mousemove",e=>{const info=el.getAttribute("data-info");if(!info)return;
+      tip.textContent=info;tip.style.opacity=1;tip.style.left=(e.clientX+12)+"px";tip.style.top=(e.clientY+12)+"px";});
+    el.addEventListener("mouseleave",()=>tip.style.opacity=0);
+  });
+}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+
+// --- auto-load from the pipeline job -------------------------------------
+// When opened from the app as /visualizer?job=<id>, fetch the job's scan and
+// extraction JSON from the server instead of making the user re-pick files
+// it already has. The pickers stay live as overrides — loading a different
+// JSON into slot B for an A/B compare works exactly as before.
+(async function autoloadFromJob(){
+  const job = new URLSearchParams(location.search).get("job");
+  if(!job) return;
+  try{
+    const r = await fetch(`/api/jobs/${job}/visualizer-files`);
+    if(!r.ok) return;               // unknown job — fall back to manual pickers
+    const f = await r.json();
+    if(f.image_url){
+      IMG_URL = f.image_url;        // plain URL; revokeObjectURL no-ops on it
+      mark("imgLabel", "auto: job scan");
+    }
+    if(f.jsons && f.jsons.length){
+      const a = f.jsons[0];
+      DATA_A = ingest(await (await fetch(a.url)).json());
+      mark("jsonLabelA", "auto: " + a.label);
+      if(f.jsons.length > 1){
+        // pre-fetch the runner-up (e.g. raw extraction vs normalized) into
+        // slot B so ticking "Compare two runs" shows it instantly
+        const b = f.jsons[1];
+        DATA_B = ingest(await (await fetch(b.url)).json());
+        mark("jsonLabelB", "auto: " + b.label);
+      }
+    }
+    if(DATA_A || IMG_URL) ready();
+  }catch(e){
+    console.warn("autoload from job failed; use the file pickers", e);
+  }
+})();
+</script>
+</body>
+</html>
