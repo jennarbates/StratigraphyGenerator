@@ -41,3 +41,4 @@ nav:
       - Capability status: project/capability-status.md
   - Reference:
       - Drawing guidelines: reference/drawing-guidelines.md
+      - Synthetic fixtures: fixtures/README.md

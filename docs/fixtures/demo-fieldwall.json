@@ -1,0 +1,213 @@
+{
+  "date": "2000-01-01",
+  "faceLabel": "Practice Face Zephyr",
+  "finds": [],
+  "gridSquareCm": 20.0,
+  "gridTiePoints": [
+    {
+      "approxXMeters": 0.0,
+      "rawText": "DEMO-ORIGIN-A"
+    },
+    {
+      "approxXMeters": 4.8,
+      "rawText": "DEMO-END-B"
+    }
+  ],
+  "illustrators": [],
+  "layers": [
+    {
+      "bottomBoundary": [
+        {
+          "confidence": "synthetic",
+          "depthMeters": 0.62,
+          "xMeters": 0.0
+        },
+        {
+          "confidence": "synthetic",
+          "depthMeters": 0.58,
+          "xMeters": 0.47
+        },
+        {
+          "confidence": "synthetic",
+          "depthMeters": 0.72,
+          "xMeters": 1.36
+        },
+        {
+          "confidence": "synthetic",
+          "depthMeters": 0.67,
+          "xMeters": 2.14
+        },
+        {
+          "confidence": "synthetic",
+          "depthMeters": 0.81,
+          "xMeters": 3.29
+        },
+        {
+          "confidence": "synthetic",
+          "depthMeters": 0.76,
+          "xMeters": 3.91
+        },
+        {
+          "confidence": "synthetic",
+          "depthMeters": 0.86,
+          "xMeters": 4.8
+        }
+      ],
+      "featuresInLayer": [
+        {
+          "approxDepthMeters": 0.47,
+          "approxHeightMeters": 0.18,
+          "approxWidthMeters": 0.44,
+          "approxXMeters": 2.62,
+          "confidence": "synthetic",
+          "description": "Invented internal feature for documentation only.",
+          "feature": "Synthetic rounded inclusion",
+          "shapePoints": null
+        }
+      ],
+      "locusNumber": "DEMO-L1",
+      "topBoundary": [
+        {
+          "confidence": "synthetic",
+          "depthMeters": 0.18,
+          "xMeters": 0.0
+        },
+        {
+          "confidence": "synthetic",
+          "depthMeters": 0.14,
+          "xMeters": 0.52
+        },
+        {
+          "confidence": "synthetic",
+          "depthMeters": 0.2,
+          "xMeters": 1.41
+        },
+        {
+          "confidence": "synthetic",
+          "depthMeters": 0.17,
+          "xMeters": 2.18
+        },
+        {
+          "confidence": "synthetic",
+          "depthMeters": 0.23,
+          "xMeters": 3.36
+        },
+        {
+          "confidence": "synthetic",
+          "depthMeters": 0.19,
+          "xMeters": 4.02
+        },
+        {
+          "confidence": "synthetic",
+          "depthMeters": 0.24,
+          "xMeters": 4.8
+        }
+      ]
+    },
+    {
+      "bottomBoundary": [
+        {
+          "confidence": "synthetic",
+          "depthMeters": 1.3,
+          "xMeters": 0.0
+        },
+        {
+          "confidence": "synthetic",
+          "depthMeters": 1.38,
+          "xMeters": 0.71
+        },
+        {
+          "confidence": "synthetic",
+          "depthMeters": 1.31,
+          "xMeters": 1.18
+        },
+        {
+          "confidence": "synthetic",
+          "depthMeters": 1.48,
+          "xMeters": 2.37
+        },
+        {
+          "confidence": "synthetic",
+          "depthMeters": 1.4,
+          "xMeters": 3.08
+        },
+        {
+          "confidence": "synthetic",
+          "depthMeters": 1.53,
+          "xMeters": 4.21
+        },
+        {
+          "confidence": "synthetic",
+          "depthMeters": 1.46,
+          "xMeters": 4.8
+        }
+      ],
+      "featuresInLayer": [],
+      "locusNumber": "DEMO-L2",
+      "topBoundary": [
+        {
+          "confidence": "synthetic",
+          "depthMeters": 0.62,
+          "xMeters": 0.0
+        },
+        {
+          "confidence": "synthetic",
+          "depthMeters": 0.58,
+          "xMeters": 0.47
+        },
+        {
+          "confidence": "synthetic",
+          "depthMeters": 0.72,
+          "xMeters": 1.36
+        },
+        {
+          "confidence": "synthetic",
+          "depthMeters": 0.67,
+          "xMeters": 2.14
+        },
+        {
+          "confidence": "synthetic",
+          "depthMeters": 0.81,
+          "xMeters": 3.29
+        },
+        {
+          "confidence": "synthetic",
+          "depthMeters": 0.76,
+          "xMeters": 3.91
+        },
+        {
+          "confidence": "synthetic",
+          "depthMeters": 0.86,
+          "xMeters": 4.8
+        }
+      ]
+    }
+  ],
+  "loci": [
+    {
+      "confidence": "synthetic",
+      "description": "Invented upper practice layer.",
+      "locusNumber": "DEMO-L1",
+      "munsell": {
+        "colorName": "illustrative ochre",
+        "raw": "10YR 5/4"
+      }
+    },
+    {
+      "confidence": "synthetic",
+      "description": "Invented lower practice layer.",
+      "locusNumber": "DEMO-L2",
+      "munsell": {
+        "colorName": "illustrative umber",
+        "raw": "7.5YR 4/3"
+      }
+    }
+  ],
+  "marginalia": [
+    "Synthetic documentation example",
+    "All labels and local measurements on this sheet are invented."
+  ],
+  "northArrowPresent": false,
+  "source": "manual_editor",
+  "trenchLabel": "DEMO-ASTER"
+}
