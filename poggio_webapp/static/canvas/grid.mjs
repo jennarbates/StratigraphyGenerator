@@ -19,19 +19,50 @@ export function debounce(callback, waitMilliseconds, timers = globalThis) {
   }
 
   let timeoutId;
+  let pendingCall;
 
-  return function debounced(...args) {
-    const callbackContext = this;
+  function invokePending(call) {
+    if (pendingCall !== call) {
+      return undefined;
+    }
 
-    if (timeoutId !== undefined) {
+    pendingCall = undefined;
+    timeoutId = undefined;
+    return callback.apply(call.context, call.args);
+  }
+
+  function debounced(...args) {
+    if (pendingCall !== undefined) {
       timers.clearTimeout(timeoutId);
     }
 
+    const call = { args, context: this };
+    pendingCall = call;
     timeoutId = timers.setTimeout(() => {
-      timeoutId = undefined;
-      callback.apply(callbackContext, args);
+      invokePending(call);
     }, waitMilliseconds);
+  }
+
+  debounced.flush = () => {
+    if (pendingCall === undefined) {
+      return undefined;
+    }
+
+    timers.clearTimeout(timeoutId);
+    return invokePending(pendingCall);
   };
+
+  debounced.cancel = () => {
+    if (pendingCall === undefined) {
+      return;
+    }
+
+    timers.clearTimeout(timeoutId);
+    pendingCall = undefined;
+    timeoutId = undefined;
+  };
+
+  return debounced;
 }
 
 export function metersToPixels(meters, pixelsPerMeter) {

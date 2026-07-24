@@ -397,6 +397,123 @@ test("switching faces and back preserves polygons without duplication", () => {
   assert.deepEqual(editorState.faces[1].polygons, eastBeforeSwitch);
 });
 
+function createFakeTimers() {
+  let nextTimerId = 1;
+  const pendingTimers = new Map();
+  const timers = {
+    setTimeout(callback, delay) {
+      const timerId = nextTimerId;
+      nextTimerId += 1;
+      pendingTimers.set(timerId, { callback, delay });
+      return timerId;
+    },
+    clearTimeout(timerId) {
+      pendingTimers.delete(timerId);
+    },
+  };
+
+  return { pendingTimers, timers };
+}
+
+test("flush runs a pending callback immediately", () => {
+  const { pendingTimers, timers } = createFakeTimers();
+  const calls = [];
+  const debounced = debounce((value) => calls.push(value), 2000, timers);
+
+  debounced("pending");
+  assert.deepEqual(calls, []);
+
+  debounced.flush();
+
+  assert.deepEqual(calls, ["pending"]);
+  assert.equal(pendingTimers.size, 0);
+});
+
+test("flush uses the most recent arguments", () => {
+  const { timers } = createFakeTimers();
+  const calls = [];
+  const debounced = debounce((...args) => calls.push(args), 2000, timers);
+
+  debounced("first", 1);
+  debounced("latest", 2);
+  debounced.flush();
+
+  assert.deepEqual(calls, [["latest", 2]]);
+});
+
+test("flush preserves callback this context", () => {
+  const { timers } = createFakeTimers();
+  const supersededContext = { name: "previous editor" };
+  const callbackContext = { name: "editor" };
+  let receivedContext;
+  const debounced = debounce(function save() {
+    receivedContext = this;
+  }, 2000, timers);
+
+  debounced.call(supersededContext);
+  debounced.call(callbackContext);
+  debounced.flush();
+
+  assert.equal(receivedContext, callbackContext);
+});
+
+test("flush runs the pending callback at most once", () => {
+  const { pendingTimers, timers } = createFakeTimers();
+  let callCount = 0;
+  const debounced = debounce(() => {
+    callCount += 1;
+  }, 2000, timers);
+
+  debounced();
+  const [{ callback: scheduledCallback }] = pendingTimers.values();
+  debounced.flush();
+  scheduledCallback();
+  debounced.flush();
+
+  assert.equal(callCount, 1);
+});
+
+test("flush with no pending callback does nothing", () => {
+  const { pendingTimers, timers } = createFakeTimers();
+  let callCount = 0;
+  const debounced = debounce(() => {
+    callCount += 1;
+  }, 2000, timers);
+
+  debounced.flush();
+
+  assert.equal(callCount, 0);
+  assert.equal(pendingTimers.size, 0);
+});
+
+test("cancel removes a pending callback", () => {
+  const { pendingTimers, timers } = createFakeTimers();
+  const debounced = debounce(() => {}, 2000, timers);
+
+  debounced();
+  assert.equal(pendingTimers.size, 1);
+
+  debounced.cancel();
+
+  assert.equal(pendingTimers.size, 0);
+});
+
+test("a canceled callback never runs", () => {
+  const { pendingTimers, timers } = createFakeTimers();
+  let callCount = 0;
+  const debounced = debounce(() => {
+    callCount += 1;
+  }, 2000, timers);
+
+  debounced();
+  const [{ callback: scheduledCallback }] = pendingTimers.values();
+  debounced.cancel();
+  scheduledCallback();
+  debounced.flush();
+
+  assert.equal(callCount, 0);
+});
+
 test("rapid debounced saves run once with the latest state", () => {
   let nextTimerId = 1;
   const pendingTimers = new Map();
@@ -545,7 +662,7 @@ with tempfile.TemporaryDirectory() as jobs_directory:
     job_id = editor.create_editor_session("ArchaeologicalDiagram")
     editor.save_editor_state(job_id, state)
     result = editor.finalize_editor_session(job_id)
-    assert result.model_dump(exclude={"source"}) == state
+    assert result.model_dump(exclude={"source"}) == {**state, "finds": []}
     print(f"validated {type(result).__name__}, source={result.source}")
 `;
   const result = spawnSync(python, ["-c", script], {
