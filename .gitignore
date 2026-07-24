@@ -5,3 +5,9 @@ __pycache__/
 .DS_Store
 poggio_webapp/static/modularize_app.py
 poggio_webapp/static/app.legacy.js
+poggio_webapp/app.legacy.js
+poggio_webapp/static/visualizer.legacy.html
+poggio_webapp/static/modularize_visualizer.py
+00_docs/CLAUDE.md
+poggio_webapp/app.legacy.py
+poggio_webapp/modularize_backend.py
