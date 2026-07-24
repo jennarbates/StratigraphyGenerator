@@ -10,6 +10,7 @@
 // box — align image A, then load image B, and B silently inherits A's box
 // (wrong scale, wrong crop, no visible reason why). Falls back to ?job= and
 // then "manual" only when state.imageKey hasn't been set yet.
+import { hasExactCalibration } from "./alignment-policy.mjs";
 import { state } from "./state.js";
 
 const DEFAULT_ALIGN = {x:0, y:0, w:1, h:1};
@@ -46,7 +47,7 @@ function refresh(){
 }
 
 export function applyAlign(svg){
-  if(!svg) return;
+  if(!svg||hasExactCalibration(state.calibration)) return;
   refresh();
   svg.style.inset = "auto";
   svg.style.left   = (ALIGN.x*100) + "%";
@@ -57,18 +58,20 @@ export function applyAlign(svg){
 
 let alignArming = false;
 document.getElementById("alignBtn").onclick = ()=>{
+  if(hasExactCalibration(state.calibration)) return;
   alignArming = true;
   document.getElementById("alignBtn").textContent = "now drag a box on the image\u2026";
   document.body.style.cursor = "crosshair";
 };
 document.getElementById("alignReset").onclick = ()=>{
+  if(hasExactCalibration(state.calibration)) return;
   ALIGN = {x:0, y:0, w:1, h:1};
   try{ localStorage.removeItem(alignKey()); }catch(e){}
   document.querySelectorAll(".canvas-wrap svg").forEach(applyAlign);
 };
 
 document.addEventListener("mousedown", e=>{
-  if(!alignArming) return;
+  if(!alignArming||hasExactCalibration(state.calibration)) return;
   const wrap = e.target.closest(".canvas-wrap");
   if(!wrap) return;
   e.preventDefault();
@@ -91,6 +94,7 @@ document.addEventListener("mousedown", e=>{
     document.body.style.cursor = "";
     alignArming = false;
     document.getElementById("alignBtn").textContent = "Align overlay to drawing";
+    if(hasExactCalibration(state.calibration)) return;
     const x=Math.min(x0,ev.clientX), y=Math.min(y0,ev.clientY);
     const w=Math.abs(ev.clientX-x0), h=Math.abs(ev.clientY-y0);
     if(w<10 || h<10) return;              // accidental click — ignore

@@ -1,5 +1,9 @@
 import { colorFor } from "./colors.js";
 import { $, esc } from "./dom.js";
+import {
+  alignmentUiModel,
+  hasExactCalibration,
+} from "./alignment-policy.mjs";
 import { buildSVG, faceExtent } from "./svg.js";
 import { state } from "./state.js";
 
@@ -109,9 +113,12 @@ export function draw(){
     const go=()=>{
       const imageWidth=img?.naturalWidth||null;
       const imageHeight=img?.naturalHeight||null;
-      if(state.calibration&&(!imageWidth||!imageHeight))return;
+      const calibration=hasExactCalibration(state.calibration)
+        ? state.calibration
+        : null;
+      if(calibration&&(!imageWidth||!imageHeight))return;
       buildSVG(face,maxX,maxY,wrap,{
-        calibration:state.calibration,
+        calibration,
         imageWidth,
         imageHeight,
       });
@@ -128,15 +135,11 @@ export function draw(){
 function updateAlignUI(){
   const btn=$("alignBtn"), reset=$("alignReset"), hint=$("alignHint");
   if(!btn||!reset||!hint) return;
-  const calibrated = !!(state.calibration && state.calibration.px_per_m);
-  btn.disabled = calibrated;
-  reset.disabled = calibrated;
-  btn.style.opacity = reset.style.opacity = calibrated ? 0.5 : 1;
-  hint.innerHTML = calibrated
-    ? "Overlay is placed exactly from this job's marker calibration (origin + scale from the marker-detection step) — dragging is disabled since it would only be overridden on the next redraw."
-    : `The overlay assumes the drawn section fills the whole image. For a
-       photo with margins, click <b>Align</b> then drag a box over just the
-       drawn wall (frame line to frame line).`;
+  const model=alignmentUiModel(state.calibration);
+  btn.disabled = model.controlsDisabled;
+  reset.disabled = model.controlsDisabled;
+  btn.style.opacity = reset.style.opacity = model.controlsDisabled ? 0.5 : 1;
+  hint.textContent = model.message;
 }
 
 function attachTips(root=document){
