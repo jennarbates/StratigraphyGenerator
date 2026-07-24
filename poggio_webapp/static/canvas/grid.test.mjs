@@ -25,6 +25,7 @@ import {
   serializePolygons,
   undoCurrentPolygonVertex,
   validateBearingDeg,
+  validateEditorStateForFinalize,
 } from "./grid.mjs";
 
 const pixelsPerMeter = 200;
@@ -627,6 +628,247 @@ test("bearing validation rejects values outside 0 through 360", () => {
   assert.equal(validateBearingDeg(360), 360);
   assert.throws(() => validateBearingDeg(-0.1), RangeError);
   assert.throws(() => validateBearingDeg(360.1), RangeError);
+});
+
+function createValidFinalizeFace(name, polygonMetadata) {
+  return {
+    name,
+    gridRegistration: {
+      originX: "123.5",
+      originY: "456.25",
+      surfaceZ: "287.8",
+      bearing_deg: "90",
+    },
+    polygons: [
+      {
+        id: 3,
+        closed: true,
+        vertices: [
+          { x: 0, y: 0 },
+          { x: 100, y: 0 },
+          { x: 0, y: 100 },
+        ],
+      },
+      {
+        id: 4,
+        closed: false,
+        vertices: [],
+      },
+    ],
+    polygonMetadata: {
+      3: polygonMetadata,
+    },
+    currentPolygonId: 4,
+  };
+}
+
+function createValidArchaeologicalFinalizeState() {
+  return {
+    activeFaceIndex: 0,
+    faces: [createValidFinalizeFace(
+      "South",
+      { material: "Soil", note: "Upper layer" },
+    )],
+  };
+}
+
+function createValidFieldWallFinalizeState() {
+  return {
+    activeFaceIndex: 0,
+    faces: [createValidFinalizeFace(
+      "Wall",
+      { locus: "1042", munsell: "10YR 5/3", note: "Compact" },
+    )],
+  };
+}
+
+function assertCannotFinalize(editorState, schemaType, messagePattern) {
+  const validation = validateEditorStateForFinalize(editorState, schemaType);
+
+  assert.equal(validation.canFinalize, false);
+  assert.match(validation.message, messagePattern);
+}
+
+test("finalization rejects an editor state with no faces", () => {
+  assertCannotFinalize(
+    { activeFaceIndex: -1, faces: [] },
+    "ArchaeologicalDiagram",
+    /at least one face/i,
+  );
+});
+
+test("finalization rejects a face with no completed polygons", () => {
+  const editorState = createValidArchaeologicalFinalizeState();
+  editorState.faces[0].polygons = [];
+  editorState.faces[0].polygonMetadata = {};
+
+  assertCannotFinalize(
+    editorState,
+    "ArchaeologicalDiagram",
+    /Face "South".*completed polygon/i,
+  );
+});
+
+test("finalization rejects duplicate face names", () => {
+  const editorState = createValidArchaeologicalFinalizeState();
+  const duplicateFace = structuredClone(editorState.faces[0]);
+  duplicateFace.name = "south";
+  editorState.faces.push(duplicateFace);
+
+  assertCannotFinalize(
+    editorState,
+    "ArchaeologicalDiagram",
+    /duplicate face name.*south/i,
+  );
+});
+
+test("finalization rejects a FieldWallProfile with more than one face", () => {
+  const editorState = createValidFieldWallFinalizeState();
+  const secondFace = structuredClone(editorState.faces[0]);
+  secondFace.name = "Wall return";
+  editorState.faces.push(secondFace);
+
+  assertCannotFinalize(
+    editorState,
+    "FieldWallProfile",
+    /FieldWallProfile.*one face/i,
+  );
+});
+
+test("finalization rejects an open polygon", () => {
+  const editorState = createValidArchaeologicalFinalizeState();
+  editorState.faces[0].polygons[0].closed = false;
+
+  assertCannotFinalize(
+    editorState,
+    "ArchaeologicalDiagram",
+    /Face "South" polygon 3.*open/i,
+  );
+});
+
+test("finalization rejects a polygon with fewer than three distinct vertices", () => {
+  const editorState = createValidArchaeologicalFinalizeState();
+  editorState.faces[0].polygons[0].vertices = [
+    { x: 0, y: 0 },
+    { x: 100, y: 0 },
+    { x: 0, y: 0 },
+  ];
+
+  assertCannotFinalize(
+    editorState,
+    "ArchaeologicalDiagram",
+    /Face "South" polygon 3.*three distinct vertices/i,
+  );
+});
+
+test("finalization rejects a self-intersecting polygon", () => {
+  const editorState = createValidArchaeologicalFinalizeState();
+  editorState.faces[0].polygons[0].vertices = [
+    { x: 0, y: 0 },
+    { x: 100, y: 100 },
+    { x: 0, y: 100 },
+    { x: 100, y: 0 },
+  ];
+
+  assertCannotFinalize(
+    editorState,
+    "ArchaeologicalDiagram",
+    /Face "South" polygon 3 self-intersects/i,
+  );
+});
+
+test("finalization rejects a closed polygon without metadata", () => {
+  const editorState = createValidArchaeologicalFinalizeState();
+  delete editorState.faces[0].polygonMetadata[3];
+
+  assertCannotFinalize(
+    editorState,
+    "ArchaeologicalDiagram",
+    /Face "South" polygon 3 needs metadata/i,
+  );
+});
+
+test("finalization rejects an archaeological polygon without material", () => {
+  const editorState = createValidArchaeologicalFinalizeState();
+  editorState.faces[0].polygonMetadata[3] = { note: "Unlabelled layer" };
+
+  assertCannotFinalize(
+    editorState,
+    "ArchaeologicalDiagram",
+    /Face "South" polygon 3 needs a material/i,
+  );
+});
+
+test("finalization rejects a field-wall polygon without locus", () => {
+  const editorState = createValidFieldWallFinalizeState();
+  editorState.faces[0].polygonMetadata[3].locus = " ";
+
+  assertCannotFinalize(
+    editorState,
+    "FieldWallProfile",
+    /Face "Wall" polygon 3 needs a locus/i,
+  );
+});
+
+test("finalization rejects a field-wall polygon without Munsell notation", () => {
+  const editorState = createValidFieldWallFinalizeState();
+  delete editorState.faces[0].polygonMetadata[3].munsell;
+
+  assertCannotFinalize(
+    editorState,
+    "FieldWallProfile",
+    /Face "Wall" polygon 3 needs Munsell notation/i,
+  );
+});
+
+test("finalization rejects incomplete grid registration", () => {
+  const editorState = createValidArchaeologicalFinalizeState();
+  editorState.faces[0].gridRegistration.surfaceZ = "";
+
+  assertCannotFinalize(
+    editorState,
+    "ArchaeologicalDiagram",
+    /Face "South" has incomplete grid registration/i,
+  );
+});
+
+test("finalization rejects bearings below 0 or above 360", () => {
+  for (const bearing of [-0.1, 360.1]) {
+    const editorState = createValidArchaeologicalFinalizeState();
+    editorState.faces[0].gridRegistration.bearing_deg = bearing;
+
+    assertCannotFinalize(
+      editorState,
+      "ArchaeologicalDiagram",
+      /Face "South".*Bearing must be a number from 0 through 360/i,
+    );
+  }
+});
+
+test("finalization accepts a valid ArchaeologicalDiagram editor state", () => {
+  assert.deepEqual(
+    validateEditorStateForFinalize(
+      createValidArchaeologicalFinalizeState(),
+      "ArchaeologicalDiagram",
+    ),
+    {
+      canFinalize: true,
+      message: "All structural checks pass; ready to finalize.",
+    },
+  );
+});
+
+test("finalization accepts a valid FieldWallProfile editor state", () => {
+  assert.deepEqual(
+    validateEditorStateForFinalize(
+      createValidFieldWallFinalizeState(),
+      "FieldWallProfile",
+    ),
+    {
+      canFinalize: true,
+      message: "All structural checks pass; ready to finalize.",
+    },
+  );
 });
 
 test("switching faces and back preserves polygons without duplication", () => {

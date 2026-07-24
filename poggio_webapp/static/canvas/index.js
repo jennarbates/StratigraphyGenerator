@@ -171,7 +171,12 @@ function updateEditorFinalizeControl() {
     showInvalidSessionError();
     return { canFinalize: false, message: finalizeStatus.textContent };
   }
-  return updateFinalizeControl(finalizeButton, finalizeStatus, editorState);
+  return updateFinalizeControl(
+    finalizeButton,
+    finalizeStatus,
+    editorState,
+    schemaType,
+  );
 }
 
 function saveEditorSession({ keepalive = false } = {}) {

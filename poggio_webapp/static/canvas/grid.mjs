@@ -413,7 +413,32 @@ function polygonStackingError(face, polygons) {
   return null;
 }
 
-export function validateEditorStateForFinalize(editorState) {
+function emptyCurrentDraft(face, polygon) {
+  const currentPolygonId = face.currentPolygon?.id ?? face.currentPolygonId;
+
+  return (
+    !polygon.closed
+    && (polygon.vertices ?? []).length === 0
+    && (
+      face.currentPolygon === polygon
+      || (
+        currentPolygonId !== undefined
+        && currentPolygonId !== null
+        && polygon.id === currentPolygonId
+      )
+    )
+  );
+}
+
+function hasRequiredText(value) {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+function distinctVertexCount(vertices) {
+  return new Set(vertices.map(({ x, y }) => JSON.stringify([x, y]))).size;
+}
+
+export function validateEditorStateForFinalize(editorState, schemaType) {
   if (!editorState.faces?.length) {
     return {
       canFinalize: false,
@@ -421,8 +446,51 @@ export function validateEditorStateForFinalize(editorState) {
     };
   }
 
+  if (
+    schemaType !== "ArchaeologicalDiagram"
+    && schemaType !== "FieldWallProfile"
+  ) {
+    return {
+      canFinalize: false,
+      message: `Unsupported schema type: ${schemaType}.`,
+    };
+  }
+
+  if (schemaType === "FieldWallProfile" && editorState.faces.length !== 1) {
+    return {
+      canFinalize: false,
+      message: "A FieldWallProfile must have exactly one face.",
+    };
+  }
+
+  const normalizedFaceNames = new Set();
+
+  for (let faceIndex = 0; faceIndex < editorState.faces.length; faceIndex += 1) {
+    const face = editorState.faces[faceIndex];
+    const faceName = typeof face.name === "string" ? face.name.trim() : "";
+
+    if (!faceName) {
+      return {
+        canFinalize: false,
+        message: `Face ${faceIndex + 1} needs a name.`,
+      };
+    }
+
+    const normalizedFaceName = faceName.toLocaleLowerCase();
+
+    if (normalizedFaceNames.has(normalizedFaceName)) {
+      return {
+        canFinalize: false,
+        message: `Duplicate face name "${faceName}"; face names must be unique.`,
+      };
+    }
+    normalizedFaceNames.add(normalizedFaceName);
+  }
+
   for (const face of editorState.faces) {
-    const polygons = drawablePolygons(face);
+    const polygons = (face.polygons ?? []).filter(
+      (polygon) => !emptyCurrentDraft(face, polygon),
+    );
     const stackingError = polygonStackingError(face, polygons);
 
     if (stackingError) {
@@ -430,17 +498,26 @@ export function validateEditorStateForFinalize(editorState) {
     }
 
     for (const polygon of polygons) {
-      if (!polygon.closed || polygon.vertices.length < 3) {
+      if (!polygon.closed) {
+        return {
+          canFinalize: false,
+          message: `Face "${face.name}" polygon ${polygon.id} is open.`,
+        };
+      }
+
+      const vertices = polygon.vertices ?? [];
+
+      if (distinctVertexCount(vertices) < 3) {
         return {
           canFinalize: false,
           message: (
-            `Face "${face.name}" polygon ${polygon.id} is not closed`
-            + " with at least three vertices."
+            `Face "${face.name}" polygon ${polygon.id} needs at least`
+            + " three distinct vertices."
           ),
         };
       }
 
-      if (hasSelfIntersection(polygon.vertices)) {
+      if (hasSelfIntersection(vertices)) {
         return {
           canFinalize: false,
           message: (
@@ -448,6 +525,64 @@ export function validateEditorStateForFinalize(editorState) {
           ),
         };
       }
+
+      const metadataByPolygonId = metadataForFace(face);
+
+      if (
+        !Object.prototype.hasOwnProperty.call(
+          metadataByPolygonId,
+          polygon.id,
+        )
+        || metadataByPolygonId[polygon.id] === null
+        || typeof metadataByPolygonId[polygon.id] !== "object"
+      ) {
+        return {
+          canFinalize: false,
+          message: (
+            `Face "${face.name}" polygon ${polygon.id} needs metadata.`
+          ),
+        };
+      }
+
+      const metadata = metadataByPolygonId[polygon.id];
+
+      if (schemaType === "FieldWallProfile") {
+        if (!hasRequiredText(metadata.locus)) {
+          return {
+            canFinalize: false,
+            message: (
+              `Face "${face.name}" polygon ${polygon.id} needs a locus.`
+            ),
+          };
+        }
+
+        if (!hasRequiredText(metadata.munsell)) {
+          return {
+            canFinalize: false,
+            message: (
+              `Face "${face.name}" polygon ${polygon.id}`
+              + " needs Munsell notation."
+            ),
+          };
+        }
+      } else if (
+        !hasRequiredText(metadata.material)
+        && !hasRequiredText(metadata.inferredMaterial)
+      ) {
+        return {
+          canFinalize: false,
+          message: (
+            `Face "${face.name}" polygon ${polygon.id} needs a material.`
+          ),
+        };
+      }
+    }
+
+    if (polygons.length === 0) {
+      return {
+        canFinalize: false,
+        message: `Face "${face.name}" needs at least one completed polygon.`,
+      };
     }
 
     try {
@@ -473,8 +608,9 @@ export function updateFinalizeControl(
   finalizeButton,
   statusElement,
   editorState,
+  schemaType,
 ) {
-  const validation = validateEditorStateForFinalize(editorState);
+  const validation = validateEditorStateForFinalize(editorState, schemaType);
   finalizeButton.disabled = !validation.canFinalize;
   statusElement.textContent = validation.message;
   return validation;
