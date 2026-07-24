@@ -10,6 +10,30 @@ export const CANVAS_WIDTH_METERS = 3;
 export const CANVAS_HEIGHT_METERS = 2;
 export const GRID_SPACING_METERS = 0.25;
 
+export function debounce(callback, waitMilliseconds, timers = globalThis) {
+  if (typeof callback !== "function") {
+    throw new TypeError("Debounced callback must be a function.");
+  }
+  if (!Number.isFinite(waitMilliseconds) || waitMilliseconds < 0) {
+    throw new RangeError("Debounce delay must be a non-negative number.");
+  }
+
+  let timeoutId;
+
+  return function debounced(...args) {
+    const callbackContext = this;
+
+    if (timeoutId !== undefined) {
+      timers.clearTimeout(timeoutId);
+    }
+
+    timeoutId = timers.setTimeout(() => {
+      timeoutId = undefined;
+      callback.apply(callbackContext, args);
+    }, waitMilliseconds);
+  };
+}
+
 export function metersToPixels(meters, pixelsPerMeter) {
   return meters * pixelsPerMeter;
 }
@@ -546,6 +570,69 @@ export function assembleGridConfig(editorState) {
   return { faces };
 }
 
+function cloneJsonValue(value) {
+  if (Array.isArray(value)) {
+    return value.map(cloneJsonValue);
+  }
+
+  if (value !== null && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, nestedValue]) => (
+        [key, cloneJsonValue(nestedValue)]
+      )),
+    );
+  }
+
+  return value;
+}
+
+export function snapshotEditorState(editorState) {
+  return {
+    activeFaceIndex: editorState.activeFaceIndex,
+    faces: editorState.faces.map((face) => ({
+      name: face.name,
+      gridRegistration: cloneJsonValue(face.gridRegistration ?? {}),
+      polygons: cloneJsonValue(face.polygons ?? []),
+      polygonMetadata: cloneJsonValue(
+        face.polygonMetadata ?? face.metadataByPolygonId ?? {},
+      ),
+      nextPolygonId: face.nextPolygonId,
+      currentPolygonId: face.currentPolygon?.id ?? (
+        face.currentPolygonId ?? null
+      ),
+      selectedVertex: cloneJsonValue(face.selectedVertex ?? null),
+    })),
+  };
+}
+
+export function reconstructEditorState(savedState) {
+  const resumableState = (
+    savedState?.resumeState
+    ?? savedState?.editorState
+    ?? savedState
+  );
+
+  if (!resumableState || !Array.isArray(resumableState.faces)) {
+    throw new TypeError("Saved editor state must include a faces array.");
+  }
+
+  return cloneJsonValue(resumableState);
+}
+
+function assembleSaveGridConfig(editorState) {
+  try {
+    return assembleGridConfig(editorState);
+  } catch (error) {
+    const faces = {};
+
+    for (const face of editorState.faces) {
+      faces[face.name] = cloneJsonValue(face.gridRegistration ?? {});
+    }
+
+    return { faces };
+  }
+}
+
 export function assembleEditorSessionState(
   editorState,
   schemaType,
@@ -564,12 +651,14 @@ export function assembleEditorSessionState(
   };
 
   return {
+    schemaType,
     finalizeState: assembleFinalizeState(
       editorState,
       schemaType,
       documentMetadata,
     ),
-    gridConfig: assembleGridConfig(editorState),
+    gridConfig: assembleSaveGridConfig(editorState),
     editorState: structuralEditorState,
+    resumeState: snapshotEditorState(editorState),
   };
 }

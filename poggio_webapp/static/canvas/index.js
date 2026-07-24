@@ -3,12 +3,15 @@ import {
   CANVAS_WIDTH_METERS,
   GRID_SPACING_METERS,
   PIXELS_PER_METER,
+  assembleEditorSessionState,
+  debounce,
   edgeMidpoint,
   hasSelfIntersection,
   isShapeClosed,
   metersToPixels,
   nearestGridPoint,
   pixelsToMeters,
+  reconstructEditorState,
   selectFace,
   updateFinalizeControl,
   validateBearingDeg,
@@ -25,6 +28,7 @@ const POLYGON_COLORS = [
 ];
 const DRAG_THRESHOLD_PIXELS = 4;
 const FIELD_WALL_SCHEMA = "FieldWallProfile";
+const AUTOSAVE_DELAY_MILLISECONDS = 2000;
 const canvasContainer = document.querySelector("#face-canvas-container");
 const faceTabs = document.querySelector("#face-tabs");
 const activeFaceSummary = document.querySelector("#active-face-summary");
@@ -63,12 +67,13 @@ const faceNameFields = document.querySelector("#face-name-fields");
 const widthPixels = metersToPixels(CANVAS_WIDTH_METERS, PIXELS_PER_METER);
 const heightPixels = metersToPixels(CANVAS_HEIGHT_METERS, PIXELS_PER_METER);
 const gridSpacingPixels = metersToPixels(GRID_SPACING_METERS, PIXELS_PER_METER);
-const requestedSchemaType = new URLSearchParams(window.location.search)
-  .get("schema_type");
-const schemaType = requestedSchemaType === FIELD_WALL_SCHEMA
+const pageSearchParams = new URLSearchParams(window.location.search);
+const jobId = pageSearchParams.get("job_id");
+const requestedSchemaType = pageSearchParams.get("schema_type");
+let schemaType = requestedSchemaType === FIELD_WALL_SCHEMA
   ? FIELD_WALL_SCHEMA
   : "ArchaeologicalDiagram";
-const isFieldWall = schemaType === FIELD_WALL_SCHEMA;
+let isFieldWall = schemaType === FIELD_WALL_SCHEMA;
 const editorState = {
   activeFaceIndex: -1,
   faces: [],
@@ -81,6 +86,43 @@ let polygonMetadata = {};
 let currentPolygon = null;
 let selectedVertex = null;
 let pointerAction = null;
+let saveSequence = Promise.resolve();
+
+function saveEditorSession() {
+  persistCurrentFace();
+  const state = assembleEditorSessionState(editorState, schemaType);
+
+  saveSequence = saveSequence
+    .catch(() => {})
+    .then(async () => {
+      const response = await fetch(
+        `/editor/${encodeURIComponent(jobId)}/save`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(state),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(`Autosave failed with status ${response.status}.`);
+      }
+    });
+
+  return saveSequence;
+}
+
+const debouncedAutosave = debounce(() => {
+  saveEditorSession().catch((error) => {
+    console.error(error);
+  });
+}, AUTOSAVE_DELAY_MILLISECONDS);
+
+function scheduleAutosave() {
+  if (jobId) {
+    debouncedAutosave();
+  }
+}
 
 function createSvgElement(name, attributes = {}) {
   const element = document.createElementNS(SVG_NAMESPACE, name);
@@ -170,6 +212,74 @@ function createFaceState(name, faceIndex) {
   faceCanvas.setAttribute("hidden", "");
   canvasContainer.append(faceCanvas);
   return face;
+}
+
+function restoreFaceState(savedFace, faceIndex) {
+  const face = createFaceState(savedFace.name, faceIndex);
+  face.gridRegistration = {
+    originX: "",
+    originY: "",
+    surfaceZ: "",
+    bearing_deg: "",
+    ...savedFace.gridRegistration,
+  };
+  face.polygons = (savedFace.polygons ?? []).map((polygon) => ({
+    ...polygon,
+    color: (
+      polygon.color
+      ?? POLYGON_COLORS[(polygon.id - 1) % POLYGON_COLORS.length]
+    ),
+    vertices: (polygon.vertices ?? []).map(({ x, y }) => ({ x, y })),
+  }));
+  face.polygonMetadata = savedFace.polygonMetadata ?? {};
+
+  const largestPolygonId = face.polygons.reduce(
+    (largestId, polygon) => Math.max(largestId, Number(polygon.id) || 0),
+    0,
+  );
+  face.nextPolygonId = (
+    Number.isInteger(savedFace.nextPolygonId)
+    && savedFace.nextPolygonId > largestPolygonId
+  )
+    ? savedFace.nextPolygonId
+    : largestPolygonId + 1;
+  face.currentPolygon = face.polygons.find(
+    (polygon) => polygon.id === savedFace.currentPolygonId,
+  ) ?? face.polygons.find((polygon) => !polygon.closed);
+
+  if (!face.currentPolygon) {
+    face.currentPolygon = createPolygon(face);
+    face.polygons.push(face.currentPolygon);
+  }
+
+  face.selectedVertex = savedFace.selectedVertex ?? null;
+  return face;
+}
+
+function restoreEditorSession(savedState) {
+  const restoredState = reconstructEditorState(savedState);
+
+  if (restoredState.faces.length === 0) {
+    return false;
+  }
+
+  canvasContainer.replaceChildren();
+  editorState.faces = restoredState.faces.map(restoreFaceState);
+  const requestedFaceIndex = restoredState.activeFaceIndex;
+  editorState.activeFaceIndex = (
+    Number.isInteger(requestedFaceIndex)
+    && requestedFaceIndex >= 0
+    && requestedFaceIndex < editorState.faces.length
+  )
+    ? requestedFaceIndex
+    : 0;
+  faceTabs.hidden = false;
+  activateFace(editorState.activeFaceIndex);
+  coordinateReport.textContent = (
+    `Restored ${editorState.faces.length} face`
+    + `${editorState.faces.length === 1 ? "" : "s"} from autosave.`
+  );
+  return true;
 }
 
 function findPolygon(polygonId) {
@@ -492,6 +602,7 @@ function removeVertex(reference) {
   selectedVertex = null;
   coordinateReport.textContent = `Removed a vertex from polygon ${polygon.id}.`;
   renderPolygons();
+  scheduleAutosave();
 }
 
 function beginCanvasPointerAction(event) {
@@ -561,6 +672,7 @@ function continueCanvasPointerAction(event) {
   polygon.vertices[pointerAction.reference.vertexIndex] = point;
   reportPoint(`Moved polygon ${polygon.id} vertex`, point);
   renderPolygons();
+  scheduleAutosave();
 }
 
 function finishCanvasPointerAction(event) {
@@ -581,6 +693,7 @@ function finishCanvasPointerAction(event) {
     };
     reportPoint(`Added polygon ${currentPolygon.id} vertex`, point);
     renderPolygons();
+    scheduleAutosave();
   } else if (action.kind === "midpoint" && !action.moved) {
     const polygon = findPolygon(action.polygonId);
 
@@ -598,6 +711,7 @@ function finishCanvasPointerAction(event) {
       };
       reportPoint(`Inserted polygon ${polygon.id} vertex`, midpoint);
       renderPolygons();
+      scheduleAutosave();
     }
   }
 
@@ -618,11 +732,14 @@ function cancelCanvasPointerAction(event) {
   pointerAction = null;
 }
 
-materialField.hidden = isFieldWall;
-materialSelect.disabled = isFieldWall;
-fieldWallFields.hidden = !isFieldWall;
-for (const input of fieldWallFields.querySelectorAll("input")) {
-  input.disabled = !isFieldWall;
+function configureSchemaFields() {
+  materialField.hidden = isFieldWall;
+  materialSelect.disabled = isFieldWall;
+  fieldWallFields.hidden = !isFieldWall;
+  for (const input of fieldWallFields.querySelectorAll("input")) {
+    input.disabled = !isFieldWall;
+  }
+  faceCountField.hidden = isFieldWall;
 }
 
 closeShapeButton.addEventListener("pointerup", (event) => {
@@ -651,6 +768,7 @@ closeShapeButton.addEventListener("pointerup", (event) => {
   renderPolygons();
   renderPolygonList();
   openMetadataForm(closedPolygonId);
+  scheduleAutosave();
 });
 
 deleteVertexButton.addEventListener("pointerup", (event) => {
@@ -698,6 +816,7 @@ metadataForm.addEventListener("submit", (event) => {
   metadataDialog.close();
   renderPolygonList();
   coordinateReport.textContent = `Saved metadata for polygon ${polygonId}.`;
+  scheduleAutosave();
 });
 
 cancelMetadataButton.addEventListener("click", () => {
@@ -717,6 +836,7 @@ registrationInputs.forEach((input) => {
     currentFace.gridRegistration[input.dataset.registrationField] = input.value;
     validateRegistrationInput(input);
     updateFinalizeControl(finalizeButton, finalizeStatus, editorState);
+    scheduleAutosave();
   });
 });
 
@@ -740,6 +860,7 @@ faceTabs.addEventListener("click", (event) => {
 
   if (tab) {
     activateFace(Number(tab.dataset.faceIndex));
+    scheduleAutosave();
   }
 });
 
@@ -795,14 +916,60 @@ faceSetupForm.addEventListener("submit", (event) => {
   faceTabs.hidden = false;
   faceSetupDialog.close();
   activateFace(0);
+  scheduleAutosave();
 });
 
-faceCountField.hidden = isFieldWall;
-faceCountInput.value = "1";
-renderFaceNameFields();
+async function loadEditorSession() {
+  if (!jobId) {
+    return false;
+  }
 
-if (typeof faceSetupDialog.showModal === "function") {
-  faceSetupDialog.showModal();
-} else {
-  faceSetupDialog.setAttribute("open", "");
+  const response = await fetch(
+    `/editor/${encodeURIComponent(jobId)}/state`,
+  );
+
+  if (!response.ok) {
+    throw new Error(`Could not load editor state (${response.status}).`);
+  }
+
+  const savedState = await response.json();
+
+  if (Object.keys(savedState).length === 0) {
+    return false;
+  }
+
+  if (
+    savedState.schemaType === FIELD_WALL_SCHEMA
+    || savedState.schemaType === "ArchaeologicalDiagram"
+  ) {
+    schemaType = savedState.schemaType;
+    isFieldWall = schemaType === FIELD_WALL_SCHEMA;
+  }
+
+  configureSchemaFields();
+  return restoreEditorSession(savedState);
 }
+
+async function initializeEditor() {
+  configureSchemaFields();
+  faceCountInput.value = "1";
+  renderFaceNameFields();
+
+  try {
+    if (await loadEditorSession()) {
+      return;
+    }
+  } catch (error) {
+    console.error(error);
+    coordinateReport.textContent = error.message;
+    return;
+  }
+
+  if (typeof faceSetupDialog.showModal === "function") {
+    faceSetupDialog.showModal();
+  } else {
+    faceSetupDialog.setAttribute("open", "");
+  }
+}
+
+initializeEditor();

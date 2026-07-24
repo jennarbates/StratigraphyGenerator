@@ -7,12 +7,14 @@ import { fileURLToPath } from "node:url";
 import {
   assembleEditorSessionState,
   assembleFinalizeState,
+  debounce,
   edgeMidpoint,
   hasSelfIntersection,
   isShapeClosed,
   metersToPixels,
   nearestGridPoint,
   pixelsToMeters,
+  reconstructEditorState,
   selectFace,
   serializePolygons,
   validateBearingDeg,
@@ -393,6 +395,128 @@ test("switching faces and back preserves polygons without duplication", () => {
   assert.equal(selectFace(editorState, 0).name, "south");
   assert.deepEqual(editorState.faces[0].polygons, southBeforeSwitch);
   assert.deepEqual(editorState.faces[1].polygons, eastBeforeSwitch);
+});
+
+test("rapid debounced saves run once with the latest state", () => {
+  let nextTimerId = 1;
+  const pendingTimers = new Map();
+  const timers = {
+    setTimeout(callback, delay) {
+      const timerId = nextTimerId;
+      nextTimerId += 1;
+      pendingTimers.set(timerId, { callback, delay });
+      return timerId;
+    },
+    clearTimeout(timerId) {
+      pendingTimers.delete(timerId);
+    },
+  };
+  const savedStates = [];
+  const scheduleSave = debounce(
+    (state) => savedStates.push(structuredClone(state)),
+    2000,
+    timers,
+  );
+
+  scheduleSave({ revision: 1, polygons: [{ id: 1 }] });
+  scheduleSave({ revision: 2, polygons: [{ id: 1 }, { id: 2 }] });
+  scheduleSave({ revision: 3, polygons: [{ id: 3 }] });
+
+  assert.equal(pendingTimers.size, 1);
+  const [{ callback, delay }] = pendingTimers.values();
+  assert.equal(delay, 2000);
+  callback();
+  assert.deepEqual(savedStates, [
+    { revision: 3, polygons: [{ id: 3 }] },
+  ]);
+});
+
+test("saved state reconstructs polygons, metadata, and registration exactly", () => {
+  const originalState = {
+    activeFaceIndex: 1,
+    faces: [
+      {
+        name: "south",
+        gridRegistration: {
+          originX: "123.5",
+          originY: "456.25",
+          surfaceZ: "287.8",
+          bearing_deg: "90",
+        },
+        polygons: [
+          {
+            id: 1,
+            color: "#b23a48",
+            vertices: [
+              { x: 0, y: 0 },
+              { x: 100, y: 0 },
+              { x: 100, y: 50 },
+            ],
+            closed: true,
+          },
+          {
+            id: 2,
+            color: "#1f6f8b",
+            vertices: [{ x: 25, y: 75 }],
+            closed: false,
+          },
+        ],
+        polygonMetadata: {
+          1: { material: "Soil", note: "Upper layer" },
+        },
+        nextPolygonId: 3,
+        currentPolygonId: 2,
+        selectedVertex: { polygonId: 2, vertexIndex: 0 },
+      },
+      {
+        name: "east",
+        gridRegistration: {
+          originX: "125",
+          originY: "458",
+          surfaceZ: "288",
+          bearing_deg: "180",
+        },
+        polygons: [
+          {
+            id: 1,
+            color: "#b23a48",
+            vertices: [
+              { x: 50, y: 50 },
+              { x: 150, y: 50 },
+              { x: 100, y: 100 },
+            ],
+            closed: true,
+          },
+        ],
+        polygonMetadata: {
+          1: { material: "Clay", note: "East face" },
+        },
+        nextPolygonId: 2,
+        currentPolygonId: null,
+        selectedVertex: null,
+      },
+    ],
+  };
+  const savedState = assembleEditorSessionState(
+    originalState,
+    "ArchaeologicalDiagram",
+  );
+  const backendRoundTrip = JSON.parse(JSON.stringify(savedState));
+  const reconstructed = reconstructEditorState(backendRoundTrip);
+
+  assert.equal(reconstructed.activeFaceIndex, originalState.activeFaceIndex);
+  assert.deepEqual(
+    reconstructed.faces.map(({ polygons }) => polygons),
+    originalState.faces.map(({ polygons }) => polygons),
+  );
+  assert.deepEqual(
+    reconstructed.faces.map(({ polygonMetadata }) => polygonMetadata),
+    originalState.faces.map(({ polygonMetadata }) => polygonMetadata),
+  );
+  assert.deepEqual(
+    reconstructed.faces.map(({ gridRegistration }) => gridRegistration),
+    originalState.faces.map(({ gridRegistration }) => gridRegistration),
+  );
 });
 
 test("assembled fixture validates through finalize_editor_session", () => {
