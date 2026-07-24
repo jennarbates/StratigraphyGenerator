@@ -1,0 +1,370 @@
+- page: index.md
+  sources:
+    - README.md
+    - poggio_webapp/README.md
+    - poggio_webapp/app.py
+  purpose: Documentation home and reader-path overview
+
+- page: project/capability-status.md
+  sources:
+    - poggio_webapp/static/app/index.js
+    - poggio_webapp/static/app/core/state.js
+    - poggio_webapp/backend/routes/__init__.py
+    - poggio_webapp/app.py
+  purpose: Current user-facing and backend capability matrix
+
+- page: reference/drawing-guidelines.md
+  sources:
+    - 00_docs/IllusstratorGuide.md
+    - poggio_webapp/pipeline/extract_illustrator.py
+    - poggio_webapp/pipeline/validator.py
+  purpose: Source-drawing preparation and quality guidance
+
+- page: concepts/geometric-normalization.md
+  sources:
+    - 00_docs/Explanations/GeometricNormalization.md
+    - poggio_webapp/pipeline/preprocess.py
+    - poggio_webapp/backend/routes/manual.py
+  purpose: Rotation, calibration, and image-to-metre geometry concepts
+
+- page: concepts/markers-features-and-finds.md
+  sources:
+    - 00_docs/Explanations/MarkersVsFeatures.md
+    - poggio_webapp/pipeline/detect_markers.py
+    - poggio_webapp/pipeline/detect_features.py
+    - poggio_webapp/pipeline/editor.py
+  purpose: Distinctions among boundary markers, internal features, and finds
+
+- page: fixtures/README.md
+  sources:
+    - poggio_webapp/pipeline/extract_fieldwall.py
+    - poggio_webapp/pipeline/extract_illustrator.py
+    - poggio_webapp/pipeline/validator.py
+  purpose: Synthetic fixture provenance, safety, and schema expectations
+
+- page: start-here/what-this-project-does.md
+  sources:
+    - README.md
+    - poggio_webapp/static/app/core/state.js
+    - poggio_webapp/pipeline/build_gempy.py
+  purpose: Beginner explanation of the drawing-to-model outcome
+
+- page: start-here/choose-your-path.md
+  sources:
+    - poggio_webapp/static/app/stages/scan.js
+    - poggio_webapp/static/app/stages/draw.js
+    - poggio_webapp/static/app/stages/extract.js
+    - poggio_webapp/static/app/index.js
+  purpose: Workflow choice based on current UI availability
+
+- page: start-here/quickstart.md
+  sources:
+    - poggio_webapp/app.py
+    - poggio_webapp/requirements.txt
+    - requirements-docs.txt
+  purpose: Installation and local application launch
+
+- page: start-here/glossary.md
+  sources:
+    - poggio_webapp/pipeline/extract_fieldwall.py
+    - poggio_webapp/pipeline/extract_illustrator.py
+    - poggio_webapp/pipeline/convert_coords.py
+    - poggio_webapp/pipeline/editor.py
+  purpose: Plain-language definitions of project terms
+
+- page: workflows/overview.md
+  sources:
+    - poggio_webapp/static/app/core/state.js
+    - poggio_webapp/static/app/core/navigation.js
+    - poggio_webapp/static/app/index.js
+  purpose: End-to-end workflow, branches, prerequisites, and artifacts
+
+- page: workflows/01-add-drawing.md
+  sources:
+    - poggio_webapp/static/app/stages/scan.js
+    - poggio_webapp/backend/routes/scans.py
+    - poggio_webapp/backend/config.py
+  purpose: Drawing type selection and upload workflow
+
+- page: workflows/02-prepare-image.md
+  sources:
+    - poggio_webapp/static/app/stages/preprocess.js
+    - poggio_webapp/backend/routes/preprocess.py
+    - poggio_webapp/pipeline/preprocess.py
+  purpose: Image preprocessing controls and outputs
+
+- page: workflows/03-trace-layers.md
+  sources:
+    - poggio_webapp/static/app/stages/draw.js
+    - poggio_webapp/backend/routes/manual.py
+    - tests/test_manual_routes.py
+  purpose: Manual calibration, boundary tracing, metadata, and features
+
+- page: workflows/03-alternative-import-and-ai.md
+  sources:
+    - poggio_webapp/static/app/stages/extract.js
+    - poggio_webapp/backend/routes/extraction.py
+    - poggio_webapp/pipeline/extract_fieldwall.py
+    - poggio_webapp/pipeline/extract_illustrator.py
+  purpose: JSON import and AI-assisted extraction alternatives
+
+- page: workflows/03-markers-and-features.md
+  sources:
+    - poggio_webapp/backend/routes/markers.py
+    - poggio_webapp/backend/routes/features.py
+    - poggio_webapp/pipeline/detect_markers.py
+    - poggio_webapp/pipeline/detect_features.py
+  purpose: Backend-only marker and feature-detection status and behavior
+
+- page: workflows/04-clean-data.md
+  sources:
+    - poggio_webapp/static/app/stages/normalize.js
+    - poggio_webapp/backend/routes/processing.py
+    - poggio_webapp/pipeline/normalizer.py
+  purpose: Normalization operations and cleaned JSON output
+
+- page: workflows/05-check-problems.md
+  sources:
+    - poggio_webapp/static/app/stages/validate.js
+    - poggio_webapp/backend/routes/processing.py
+    - poggio_webapp/pipeline/validator.py
+    - tests/test_validator.py
+  purpose: Validation errors, warnings, thresholds, and review decisions
+
+- page: workflows/06-place-on-site.md
+  sources:
+    - poggio_webapp/static/app/stages/convert.js
+    - poggio_webapp/backend/routes/processing.py
+    - poggio_webapp/pipeline/convert_coords.py
+  purpose: Survey registration and site-coordinate conversion
+
+- page: workflows/07-create-model.md
+  sources:
+    - poggio_webapp/static/app/stages/gempy.js
+    - poggio_webapp/backend/routes/gempy.py
+    - poggio_webapp/pipeline/build_gempy.py
+  purpose: GemPy configuration, build, and outputs
+
+- page: workflows/08-view-and-download.md
+  sources:
+    - poggio_webapp/static/app/stages/visualize.js
+    - poggio_webapp/backend/routes/pages.py
+    - poggio_webapp/static/visualizer/index.js
+    - poggio_webapp/static/visualizer/view.js
+  purpose: Visualizer use, comparison, overlays, and downloads
+
+- page: workflows/logging-finds.md
+  sources:
+    - poggio_webapp/app.py
+    - poggio_webapp/pipeline/editor.py
+    - poggio_webapp/templates/finds.html
+    - poggio_webapp/static/finds/index.js
+  purpose: Independent find logging and synchronization
+
+- page: start-here/first-model.md
+  sources:
+    - poggio_webapp/static/app/core/state.js
+    - poggio_webapp/pipeline/convert_coords.py
+    - poggio_webapp/pipeline/build_gempy.py
+  purpose: Guided synthetic example through the complete primary workflow
+
+- page: concepts/archaeology-to-3d.md
+  sources:
+    - poggio_webapp/pipeline/extract_illustrator.py
+    - poggio_webapp/pipeline/normalizer.py
+    - poggio_webapp/pipeline/convert_coords.py
+    - poggio_webapp/pipeline/build_gempy.py
+  purpose: Transformation from drawing to structured data and model
+
+- page: concepts/source-drawing-types.md
+  sources:
+    - poggio_webapp/pipeline/extract_fieldwall.py
+    - poggio_webapp/pipeline/extract_illustrator.py
+    - poggio_webapp/static/app/stages/scan.js
+  purpose: Illustrator and field-wall source comparison
+
+- page: concepts/layers-and-boundaries.md
+  sources:
+    - poggio_webapp/pipeline/extract_fieldwall.py
+    - poggio_webapp/pipeline/extract_illustrator.py
+    - poggio_webapp/backend/routes/manual.py
+  purpose: Layer, locus, surface, and boundary relationships
+
+- page: concepts/coordinate-spaces.md
+  sources:
+    - poggio_webapp/backend/routes/manual.py
+    - poggio_webapp/pipeline/convert_coords.py
+    - poggio_webapp/static/visualizer/coordinates.mjs
+  purpose: Pixel, section-local, and site-wide coordinates
+
+- page: concepts/accuracy-and-provenance.md
+  sources:
+    - poggio_webapp/pipeline/extract_fieldwall.py
+    - poggio_webapp/pipeline/extract_illustrator.py
+    - poggio_webapp/pipeline/validator.py
+    - poggio_webapp/pipeline/editor.py
+  purpose: Provenance categories, placeholders, and scientific caution
+
+- page: architecture/system-overview.md
+  sources:
+    - poggio_webapp/app.py
+    - poggio_webapp/backend/__init__.py
+    - poggio_webapp/backend/routes/__init__.py
+    - poggio_webapp/static/app/index.js
+  purpose: Browser, Flask, pipeline, and storage component map
+
+- page: architecture/job-lifecycle.md
+  sources:
+    - poggio_webapp/backend/routes/jobs.py
+    - poggio_webapp/backend/jobs.py
+    - poggio_webapp/app.py
+    - poggio_webapp/pipeline/editor.py
+  purpose: Job creation, metadata, status, resumption, and completion
+
+- page: architecture/frontend.md
+  sources:
+    - poggio_webapp/static/app/index.js
+    - poggio_webapp/static/app/core/state.js
+    - poggio_webapp/static/app/core/navigation.js
+    - poggio_webapp/static/app/core/api.js
+  purpose: Frontend stages, state, prerequisites, and invalidation
+
+- page: architecture/backend.md
+  sources:
+    - poggio_webapp/backend/__init__.py
+    - poggio_webapp/backend/routes/__init__.py
+    - poggio_webapp/app.py
+  purpose: Flask factory, blueprints, and application-level routes
+
+- page: architecture/pipeline.md
+  sources:
+    - poggio_webapp/pipeline/__init__.py
+    - poggio_webapp/pipeline/preprocess.py
+    - poggio_webapp/pipeline/normalizer.py
+    - poggio_webapp/pipeline/validator.py
+    - poggio_webapp/pipeline/convert_coords.py
+  purpose: Pipeline module families, responsibilities, inputs, and outputs
+
+- page: architecture/asynchronous-tasks.md
+  sources:
+    - poggio_webapp/backend/tasks.py
+    - poggio_webapp/backend/routes/task_status.py
+    - poggio_webapp/static/app/core/api.js
+  purpose: In-memory task execution, polling, and restart boundaries
+
+- page: architecture/files-and-artifacts.md
+  sources:
+    - poggio_webapp/backend/config.py
+    - poggio_webapp/backend/routes/jobs.py
+    - poggio_webapp/app.py
+    - poggio_webapp/pipeline/build_gempy.py
+  purpose: Job directories and numbered stage artifacts
+
+- page: reference/data-schemas.md
+  sources:
+    - poggio_webapp/pipeline/extract_fieldwall.py
+    - poggio_webapp/pipeline/extract_illustrator.py
+    - poggio_webapp/static/canvas/grid.mjs
+  purpose: FieldWallProfile and ArchaeologicalDiagram schema reference
+
+- page: reference/api-routes.md
+  sources:
+    - poggio_webapp/backend/routes/__init__.py
+    - poggio_webapp/backend/routes/scans.py
+    - poggio_webapp/backend/routes/extraction.py
+    - poggio_webapp/backend/routes/processing.py
+    - poggio_webapp/app.py
+  purpose: HTTP route, request, response, and UI-status reference
+
+- page: reference/configuration.md
+  sources:
+    - poggio_webapp/backend/config.py
+    - poggio_webapp/app.py
+    - poggio_webapp/requirements.txt
+  purpose: Environment variables, filesystem settings, and dependencies
+
+- page: reference/validation-rules.md
+  sources:
+    - poggio_webapp/pipeline/validator.py
+    - poggio_webapp/backend/routes/processing.py
+    - tests/test_validator.py
+  purpose: Validation defaults, errors, and warnings
+
+- page: reference/output-files.md
+  sources:
+    - poggio_webapp/backend/routes/scans.py
+    - poggio_webapp/backend/routes/processing.py
+    - poggio_webapp/backend/routes/gempy.py
+    - poggio_webapp/pipeline/build_gempy.py
+  purpose: Output artifact names, formats, and producing stages
+
+- page: reference/troubleshooting.md
+  sources:
+    - poggio_webapp/backend/errors.py
+    - poggio_webapp/backend/routes/extraction.py
+    - poggio_webapp/backend/routes/gempy.py
+    - poggio_webapp/static/app/core/api.js
+  purpose: Symptom-based failure and recovery reference
+
+- page: contributing/development-setup.md
+  sources:
+    - poggio_webapp/requirements.txt
+    - requirements-docs.txt
+    - poggio_webapp/app.py
+  purpose: Contributor environment and local launch setup
+
+- page: contributing/running-tests.md
+  sources:
+    - tests/test_editor_routes.py
+    - tests/docs/test_check_docs.py
+    - poggio_webapp/static/canvas/grid.test.mjs
+    - tools/docs/check_docs.py
+  purpose: Python, JavaScript, and documentation validation commands
+
+- page: contributing/adding-a-pipeline-stage.md
+  sources:
+    - poggio_webapp/backend/routes/__init__.py
+    - poggio_webapp/static/app/core/state.js
+    - poggio_webapp/static/app/index.js
+  purpose: Checklist for adding pipeline, route, state, UI, tests, and docs
+
+- page: contributing/writing-documentation.md
+  sources:
+    - mkdocs.yml
+    - tools/docs/check_docs.py
+    - docs/_meta/page-template.md
+  purpose: Documentation structure, metadata, navigation, and validation
+
+- page: project/known-limitations.md
+  sources:
+    - README.md
+    - poggio_webapp/README.md
+    - poggio_webapp/backend/tasks.py
+    - poggio_webapp/pipeline/convert_coords.py
+  purpose: Current verified limitations separated from future work
+
+- page: project/roadmap.md
+  sources:
+    - README.md
+    - poggio_webapp/README.md
+    - docs/project/capability-status.md
+  purpose: Historical proposals and future work kept separate from current status
+
+- page: project/scientific-assumptions.md
+  sources:
+    - poggio_webapp/pipeline/validator.py
+    - poggio_webapp/pipeline/convert_coords.py
+    - poggio_webapp/pipeline/build_gempy.py
+  purpose: Scientific assumptions, placeholders, and explicit non-assumptions
+
+- page: labs/coordinate-converter.md
+  sources:
+    - poggio_webapp/pipeline/convert_coords.py
+    - poggio_webapp/static/app/stages/convert.js
+  purpose: Interactive section-local to site-coordinate learning tool
+
+- page: labs/preprocessing-comparison.md
+  sources:
+    - poggio_webapp/pipeline/preprocess.py
+    - poggio_webapp/static/app/stages/preprocess.js
+  purpose: Interactive comparison of source and preprocessed images

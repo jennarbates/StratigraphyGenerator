@@ -34,3 +34,5 @@ exclude_docs: |
 
 nav:
   - Home: index.md
+  - Project:
+      - Capability status: project/capability-status.md
