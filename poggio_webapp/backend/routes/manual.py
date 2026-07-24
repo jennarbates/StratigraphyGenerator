@@ -102,18 +102,32 @@ def _clean_polyline(raw: Any, label: str, minimum: int) -> list[list[float]]:
 
 
 def _converted_points(calib: Calibration, points: list[list[float]], fieldwall: bool) -> list[dict[str, Any]]:
-    converted = [calib.convert(p) for p in points]
-    converted.sort(key=lambda p: (p[0], p[1]))
     if fieldwall:
-        return [
-            {"xMeters": x, "depthMeters": max(0.0, depth), "confidence": "human-traced"}
-            for x, depth in converted
+        converted = [
+            {
+                "xMeters": x,
+                "depthMeters": max(0.0, depth),
+                "confidence": "human-traced",
+                "sourcePixel": [pixel_x, pixel_y],
+            }
+            for (pixel_x, pixel_y), (x, depth) in (
+                (point, calib.convert(point)) for point in points
+            )
         ]
-    return [
-        {"xCoordinateMeters": x, "yCoordinateMeters": max(0.0, depth),
-         "confidence": "human-traced"}
-        for x, depth in converted
-    ]
+    else:
+        converted = [
+            {
+                "xCoordinateMeters": x,
+                "yCoordinateMeters": max(0.0, depth),
+                "confidence": "human-traced",
+                "sourcePixel": [pixel_x, pixel_y],
+            }
+            for (pixel_x, pixel_y), (x, depth) in (
+                (point, calib.convert(point)) for point in points
+            )
+        ]
+    converted.sort(key=_xy)
+    return converted
 
 
 def _xy(point: dict[str, Any]) -> tuple[float, float]:
@@ -152,14 +166,14 @@ def _feature_geometry(calib: Calibration, row: dict[str, Any], fieldwall: bool) 
     if fieldwall:
         shape = [
             {"xMeters": round(x, 4), "depthMeters": round(max(0.0, d), 4),
-             "confidence": "human-traced"}
-            for x, d in converted
+             "confidence": "human-traced", "sourcePixel": [pixel_x, pixel_y]}
+            for (pixel_x, pixel_y), (x, d) in zip(points_px, converted)
         ]
     else:
         shape = [
             {"xCoordinateMeters": round(x, 4), "yCoordinateMeters": round(max(0.0, d), 4),
-             "confidence": "human-traced"}
-            for x, d in converted
+             "confidence": "human-traced", "sourcePixel": [pixel_x, pixel_y]}
+            for (pixel_x, pixel_y), (x, d) in zip(points_px, converted)
         ]
 
     out = {
@@ -250,16 +264,72 @@ def _manual_boundaries(payload: dict[str, Any], calib: Calibration, fieldwall: b
     return surface, bottoms, warnings
 
 
+def _manual_fieldwall_boundaries(payload: dict[str, Any], calib: Calibration):
+    """Read field-wall lines using the recording sheet's locus convention.
+
+    Each named line is the *top* of that locus.  The next locus top is also
+    the current locus's bottom, while one separately traced base line closes
+    the deepest locus.
+    """
+    boundaries = payload.get("boundaries") or []
+    if not isinstance(boundaries, list):
+        raise ValueError("boundaries must be a list")
+
+    tops = []
+    base = None
+    warnings = []
+    for i, boundary in enumerate(boundaries):
+        kind = boundary.get("kind")
+        if kind not in {"top", "base"}:
+            continue
+        points_px = _clean_polyline(boundary.get("points"), f"boundary {i + 1}", 2)
+        converted = _converted_points(calib, points_px, fieldwall=True)
+        if kind == "top":
+            name = str(boundary.get("name") or "").strip()
+            if not name:
+                raise ValueError(f"locus top boundary {i + 1} has no locus number")
+            tops.append({"name": name, "points": converted})
+        elif base is None:
+            base = converted
+        else:
+            warnings.append("More than one final bottom line was supplied; only the first was used.")
+
+    if not tops:
+        raise ValueError("draw the top boundary of at least one locus")
+    if base is None:
+        raise ValueError("draw the final bottom line below the deepest locus")
+
+    names = [top["name"] for top in tops]
+    duplicates = sorted({name for name in names if names.count(name) > 1})
+    if duplicates:
+        raise ValueError(
+            "each locus needs exactly one top boundary; repeated "
+            f"locus number(s): {', '.join(duplicates)}"
+        )
+
+    original_order = names
+    tops.sort(key=lambda top: _average_depth(top["points"]))
+    if [top["name"] for top in tops] != original_order:
+        warnings.append("Locus top boundaries were reordered from shallowest to deepest.")
+
+    if _average_depth(base) <= _average_depth(tops[-1]["points"]):
+        raise ValueError("the final bottom line must be below the deepest locus top")
+
+    return tops, base, warnings
+
+
 def _build_fieldwall(payload: dict[str, Any], calib: Calibration, source_path: str | None):
-    surface, bottoms, warnings = _manual_boundaries(payload, calib, fieldwall=True)
+    tops, base, warnings = _manual_fieldwall_boundaries(payload, calib)
     loci_rows = payload.get("loci") or []
     loci_meta = {str(row.get("locusNumber", "")).strip(): row for row in loci_rows}
 
-    bands = []
-    top = surface
-    for bottom in bottoms:
-        bands.append((top, bottom["points"]))
-        top = bottom["points"]
+    bands = [
+        (
+            top["points"],
+            tops[i + 1]["points"] if i + 1 < len(tops) else base,
+        )
+        for i, top in enumerate(tops)
+    ]
 
     feature_rows = [
         _feature_geometry(calib, row, fieldwall=True)
@@ -270,8 +340,8 @@ def _build_fieldwall(payload: dict[str, Any], calib: Calibration, source_path: s
 
     layers = []
     loci = []
-    for i, bottom in enumerate(bottoms):
-        name = bottom["name"]
+    for i, top in enumerate(tops):
+        name = top["name"]
         info = loci_meta.get(name, {})
         munsell_raw = str(info.get("munsellRaw") or "").strip()
         description = str(info.get("description") or "").strip() or None
@@ -300,6 +370,8 @@ def _build_fieldwall(payload: dict[str, Any], calib: Calibration, source_path: s
         "layers": layers,
         "marginalia": [
             "Boundary and feature geometry was manually traced by a user.",
+            "Named field-wall lines are locus tops; each next locus top closes "
+            "the locus above, and the separate final line closes the deepest locus.",
             f"Source image: {source_path}" if source_path else "Source image unavailable.",
         ],
     }

@@ -1,4 +1,5 @@
 import { applyAlign } from "./alignment.js";
+import { pointInsideBand } from "../boundary-label.js";
 import { colorFor } from "./colors.js";
 import { $, esc } from "./dom.js";
 
@@ -29,11 +30,12 @@ export function buildSVG(face, maxX, maxY, wrap){
         text-anchor="middle" font-family="monospace">${esc(lbl)}</text>`);});
   }
 
+  const layerLabels=[];
   (face.layers||[]).forEach((l,li)=>{
     const mat=l.inferredMaterial||l.layerName||"?", col=colorFor(mat);
     const line=(pts,isSurf)=>{
       const P=(pts||[]).filter(p=>typeof p.xCoordinateMeters==="number"&&typeof p.yCoordinateMeters==="number");
-      if(!P.length)return;
+      if(!P.length)return P;
       if(show("tBounds")&&P.length>1){
         const d=P.map((p,k)=>`${k?"L":"M"}${X(p.xCoordinateMeters)},${Y(p.yCoordinateMeters)}`).join(" ");
         s.push(`<path d="${d}" fill="none" stroke="${isSurf?'var(--surface-line)':col}"
@@ -42,13 +44,31 @@ export function buildSVG(face, maxX, maxY, wrap){
       if(show("tPoints"))P.forEach(p=>s.push(`<circle class="pt" cx="${X(p.xCoordinateMeters)}" cy="${Y(p.yCoordinateMeters)}"
         r="${vbW*0.0035}" fill="${col}" stroke="#fff" stroke-width="${vbW*0.0008}" opacity="${p.confidence?0.5:1}"
         data-info="${esc(mat)} · x=${p.xCoordinateMeters}m depth=${p.yCoordinateMeters}m${p.confidence?' · '+esc(p.confidence):''}"/>`));
-      if(show("tLabels")&&!isSurf&&P.length){const mid=P[Math.floor(P.length/2)];
-        s.push(`<text x="${X(mid.xCoordinateMeters)}" y="${Y(mid.yCoordinateMeters)-vbH*0.006}" font-size="${vbH*0.026}"
-          fill="${col}" text-anchor="middle" font-family="monospace" paint-order="stroke" stroke="#fff"
-          stroke-width="${vbH*0.006}">${esc(mat)}</text>`);}
+      return P;
     };
-    line(l.topBoundary, li===0);
-    line(l.bottomBoundary, false);
+    const topPoints=line(l.topBoundary, li===0);
+    const bottomPoints=line(l.bottomBoundary, false);
+    if(show("tLabels")){
+      const labelsInside=l._labelBoundary==="inside";
+      const inside=labelsInside
+        ? pointInsideBand(
+            topPoints,
+            bottomPoints,
+            p=>p.xCoordinateMeters,
+            p=>p.yCoordinateMeters)
+        : null;
+      const fallback=bottomPoints.length
+        ? bottomPoints[Math.floor(bottomPoints.length/2)]
+        : null;
+      const labelX=inside?inside.x:fallback?.xCoordinateMeters;
+      const labelY=inside?inside.y:fallback?.yCoordinateMeters;
+      if(typeof labelX==="number"&&typeof labelY==="number"){
+        layerLabels.push(`<text x="${X(labelX)}" y="${Y(labelY)-(inside?0:vbH*0.006)}" font-size="${vbH*0.026}"
+          fill="${col}" text-anchor="middle" dominant-baseline="${inside?'middle':'auto'}"
+          font-family="monospace" font-weight="${inside?'700':'400'}" paint-order="stroke fill"
+          stroke="#fff" stroke-width="${vbH*0.006}" stroke-linejoin="round">${esc(mat)}</text>`);
+      }
+    }
   });
 
   if(show("tFeatures"))(face.layers||[]).forEach(l=>(l.featuresInLayer||[]).forEach(ft=>{
@@ -69,6 +89,7 @@ export function buildSVG(face, maxX, maxY, wrap){
     }
   }));
 
+  s.push(...layerLabels);
   s.push(`</svg>`);
   const old=wrap.querySelector("svg"); if(old)old.remove();
   wrap.insertAdjacentHTML("beforeend", s.join(""));

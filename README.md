@@ -289,25 +289,27 @@ text. Five HTTP round-trips, each backed by one pipeline function:
    photo, and asks Gemini for exactly two things: (a) verbatim transcription
    of the sheet's text fields (trench/face labels, date, tie points, loci +
    Munsell colors, marginalia), and (b) for every single marker id, a
-   classification into `"surface"` (the wall's top/ground line),
-   `"bottom"` with a `locusNumber` (that locus's lower boundary), or
+   classification into `"top"` with a `locusNumber` (that locus's named
+   upper boundary), `"base"` (the final line below the deepest locus), or
    `"noise"` (stray dot, hatch mark, stone — not a boundary vertex at
    all). The prompt is explicit that these coordinates are fixed and the
    model must not invent, move, or report new ones.
 5. **`/markers/finalize`** — deterministic, no network call: assembles the
    classified markers plus the immutable CV coordinates into a
-   `FieldWallProfile` JSON. Per-locus bottom boundaries are built by
+   `FieldWallProfile` JSON. Per-locus top boundaries are built by
    grouping markers with the same `locusNumber` and sorting by `x_m`; loci
-   are ordered top-to-bottom by the mean depth of their assigned bottom
-   markers; each layer's `topBoundary` is the *previous* locus's bottom
-   markers (or the `"surface"`-classified markers for the first locus).
+   are ordered top-to-bottom by the mean depth of their assigned top
+   markers; each layer's `bottomBoundary` is the *next* locus's top markers,
+   or the `"base"`-classified markers for the deepest locus. Thus the
+   shallowest named line remains the top of Locus 1 instead of shifting all
+   locus names down one line.
    Along the way it collects warnings for anything Gemini did
    inconsistently — an assignment referencing an unknown marker id, the
    same marker id assigned twice, a locus with fewer than 2 boundary
    markers (too few to draw a line), a locus named in the legend that got
    no boundary markers at all — and appends a `[provenance]` line to
    `marginalia` recording exactly how many markers ended up boundary vs.
-   surface vs. noise, so that provenance travels with the file even after
+   noise, so that provenance travels with the file even after
    it's downloaded.
 
   **Known bug as of the last commit**: the `/markers/assign` and
@@ -444,10 +446,10 @@ one synthetic face, names each surface `"Locus N (munsell)"` by joining
 each layer's locus number to its looked-up Munsell reading (falling back
 to `"Locus N"` with a note if no Munsell entry exists, and noting —
 rather than silently overwriting — when the same locus number appears
-twice in `loci[]`), and carries over only `bottomBoundary` (the shape
-`convert()` actually reads; `topBoundary`/features are dropped in this
-adapter, though the raw field-wall JSON with those intact is still served
-separately to the visualizer). `make_starter_config` also surfaces the
+twice in `loci[]`), and uses that locus's `topBoundary` as its named model
+surface. The temporary generic adapter stores that interface in the
+`bottomBoundary` slot that `convert()` reads; other raw field-wall geometry
+is still served intact to the visualizer. `make_starter_config` also surfaces the
 sheet's transcribed `gridTiePoints[].rawText` verbatim under
 `_tiePointsFromSheet` in the returned config for a human to cross-check
 against site records — it does not attempt to interpret which axis they
@@ -542,8 +544,8 @@ a five-step flow (`poggio_webapp/pipeline/detect_markers.py` +
 2. **detect** — click the wall's top-left/top-right/lowest point, give the
    real width between the top corners, get CV-detected marker candidates
 3. **confirm** — user reviews/toggles candidates, adds any missed by hand
-4. **assign** — Gemini *classifies* each confirmed marker (surface / bottom
-   of locus N / noise) and reads the sheet's labels — it does not touch
+4. **assign** — Gemini *classifies* each confirmed marker (top of locus N /
+   final base / noise) and reads the sheet's labels — it does not touch
    coordinates
 5. **finalize** — the (possibly user-corrected) classification is combined
    with the immutable CV coordinates into the extraction JSON, no network

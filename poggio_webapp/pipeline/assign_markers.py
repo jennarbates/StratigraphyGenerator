@@ -5,10 +5,10 @@ which locus/boundary each CV-detected marker belongs to.
 Division of labor, per the note at the bottom of the original tool:
   - the marker COORDINATES come from computer vision and are immutable —
     they pass through this module verbatim, byte for byte
-  - Gemini only CLASSIFIES each fixed point (surface line / bottom boundary
-    of locus N / noise) and reads the sheet's labels (loci Munsell colors,
-    tie points, metadata) — a task it did fine on even in the runs whose
-    geometry was fabricated
+  - Gemini only CLASSIFIES each fixed point (top boundary of locus N /
+    final section base / noise) and reads the sheet's labels (loci Munsell
+    colors, tie points, metadata) — a task it did fine on even in the runs
+    whose geometry was fabricated
 The final FieldWallProfile JSON is then assembled deterministically here,
 so there is no path by which the model can invent, move, or drop a vertex:
 if it misassigns one, the point is on the wrong boundary but still a real
@@ -37,8 +37,8 @@ Image.MAX_IMAGE_PIXELS = None
 
 class MarkerAssignment(BaseModel):
     markerId: int
-    # "surface"  -> the wall's top/ground line (top boundary of the first locus)
-    # "bottom"   -> the bottom boundary of locusNumber
+    # "top"   -> the top boundary of locusNumber
+    # "base"  -> the final line below the deepest locus
     # "noise"    -> stone, hatch mark, stray dot: not a boundary vertex
     kind: str
     locusNumber: str | None = None
@@ -81,10 +81,11 @@ PART 1 — transcribe the sheet's text, verbatim:
 
 PART 2 — classify every candidate point below. The wall's boundary lines
 are polylines connecting these dots. For each id, decide:
-- kind="surface": the point sits on the wall's TOP edge / ground line
-- kind="bottom", locusNumber="N": the point sits on the line that forms the
-  BOTTOM boundary of locus N (the line separating locus N from what lies
-  below it). Use the sheet's locus labels and vertical order to decide N.
+- kind="top", locusNumber="N": the point sits on the line that forms the
+  TOP boundary of locus N. A locus is named by its top line: the top of the
+  next deeper locus is also the bottom of the locus above it.
+- kind="base": the point sits on the final drawn line below the deepest
+  locus. This line is not the top of another listed locus.
 - kind="noise": the point is NOT a boundary vertex — a small stone, a hatch
   mark in a textured band, or a stray dot.
 
@@ -93,8 +94,9 @@ Rules:
 - Points on the same drawn line must get the same classification.
 - A boundary's points appear at similar depths that vary gradually with x;
   a sudden isolated outlier on an otherwise smooth line is probably noise.
-- The lowest drawn line of the section is the bottom boundary of the
-  deepest locus.
+- The shallowest named line is the top of the first locus. Do not shift the
+  locus numbers down by treating that line as an unlabelled surface.
+- The lowest drawn line of the section is kind="base".
 
 Candidate points (x = meters from the wall's left edge, depth = meters
 down from the wall's top-left corner):
@@ -136,11 +138,23 @@ def _assemble(markers, result_dict):
         return {"xMeters": m["x_m"], "depthMeters": m["depth_m"],
                 "confidence": None}
 
-    surface, bottoms, n_noise = [], {}, 0
+    tops, base, legacy_surface, legacy_bottoms, n_noise = {}, [], [], {}, 0
     for mid, a in seen.items():
         kind = (a.get("kind") or "").strip().lower()
-        if kind == "surface":
-            surface.append(by_id[mid])
+        if kind == "top":
+            num = str(a.get("locusNumber") or "").strip()
+            if not num:
+                warnings.append(f"marker {mid} classified 'top' with no "
+                                f"locusNumber — treated as noise")
+                n_noise += 1
+                continue
+            tops.setdefault(num, []).append(by_id[mid])
+        elif kind == "base":
+            base.append(by_id[mid])
+        # Keep proposals made before the locus-top fix finalizable. New
+        # classifications never use these two legacy kinds.
+        elif kind == "surface":
+            legacy_surface.append(by_id[mid])
         elif kind == "bottom":
             num = str(a.get("locusNumber") or "").strip()
             if not num:
@@ -148,51 +162,111 @@ def _assemble(markers, result_dict):
                                 f"locusNumber — treated as noise")
                 n_noise += 1
                 continue
-            bottoms.setdefault(num, []).append(by_id[mid])
+            legacy_bottoms.setdefault(num, []).append(by_id[mid])
         else:
             n_noise += 1
 
-    for lst in bottoms.values():
+    for lst in tops.values():
         lst.sort(key=lambda m: m["x_m"])
-    surface.sort(key=lambda m: m["x_m"])
+    base.sort(key=lambda m: m["x_m"])
 
-    # vertical order of loci = mean depth of their bottom boundaries
-    order = sorted(bottoms,
-                   key=lambda n: sum(m["depth_m"] for m in bottoms[n])
-                   / len(bottoms[n]))
-
+    using_locus_tops = bool(tops or base)
+    using_legacy_bottoms = bool(legacy_surface or legacy_bottoms)
     layers = []
-    prev = surface
-    for num in order:
-        pts = bottoms[num]
-        if len(pts) < 2:
-            warnings.append(f"locus {num}: only {len(pts)} marker(s) on its "
-                            f"bottom boundary — too few to draw a line; check "
-                            f"the debug image / assignments")
-        layers.append({
-            "locusNumber": num,
-            "topBoundary": [pt(m) for m in prev] or None,
-            "bottomBoundary": [pt(m) for m in pts],
-            "featuresInLayer": None,
-        })
-        prev = pts
+
+    if using_locus_tops:
+        if using_legacy_bottoms:
+            warnings.append(
+                "classification mixes locus-top and legacy bottom-of-locus "
+                "labels — legacy-labelled markers were ignored"
+            )
+            n_noise += len(legacy_surface) + sum(len(v) for v in legacy_bottoms.values())
+
+        # Vertical order of loci = mean depth of their named top boundaries.
+        order = sorted(
+            tops,
+            key=lambda n: sum(m["depth_m"] for m in tops[n]) / len(tops[n]),
+        )
+        for i, num in enumerate(order):
+            top_pts = tops[num]
+            bottom_pts = tops[order[i + 1]] if i + 1 < len(order) else base
+            if len(top_pts) < 2:
+                warnings.append(
+                    f"locus {num}: only {len(top_pts)} marker(s) on its top "
+                    "boundary — too few to draw a line; check the debug image "
+                    "/ assignments"
+                )
+            layers.append({
+                "locusNumber": num,
+                "topBoundary": [pt(m) for m in top_pts],
+                "bottomBoundary": [pt(m) for m in bottom_pts] or None,
+                "featuresInLayer": None,
+            })
+
+        if not base:
+            warnings.append(
+                "no markers classified as the final bottom line — the deepest "
+                "locus has no bottom boundary"
+            )
+        elif len(base) < 2:
+            warnings.append(
+                f"final bottom line has only {len(base)} marker(s) — too few "
+                "to draw a line"
+            )
+    else:
+        # Compatibility for a saved proposal generated by the old prompt,
+        # where a named line meant the bottom of that locus.
+        for lst in legacy_bottoms.values():
+            lst.sort(key=lambda m: m["x_m"])
+        legacy_surface.sort(key=lambda m: m["x_m"])
+        order = sorted(
+            legacy_bottoms,
+            key=lambda n: (
+                sum(m["depth_m"] for m in legacy_bottoms[n])
+                / len(legacy_bottoms[n])
+            ),
+        )
+        prev = legacy_surface
+        for num in order:
+            pts = legacy_bottoms[num]
+            if len(pts) < 2:
+                warnings.append(
+                    f"locus {num}: only {len(pts)} marker(s) on its legacy "
+                    "bottom boundary — too few to draw a line"
+                )
+            layers.append({
+                "locusNumber": num,
+                "topBoundary": [pt(m) for m in prev] or None,
+                "bottomBoundary": [pt(m) for m in pts],
+                "featuresInLayer": None,
+            })
+            prev = pts
+        if using_legacy_bottoms:
+            warnings.append(
+                "finalized a classification made with the old bottom-of-locus "
+                "convention; re-run marker assignment to use named locus tops"
+            )
 
     listed = [str(l.get("locusNumber") or "").strip()
               for l in (result_dict.get("loci") or [])]
     for num in dict.fromkeys(n for n in listed if n):
-        if num not in bottoms:
-            warnings.append(f"locus {num} is listed in the legend but got no "
-                            f"boundary markers")
-
-    if not surface:
-        warnings.append("no markers classified as the surface line — the "
-                        "first locus has no top boundary")
+        assigned_loci = tops if using_locus_tops else legacy_bottoms
+        if num not in assigned_loci:
+            warnings.append(
+                f"locus {num} is listed in the legend but got no "
+                f"{'top ' if using_locus_tops else ''}boundary markers"
+            )
 
     marginalia = list(result_dict.get("marginalia") or [])
+    n_boundary = (
+        sum(len(v) for v in tops.values()) + len(base)
+        if using_locus_tops
+        else sum(len(v) for v in legacy_bottoms.values()) + len(legacy_surface)
+    )
     marginalia.append(
         f"[provenance] boundary coordinates from CV marker detection "
-        f"({len(markers)} candidates: {sum(len(v) for v in bottoms.values())} "
-        f"boundary + {len(surface)} surface + {n_noise + len(missing)} noise); "
+        f"({len(markers)} candidates: {n_boundary} boundary + "
+        f"{n_noise + len(missing)} noise); "
         f"Gemini assigned loci/labels only and generated no geometry")
 
     profile = {
@@ -225,7 +299,7 @@ def _assemble(markers, result_dict):
 def classify_markers(image_path, markers, square_cm, api_key,
                      max_output_tokens=65536, progress_cb=None):
     """Phase 1 (calls Gemini): classify each detected marker
-    (surface / bottom of locus N / noise) and read the sheet's labels.
+    (top of locus N / final base / noise) and read the sheet's labels.
     Generates no geometry and writes nothing to disk. `image_path` must be
     the SAME rotated frame the markers were measured in (run_detect's
     marker_source_rotated.png). Returns

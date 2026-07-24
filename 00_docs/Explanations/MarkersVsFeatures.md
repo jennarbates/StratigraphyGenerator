@@ -13,9 +13,9 @@ avoid stepping on each other.
 **A marker is a measurement.** It is the small filled pencil dot (usually
 circled) that the field recorder drew on the recording sheet at a vertex they
 physically measured on the trench wall. Markers carry no meaning on their
-own; each one is a vertex of some locus boundary (the surface line, or the
-bottom boundary of locus N). Collectively, the markers *are* the boundary
-geometry of the section.
+own; each one is a vertex of a named locus top or of the final line below
+the deepest locus. The next locus's top also closes the locus above it.
+Collectively, the markers *are* the boundary geometry of the section.
 
 **A feature is an object.** It is a discrete thing drawn *within* a layer:
 a stone, a cut, a lens, a void. Features are inventory attached to a layer,
@@ -43,8 +43,8 @@ measured point from a boundary.
   user-clicked wall box, with solidity and fill filters. Size limits are
   given in paper millimeters and converted through the grid-square size.
 - `pipeline/assign_markers.py` closes the loop. Gemini receives the fixed
-  marker list and only *classifies* each point: `surface`, `bottom` of a
-  named locus, or `noise`. Coordinates pass through verbatim; the final
+  marker list and only *classifies* each point: `top` of a named locus,
+  final `base`, or `noise`. Coordinates pass through verbatim; the final
   `FieldWallProfile` is assembled deterministically in Python. There is no
   code path by which the model can invent, move, or drop a vertex.
 - The GUI's "Mark vertices" step (field sheets only) is the human review

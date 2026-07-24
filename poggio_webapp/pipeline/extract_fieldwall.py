@@ -178,7 +178,18 @@ How to do this correctly:
     template rather than reading the actual marker positions on each line
     — go back and re-examine each boundary on its own.
 
-If a layer's top = the layer above's bottom, leave topBoundary null.
+LOCUS ASSOCIATION — DO NOT SHIFT THE LABELS DOWN ONE LINE:
+  - A locus is named by its TOP boundary on the field sheet.
+  - The shallowest named line is `topBoundary` of the first locus. Do not
+    treat it as an unlabelled surface and assign that locus number to the
+    line below.
+  - For each following locus, its named top line is both its own
+    `topBoundary` and the preceding locus's `bottomBoundary`.
+  - The deepest locus's `bottomBoundary` is the final drawn base line below
+    it; that base is not the top of another listed locus.
+  - Repeat a shared line's measured points in both adjacent boundary arrays.
+    Do not leave `topBoundary` null when the line is shared, because every
+    locus must retain its explicit, correctly named top.
 
 ============================================================
 FEATURES

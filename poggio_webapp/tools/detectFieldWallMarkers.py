@@ -221,7 +221,7 @@ if __name__ == "__main__":
 # no particular grouping — locus boundaries, stray dots in handwriting,
 # and any letter "o"s that survive the circularity filter all come out the
 # same way. What it does NOT do is know that, say, markers at
-# (0.10, 0.14), (0.32, 0.15), (0.58, 0.13)... belong to Locus 3's bottom
+# (0.10, 0.14), (0.32, 0.15), (0.58, 0.13)... belong to Locus 3's top
 # boundary specifically.
 #
 # Two ways to close that gap, roughly in order of how much to trust them:
@@ -231,7 +231,7 @@ if __name__ == "__main__":
 #   2. Semi-automated: feed Gemini the ORIGINAL photo plus this script's
 #      already-detected pixel/meter coordinates (not asking it to invent
 #      new ones), and ask it only to assign each given point to a locus
-#      and top/bottom role. This is a classification task over real,
+#      and top/final-base role. This is a classification task over real,
 #      fixed points rather than a coordinate-generation task, which is
 #      exactly the part of the previous approach that kept fabricating —
 #      worth trying, but verify the assignments the same way the

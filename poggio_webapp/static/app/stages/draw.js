@@ -1,6 +1,7 @@
 import { apiJson } from "../core/api.js";
 import { goToStep, refreshChrome } from "../core/navigation.js";
 import { STRATA, invalidateDownstream, state } from "../core/state.js";
+import { pointInsideBand } from "../../boundary-label.js";
 import {
   $content,
   banner,
@@ -74,18 +75,38 @@ export function renderDraw() {
         <div id="dwTools" style="display:none">
           <section class="drawing-section">
           <h3><span class="section-label">B</span> Trace the soil lines</h3>
-          <ol class="task-list">
-            <li><span class="task-number">1</span><span>Choose <strong>Start the surface line</strong>,
-            then click along the top of the drawing from left to right.</span></li>
-            <li><span class="task-number">2</span><span>Type the ${nameLabel}, choose
-            <strong>Start this lower line</strong>, then click along that line.</span></li>
-            <li><span class="task-number">3</span><span>Repeat for every lower soil line.</span></li>
-          </ol>
-          <div class="btn-row">
-            <button class="secondary" id="dwNewSurface">Start the surface line</button>
-            <input id="dwName" aria-label="${nameLabel}" placeholder="${nameLabel}" style="width:170px">
-            <button class="secondary" id="dwNewBottom">Start this lower line</button>
-          </div>
+          ${isField ? `
+            <p class="hint">A locus is named by its <strong>top</strong> line on a field sheet.
+            The next locus top also closes the locus above it.</p>
+            <ol class="task-list">
+              <li><span class="task-number">1</span><span>Type the first locus number, choose
+              <strong>Start the top of this locus</strong>, then click along that line
+              from left to right.</span></li>
+              <li><span class="task-number">2</span><span>Repeat for the top of every
+              deeper locus.</span></li>
+              <li><span class="task-number">3</span><span>Choose
+              <strong>Start the final bottom line</strong> and trace the line below
+              the deepest locus.</span></li>
+            </ol>
+            <div class="btn-row">
+              <input id="dwName" aria-label="${nameLabel}" placeholder="${nameLabel}" style="width:170px">
+              <button class="secondary" id="dwNewTop">Start the top of this locus</button>
+              <button class="secondary" id="dwNewBase">Start the final bottom line</button>
+            </div>
+          ` : `
+            <ol class="task-list">
+              <li><span class="task-number">1</span><span>Choose <strong>Start the surface line</strong>,
+              then click along the top of the drawing from left to right.</span></li>
+              <li><span class="task-number">2</span><span>Type the ${nameLabel}, choose
+              <strong>Start this lower line</strong>, then click along that line.</span></li>
+              <li><span class="task-number">3</span><span>Repeat for every lower soil line.</span></li>
+            </ol>
+            <div class="btn-row">
+              <button class="secondary" id="dwNewSurface">Start the surface line</button>
+              <input id="dwName" aria-label="${nameLabel}" placeholder="${nameLabel}" style="width:170px">
+              <button class="secondary" id="dwNewBottom">Start this lower line</button>
+            </div>
+          `}
           <div class="btn-row">
             <button class="secondary" id="dwUndo">Undo my last point</button>
             <button class="secondary" id="dwDelete">Delete the selected line or shape</button>
@@ -161,7 +182,18 @@ export function renderDraw() {
   const CAL_COLORS = ["#c0269a", "#d17a1f", "#2a7ab5"];
   const errEl = () => document.getElementById("dwError");
   const calibReady = () => dw.clicks.length >= 3 && Number(dw.refM) > 0;
-  const bottoms = () => dw.boundaries.filter((boundary) => boundary.kind === "bottom");
+  const namedLines = () => dw.boundaries.filter(
+    (boundary) => boundary.kind === (isField ? "top" : "bottom")
+  );
+
+  function boundaryLabel(boundary) {
+    if (isField) {
+      if (boundary.kind === "top") return `top of locus ${boundary.name}`;
+      if (boundary.kind === "base") return "final bottom line";
+    }
+    if (boundary.kind === "surface") return "surface line";
+    return `${isField ? "locus" : "layer"} ${boundary.name}`;
+  }
 
   if (!isPdf) document.getElementById("dwRotate").value = String(dw.rotate || 0);
 
@@ -186,9 +218,7 @@ export function renderDraw() {
       if (dw.activeKind === "boundary" && dw.activeIdx === index) {
         button.style.outline = "3px solid #2a7ab5";
       }
-      const label = boundary.kind === "surface"
-        ? "surface line"
-        : `${isField ? "locus" : "layer"} ${boundary.name}`;
+      const label = boundaryLabel(boundary);
       button.textContent = `${label} · ${boundary.points.length} point${boundary.points.length === 1 ? "" : "s"}`;
       button.addEventListener("click", () => setActive("boundary", index));
       holder.appendChild(button);
@@ -239,7 +269,7 @@ export function renderDraw() {
   function renderLayerMeta() {
     const holder = document.getElementById("dwMeta");
     const store = isField ? dw.lociMeta : dw.layerMeta;
-    holder.innerHTML = bottoms().map((boundary) => `
+    holder.innerHTML = namedLines().map((boundary) => `
       <div class="btn-row" style="align-items:center;gap:8px" data-name="${esc(boundary.name)}">
         <span class="hint" style="min-width:95px">${isField ? "locus" : "layer"} ${esc(boundary.name)}</span>
         <input data-role="a" aria-label="${isField ? "Munsell colour" : "Material"} for ${esc(boundary.name)}"
@@ -280,7 +310,9 @@ export function renderDraw() {
 
     dw.boundaries.forEach((boundary, index) => {
       const selected = dw.activeKind === "boundary" && dw.activeIdx === index;
-      const color = boundary.kind === "surface" ? "#2a7ab5" : STRATA[index % STRATA.length];
+      const color = boundary.kind === "surface" || boundary.kind === "base"
+        ? "#2a7ab5"
+        : STRATA[index % STRATA.length];
       if (boundary.points.length > 1) {
         output += `<polyline points="${boundary.points.map((point) => point.join(",")).join(" ")}"
           fill="none" stroke="${color}" stroke-width="${radius * (selected ? 0.95 : 0.58)}"
@@ -309,14 +341,49 @@ export function renderDraw() {
       });
     });
 
+    if (isField) {
+      const base = dw.boundaries.find(
+        (boundary) => boundary.kind === "base" && boundary.points.length >= 2
+      );
+      const tops = dw.boundaries
+        .filter((boundary) => boundary.kind === "top" && boundary.points.length >= 2)
+        .sort((left, right) => {
+          const averageY = (boundary) => (
+            boundary.points.reduce((sum, point) => sum + point[1], 0)
+            / boundary.points.length
+          );
+          return averageY(left) - averageY(right);
+        });
+
+      tops.forEach((top, index) => {
+        const bottom = tops[index + 1] || base;
+        if (!bottom) return;
+        const labelPoint = pointInsideBand(
+          top.points,
+          bottom.points,
+          (point) => point[0],
+          (point) => point[1],
+        );
+        if (!labelPoint) return;
+
+        const label = `Locus ${top.name}`;
+        const color = STRATA[dw.boundaries.indexOf(top) % STRATA.length];
+        output += `<text x="${labelPoint.x}" y="${labelPoint.y}"
+          fill="${color}" font-size="${radius * 3.1}" font-family="sans-serif"
+          font-weight="700" text-anchor="middle" dominant-baseline="middle"
+          paint-order="stroke fill" stroke="rgba(255,255,255,.94)"
+          stroke-width="${radius * 1.25}" stroke-linejoin="round">${esc(label)}</text>`;
+      });
+    }
+
     svg.innerHTML = output;
     document.getElementById("dwHint").textContent = CAL_LABELS[Math.min(dw.clicks.length, 3)];
     document.getElementById("dwTools").style.display = calibReady() ? "block" : "none";
-    document.getElementById("dwMetaWrap").style.display = calibReady() && bottoms().length ? "block" : "none";
+    document.getElementById("dwMetaWrap").style.display = calibReady() && namedLines().length ? "block" : "none";
 
     const active = activeItem();
     document.getElementById("dwActive").textContent = active
-      ? `Now adding points to: ${active.kind === "surface" ? "surface line" : active.name || active.feature_type}`
+      ? `Now adding points to: ${dw.activeKind === "boundary" ? boundaryLabel(active) : active.feature_type}`
       : "Choose a line or shape before clicking the drawing.";
 
     renderBoundaryChips();
@@ -388,7 +455,7 @@ export function renderDraw() {
     redraw();
   });
 
-  document.getElementById("dwNewSurface").addEventListener("click", () => {
+  document.getElementById("dwNewSurface")?.addEventListener("click", () => {
     let index = dw.boundaries.findIndex((boundary) => boundary.kind === "surface");
     if (index < 0) {
       dw.boundaries.push({ kind: "surface", name: null, points: [] });
@@ -397,20 +464,38 @@ export function renderDraw() {
     setActive("boundary", index);
   });
 
-  document.getElementById("dwNewBottom").addEventListener("click", () => {
+  function startNamedLine(kind, actionLabel) {
     const name = document.getElementById("dwName").value.trim();
     if (!name) {
-      errEl().innerHTML = banner("err", `Type a ${nameLabel}, then choose “Start this lower line.”`);
+      errEl().innerHTML = banner("err", `Type a ${nameLabel}, then choose “${actionLabel}.”`);
       return;
     }
-    if (dw.boundaries.some((boundary) => boundary.kind === "bottom" && boundary.name === name)) {
+    if (dw.boundaries.some((boundary) => boundary.kind === kind && boundary.name === name)) {
       errEl().innerHTML = banner("err", `${esc(name)} has already been added. Use a different name or select the existing line.`);
       return;
     }
     errEl().innerHTML = "";
-    dw.boundaries.push({ kind: "bottom", name, points: [] });
+    dw.boundaries.push({ kind, name, points: [] });
     document.getElementById("dwName").value = "";
     setActive("boundary", dw.boundaries.length - 1);
+  }
+
+  document.getElementById("dwNewBottom")?.addEventListener("click", () => {
+    startNamedLine("bottom", "Start this lower line");
+  });
+
+  document.getElementById("dwNewTop")?.addEventListener("click", () => {
+    startNamedLine("top", "Start the top of this locus");
+  });
+
+  document.getElementById("dwNewBase")?.addEventListener("click", () => {
+    let index = dw.boundaries.findIndex((boundary) => boundary.kind === "base");
+    if (index < 0) {
+      dw.boundaries.push({ kind: "base", name: null, points: [] });
+      index = dw.boundaries.length - 1;
+    }
+    errEl().innerHTML = "";
+    setActive("boundary", index);
   });
 
   document.getElementById("dwNewFeature").addEventListener("click", () => {
@@ -466,20 +551,40 @@ export function renderDraw() {
   document.getElementById("dwBuild").addEventListener("click", async () => {
     errEl().innerHTML = "";
     const validBoundaries = dw.boundaries.filter((boundary) => boundary.points.length >= 2);
-    const validBottoms = validBoundaries.filter((boundary) => boundary.kind === "bottom");
-    const invalidBottom = dw.boundaries.find((boundary) => boundary.kind === "bottom" && boundary.points.length < 2);
+    const namedKind = isField ? "top" : "bottom";
+    const validNamedLines = validBoundaries.filter((boundary) => boundary.kind === namedKind);
+    const invalidNamedLine = dw.boundaries.find(
+      (boundary) => boundary.kind === namedKind && boundary.points.length < 2
+    );
+    const validBase = validBoundaries.find((boundary) => boundary.kind === "base");
+    const invalidBase = dw.boundaries.find(
+      (boundary) => boundary.kind === "base" && boundary.points.length < 2
+    );
     const invalidFeature = dw.features.find((feature) => feature.points.length > 0 && feature.points.length < 3);
 
     if (!calibReady()) {
       errEl().innerHTML = banner("err", "Complete all three scale clicks and enter the distance between the first two.");
       return;
     }
-    if (!validBottoms.length) {
-      errEl().innerHTML = banner("err", "Add at least one lower soil line with two or more points.");
+    if (!validNamedLines.length) {
+      errEl().innerHTML = banner(
+        "err",
+        isField
+          ? "Add the top of at least one locus with two or more clicks."
+          : "Add at least one lower soil line with two or more points."
+      );
       return;
     }
-    if (invalidBottom) {
-      errEl().innerHTML = banner("err", `${esc(invalidBottom.name)} needs at least two clicks on the drawing.`);
+    if (invalidNamedLine) {
+      errEl().innerHTML = banner("err", `${esc(invalidNamedLine.name)} needs at least two clicks on the drawing.`);
+      return;
+    }
+    if (isField && !validBase) {
+      errEl().innerHTML = banner("err", "Trace the final bottom line below the deepest locus.");
+      return;
+    }
+    if (invalidBase) {
+      errEl().innerHTML = banner("err", "The final bottom line needs at least two clicks on the drawing.");
       return;
     }
     if (invalidFeature) {
@@ -509,13 +614,13 @@ export function renderDraw() {
 
     if (isField) {
       payload.square_cm = dw.squareCm;
-      payload.loci = validBottoms.map((boundary) => ({
+      payload.loci = validNamedLines.map((boundary) => ({
         locusNumber: boundary.name,
         munsellRaw: (dw.lociMeta[boundary.name] || {}).a || null,
         description: (dw.lociMeta[boundary.name] || {}).b || null,
       }));
     } else {
-      payload.layerInfo = Object.fromEntries(validBottoms.map((boundary) => [boundary.name, {
+      payload.layerInfo = Object.fromEntries(validNamedLines.map((boundary) => [boundary.name, {
         inferredMaterial: (dw.layerMeta[boundary.name] || {}).a || null,
         description: (dw.layerMeta[boundary.name] || {}).b || null,
       }]));

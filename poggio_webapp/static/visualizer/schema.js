@@ -41,6 +41,7 @@ export function ingest(d){
     return {layerName:name, inferredMaterial:name,
             topBoundary:(l.topBoundary||[]).map(pt),
             bottomBoundary:(l.bottomBoundary||[]).map(pt),
+            _labelBoundary:"inside",
             featuresInLayer:(l.featuresInLayer||[]).map(ft=>({
               feature:ft.feature, description:ft.description,
               shapePoints:(ft.shapePoints||[]).map(pt),

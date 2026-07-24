@@ -138,7 +138,7 @@ def markers_confirm(job_id):
 @bp.route("/api/jobs/<job_id>/markers/assign", methods=["POST"])
 def markers_assign(job_id):
     """Async (calls Gemini): classify the confirmed markers into
-    surface/bottom-of-locus/noise and read the sheet's labels. Does NOT
+    top-of-locus/final-base/noise and read the sheet's labels. Does NOT
     assemble geometry or install an extraction yet — the result is a
     proposal for the user to review/correct; call /markers/finalize with
     the (possibly edited) result to actually build the extraction."""

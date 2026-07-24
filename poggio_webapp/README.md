@@ -79,7 +79,7 @@ respected if you want a different port or the auto-reloading dev server.
      give the real width between the top corners; CV finds the recorder's
      circle-marked vertices (a marker can't be fabricated the way a traced
      boundary can). Review/toggle the candidates, then Gemini only
-     *classifies* each confirmed point (surface / bottom of locus N / noise)
+     *classifies* each confirmed point (top of locus N / final base / noise)
      and reads the sheet's labels — it never touches coordinates. Finalize
      assembles the classification plus the untouched CV coordinates into the
      extraction, with no further network call.

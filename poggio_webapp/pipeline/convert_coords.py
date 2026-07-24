@@ -135,8 +135,20 @@ def fieldwall_to_profiles(data, face_name=None):
             notes.append(f"layer at index {i} has no locusNumber — "
                          f"named {surface!r}")
 
+        # Field sheets name an interface for the locus that starts at it, so
+        # the model surface for Locus N is that locus's top boundary. The
+        # generic trenchProfiles converter happens to call its modelled
+        # interface `bottomBoundary`; place the correctly named top there in
+        # the temporary adapter shape rather than shifting every locus down.
+        model_boundary = layer.get("topBoundary") or []
+        if not model_boundary and layer.get("bottomBoundary"):
+            model_boundary = layer["bottomBoundary"]
+            notes.append(
+                f"locus {num or i} has no topBoundary — using its bottomBoundary "
+                "as a legacy fallback; re-extract to avoid a one-line locus shift"
+            )
         bb = []
-        for p in (layer.get("bottomBoundary") or []):
+        for p in model_boundary:
             bb.append({"xCoordinateMeters": get_x(p),
                        "depthMeters": p.get("depthMeters"),
                        "confidence": p.get("confidence")})
