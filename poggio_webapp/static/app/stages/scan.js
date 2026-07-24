@@ -1,7 +1,8 @@
-import { api, ensureJob } from "../core/api.js";
+import { api, apiJson, ensureJob } from "../core/api.js";
 import { refreshChrome } from "../core/navigation.js";
 import { invalidateDownstream, state } from "../core/state.js";
 import { $content, banner, errorBanner } from "../core/ui.js";
+import { editorCreationPayload } from "./start-options.mjs";
 
 export function renderScan() {
   const startContent = state.startMethod === "blank"
@@ -112,6 +113,33 @@ export function renderScan() {
       renderScan();
     });
   });
+
+  const blankCanvas = document.getElementById("openBlankCanvas");
+  if (blankCanvas) {
+    const status = document.getElementById("blankStartStatus");
+    const originalLabel = blankCanvas.textContent;
+    let requestPending = false;
+
+    blankCanvas.addEventListener("click", async () => {
+      if (requestPending) return;
+
+      requestPending = true;
+      blankCanvas.disabled = true;
+      blankCanvas.textContent = "Creating your drawing…";
+      status.textContent = "";
+
+      try {
+        const payload = editorCreationPayload(state.sheetType);
+        const response = await apiJson("/editor/new", payload);
+        window.location.assign(response.editor_url);
+      } catch (error) {
+        requestPending = false;
+        blankCanvas.disabled = false;
+        blankCanvas.textContent = originalLabel;
+        status.innerHTML = errorBanner(error);
+      }
+    });
+  }
 
   const dz = document.getElementById("dropzone");
   const input = document.getElementById("fileInput");

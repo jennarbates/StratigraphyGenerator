@@ -65,14 +65,21 @@ def _valid_field_wall_state():
     }
 
 
-def test_create_editor_with_valid_schema_type_returns_job_id(client):
+def test_create_editor_with_valid_schema_type_returns_session_details(client):
     response = client.post(
         "/editor/new",
         json={"schema_type": "FieldWallProfile"},
     )
 
     assert response.status_code == 200
-    assert response.get_json()["job_id"]
+    payload = response.get_json()
+    job_id = payload["job_id"]
+    assert payload == {
+        "job_id": job_id,
+        "schema_type": "FieldWallProfile",
+        "status": "editing",
+        "editor_url": f"/editor/{job_id}",
+    }
 
 
 def test_create_editor_with_invalid_schema_type_returns_400(client):

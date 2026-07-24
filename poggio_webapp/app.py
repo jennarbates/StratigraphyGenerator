@@ -270,11 +270,17 @@ def remove_find(job_id, find_id):
 @app.route("/editor/new", methods=["POST"])
 def create_editor():
     body = request.get_json(force=True, silent=True) or {}
+    schema_type = body.get("schema_type")
     try:
-        job_id = create_editor_session(body.get("schema_type"))
+        job_id = create_editor_session(schema_type)
     except ValueError as error:
         return jsonify({"error": str(error)}), 400
-    return jsonify({"job_id": job_id})
+    return jsonify({
+        "job_id": job_id,
+        "schema_type": schema_type,
+        "status": "editing",
+        "editor_url": url_for("editor_page", job_id=job_id),
+    })
 
 
 @app.route("/editor/<job_id>", methods=["GET"])
