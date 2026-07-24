@@ -9,6 +9,7 @@ JSON / parse warnings instead of only printing.
 
 import os
 import time
+from typing import Literal
 
 from google import genai
 from google.genai import errors, types
@@ -88,6 +89,7 @@ class FieldWallProfile(BaseModel):
     loci: list[Locus] | None
     layers: list[LocusLayer] | None
     marginalia: list[str] | None
+    source: Literal["extraction", "manual_editor"] = "extraction"
 
 
 

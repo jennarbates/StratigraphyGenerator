@@ -10,6 +10,7 @@ Same schema and prompt as the original single-agent script. Adapted to:
 """
 
 import time
+from typing import Literal
 
 from google import genai
 from google.genai import errors
@@ -118,6 +119,7 @@ class ArchaeologicalDiagram(BaseModel):
     legend: list[LegendItem] | None
     inferred_notes: list[str] | None = None
     rawTranscription: str | None = None
+    source: Literal["extraction", "manual_editor"] = "extraction"
 
 
 PROMPT_TEMPLATE = """
