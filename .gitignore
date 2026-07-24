@@ -11,3 +11,11 @@ poggio_webapp/static/modularize_visualizer.py
 00_docs/CLAUDE.md
 poggio_webapp/app.legacy.py
 poggio_webapp/modularize_backend.py
+poggio_webapp/backend/__init__.py.before_manual_first
+poggio_webapp/backend/routes/__init__.py.before_manual_firstpoggio_webapp/backend/routes/pages.py.before_manual_first
+poggio_webapp/backend/routes/pages.py.before_manual_first
+poggio_webapp/static/app/core/state.js.before_manual_first
+poggio_webapp/static/app/index.js.before_manual_first
+poggio_webapp/static/app/stages/draw.js.before_manual_first
+poggio_webapp/static/app/stages/extract.js.before_manual_first
+poggio_webapp/backend/routes/__init__.py.before_manual_first

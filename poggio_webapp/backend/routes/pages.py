@@ -48,7 +48,8 @@ def visualizer_files(job_id):
     else:
         # Image: preprocessed clean image if present, else the raw scan —
         # unless the scan is a PDF, which a browser <img> can't show.
-        img = meta.get("clean_image_path") or meta.get("scan_path")
+        img = (meta.get("manual_image_path") or meta.get("clean_image_path")
+               or meta.get("scan_path"))
         if img and Path(img).exists() and not img.lower().endswith(".pdf"):
             out["image_url"] = rel_url(job_id, Path(img))
         # calib exists but we can't trust it against whatever image we just

@@ -8,9 +8,7 @@ import { state } from "./core/state.js";
 import { renderConvert } from "./stages/convert.js";
 import { renderDraw } from "./stages/draw.js";
 import { renderExtract } from "./stages/extract.js";
-import { renderFeatures } from "./stages/features.js";
 import { renderGempy } from "./stages/gempy.js";
-import { renderMarkers } from "./stages/markers.js";
 import { renderNormalize } from "./stages/normalize.js";
 import { renderPreprocess } from "./stages/preprocess.js";
 import { renderScan } from "./stages/scan.js";
@@ -20,8 +18,6 @@ import { renderVisualize } from "./stages/visualize.js";
 const RENDERERS = {
   scan: renderScan,
   preprocess: renderPreprocess,
-  markers: renderMarkers,
-  features: renderFeatures,
   draw: renderDraw,
   extract: renderExtract,
   normalize: renderNormalize,
