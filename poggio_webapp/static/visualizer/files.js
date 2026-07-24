@@ -12,7 +12,7 @@ function readJSON(file, which){
   r.readAsText(file);
 }
 function mark(id,name){const el=$(id);el.classList.add("loaded");el.querySelector("span").textContent="✓ "+name;}
-function readIMG(file){if(state.imageUrl)URL.revokeObjectURL(state.imageUrl);state.imageUrl=URL.createObjectURL(file);
+function readIMG(file){if(state.imageUrl)URL.revokeObjectURL(state.imageUrl);state.calibration=null;state.imageUrl=URL.createObjectURL(file);
   state.imageKey="file:"+file.name+":"+file.size;mark("imgLabel",file.name);ready();}
 
 $("jsonInputA").onchange=e=>e.target.files[0]&&readJSON(e.target.files[0],"A");
@@ -53,6 +53,7 @@ document.body.addEventListener("drop",e=>{
     const r = await fetch(`/api/jobs/${job}/visualizer-files`);
     if(!r.ok) return;               // unknown job — fall back to manual pickers
     const f = await r.json();
+    state.calibration = f.calibration || null;
     if(f.image_url){
       state.imageUrl = f.image_url;        // plain URL; revokeObjectURL no-ops on it
       state.imageKey = "job:"+job+":"+f.image_url;
