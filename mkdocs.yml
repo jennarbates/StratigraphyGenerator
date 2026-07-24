@@ -34,6 +34,11 @@ exclude_docs: |
 
 nav:
   - Home: index.md
+  - Start here:
+      - What this project does: start-here/what-this-project-does.md
+      - Choose your path: start-here/choose-your-path.md
+      - Quickstart: start-here/quickstart.md
+      - Glossary: start-here/glossary.md
   - Concepts:
       - Geometric normalization: concepts/geometric-normalization.md
       - Markers, features, and finds: concepts/markers-features-and-finds.md
