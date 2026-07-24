@@ -1,3 +1,4 @@
+import json
 import sys
 from pathlib import Path
 
@@ -59,6 +60,86 @@ def test_create_editor_with_invalid_schema_type_returns_400(client):
 
     assert response.status_code == 400
     assert "Unsupported schema_type" in response.get_json()["error"]
+
+
+def test_get_editor_page_for_valid_job_returns_200(client):
+    job_id = _create_editor(client)
+
+    response = client.get(f"/editor/{job_id}")
+
+    assert response.status_code == 200
+
+
+def test_editor_page_contains_job_id_data_attribute(client):
+    job_id = _create_editor(client)
+
+    response = client.get(f"/editor/{job_id}")
+
+    assert f'data-job-id="{job_id}"'.encode() in response.data
+
+
+def test_archaeological_diagram_editor_page_contains_schema_data_attribute(
+    client,
+):
+    job_id = _create_editor(client, "ArchaeologicalDiagram")
+
+    response = client.get(
+        f"/editor/{job_id}?schema_type=FieldWallProfile",
+    )
+
+    assert (
+        b'data-schema-type="ArchaeologicalDiagram"'
+        in response.data
+    )
+
+
+def test_field_wall_profile_editor_page_contains_schema_data_attribute(client):
+    job_id = _create_editor(client, "FieldWallProfile")
+
+    response = client.get(
+        f"/editor/{job_id}?schema_type=ArchaeologicalDiagram",
+    )
+
+    assert b'data-schema-type="FieldWallProfile"' in response.data
+
+
+def test_get_editor_page_for_unknown_session_returns_404(client):
+    response = client.get("/editor/never-created")
+
+    assert response.status_code == 404
+    assert b'id="editor-app"' not in response.data
+
+
+@pytest.mark.parametrize(
+    "editor_meta",
+    [
+        None,
+        "{not valid json",
+        json.dumps({}),
+        json.dumps({"schema_type": "UnsupportedSchema"}),
+    ],
+    ids=[
+        "missing",
+        "malformed",
+        "missing-schema",
+        "unsupported-schema",
+    ],
+)
+def test_editor_page_with_invalid_metadata_is_not_usable(
+    client,
+    tmp_path,
+    editor_meta,
+):
+    job_id = "invalid-metadata"
+    session_dir = tmp_path / "jobs" / job_id
+    session_dir.mkdir()
+    if editor_meta is not None:
+        (session_dir / "editor_meta.json").write_text(editor_meta)
+
+    response = client.get(f"/editor/{job_id}")
+
+    assert response.status_code != 200
+    assert b'id="editor-app"' not in response.data
 
 
 def test_save_then_load_state_round_trips_over_http(client):

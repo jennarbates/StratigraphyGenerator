@@ -63,13 +63,18 @@ const faceSetupForm = document.querySelector("#face-setup-form");
 const faceCountField = document.querySelector("#face-count-field");
 const faceCountInput = document.querySelector("#face-count");
 const faceNameFields = document.querySelector("#face-name-fields");
+const editorRoot = document.querySelector("#editor-app");
 
 const widthPixels = metersToPixels(CANVAS_WIDTH_METERS, PIXELS_PER_METER);
 const heightPixels = metersToPixels(CANVAS_HEIGHT_METERS, PIXELS_PER_METER);
 const gridSpacingPixels = metersToPixels(GRID_SPACING_METERS, PIXELS_PER_METER);
 const pageSearchParams = new URLSearchParams(window.location.search);
-const jobId = pageSearchParams.get("job_id");
-const requestedSchemaType = pageSearchParams.get("schema_type");
+const jobId = editorRoot
+  ? editorRoot.dataset.jobId?.trim() || null
+  : pageSearchParams.get("job_id");
+const requestedSchemaType = editorRoot
+  ? editorRoot.dataset.schemaType
+  : pageSearchParams.get("schema_type");
 let schemaType = requestedSchemaType === FIELD_WALL_SCHEMA
   ? FIELD_WALL_SCHEMA
   : "ArchaeologicalDiagram";
@@ -87,8 +92,30 @@ let currentPolygon = null;
 let selectedVertex = null;
 let pointerAction = null;
 let saveSequence = Promise.resolve();
+let hasValidEditorSession = Boolean(jobId);
+
+function showInvalidSessionError() {
+  hasValidEditorSession = false;
+  const message = "Invalid editor session. Saving and finalization are disabled.";
+  coordinateReport.textContent = message;
+  finalizeStatus.textContent = message;
+  finalizeButton.disabled = true;
+}
+
+function updateEditorFinalizeControl() {
+  if (!hasValidEditorSession) {
+    showInvalidSessionError();
+    return { canFinalize: false, message: finalizeStatus.textContent };
+  }
+  return updateFinalizeControl(finalizeButton, finalizeStatus, editorState);
+}
 
 function saveEditorSession() {
+  if (!hasValidEditorSession) {
+    showInvalidSessionError();
+    return Promise.resolve(false);
+  }
+
   persistCurrentFace();
   const state = assembleEditorSessionState(editorState, schemaType);
 
@@ -119,7 +146,7 @@ const debouncedAutosave = debounce(() => {
 }, AUTOSAVE_DELAY_MILLISECONDS);
 
 function scheduleAutosave() {
-  if (jobId) {
+  if (hasValidEditorSession) {
     debouncedAutosave();
   }
 }
@@ -547,7 +574,7 @@ function renderPolygons() {
   polygons.forEach((polygon) => renderPolygon(polygon, drawingLayer));
   canvas.replaceChildren(grid, drawingLayer);
   deleteVertexButton.disabled = !selectedVertexExists();
-  updateFinalizeControl(finalizeButton, finalizeStatus, editorState);
+  updateEditorFinalizeControl();
 }
 
 function canvasPoint(event, applySnap = true) {
@@ -835,17 +862,13 @@ registrationInputs.forEach((input) => {
 
     currentFace.gridRegistration[input.dataset.registrationField] = input.value;
     validateRegistrationInput(input);
-    updateFinalizeControl(finalizeButton, finalizeStatus, editorState);
+    updateEditorFinalizeControl();
     scheduleAutosave();
   });
 });
 
 finalizeButton.addEventListener("click", (event) => {
-  const validation = updateFinalizeControl(
-    finalizeButton,
-    finalizeStatus,
-    editorState,
-  );
+  const validation = updateEditorFinalizeControl();
 
   if (!validation.canFinalize) {
     event.preventDefault();
@@ -939,8 +962,11 @@ async function loadEditorSession() {
   }
 
   if (
-    savedState.schemaType === FIELD_WALL_SCHEMA
-    || savedState.schemaType === "ArchaeologicalDiagram"
+    !editorRoot
+    && (
+      savedState.schemaType === FIELD_WALL_SCHEMA
+      || savedState.schemaType === "ArchaeologicalDiagram"
+    )
   ) {
     schemaType = savedState.schemaType;
     isFieldWall = schemaType === FIELD_WALL_SCHEMA;
@@ -955,13 +981,18 @@ async function initializeEditor() {
   faceCountInput.value = "1";
   renderFaceNameFields();
 
+  if (!jobId) {
+    showInvalidSessionError();
+    return;
+  }
+
   try {
     if (await loadEditorSession()) {
       return;
     }
   } catch (error) {
     console.error(error);
-    coordinateReport.textContent = error.message;
+    showInvalidSessionError();
     return;
   }
 

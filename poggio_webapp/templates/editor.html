@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Multi-face Canvas — Poggio Civitate</title>
+  <link rel="stylesheet" href="/static/canvas/canvas.css">
+</head>
+<body>
+  <main
+    id="editor-app"
+    class="canvas-page"
+    data-job-id="{{ job_id }}"
+    data-schema-type="{{ schema_type }}"
+  >
+    <header class="canvas-header">
+      <div>
+        <h1>Multi-face canvas</h1>
+        <p id="active-face-summary">3m × 2m · grid spacing 0.25m</p>
+      </div>
+      <div class="canvas-tools">
+        <label class="snap-toggle">
+          <input id="snap-to-grid" type="checkbox" checked>
+          Snap to grid
+        </label>
+        <button id="close-shape" type="button">Close shape</button>
+        <button id="delete-vertex" type="button" disabled>
+          Delete selected vertex
+        </button>
+        <button
+          id="finalize-editor"
+          type="button"
+          aria-describedby="finalize-status"
+          disabled
+        >
+          Finalize
+        </button>
+      </div>
+    </header>
+
+    <nav
+      id="face-tabs"
+      class="face-tabs"
+      aria-label="Profile faces"
+      role="tablist"
+      hidden
+    ></nav>
+
+    <div class="canvas-workspace">
+      <section class="canvas-panel" aria-label="Multi-face drawing surfaces">
+        <div id="face-canvas-container"></div>
+      </section>
+
+      <aside class="metadata-sidebar" aria-labelledby="polygon-list-heading">
+        <section
+          class="grid-registration"
+          aria-labelledby="grid-registration-heading"
+        >
+          <h2 id="grid-registration-heading">Grid registration</h2>
+          <p id="grid-registration-face">Enter surveyed values for this face.</p>
+          <form id="grid-registration-form">
+            <div class="grid-registration-fields">
+              <label>
+                originX
+                <input
+                  id="origin-x"
+                  data-registration-field="originX"
+                  type="number"
+                  step="any"
+                  required
+                >
+              </label>
+              <label>
+                originY
+                <input
+                  id="origin-y"
+                  data-registration-field="originY"
+                  type="number"
+                  step="any"
+                  required
+                >
+              </label>
+              <label>
+                surfaceZ
+                <input
+                  id="surface-z"
+                  data-registration-field="surfaceZ"
+                  type="number"
+                  step="any"
+                  required
+                >
+              </label>
+              <label>
+                bearing_deg
+                <input
+                  id="bearing-deg"
+                  data-registration-field="bearing_deg"
+                  type="number"
+                  min="0"
+                  max="360"
+                  step="any"
+                  required
+                >
+              </label>
+            </div>
+          </form>
+        </section>
+
+        <section class="polygon-metadata">
+          <h2 id="polygon-list-heading">Polygons</h2>
+          <p id="polygon-list-empty">Close a polygon to assign its metadata.</p>
+          <ol id="polygon-list" class="polygon-list"></ol>
+        </section>
+      </aside>
+    </div>
+
+    <p id="coordinate-report" class="coordinate-report" aria-live="polite">
+      Tap or click the canvas to place the first vertex.
+    </p>
+    <p id="finalize-status" class="coordinate-report" aria-live="polite">
+      Set up at least one face before finalizing.
+    </p>
+  </main>
+
+  <dialog id="metadata-dialog" class="metadata-dialog">
+    <form id="metadata-form">
+      <h2 id="metadata-form-heading">Polygon metadata</h2>
+      <input id="metadata-polygon-id" type="hidden">
+
+      <label id="material-field">
+        Material
+        <select id="material" required>
+          <option value="">Choose a material</option>
+          <option>Soil</option>
+          <option>Stone</option>
+          <option>Clay</option>
+          <option>Sand</option>
+          <option>Ceramic</option>
+          <option>Plaster</option>
+          <option>Charcoal</option>
+          <option>Bedrock</option>
+          <option>Other</option>
+        </select>
+      </label>
+
+      <div id="fieldwall-fields" class="fieldwall-fields" hidden>
+        <label>
+          Locus number
+          <input id="locus" type="text" required>
+        </label>
+        <fieldset>
+          <legend>Munsell</legend>
+          <label>
+            Hue
+            <input id="munsell-hue" type="number" min="0" step="any" required>
+          </label>
+          <label>
+            Value
+            <input id="munsell-value" type="number" min="0" step="any" required>
+          </label>
+          <label>
+            Chroma
+            <input id="munsell-chroma" type="number" min="0" step="any" required>
+          </label>
+        </fieldset>
+      </div>
+
+      <label>
+        Note <span>(optional)</span>
+        <textarea id="metadata-note" rows="3"></textarea>
+      </label>
+
+      <div class="metadata-form-actions">
+        <button id="cancel-metadata" type="button">Cancel</button>
+        <button type="submit">Save metadata</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="face-setup-dialog" class="face-setup-dialog">
+    <form id="face-setup-form">
+      <h2>Set up profile faces</h2>
+      <p>Name every face before drawing. Each face keeps its own canvas,
+        polygons, metadata, and surveyed grid registration.</p>
+
+      <label id="face-count-field">
+        Number of faces
+        <input id="face-count" type="number" min="1" max="12" value="1" required>
+      </label>
+
+      <fieldset>
+        <legend>Face names</legend>
+        <div id="face-name-fields" class="face-name-fields"></div>
+      </fieldset>
+
+      <div class="metadata-form-actions">
+        <button type="submit">Start drawing</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module" src="/static/canvas/index.js"></script>
+</body>
+</html>

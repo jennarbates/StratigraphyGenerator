@@ -241,6 +241,32 @@ def create_editor():
     return jsonify({"job_id": job_id})
 
 
+@app.route("/editor/<job_id>", methods=["GET"])
+def editor_page(job_id):
+    session_directory = editor_pipeline.JOBS_DIR / job_id
+    if not session_directory.is_dir():
+        abort(404, description="unknown editor session")
+
+    try:
+        editor_meta = json.loads(
+            (session_directory / "editor_meta.json").read_text()
+        )
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        abort(404, description="invalid editor session metadata")
+
+    if not isinstance(editor_meta, dict):
+        abort(404, description="invalid editor session metadata")
+    schema_type = editor_meta.get("schema_type")
+    if schema_type not in editor_pipeline.ALLOWED_SCHEMA_TYPES:
+        abort(404, description="invalid editor session metadata")
+
+    return render_template(
+        "editor.html",
+        job_id=job_id,
+        schema_type=schema_type,
+    )
+
+
 @app.route("/editor/<job_id>/save", methods=["POST"])
 def save_editor(job_id):
     state = request.get_json(force=True, silent=True) or {}

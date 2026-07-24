@@ -102,32 +102,26 @@ def _clean_polyline(raw: Any, label: str, minimum: int) -> list[list[float]]:
 
 
 def _converted_points(calib: Calibration, points: list[list[float]], fieldwall: bool) -> list[dict[str, Any]]:
-    if fieldwall:
-        converted = [
-            {
+    converted = []
+    for pixel_x, pixel_y in points:
+        x, depth = calib.convert([pixel_x, pixel_y])
+        if fieldwall:
+            point = {
                 "xMeters": x,
                 "depthMeters": max(0.0, depth),
                 "confidence": "human-traced",
                 "sourcePixel": [pixel_x, pixel_y],
             }
-            for (pixel_x, pixel_y), (x, depth) in (
-                (point, calib.convert(point)) for point in points
-            )
-        ]
-    else:
-        converted = [
-            {
+        else:
+            point = {
                 "xCoordinateMeters": x,
                 "yCoordinateMeters": max(0.0, depth),
                 "confidence": "human-traced",
                 "sourcePixel": [pixel_x, pixel_y],
             }
-            for (pixel_x, pixel_y), (x, depth) in (
-                (point, calib.convert(point)) for point in points
-            )
-        ]
-    converted.sort(key=_xy)
-    return converted
+        converted.append(((x, depth), point))
+    converted.sort(key=lambda converted_point: converted_point[0])
+    return [point for _, point in converted]
 
 
 def _xy(point: dict[str, Any]) -> tuple[float, float]:

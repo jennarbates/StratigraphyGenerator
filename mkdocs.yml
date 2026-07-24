@@ -1,0 +1,36 @@
+site_name: Poggio Civitate Trench Digitization Guide
+site_description: Guidance for turning trench-profile drawings into 3D geological models.
+
+theme:
+  name: material
+  font: false
+  palette:
+    scheme: default
+    primary: custom
+    accent: custom
+  features:
+    - content.code.annotate
+    - content.tabs.link
+
+plugins:
+  - search
+
+markdown_extensions:
+  - attr_list
+  - md_in_html
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+
+extra_css:
+  - assets/stylesheets/extra.css
+
+exclude_docs: |
+  _meta/
+
+nav:
+  - Home: index.md
