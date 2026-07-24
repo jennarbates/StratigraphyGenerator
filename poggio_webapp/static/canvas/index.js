@@ -64,14 +64,26 @@ const faceCountField = document.querySelector("#face-count-field");
 const faceCountInput = document.querySelector("#face-count");
 const faceNameFields = document.querySelector("#face-name-fields");
 const editorRoot = document.querySelector("#editor-app");
+const saveStatusControl = document.querySelector("#save-status-control");
+const saveStatus = document.querySelector("#save-status");
+const retrySaveButton = document.querySelector("#retry-save");
 
 const widthPixels = metersToPixels(CANVAS_WIDTH_METERS, PIXELS_PER_METER);
 const heightPixels = metersToPixels(CANVAS_HEIGHT_METERS, PIXELS_PER_METER);
 const gridSpacingPixels = metersToPixels(GRID_SPACING_METERS, PIXELS_PER_METER);
 const pageSearchParams = new URLSearchParams(window.location.search);
-const jobId = editorRoot
-  ? editorRoot.dataset.jobId?.trim() || null
-  : pageSearchParams.get("job_id");
+
+function validJobId(value) {
+  const normalizedValue = typeof value === "string" ? value.trim() : "";
+  return normalizedValue
+    && !["null", "none", "undefined"].includes(normalizedValue.toLowerCase())
+    ? normalizedValue
+    : null;
+}
+
+const jobId = validJobId(
+  editorRoot ? editorRoot.dataset.jobId : pageSearchParams.get("job_id"),
+);
 const requestedSchemaType = editorRoot
   ? editorRoot.dataset.schemaType
   : pageSearchParams.get("schema_type");
@@ -93,6 +105,20 @@ let selectedVertex = null;
 let pointerAction = null;
 let saveSequence = Promise.resolve();
 let hasValidEditorSession = Boolean(jobId);
+let changeRevision = 0;
+let savedRevision = 0;
+
+function showSaveState(state) {
+  const messages = {
+    dirty: "Not saved yet.",
+    saving: "Saving…",
+    saved: "All changes saved.",
+    failed: "Couldn’t save.",
+  };
+  saveStatusControl.dataset.state = state;
+  saveStatus.textContent = messages[state];
+  retrySaveButton.hidden = state !== "failed" || !hasValidEditorSession;
+}
 
 function showInvalidSessionError() {
   hasValidEditorSession = false;
@@ -100,6 +126,7 @@ function showInvalidSessionError() {
   coordinateReport.textContent = message;
   finalizeStatus.textContent = message;
   finalizeButton.disabled = true;
+  showSaveState("failed");
 }
 
 function updateEditorFinalizeControl() {
@@ -110,45 +137,78 @@ function updateEditorFinalizeControl() {
   return updateFinalizeControl(finalizeButton, finalizeStatus, editorState);
 }
 
-function saveEditorSession() {
+function saveEditorSession({ keepalive = false } = {}) {
   if (!hasValidEditorSession) {
     showInvalidSessionError();
     return Promise.resolve(false);
   }
 
-  persistCurrentFace();
-  const state = assembleEditorSessionState(editorState, schemaType);
-
   saveSequence = saveSequence
     .catch(() => {})
     .then(async () => {
-      const response = await fetch(
-        `/editor/${encodeURIComponent(jobId)}/save`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(state),
-        },
-      );
+      persistCurrentFace();
+      const revisionToSave = changeRevision;
+      const state = assembleEditorSessionState(editorState, schemaType);
+      showSaveState("saving");
 
-      if (!response.ok) {
-        throw new Error(`Autosave failed with status ${response.status}.`);
+      try {
+        const response = await fetch(
+          `/editor/${encodeURIComponent(jobId)}/save`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(state),
+            keepalive,
+          },
+        );
+
+        if (!response.ok) {
+          throw new Error(`Autosave failed with status ${response.status}.`);
+        }
+
+        savedRevision = Math.max(savedRevision, revisionToSave);
+        showSaveState(
+          savedRevision === changeRevision ? "saved" : "dirty",
+        );
+        return true;
+      } catch (error) {
+        showSaveState("failed");
+        throw error;
       }
     });
 
   return saveSequence;
 }
 
-const debouncedAutosave = debounce(() => {
-  saveEditorSession().catch((error) => {
-    console.error(error);
-  });
+function runAutosave(options) {
+  return saveEditorSession(options).catch(() => false);
+}
+
+const debouncedAutosave = debounce((options) => {
+  runAutosave(options);
 }, AUTOSAVE_DELAY_MILLISECONDS);
 
 function scheduleAutosave() {
-  if (hasValidEditorSession) {
-    debouncedAutosave();
+  if (!hasValidEditorSession) {
+    showInvalidSessionError();
+    return;
   }
+
+  changeRevision += 1;
+  showSaveState("dirty");
+  debouncedAutosave();
+}
+
+function saveInitialFaceSetup() {
+  if (!hasValidEditorSession) {
+    showInvalidSessionError();
+    return;
+  }
+
+  changeRevision += 1;
+  showSaveState("dirty");
+  debouncedAutosave.cancel();
+  runAutosave();
 }
 
 function createSvgElement(name, attributes = {}) {
@@ -302,6 +362,7 @@ function restoreEditorSession(savedState) {
     : 0;
   faceTabs.hidden = false;
   activateFace(editorState.activeFaceIndex);
+  showSaveState("saved");
   coordinateReport.textContent = (
     `Restored ${editorState.faces.length} face`
     + `${editorState.faces.length === 1 ? "" : "s"} from autosave.`
@@ -939,7 +1000,26 @@ faceSetupForm.addEventListener("submit", (event) => {
   faceTabs.hidden = false;
   faceSetupDialog.close();
   activateFace(0);
-  scheduleAutosave();
+  saveInitialFaceSetup();
+});
+
+retrySaveButton.addEventListener("click", () => {
+  if (!hasValidEditorSession) {
+    showInvalidSessionError();
+    return;
+  }
+
+  debouncedAutosave.cancel();
+  runAutosave();
+});
+
+window.addEventListener("pagehide", () => {
+  if (!hasValidEditorSession || savedRevision === changeRevision) {
+    return;
+  }
+
+  debouncedAutosave({ keepalive: true });
+  debouncedAutosave.flush();
 });
 
 async function loadEditorSession() {

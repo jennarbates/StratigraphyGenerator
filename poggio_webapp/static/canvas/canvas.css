@@ -36,6 +36,39 @@ body {
   color: #6d665d;
 }
 
+.save-status-control {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  min-height: 28px;
+}
+
+.canvas-header .save-status {
+  color: #514b43;
+  font-size: 14px;
+}
+
+.save-status-control[data-state="failed"] .save-status {
+  color: #a72f3d;
+  font-weight: 650;
+}
+
+.save-status-control button {
+  padding: 2px 0;
+  border: 0;
+  color: #7d2430;
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.save-status-control button[hidden] {
+  display: none;
+}
+
 .canvas-tools {
   display: flex;
   gap: 10px;

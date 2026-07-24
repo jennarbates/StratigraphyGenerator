@@ -17,6 +17,17 @@
       <div>
         <h1>Multi-face canvas</h1>
         <p id="active-face-summary">3m × 2m · grid spacing 0.25m</p>
+        <div id="save-status-control" class="save-status-control">
+          <p
+            id="save-status"
+            class="save-status"
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            Not saved yet.
+          </p>
+          <button id="retry-save" type="button" hidden>Retry save</button>
+        </div>
       </div>
       <div class="canvas-tools">
         <label class="snap-toggle">
