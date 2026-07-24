@@ -102,7 +102,11 @@ def test_finalize_valid_saved_state_returns_finalized_object(client):
 
     assert save_response.status_code == 200
     assert response.status_code == 200
-    assert response.get_json() == {**state, "source": "manual_editor"}
+    assert response.get_json() == {
+        **state,
+        "finds": [],
+        "source": "manual_editor",
+    }
 
 
 def test_finalize_invalid_saved_state_returns_400(client):

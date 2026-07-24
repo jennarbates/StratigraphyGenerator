@@ -184,7 +184,7 @@ def test_finalize_field_wall_profile_sets_source_and_preserves_fields():
 
     assert isinstance(result, FieldWallProfile)
     assert result.source == "manual_editor"
-    assert result.model_dump(exclude={"source"}) == state
+    assert result.model_dump(exclude={"source"}) == {**state, "finds": []}
 
 
 def test_finalize_archaeological_diagram_sets_source_and_preserves_fields():
@@ -196,7 +196,7 @@ def test_finalize_archaeological_diagram_sets_source_and_preserves_fields():
 
     assert isinstance(result, ArchaeologicalDiagram)
     assert result.source == "manual_editor"
-    assert result.model_dump(exclude={"source"}) == state
+    assert result.model_dump(exclude={"source"}) == {**state, "finds": []}
 
 
 def test_finalize_validation_error_leaves_no_output_file():
@@ -305,7 +305,10 @@ def test_finalize_structurally_valid_editor_envelope_succeeds():
 
     assert isinstance(result, ArchaeologicalDiagram)
     assert result.source == "manual_editor"
-    assert result.model_dump(exclude={"source"}) == state["finalizeState"]
+    assert result.model_dump(exclude={"source"}) == {
+        **state["finalizeState"],
+        "finds": [],
+    }
     assert _output_path(job_id).exists()
 
 
