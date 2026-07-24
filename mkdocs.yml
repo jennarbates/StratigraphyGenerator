@@ -38,17 +38,39 @@ nav:
       - What this project does: start-here/what-this-project-does.md
       - Choose your path: start-here/choose-your-path.md
       - Quickstart: start-here/quickstart.md
+      - First model tutorial: start-here/first-model.md
       - Glossary: start-here/glossary.md
   - Workflows:
       - Workflow overview: workflows/overview.md
       - Add a drawing: workflows/01-add-drawing.md
       - Prepare the image: workflows/02-prepare-image.md
       - Trace the layers: workflows/03-trace-layers.md
+      - Alternative import and AI extraction: workflows/03-alternative-import-and-ai.md
+      - Markers and features: workflows/03-markers-and-features.md
+      - Clean up the data: workflows/04-clean-data.md
+      - Check for problems: workflows/05-check-problems.md
+      - Place on site: workflows/06-place-on-site.md
+      - Create the model: workflows/07-create-model.md
+      - View and download: workflows/08-view-and-download.md
+      - Log a find: workflows/logging-finds.md
   - Concepts:
+      - From archaeology to 3D: concepts/archaeology-to-3d.md
+      - Source drawing types: concepts/source-drawing-types.md
+      - Layers and boundaries: concepts/layers-and-boundaries.md
+      - Coordinate spaces: concepts/coordinate-spaces.md
+      - Accuracy and provenance: concepts/accuracy-and-provenance.md
       - Geometric normalization: concepts/geometric-normalization.md
       - Markers, features, and finds: concepts/markers-features-and-finds.md
   - Project:
       - Capability status: project/capability-status.md
+  - Architecture:
+      - System overview: architecture/system-overview.md
+      - Job lifecycle: architecture/job-lifecycle.md
+      - Frontend: architecture/frontend.md
+      - Backend: architecture/backend.md
+      - Pipeline: architecture/pipeline.md
+      - Asynchronous tasks: architecture/asynchronous-tasks.md
+      - Files and artifacts: architecture/files-and-artifacts.md
   - Reference:
       - Drawing guidelines: reference/drawing-guidelines.md
       - Synthetic fixtures: fixtures/README.md

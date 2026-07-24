@@ -8,6 +8,7 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT / "poggio_webapp"))
 
+import app as app_module
 from app import app
 from pipeline import editor
 
@@ -134,8 +135,22 @@ def test_post_find_syncs_existing_extraction_output(client):
     ]
 
 
-def test_find_added_before_finalize_is_synced_into_output(client):
+def test_find_added_before_finalize_is_synced_into_output(
+    client,
+    monkeypatch,
+):
     job_id = _create_editor(client)
+    pipeline_calls = []
+
+    def fake_run_editor_pipeline(requested_job_id):
+        pipeline_calls.append(requested_job_id)
+        return "find-sync-build-task"
+
+    monkeypatch.setattr(
+        app_module,
+        "_run_editor_pipeline",
+        fake_run_editor_pipeline,
+    )
     stored_find = client.post(
         f"/finds/{job_id}/new",
         json=_find_data(),
@@ -148,6 +163,7 @@ def test_find_added_before_finalize_is_synced_into_output(client):
     finalize_response = client.post(f"/editor/{job_id}/finalize")
 
     assert save_response.status_code == 200
-    assert finalize_response.status_code == 200
+    assert finalize_response.status_code == 202
+    assert pipeline_calls == [job_id]
     output_path = editor.JOBS_DIR / job_id / "extraction_output.json"
     assert json.loads(output_path.read_text())["finds"] == [stored_find]

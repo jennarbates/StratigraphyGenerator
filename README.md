@@ -41,6 +41,91 @@ They use different extraction schemas (`ArchaeologicalDiagram` vs
 `FieldWallProfile`) because they record material differently, but both now
 feed the same coordinate conversion and model build.
 
+## Browser workflows
+
+Open `http://localhost:5000` after starting the web app. The first screen
+supports two independent ways to begin.
+
+### Upload an existing drawing
+
+1. Select **Use an existing drawing**.
+2. Choose **Illustrated trench sheet** for an archaeological diagram whose
+   layers are identified by materials, patterns, or shading, or choose
+   **Hand-drawn field sheet** for a field-wall record whose layers use locus
+   numbers and Munsell soil colours.
+3. Upload a PNG, JPEG, TIFF, or PDF. The app keeps the original unchanged,
+   shows an image preview (or a PDF-ready message), reports image dimensions
+   when available, and unlocks **Prepare the image**.
+4. Continue through preprocess, trace/extract, normalize, validate, surveyed
+   coordinate conversion, model building, and results as described below.
+
+Uploading creates an ordinary pipeline job only after a file is selected. It
+does not create a blank-editor session.
+
+### Create a diagram from scratch
+
+1. Select **Create a diagram from scratch**, choose the diagram type, and
+   click **Open blank drawing canvas**.
+2. The editor uses a fixed **3 m × 2 m** metric canvas for every face, with
+   **0.25 m** grid spacing. Snap-to-grid is on initially and may be turned
+   off.
+3. For an archaeological diagram, choose 1–12 faces and give each a unique
+   name before drawing. Use the face tabs to move between them. A field-wall
+   diagram always has exactly one named face.
+4. Click or tap to place polygon vertices, then use **Close shape** after at
+   least three vertices. Correct geometry by dragging vertices, selecting an
+   edge midpoint to insert a vertex, selecting and deleting a vertex, undoing
+   the last vertex of the open polygon, cancelling the open polygon, or
+   deleting a closed polygon. Self-intersections are shown with a dashed
+   stroke and must be corrected before finalization.
+5. Label every archaeological polygon with a material; an optional note can
+   record additional context. For a field wall, every polygon instead
+   requires a locus number and Munsell notation such as `10YR 5/3`, with an
+   optional note. The polygon list reopens saved metadata for correction.
+6. Enter surveyed registration separately for every face: `originX`,
+   `originY`, `surfaceZ`, and `bearing_deg`. These are real site coordinates
+   for the face's local x=0 point, its ground-surface elevation, and the
+   clockwise-from-north direction of local +x. Placeholder values should not
+   be used.
+7. Changes autosave after about two seconds. **All changes saved** confirms
+   persistence; **Couldn’t save** leaves the drawing in place and offers
+   **Retry save**. Drafts appear under **Previous work** as **Work in
+   progress** and reopen in the editor with their faces, polygons, metadata,
+   active face, and registration restored.
+8. **Finalize** becomes available only when every face has at least one
+   closed, non-self-intersecting polygon with the required metadata and
+   complete registration. Finalization saves once more, assembles the chosen
+   schema, then runs normalization, validation, coordinate conversion, and
+   GemPy model building.
+9. The results page reports **Creating 3D model** while it polls durable job
+   status and changes to **3D model ready** when the build completes. If model
+   processing fails, the saved draft remains available from the recovery link
+   and **Previous work**.
+
+### Workflow limitations
+
+- Drawing is polygon-based; there is no freehand paint or brush tool.
+- Every face uses the fixed 3 m × 2 m canvas and 0.25 m grid.
+- Editing is single-user; there is no collaborative editing or conflict
+  resolution.
+- Completed models can be viewed and downloaded, but cannot be arbitrarily
+  reopened for editing. The editor recovery link is provided for failed model
+  processing.
+
+### Regression test commands
+
+From the repository root:
+
+```bash
+.venv/bin/python -m pytest -q
+node poggio_webapp/static/canvas/grid.test.mjs
+node poggio_webapp/static/app/stages/start-options.test.mjs
+git diff --check
+git status --short
+```
+
+If `.venv/bin/python` is unavailable, use `python3 -m pytest -q`.
+
 ## How it works
 
 Everything is a Flask route in `app.py` calling one function in

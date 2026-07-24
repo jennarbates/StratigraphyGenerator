@@ -8,6 +8,12 @@
 </head>
 <body>
 
+{% set poll_results = (
+  result_job
+  and result_job.source == "manual_editor"
+  and result_job.status in ["finalizing", "building"]
+) %}
+
 <div class="app">
 
   <aside class="sidebar">
@@ -30,7 +36,7 @@
       <div class="result-sidebar-card">
         <span>Viewing saved drawing</span>
         <strong>Drawing {{ result_job.job_id[-6:] }}</strong>
-        <em>
+        <em data-result-sidebar-status>
           {% if result_job.status == "complete" %}
             3D model ready
           {% elif result_job.status == "error" %}
@@ -94,10 +100,21 @@
   </aside>
 
   {% if result_job %}
-  <main class="content" id="content" data-results-view data-job-source="{{ result_job.source }}">
+  <main
+    class="content"
+    id="content"
+    data-results-view
+    data-job-source="{{ result_job.source }}"
+    data-result-status="{{ result_job.status }}"
+    {% if poll_results %}
+    data-status-url="{{ url_for('get_job_status', job_id=result_job.job_id) }}"
+    data-poll-interval-ms="2000"
+    data-poll-max-failures="3"
+    {% endif %}
+  >
     <div class="panel result-panel">
       <div class="stage-kicker">Saved drawing {{ result_job.job_id[-6:] }}</div>
-      <h2>
+      <h2 data-result-status-heading>
         {% if result_job.status == "complete" %}
           Your 3D model is ready
         {% elif result_job.status == "error" %}
@@ -106,19 +123,44 @@
           Your 3D model is being created
         {% endif %}
       </h2>
-      <p class="lede">View the model below or save a copy to your computer.</p>
-      {% if result_job.section_url %}
-        <figure>
-          <img class="result-image" src="{{ result_job.section_url }}" alt="Cross-section of the completed trench model">
-          <figcaption>Cross-section of your trench model</figcaption>
-        </figure>
-      {% endif %}
-      <div class="result-actions">
-        <a class="button-link" href="{{ result_job.visualizer_url }}">Open the interactive view</a>
-        {% if result_job.model_url %}
-          <a class="button-link secondary" href="{{ result_job.model_url }}" download>Download the model file</a>
+      <p class="lede" data-result-status-text aria-live="polite">
+        {% if result_job.source != "manual_editor" or result_job.status == "complete" %}
+          View the model below or save a copy to your computer.
+        {% elif result_job.status == "error" %}
+          We could not finish creating this model. Your saved drawing has not been lost.
+        {% elif result_job.status == "finalizing" %}
+          Preparing the drawing for model processing. This page updates automatically.
+        {% else %}
+          Building the 3D model. This page updates automatically.
         {% endif %}
-      </div>
+      </p>
+      {% if result_job.source != "manual_editor" or result_job.status == "complete" %}
+        {% if result_job.section_url %}
+          <figure>
+            <img class="result-image" src="{{ result_job.section_url }}" alt="Cross-section of the completed trench model">
+            <figcaption>Cross-section of your trench model</figcaption>
+          </figure>
+        {% endif %}
+        <div class="result-actions">
+          <a class="button-link" href="{{ result_job.visualizer_url }}">Open the interactive view</a>
+          {% if result_job.model_url %}
+            <a class="button-link secondary" href="{{ result_job.model_url }}" download>Download the model file</a>
+          {% endif %}
+        </div>
+      {% endif %}
+      {% if result_job.source == "manual_editor" and (poll_results or result_job.status == "error") %}
+        <div
+          class="warning-card"
+          data-result-recovery
+          {% if result_job.status != "error" %}hidden{% endif %}
+        >
+          <strong>Your drawing is still saved.</strong>
+          Return to the editor to review it, or start another drawing.
+          <div class="result-actions">
+            <a class="button-link secondary" href="{{ url_for('editor_page', job_id=result_job.job_id) }}">Review the saved drawing</a>
+          </div>
+        </div>
+      {% endif %}
       <a class="quiet-link" href="/">Start another drawing</a>
     </div>
   </main>
@@ -130,7 +172,9 @@
 
 </div>
 
-{% if not result_job %}
+{% if poll_results %}
+<script src="/static/results.js"></script>
+{% elif not result_job %}
 <script src="/static/app.js"></script>
 {% endif %}
 </body>

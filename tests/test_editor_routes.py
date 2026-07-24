@@ -1,5 +1,6 @@
 import json
 import sys
+from html.parser import HTMLParser
 from pathlib import Path
 
 import pytest
@@ -11,6 +12,27 @@ sys.path.insert(0, str(REPO_ROOT / "poggio_webapp"))
 import app as app_module
 from app import app
 from pipeline import editor
+
+
+class _ResultsPageParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.results_attributes = {}
+        self.links = []
+        self.scripts = []
+        self.text = []
+
+    def handle_starttag(self, tag, attrs):
+        attributes = dict(attrs)
+        if "data-results-view" in attributes:
+            self.results_attributes = attributes
+        if tag == "a":
+            self.links.append(attributes)
+        if tag == "script" and attributes.get("src"):
+            self.scripts.append(attributes["src"])
+
+    def handle_data(self, data):
+        self.text.append(data)
 
 
 @pytest.fixture
@@ -49,6 +71,13 @@ def _write_job_meta(
     if updated_at is not None:
         meta["updated_at"] = updated_at
     (job_dir / "meta.json").write_text(json.dumps(meta))
+    return job_dir
+
+
+def _parse_results_page(response):
+    page = _ResultsPageParser()
+    page.feed(response.get_data(as_text=True))
+    return page
 
 
 def _valid_field_wall_state():
@@ -172,6 +201,146 @@ def test_results_route_for_editor_draft_redirects_to_editor(client):
 
     assert response.status_code == 302
     assert response.headers["Location"].endswith(f"/editor/{job_id}")
+
+
+def test_building_results_page_includes_polling_configuration(
+    client,
+    tmp_path,
+):
+    job_id = "building-results-job"
+    _write_job_meta(
+        tmp_path,
+        job_id,
+        status="building",
+        source="manual_editor",
+    )
+
+    response = client.get(f"/jobs/{job_id}")
+    page = _parse_results_page(response)
+
+    assert response.status_code == 200
+    assert page.results_attributes["data-result-status"] == "building"
+    assert (
+        page.results_attributes["data-status-url"]
+        == f"/api/jobs/{job_id}/status"
+    )
+    assert (
+        1500
+        <= int(page.results_attributes["data-poll-interval-ms"])
+        <= 3000
+    )
+    assert "/static/results.js" in page.scripts
+
+
+def test_finalizing_results_page_includes_polling_configuration(
+    client,
+    tmp_path,
+):
+    job_id = "finalizing-results-job"
+    _write_job_meta(
+        tmp_path,
+        job_id,
+        status="finalizing",
+        source="manual_editor",
+    )
+
+    response = client.get(f"/jobs/{job_id}")
+    page = _parse_results_page(response)
+
+    assert response.status_code == 200
+    assert page.results_attributes["data-result-status"] == "finalizing"
+    assert (
+        page.results_attributes["data-status-url"]
+        == f"/api/jobs/{job_id}/status"
+    )
+    assert "/static/results.js" in page.scripts
+
+
+def test_complete_results_page_does_not_request_polling(client, tmp_path):
+    job_id = "complete-no-poll-job"
+    _write_job_meta(
+        tmp_path,
+        job_id,
+        status="complete",
+        source="manual_editor",
+    )
+
+    response = client.get(f"/jobs/{job_id}")
+    page = _parse_results_page(response)
+
+    assert response.status_code == 200
+    assert page.results_attributes["data-result-status"] == "complete"
+    assert "data-status-url" not in page.results_attributes
+    assert "/static/results.js" not in page.scripts
+
+
+def test_error_results_page_shows_recovery_guidance(client, tmp_path):
+    job_id = "error-results-job"
+    _write_job_meta(
+        tmp_path,
+        job_id,
+        status="error",
+        source="manual_editor",
+    )
+
+    response = client.get(f"/jobs/{job_id}")
+    page = _parse_results_page(response)
+    page_text = " ".join(page.text)
+
+    assert response.status_code == 200
+    assert "Your saved drawing has not been lost." in page_text
+    assert "Return to the editor to review it" in page_text
+    assert f"/editor/{job_id}" in {
+        attributes.get("href")
+        for attributes in page.links
+    }
+
+
+def test_complete_results_page_keeps_visualization_and_download_links(
+    client,
+    tmp_path,
+):
+    job_id = "complete-links-job"
+    job_directory = _write_job_meta(
+        tmp_path,
+        job_id,
+        status="complete",
+        source="manual_editor",
+    )
+    model_directory = job_directory / "06_gempy_model"
+    model_directory.mkdir()
+    (model_directory / "trench_model.gempy").write_text("saved model")
+
+    response = client.get(f"/jobs/{job_id}")
+    page = _parse_results_page(response)
+    links_by_href = {
+        attributes.get("href"): attributes
+        for attributes in page.links
+    }
+    model_url = (
+        f"/api/jobs/{job_id}/file"
+        "?path=06_gempy_model/trench_model.gempy"
+    )
+
+    assert response.status_code == 200
+    assert f"/visualizer?job={job_id}" in links_by_href
+    assert model_url in links_by_href
+    assert "download" in links_by_href[model_url]
+
+
+def test_ordinary_upload_results_keep_existing_actions(client, tmp_path):
+    job_id = "uploaded-results-job"
+    _write_job_meta(tmp_path, job_id, status="building")
+
+    response = client.get(f"/jobs/{job_id}")
+    page = _parse_results_page(response)
+
+    assert response.status_code == 200
+    assert f"/visualizer?job={job_id}" in {
+        attributes.get("href")
+        for attributes in page.links
+    }
+    assert "data-status-url" not in page.results_attributes
 
 
 def test_previous_work_sorts_by_updated_at_then_created_at(client, tmp_path):

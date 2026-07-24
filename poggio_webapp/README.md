@@ -65,42 +65,114 @@ respected if you want a different port or the auto-reloading dev server.
 
 ## Using it
 
-1. **Scan** — pick illustrator-sheet or field-recording-sheet, upload the
-   image/PDF.
-2. **Preprocess** — tune upscale/deskew/high-contrast, see the cleaned image.
-3. **Extraction** — paste a Gemini API key (only sent to your own local
-   server for that request; never written to disk by this app — get one at
-   https://aistudio.google.com/apikey if you don't have one). For field
-   sheets, confirm the bold-grid-square size in cm by hand first. This is
-   the one stage that calls out to the network and can take a bit — progress
-   streams into a log box.
-   - **Field-wall sheets have an alternative, more trustworthy path**:
-     marker detection. Click the wall's top-left/top-right/lowest point and
-     give the real width between the top corners; CV finds the recorder's
-     circle-marked vertices (a marker can't be fabricated the way a traced
-     boundary can). Review/toggle the candidates, then Gemini only
-     *classifies* each confirmed point (top of locus N / final base / noise)
-     and reads the sheet's labels — it never touches coordinates. Finalize
-     assembles the classification plus the untouched CV coordinates into the
-     extraction, with no further network call.
-4. **Normalize** — one click, shows the change log.
-5. **Validate** — adjust tolerances if needed, see errors (would corrupt the
-   model) vs. warnings (worth a look).
-6. **Convert coordinates** — edit the grid-registration table (originX/Y,
-   surfaceZ, bearing_deg per face). *Real survey values, not the smoke-test
-   placeholders, are what make the absolute coordinates trustworthy* — same
-   caveat as the original `gridConfig.JSON`. Works for both sheet types: a
-   field sheet is adapted to the same single-face shape, with surfaces named
-   `Locus N (munsell)`, and any tie-in labels transcribed off the drawing are
-   listed under `_tiePointsFromSheet` for reference — verbatim, not
-   interpreted.
-7. **3D model** — set resolution/section direction/vertical exaggeration,
-   optionally override the stratigraphic order, build. Renders the same
-   cross-section + zoomed-middle-layers PNGs as the CLI, plus downloadable
-   `.gempy`/mesh/lith-block files.
-8. **Visualize** — opens the original `visualizer.html` in a new tab (its own
-   file pickers still drive it — A/B compare two extraction runs against the
-   scan).
+The first screen offers two workflows. In both, choose the diagram type
+before supplying or drawing the geometry:
+
+- **Illustrated trench sheet** produces an `ArchaeologicalDiagram`. Use it
+  for archaeological profiles whose layers are described by materials,
+  patterns, or shading.
+- **Hand-drawn field sheet** produces a `FieldWallProfile`. Use it for a
+  graph-paper wall record whose layers are identified by locus numbers and
+  Munsell soil colours.
+
+### Upload an existing drawing
+
+1. Select **Use an existing drawing**, then choose the illustrated or
+   field-wall type.
+2. Upload a PNG, JPEG, TIFF, or PDF. The original file is not modified. The
+   screen shows a preview for images or a ready message for PDFs, displays
+   dimensions when available, and enables the next step.
+3. **Prepare the image** — tune upscale, deskew, and high contrast and inspect
+   the cleaned image.
+4. **Trace the layers**, or use **Other ways to add data** to import JSON or
+   call automatic extraction. A Gemini API key entered for extraction is sent
+   only to the local server for that request and is not written to disk.
+5. **Clean up the data**, **Check for problems**, and **Place it on the
+   site**. Coordinate conversion requires surveyed `originX`, `originY`,
+   `surfaceZ`, and `bearing_deg` for every face.
+6. **Create the 3D model**, then use **View and download** for the completed
+   result.
+
+An upload creates a normal pipeline job when the file is selected. It does
+not call `/editor/new` or create a blank-editor draft.
+
+For field-wall uploads, the marker-detection route is the more trustworthy
+automatic option: mark the wall's top-left, top-right, and lowest points,
+provide the surveyed width, review the detected vertices, and let Gemini
+classify only those fixed coordinates. Finalizing that classification does
+not make another network call.
+
+### Create a diagram from scratch
+
+1. Select **Create a diagram from scratch**, choose the illustrated or
+   field-wall type, and click **Open blank drawing canvas**.
+2. Set up and name the profile faces. Archaeological diagrams accept 1–12
+   uniquely named faces and show one tab per face. Field-wall diagrams enforce
+   a single face; only its name is requested.
+3. Draw on the fixed **3 m wide × 2 m deep** metric canvas. Grid lines are
+   spaced every **0.25 m**. Snap-to-grid starts enabled but can be turned off.
+4. Click or tap the canvas to place vertices. A polygon needs at least three
+   vertices before **Close shape** will work. The editor automatically numbers
+   polygons, keeps their stacking order, and opens the metadata form when a
+   shape closes.
+5. Correct a shape as needed:
+   - drag an existing vertex;
+   - select an edge midpoint to insert a vertex;
+   - select a vertex and use **Delete selected vertex** (or modifier-click a
+     vertex);
+   - use **Undo last vertex** or **Cancel current shape** while drawing; or
+   - delete a closed polygon from the polygon list.
+
+   A self-intersecting polygon receives a dashed warning stroke and cannot be
+   finalized.
+6. Add polygon metadata. Archaeological polygons require a **Material** and
+   may include a note; the material is the polygon's label in the list.
+   Field-wall polygons require a **Locus number** and **Munsell notation**,
+   for example `10YR 5/3`, and may include a note. Select a polygon in the
+   sidebar to revise its metadata.
+7. Optionally add drawing-level context such as trench label, recorder or
+   illustrator, date, and a general note. Field-wall drawings also accept a
+   face label and north-arrow status.
+8. Register every face to the surveyed site grid:
+   - `originX` and `originY`: site coordinates of the face's local x=0 edge;
+   - `surfaceZ`: ground-surface elevation at that edge; and
+   - `bearing_deg`: clockwise-from-north bearing of the face's local +x axis,
+     from 0 through 360.
+
+   All four values are required for every face. Use survey data, not
+   placeholders.
+9. Changes autosave about two seconds after editing; initial face setup is
+   saved immediately. **All changes saved** confirms persistence. If saving
+   fails, the editor shows **Couldn’t save**, retains the current state on
+   screen, and offers **Retry save**.
+10. Refreshing the editor restores saved faces, polygons, metadata, active
+    face, and registration. Drafts are also listed on the home page under
+    **Previous work** as **Created from scratch — Work in progress**; select
+    one there to resume it.
+11. **Finalize** is enabled only after every face contains at least one
+    closed, non-self-intersecting polygon, every polygon has the metadata
+    required by its diagram type, and every face has complete grid
+    registration. The editor first saves final changes, then assembles the
+    schema and starts normalization, validation, coordinate conversion, and
+    GemPy model building.
+12. The results page shows **Creating 3D model** while it polls the saved job
+    status. It reloads to **Your 3D model is ready** when building finishes.
+    If processing fails, it reports that the drawing is still saved and links
+    back to the editor for review.
+
+## Regression tests
+
+Run from the repository root:
+
+```bash
+.venv/bin/python -m pytest -q
+node poggio_webapp/static/canvas/grid.test.mjs
+node poggio_webapp/static/app/stages/start-options.test.mjs
+git diff --check
+git status --short
+```
+
+If `.venv/bin/python` does not exist, substitute `python3 -m pytest -q`.
 
 ## Notes / known limits
 
@@ -123,3 +195,9 @@ respected if you want a different port or the auto-reloading dev server.
 - Each job's working files live under `jobs/<job_id>/` on this server and
   are not cleaned up automatically — delete old job folders periodically if
   disk space matters.
+- The blank editor draws polygons, not freehand paint or brush strokes.
+- Blank canvases have fixed 3 m × 2 m dimensions and 0.25 m grid spacing.
+- Editing is single-user; collaborative editing and merge/conflict handling
+  are not implemented.
+- Completed models support viewing and downloading, not arbitrary reopening
+  for edits. Failed model processing does retain an editor recovery path.
