@@ -5,10 +5,15 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
+  allocatePolygonId,
   assembleEditorSessionState,
+  assembleFieldWallPolygonMetadata,
   assembleFinalizeState,
+  cancelCurrentPolygon,
   debounce,
+  deleteClosedPolygon,
   edgeMidpoint,
+  fieldWallMetadataFormValues,
   hasSelfIntersection,
   isShapeClosed,
   metersToPixels,
@@ -17,6 +22,7 @@ import {
   reconstructEditorState,
   selectFace,
   serializePolygons,
+  undoCurrentPolygonVertex,
   validateBearingDeg,
 } from "./grid.mjs";
 
@@ -167,7 +173,7 @@ test("serialization shapes Archaeological and FieldWall metadata correctly", () 
   );
   const fieldWall = serializePolygons(
     [polygonGeometry[0]],
-    { 1: { locus: "1042", munsell: "10 5/3", note: "Compact" } },
+    { 1: { locus: "1042", munsell: "10YR 5/3", note: "Compact" } },
     "FieldWallProfile",
   );
 
@@ -181,9 +187,115 @@ test("serialization shapes Archaeological and FieldWall metadata correctly", () 
     polygonId: 1,
     geometry: polygonGeometry[0].vertices,
     locus: "1042",
-    munsell: "10 5/3",
+    munsell: "10YR 5/3",
     note: "Compact",
   }]);
+});
+
+function createFieldWallEditorState(metadata) {
+  return {
+    activeFaceIndex: 0,
+    faces: [{
+      name: "Southern wall",
+      gridRegistration: {},
+      polygons: [{
+        id: 1,
+        color: "#b23a48",
+        vertices: [
+          { x: 0, y: 0 },
+          { x: 100, y: 0 },
+          { x: 100, y: 100 },
+        ],
+        closed: true,
+      }],
+      polygonMetadata: { 1: metadata },
+      nextPolygonId: 2,
+      currentPolygonId: null,
+      selectedVertex: null,
+    }],
+  };
+}
+
+test("raw Munsell notation is trimmed and preserved exactly through assembly", () => {
+  const metadata = assembleFieldWallPolygonMetadata({
+    locus: " 1042 ",
+    munsell: "  10YR 5/3  ",
+    note: " Compact ",
+  });
+  const assembled = assembleFinalizeState(
+    createFieldWallEditorState(metadata),
+    "FieldWallProfile",
+  );
+
+  assert.deepEqual(metadata, {
+    locus: "1042",
+    munsell: "10YR 5/3",
+    note: "Compact",
+  });
+  assert.equal(assembled.loci[0].munsell.raw, "10YR 5/3");
+  assert.equal(assembled.loci[0].munsell.colorName, null);
+});
+
+test("textual Munsell hue values are accepted without validation", () => {
+  const metadata = assembleFieldWallPolygonMetadata({
+    locus: "1042",
+    munsell: "10YR 5/3",
+    note: "",
+  });
+
+  assert.equal(metadata.munsell, "10YR 5/3");
+});
+
+test("saved field-wall polygon metadata reconstructs correctly", () => {
+  const originalState = createFieldWallEditorState({
+    locus: "1042",
+    munsell: "10YR 5/3",
+    note: "Compact",
+  });
+  const savedState = assembleEditorSessionState(
+    originalState,
+    "FieldWallProfile",
+  );
+  const reconstructed = reconstructEditorState(
+    JSON.parse(JSON.stringify(savedState)),
+  );
+
+  assert.deepEqual(
+    reconstructed.faces[0].polygonMetadata[1],
+    originalState.faces[0].polygonMetadata[1],
+  );
+});
+
+test("editing restored metadata displays the same raw Munsell notation", () => {
+  const originalState = createFieldWallEditorState({
+    locus: "1042",
+    munsell: "10YR 5/3",
+    note: "Compact",
+  });
+  const savedState = assembleEditorSessionState(
+    originalState,
+    "FieldWallProfile",
+  );
+  const reconstructed = reconstructEditorState(savedState);
+  const formValues = fieldWallMetadataFormValues(
+    reconstructed.faces[0].polygonMetadata[1],
+  );
+
+  assert.equal(formValues.munsell, "10YR 5/3");
+});
+
+test("legacy metadata without Munsell restores to an empty field", () => {
+  assert.doesNotThrow(() => fieldWallMetadataFormValues({
+    locus: "1042",
+    note: "Legacy record",
+  }));
+  assert.equal(
+    fieldWallMetadataFormValues({
+      locus: "1042",
+      note: "Legacy record",
+    }).munsell,
+    "",
+  );
 });
 
 const chunkThreeArchaeologicalFixture = {
@@ -395,6 +507,123 @@ test("switching faces and back preserves polygons without duplication", () => {
   assert.equal(selectFace(editorState, 0).name, "south");
   assert.deepEqual(editorState.faces[0].polygons, southBeforeSwitch);
   assert.deepEqual(editorState.faces[1].polygons, eastBeforeSwitch);
+});
+
+function createDrawingCorrectionFace() {
+  const polygons = [
+    {
+      id: 1,
+      closed: true,
+      vertices: [
+        { x: 0, y: 0 },
+        { x: 100, y: 0 },
+        { x: 100, y: 100 },
+      ],
+    },
+    {
+      id: 2,
+      closed: true,
+      vertices: [
+        { x: 200, y: 200 },
+        { x: 300, y: 200 },
+        { x: 300, y: 300 },
+      ],
+    },
+    {
+      id: 3,
+      closed: false,
+      vertices: [
+        { x: 25, y: 25 },
+        { x: 50, y: 50 },
+        { x: 75, y: 75 },
+      ],
+    },
+  ];
+
+  return {
+    polygons,
+    polygonMetadata: {
+      1: { material: "Soil", note: "First" },
+      2: { material: "Stone", note: "Second" },
+    },
+    nextPolygonId: 4,
+    currentPolygon: polygons[2],
+    selectedVertex: { polygonId: 3, vertexIndex: 2 },
+  };
+}
+
+test("undo removes only the last vertex from the current open polygon", () => {
+  const face = createDrawingCorrectionFace();
+  const closedPolygonsBefore = structuredClone(face.polygons.slice(0, 2));
+
+  assert.equal(undoCurrentPolygonVertex(face), true);
+  assert.deepEqual(face.currentPolygon.vertices, [
+    { x: 25, y: 25 },
+    { x: 50, y: 50 },
+  ]);
+  assert.deepEqual(face.polygons.slice(0, 2), closedPolygonsBefore);
+});
+
+test("undo on an empty polygon is a no-op", () => {
+  const face = createDrawingCorrectionFace();
+  face.currentPolygon.vertices = [];
+  const beforeUndo = structuredClone(face);
+
+  assert.equal(undoCurrentPolygonVertex(face), false);
+  assert.deepEqual(face, beforeUndo);
+});
+
+test("cancel removes only the current open polygon", () => {
+  const face = createDrawingCorrectionFace();
+
+  assert.equal(cancelCurrentPolygon(face), true);
+  assert.deepEqual(face.polygons.map(({ id }) => id), [1, 2]);
+  assert.equal(face.currentPolygon, null);
+});
+
+test("cancel preserves previously closed polygons", () => {
+  const face = createDrawingCorrectionFace();
+  const closedPolygonsBefore = structuredClone(face.polygons.slice(0, 2));
+  const metadataBefore = structuredClone(face.polygonMetadata);
+
+  cancelCurrentPolygon(face);
+
+  assert.deepEqual(face.polygons, closedPolygonsBefore);
+  assert.deepEqual(face.polygonMetadata, metadataBefore);
+});
+
+test("deleting a closed polygon removes its metadata", () => {
+  const face = createDrawingCorrectionFace();
+
+  assert.equal(deleteClosedPolygon(face, 1), true);
+  assert.equal(face.polygons.some(({ id }) => id === 1), false);
+  assert.equal(
+    Object.prototype.hasOwnProperty.call(face.polygonMetadata, 1),
+    false,
+  );
+});
+
+test("deleting a polygon preserves all other polygons", () => {
+  const face = createDrawingCorrectionFace();
+  const preservedPolygons = structuredClone(face.polygons.slice(1));
+
+  deleteClosedPolygon(face, 1);
+
+  assert.deepEqual(face.polygons, preservedPolygons);
+  assert.deepEqual(face.polygonMetadata[2], {
+    material: "Stone",
+    note: "Second",
+  });
+});
+
+test("a deleted polygon id is not reused", () => {
+  const face = createDrawingCorrectionFace();
+
+  deleteClosedPolygon(face, 2);
+  const nextPolygonId = allocatePolygonId(face);
+
+  assert.equal(nextPolygonId, 4);
+  assert.notEqual(nextPolygonId, 2);
 });
 
 function createFakeTimers() {

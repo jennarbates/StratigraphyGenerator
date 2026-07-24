@@ -303,7 +303,14 @@ body {
   list-style: none;
 }
 
-.polygon-list button {
+.polygon-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px;
+  align-items: stretch;
+}
+
+.polygon-list .polygon-summary {
   width: 100%;
   padding: 9px 10px;
   border: 1px solid #cbc2b6;
@@ -316,8 +323,24 @@ body {
   cursor: pointer;
 }
 
-.polygon-list button:hover {
+.polygon-list .polygon-summary:hover {
   background: #f2eee6;
+}
+
+.polygon-list .delete-polygon {
+  padding: 7px 9px;
+  border: 1px solid #b97a7a;
+  border-radius: 5px;
+  color: #8b2633;
+  background: #fff8f7;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.polygon-list .delete-polygon:hover {
+  background: #f8e6e4;
 }
 
 .polygon-list strong,

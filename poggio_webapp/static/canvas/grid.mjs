@@ -227,6 +227,26 @@ export function serializePolygons(polygons, metadataByPolygonId, schemaType) {
     });
 }
 
+export function assembleFieldWallPolygonMetadata({
+  locus,
+  munsell,
+  note,
+}) {
+  return {
+    locus: locus.trim(),
+    munsell: munsell.trim(),
+    note: note.trim(),
+  };
+}
+
+export function fieldWallMetadataFormValues(metadata = {}) {
+  return {
+    locus: metadata.locus ?? "",
+    munsell: metadata.munsell ?? "",
+    note: metadata.note ?? "",
+  };
+}
+
 export function selectFace(editorState, faceIndex) {
   if (
     !Number.isInteger(faceIndex)
@@ -238,6 +258,94 @@ export function selectFace(editorState, faceIndex) {
 
   editorState.activeFaceIndex = faceIndex;
   return editorState.faces[faceIndex];
+}
+
+function currentOpenPolygon(face) {
+  const currentPolygonId = (
+    face.currentPolygon?.id
+    ?? face.currentPolygonId
+  );
+
+  return (face.polygons ?? []).find(
+    (polygon) => polygon.id === currentPolygonId && !polygon.closed,
+  );
+}
+
+export function undoCurrentPolygonVertex(face) {
+  const polygon = currentOpenPolygon(face);
+
+  if (!polygon || polygon.vertices.length === 0) {
+    return false;
+  }
+
+  polygon.vertices.pop();
+
+  if (
+    face.selectedVertex?.polygonId === polygon.id
+    && face.selectedVertex.vertexIndex >= polygon.vertices.length
+  ) {
+    face.selectedVertex = null;
+  }
+
+  return true;
+}
+
+export function cancelCurrentPolygon(face) {
+  const polygon = currentOpenPolygon(face);
+
+  if (!polygon) {
+    return false;
+  }
+
+  const polygonIndex = face.polygons.indexOf(polygon);
+  face.polygons.splice(polygonIndex, 1);
+  face.currentPolygon = null;
+
+  if (Object.prototype.hasOwnProperty.call(face, "currentPolygonId")) {
+    face.currentPolygonId = null;
+  }
+
+  if (face.selectedVertex?.polygonId === polygon.id) {
+    face.selectedVertex = null;
+  }
+
+  return true;
+}
+
+export function deleteClosedPolygon(face, polygonId) {
+  const polygonIndex = (face.polygons ?? []).findIndex(
+    (polygon) => polygon.id === polygonId && polygon.closed,
+  );
+
+  if (polygonIndex === -1) {
+    return false;
+  }
+
+  face.polygons.splice(polygonIndex, 1);
+
+  for (const metadataKey of ["polygonMetadata", "metadataByPolygonId"]) {
+    const metadata = face[metadataKey];
+
+    if (metadata) {
+      delete metadata[polygonId];
+    }
+  }
+
+  if (face.selectedVertex?.polygonId === polygonId) {
+    face.selectedVertex = null;
+  }
+
+  return true;
+}
+
+export function allocatePolygonId(face) {
+  if (!Number.isInteger(face.nextPolygonId) || face.nextPolygonId < 1) {
+    throw new RangeError("Next polygon id must be a positive integer.");
+  }
+
+  const polygonId = face.nextPolygonId;
+  face.nextPolygonId += 1;
+  return polygonId;
 }
 
 export function validateBearingDeg(value) {

@@ -3,9 +3,14 @@ import {
   CANVAS_WIDTH_METERS,
   GRID_SPACING_METERS,
   PIXELS_PER_METER,
+  allocatePolygonId,
   assembleEditorSessionState,
+  assembleFieldWallPolygonMetadata,
+  cancelCurrentPolygon,
   debounce,
+  deleteClosedPolygon,
   edgeMidpoint,
+  fieldWallMetadataFormValues,
   hasSelfIntersection,
   isShapeClosed,
   metersToPixels,
@@ -13,6 +18,7 @@ import {
   pixelsToMeters,
   reconstructEditorState,
   selectFace,
+  undoCurrentPolygonVertex,
   updateFinalizeControl,
   validateBearingDeg,
 } from "./grid.mjs";
@@ -34,6 +40,8 @@ const faceTabs = document.querySelector("#face-tabs");
 const activeFaceSummary = document.querySelector("#active-face-summary");
 const snapToggle = document.querySelector("#snap-to-grid");
 const closeShapeButton = document.querySelector("#close-shape");
+const undoVertexButton = document.querySelector("#undo-vertex");
+const cancelShapeButton = document.querySelector("#cancel-shape");
 const deleteVertexButton = document.querySelector("#delete-vertex");
 const finalizeButton = document.querySelector("#finalize-editor");
 const finalizeStatus = document.querySelector("#finalize-status");
@@ -48,9 +56,7 @@ const materialField = document.querySelector("#material-field");
 const materialSelect = document.querySelector("#material");
 const fieldWallFields = document.querySelector("#fieldwall-fields");
 const locusInput = document.querySelector("#locus");
-const munsellHueInput = document.querySelector("#munsell-hue");
-const munsellValueInput = document.querySelector("#munsell-value");
-const munsellChromaInput = document.querySelector("#munsell-chroma");
+const munsellInput = document.querySelector("#munsell");
 const metadataNoteInput = document.querySelector("#metadata-note");
 const cancelMetadataButton = document.querySelector("#cancel-metadata");
 const registrationForm = document.querySelector("#grid-registration-form");
@@ -222,8 +228,7 @@ function createSvgElement(name, attributes = {}) {
 }
 
 function createPolygon(face) {
-  const id = face.nextPolygonId;
-  face.nextPolygonId += 1;
+  const id = allocatePolygonId(face);
 
   return {
     id,
@@ -395,17 +400,24 @@ function renderPolygonList() {
 
   closedPolygons.forEach((polygon) => {
     const item = document.createElement("li");
-    const button = document.createElement("button");
+    const summaryButton = document.createElement("button");
+    const deleteButton = document.createElement("button");
     const polygonName = document.createElement("strong");
     const label = document.createElement("span");
 
-    button.type = "button";
-    button.dataset.polygonId = polygon.id;
-    button.style.setProperty("--polygon-color", polygon.color);
+    summaryButton.type = "button";
+    summaryButton.className = "polygon-summary";
+    summaryButton.dataset.polygonId = polygon.id;
+    summaryButton.style.setProperty("--polygon-color", polygon.color);
+    deleteButton.type = "button";
+    deleteButton.className = "delete-polygon";
+    deleteButton.dataset.deletePolygonId = polygon.id;
+    deleteButton.setAttribute("aria-label", `Delete polygon ${polygon.id}`);
+    deleteButton.textContent = "Delete";
     polygonName.textContent = `Polygon ${polygon.id}`;
     label.textContent = metadataLabel(polygon.id);
-    button.append(polygonName, label);
-    item.append(button);
+    summaryButton.append(polygonName, label);
+    item.append(summaryButton, deleteButton);
     polygonList.append(item);
   });
 }
@@ -499,14 +511,6 @@ function activateFace(faceIndex) {
   );
 }
 
-function parseMunsell(munsell = "") {
-  const match = munsell.match(/^(\S+)\s+(\S+)\/(\S+)$/);
-
-  return match
-    ? { hue: match[1], value: match[2], chroma: match[3] }
-    : { hue: "", value: "", chroma: "" };
-}
-
 function openMetadataForm(polygonId) {
   const polygon = findPolygon(polygonId);
 
@@ -515,16 +519,14 @@ function openMetadataForm(polygonId) {
   }
 
   const metadata = polygonMetadata[polygonId] ?? {};
-  const munsell = parseMunsell(metadata.munsell);
+  const fieldWallValues = fieldWallMetadataFormValues(metadata);
   metadataForm.reset();
   metadataPolygonId.value = polygonId;
   metadataFormHeading.textContent = `Polygon ${polygonId} metadata`;
   materialSelect.value = metadata.material ?? "";
-  locusInput.value = metadata.locus ?? "";
-  munsellHueInput.value = munsell.hue;
-  munsellValueInput.value = munsell.value;
-  munsellChromaInput.value = munsell.chroma;
-  metadataNoteInput.value = metadata.note ?? "";
+  locusInput.value = fieldWallValues.locus;
+  munsellInput.value = fieldWallValues.munsell;
+  metadataNoteInput.value = fieldWallValues.note;
   metadataDialog.showModal();
 }
 
@@ -634,6 +636,13 @@ function renderPolygons() {
   const drawingLayer = createSvgElement("g", { id: "polygon-layer" });
   polygons.forEach((polygon) => renderPolygon(polygon, drawingLayer));
   canvas.replaceChildren(grid, drawingLayer);
+  const hasCurrentVertices = Boolean(
+    currentPolygon
+    && !currentPolygon.closed
+    && currentPolygon.vertices.length > 0
+  );
+  undoVertexButton.disabled = !hasCurrentVertices;
+  cancelShapeButton.disabled = !hasCurrentVertices;
   deleteVertexButton.disabled = !selectedVertexExists();
   updateEditorFinalizeControl();
 }
@@ -868,11 +877,101 @@ deleteVertexButton.addEventListener("pointerup", (event) => {
   removeVertex(selectedVertex);
 });
 
-polygonList.addEventListener("click", (event) => {
-  const button = event.target.closest("button[data-polygon-id]");
+undoVertexButton.addEventListener("click", () => {
+  if (!currentFace) {
+    return;
+  }
 
-  if (button) {
-    openMetadataForm(Number(button.dataset.polygonId));
+  persistCurrentFace();
+
+  if (!undoCurrentPolygonVertex(currentFace)) {
+    return;
+  }
+
+  selectedVertex = currentFace.selectedVertex;
+  coordinateReport.textContent = (
+    `Removed the last vertex from polygon ${currentPolygon.id}.`
+  );
+  renderPolygons();
+  renderPolygonList();
+  scheduleAutosave();
+});
+
+cancelShapeButton.addEventListener("click", () => {
+  if (!currentFace || !currentPolygon || currentPolygon.closed) {
+    return;
+  }
+
+  const vertexCount = currentPolygon.vertices.length;
+
+  if (vertexCount === 0) {
+    return;
+  }
+
+  if (
+    vertexCount > 1
+    && !window.confirm(
+      `Cancel polygon ${currentPolygon.id} and discard its ${vertexCount} vertices?`,
+    )
+  ) {
+    return;
+  }
+
+  persistCurrentFace();
+  const cancelledPolygonId = currentPolygon.id;
+
+  if (!cancelCurrentPolygon(currentFace)) {
+    return;
+  }
+
+  currentPolygon = createPolygon(currentFace);
+  currentFace.currentPolygon = currentPolygon;
+  polygons.push(currentPolygon);
+  selectedVertex = null;
+  coordinateReport.textContent = (
+    `Canceled polygon ${cancelledPolygonId}. Start a new shape when ready.`
+  );
+  renderPolygons();
+  renderPolygonList();
+  scheduleAutosave();
+});
+
+polygonList.addEventListener("click", (event) => {
+  const deleteButton = event.target.closest(
+    "button[data-delete-polygon-id]",
+  );
+
+  if (deleteButton) {
+    const polygonId = Number(deleteButton.dataset.deletePolygonId);
+    const polygon = findPolygon(polygonId);
+
+    if (
+      !polygon?.closed
+      || !window.confirm(
+        `Delete polygon ${polygonId}? Its geometry and metadata will be removed.`,
+      )
+    ) {
+      return;
+    }
+
+    persistCurrentFace();
+
+    if (!deleteClosedPolygon(currentFace, polygonId)) {
+      return;
+    }
+
+    selectedVertex = currentFace.selectedVertex;
+    coordinateReport.textContent = `Deleted polygon ${polygonId}.`;
+    renderPolygons();
+    renderPolygonList();
+    scheduleAutosave();
+    return;
+  }
+
+  const summaryButton = event.target.closest("button[data-polygon-id]");
+
+  if (summaryButton) {
+    openMetadataForm(Number(summaryButton.dataset.polygonId));
   }
 });
 
@@ -886,14 +985,11 @@ metadataForm.addEventListener("submit", (event) => {
   }
 
   if (isFieldWall) {
-    polygonMetadata[polygonId] = {
-      locus: locusInput.value.trim(),
-      munsell: (
-        `${munsellHueInput.value} ${munsellValueInput.value}`
-        + `/${munsellChromaInput.value}`
-      ),
-      note: metadataNoteInput.value.trim(),
-    };
+    polygonMetadata[polygonId] = assembleFieldWallPolygonMetadata({
+      locus: locusInput.value,
+      munsell: munsellInput.value,
+      note: metadataNoteInput.value,
+    });
   } else {
     polygonMetadata[polygonId] = {
       material: materialSelect.value,

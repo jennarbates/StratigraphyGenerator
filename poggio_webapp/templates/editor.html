@@ -35,6 +35,12 @@
           Snap to grid
         </label>
         <button id="close-shape" type="button">Close shape</button>
+        <button id="undo-vertex" type="button" disabled>
+          Undo last vertex
+        </button>
+        <button id="cancel-shape" type="button" disabled>
+          Cancel current shape
+        </button>
         <button id="delete-vertex" type="button" disabled>
           Delete selected vertex
         </button>
@@ -159,21 +165,10 @@
           Locus number
           <input id="locus" type="text" required>
         </label>
-        <fieldset>
-          <legend>Munsell</legend>
-          <label>
-            Hue
-            <input id="munsell-hue" type="number" min="0" step="any" required>
-          </label>
-          <label>
-            Value
-            <input id="munsell-value" type="number" min="0" step="any" required>
-          </label>
-          <label>
-            Chroma
-            <input id="munsell-chroma" type="number" min="0" step="any" required>
-          </label>
-        </fieldset>
+        <label>
+          Munsell notation
+          <input id="munsell" type="text" placeholder="10YR 5/3" required>
+        </label>
       </div>
 
       <label>
