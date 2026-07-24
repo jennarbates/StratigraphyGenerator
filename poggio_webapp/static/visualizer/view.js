@@ -106,12 +106,21 @@ export function draw(){
     if(!face)return;
     const wrap=$("wrap_"+tag); const img=wrap.querySelector("img");
     const {maxX,maxY}=faceExtent(face);
-    const go=()=>buildSVG(face,maxX,maxY,wrap);
-    if(img && !img.complete) img.onload=go; else go();
+    const go=()=>{
+      const imageWidth=img?.naturalWidth||null;
+      const imageHeight=img?.naturalHeight||null;
+      if(state.calibration&&(!imageWidth||!imageHeight))return;
+      buildSVG(face,maxX,maxY,wrap,{
+        calibration:state.calibration,
+        imageWidth,
+        imageHeight,
+      });
+      attachTips(wrap);
+    };
+    if(img&&(!img.naturalWidth||!img.naturalHeight))img.onload=go; else go();
   };
   render("tagA",faceA);
   if(B) render("tagB",faceB);
-  attachTips();
   updateAlignUI();
   window.onresize=()=>{render("tagA",faceA); if(B)render("tagB",faceB);};
 }
@@ -119,7 +128,7 @@ export function draw(){
 function updateAlignUI(){
   const btn=$("alignBtn"), reset=$("alignReset"), hint=$("alignHint");
   if(!btn||!reset||!hint) return;
-  const calibrated = !!(state.markerCalib && state.markerCalib.px_per_m);
+  const calibrated = !!(state.calibration && state.calibration.px_per_m);
   btn.disabled = calibrated;
   reset.disabled = calibrated;
   btn.style.opacity = reset.style.opacity = calibrated ? 0.5 : 1;
@@ -130,9 +139,9 @@ function updateAlignUI(){
        drawn wall (frame line to frame line).`;
 }
 
-function attachTips(){
+function attachTips(root=document){
   const tip=$("tip");
-  document.querySelectorAll(".pt").forEach(el=>{
+  root.querySelectorAll(".pt").forEach(el=>{
     el.addEventListener("mousemove",e=>{const info=el.getAttribute("data-info");if(!info)return;
       tip.textContent=info;tip.style.opacity=1;tip.style.left=(e.clientX+12)+"px";tip.style.top=(e.clientY+12)+"px";});
     el.addEventListener("mouseleave",()=>tip.style.opacity=0);

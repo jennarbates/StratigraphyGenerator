@@ -151,7 +151,111 @@ test("sourcePixel overrides calculated coordinates", () => {
   );
 });
 
-test("projectPolyline preserves order", () => {
+test("projectPolyline reconstructs an older T104 metre-only boundary", () => {
+  const projected = projectPolyline(
+    [
+      { xMeters: 0, depthMeters: 0 },
+      { xMeters: 4.0002, depthMeters: 0 },
+      { xMeters: -0.0161, depthMeters: 0.3925 },
+      { xMeters: 0.4424, depthMeters: 0.3263 },
+    ],
+    manualCalibration,
+  );
+  const expected = [
+    { x: 1434, y: 1622 },
+    { x: 4163.136451414724, y: 1570.9974499735613 },
+    { x: 1428.0201499969, y: 1889.9884001389194 },
+    { x: 1739.9877251586174, y: 1838.9775751124764 },
+  ];
+
+  projected.forEach((point, index) => {
+    assertPointClose(point, expected[index], `T104 point ${index}`);
+  });
+});
+
+test("projectPolyline uses exact sourcePixel for a new boundary", () => {
+  assert.deepEqual(
+    projectPolyline(
+      [
+        {
+          xMeters: 999,
+          depthMeters: 999,
+          sourcePixel: [2250, 1900],
+        },
+        {
+          xCoordinateMeters: -999,
+          yCoordinateMeters: -999,
+          sourcePixel: [2260.5, 1912.25],
+        },
+      ],
+      manualCalibration,
+    ),
+    [
+      { x: 2250, y: 1900 },
+      { x: 2260.5, y: 1912.25 },
+    ],
+  );
+});
+
+test("projectPolyline preserves tilted geometry", () => {
+  const calibration = {
+    origin_px: [10, 20],
+    ref_px: [13, 24],
+    lowest_px: [2, 26],
+    px_per_m: 5,
+  };
+
+  assert.deepEqual(
+    projectPolyline(
+      [
+        { xMeters: 0, depthMeters: 0 },
+        { xMeters: 2, depthMeters: 0 },
+        { xMeters: 2, depthMeters: 1 },
+      ],
+      calibration,
+    ),
+    [
+      { x: 10, y: 20 },
+      { x: 16, y: 28 },
+      { x: 12, y: 31 },
+    ],
+  );
+});
+
+test("projected grid depth follows the calibrated downward axis", () => {
+  const axes = calibrationAxes(manualCalibration);
+  const [top, bottom] = projectPolyline(
+    [
+      { xMeters: 1.5, depthMeters: 0 },
+      { xMeters: 1.5, depthMeters: 3 },
+    ],
+    manualCalibration,
+  );
+  const gridDirection = {
+    x: bottom.x - top.x,
+    y: bottom.y - top.y,
+  };
+  const towardLowest = {
+    x: manualCalibration.lowest_px[0] - manualCalibration.origin_px[0],
+    y: manualCalibration.lowest_px[1] - manualCalibration.origin_px[1],
+  };
+
+  assert.ok(
+    (gridDirection.x * towardLowest.x)
+      + (gridDirection.y * towardLowest.y) > 0,
+    "grid depth should point toward lowest_px",
+  );
+  assertPointClose(
+    gridDirection,
+    {
+      x: 3 * axes.pxPerMeter * axes.v.x,
+      y: 3 * axes.pxPerMeter * axes.v.y,
+    },
+    "grid depth vector",
+  );
+});
+
+test("projectPolyline does not reorder points", () => {
   const points = [
     { xMeters: 2, depthMeters: 0 },
     { xMeters: 0, depthMeters: 1 },
