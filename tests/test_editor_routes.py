@@ -8,6 +8,7 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT / "poggio_webapp"))
 
+import app as app_module
 from app import app
 from pipeline import editor
 
@@ -72,6 +73,38 @@ def _invalid_structural_field_wall_envelope():
         "gridConfig": {"faces": {}},
         "editorState": {"faces": []},
         "resumeState": {"faces": []},
+    }
+
+
+def _read_job_meta(job_id):
+    return json.loads(
+        (editor.JOBS_DIR / job_id / "meta.json").read_text()
+    )
+
+
+def _mock_pipeline_start(monkeypatch, task_id="editor-task-123"):
+    calls = []
+
+    def fake_run_editor_pipeline(job_id):
+        calls.append({
+            "job_id": job_id,
+            "meta": _read_job_meta(job_id),
+        })
+        return task_id
+
+    monkeypatch.setattr(
+        app_module,
+        "_run_editor_pipeline",
+        fake_run_editor_pipeline,
+    )
+    return calls
+
+
+def _expected_finalized_output(state):
+    return {
+        **state,
+        "finds": [],
+        "source": "manual_editor",
     }
 
 
@@ -288,7 +321,11 @@ def test_get_state_for_unknown_job_returns_404(client):
     assert "does not exist" in response.get_json()["error"]
 
 
-def test_finalize_valid_saved_state_returns_finalized_object(client):
+def test_finalize_valid_saved_state_returns_lifecycle_fields(
+    client,
+    monkeypatch,
+):
+    calls = _mock_pipeline_start(monkeypatch)
     job_id = _create_editor(client)
     state = _valid_field_wall_state()
     save_response = client.post(f"/editor/{job_id}/save", json=state)
@@ -296,15 +333,65 @@ def test_finalize_valid_saved_state_returns_finalized_object(client):
     response = client.post(f"/editor/{job_id}/finalize")
 
     assert save_response.status_code == 200
-    assert response.status_code == 200
+    assert response.status_code == 202
     assert response.get_json() == {
-        **state,
-        "finds": [],
-        "source": "manual_editor",
+        "job_id": job_id,
+        "status": "building",
+        "task_id": "editor-task-123",
+        "results_url": f"/jobs/{job_id}",
+        "visualizer_url": f"/visualizer?job={job_id}",
+        "output": _expected_finalized_output(state),
     }
+    assert [call["job_id"] for call in calls] == [job_id]
 
 
-def test_finalize_invalid_saved_state_returns_400(client):
+def test_finalize_changes_status_from_editing_to_finalizing_before_pipeline(
+    client,
+    monkeypatch,
+):
+    calls = _mock_pipeline_start(monkeypatch)
+    job_id = _create_editor(client)
+    client.post(
+        f"/editor/{job_id}/save",
+        json=_valid_field_wall_state(),
+    )
+    editing_updated_at = _read_job_meta(job_id)["updated_at"]
+
+    response = client.post(f"/editor/{job_id}/finalize")
+
+    assert response.status_code == 202
+    finalizing_meta = calls[0]["meta"]
+    assert finalizing_meta["status"] == "finalizing"
+    assert finalizing_meta["updated_at"] != editing_updated_at
+
+
+def test_finalize_sets_building_status_and_stores_task_id_after_pipeline_start(
+    client,
+    monkeypatch,
+):
+    calls = _mock_pipeline_start(monkeypatch, task_id="build-task-456")
+    job_id = _create_editor(client)
+    client.post(
+        f"/editor/{job_id}/save",
+        json=_valid_field_wall_state(),
+    )
+
+    response = client.post(f"/editor/{job_id}/finalize")
+
+    metadata = _read_job_meta(job_id)
+    assert response.status_code == 202
+    assert len(calls) == 1
+    assert metadata["status"] == "building"
+    assert metadata["task_id"] == "build-task-456"
+    assert metadata["gempy_task_id"] == "build-task-456"
+    assert metadata["updated_at"] != calls[0]["meta"]["updated_at"]
+
+
+def test_finalize_invalid_saved_state_returns_400_and_leaves_status_editing(
+    client,
+    monkeypatch,
+):
+    calls = _mock_pipeline_start(monkeypatch)
     job_id = _create_editor(client)
     save_response = client.post(
         f"/editor/{job_id}/save",
@@ -316,6 +403,149 @@ def test_finalize_invalid_saved_state_returns_400(client):
     assert save_response.status_code == 200
     assert response.status_code == 400
     assert "error" in response.get_json()
+    assert _read_job_meta(job_id)["status"] == "editing"
+    assert calls == []
+
+
+def test_synchronous_pipeline_failure_sets_error_and_preserves_editor_data(
+    client,
+    monkeypatch,
+):
+    calls = []
+
+    def fail_pipeline(job_id):
+        calls.append(_read_job_meta(job_id))
+        raise RuntimeError("sensitive internal pipeline detail")
+
+    monkeypatch.setattr(app_module, "_run_editor_pipeline", fail_pipeline)
+    job_id = _create_editor(client)
+    state = _valid_field_wall_state()
+    client.post(f"/editor/{job_id}/save", json=state)
+    state_path = editor.JOBS_DIR / job_id / "editor_state.json"
+    original_editor_state = state_path.read_text()
+
+    response = client.post(f"/editor/{job_id}/finalize")
+
+    metadata = _read_job_meta(job_id)
+    output = json.loads(
+        (editor.JOBS_DIR / job_id / "extraction_output.json").read_text()
+    )
+    assert response.status_code == 500
+    assert calls[0]["status"] == "finalizing"
+    assert metadata["status"] == "error"
+    assert metadata["updated_at"] != calls[0]["updated_at"]
+    assert state_path.read_text() == original_editor_state
+    assert output == _expected_finalized_output(state)
+
+
+def test_pipeline_failure_returns_non_2xx_with_user_safe_error(
+    client,
+    monkeypatch,
+):
+    def fail_pipeline(job_id):
+        raise RuntimeError("database password was rejected")
+
+    monkeypatch.setattr(app_module, "_run_editor_pipeline", fail_pipeline)
+    job_id = _create_editor(client)
+    client.post(
+        f"/editor/{job_id}/save",
+        json=_valid_field_wall_state(),
+    )
+
+    response = client.post(f"/editor/{job_id}/finalize")
+
+    assert not 200 <= response.status_code < 300
+    payload = response.get_json()
+    assert payload["status"] == "error"
+    assert payload["error"] == "Model processing could not be started."
+    assert "password" not in response.get_data(as_text=True)
+
+
+def test_second_finalize_while_finalizing_does_not_start_pipeline_again(
+    client,
+    monkeypatch,
+):
+    calls = _mock_pipeline_start(monkeypatch, task_id=None)
+    job_id = _create_editor(client)
+    client.post(
+        f"/editor/{job_id}/save",
+        json=_valid_field_wall_state(),
+    )
+
+    first_response = client.post(f"/editor/{job_id}/finalize")
+    second_response = client.post(f"/editor/{job_id}/finalize")
+
+    assert first_response.status_code == 202
+    assert second_response.status_code == 202
+    assert second_response.get_json()["status"] == "finalizing"
+    assert len(calls) == 1
+
+
+def test_second_finalize_while_building_does_not_start_pipeline_again(
+    client,
+    monkeypatch,
+):
+    calls = _mock_pipeline_start(monkeypatch)
+    job_id = _create_editor(client)
+    client.post(
+        f"/editor/{job_id}/save",
+        json=_valid_field_wall_state(),
+    )
+
+    first_response = client.post(f"/editor/{job_id}/finalize")
+    second_response = client.post(f"/editor/{job_id}/finalize")
+
+    assert first_response.status_code == 202
+    assert second_response.status_code == 202
+    assert second_response.get_json()["status"] == "building"
+    assert second_response.get_json()["task_id"] == "editor-task-123"
+    assert len(calls) == 1
+
+
+def test_finalize_after_completion_returns_existing_lifecycle_information(
+    client,
+    monkeypatch,
+):
+    calls = _mock_pipeline_start(monkeypatch)
+    job_id = _create_editor(client)
+    state = _valid_field_wall_state()
+    client.post(f"/editor/{job_id}/save", json=state)
+    first_response = client.post(f"/editor/{job_id}/finalize")
+    metadata = _read_job_meta(job_id)
+    metadata["status"] = "complete"
+    app_module._save_meta(editor.JOBS_DIR / job_id, metadata)
+
+    second_response = client.post(f"/editor/{job_id}/finalize")
+
+    assert first_response.status_code == 202
+    assert second_response.status_code == 200
+    assert second_response.get_json() == {
+        "job_id": job_id,
+        "status": "complete",
+        "task_id": "editor-task-123",
+        "results_url": f"/jobs/{job_id}",
+        "visualizer_url": f"/visualizer?job={job_id}",
+        "output": _expected_finalized_output(state),
+    }
+    assert len(calls) == 1
+
+
+def test_finalize_lifecycle_urls_point_to_job_results_and_visualizer(
+    client,
+    monkeypatch,
+):
+    _mock_pipeline_start(monkeypatch)
+    job_id = _create_editor(client)
+    client.post(
+        f"/editor/{job_id}/save",
+        json=_valid_field_wall_state(),
+    )
+
+    response = client.post(f"/editor/{job_id}/finalize")
+
+    payload = response.get_json()
+    assert payload["results_url"] == f"/jobs/{job_id}"
+    assert payload["visualizer_url"] == f"/visualizer?job={job_id}"
 
 
 def test_finalize_structural_error_returns_4xx_json(client):

@@ -2,6 +2,7 @@
 
 import json
 import os
+import threading
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -19,6 +20,15 @@ from pydantic import ValidationError
 
 app = create_app()
 
+EDITOR_PIPELINE_STATUSES = {
+    "finalizing",
+    "normalizing",
+    "validating",
+    "converting",
+    "building",
+    "complete",
+    "error",
+}
 PIPELINE_SUBDIRECTORIES = (
     "01_scan",
     "02_preprocess",
@@ -27,10 +37,38 @@ PIPELINE_SUBDIRECTORIES = (
     "05_convert_coords",
     "06_gempy_model",
 )
+_EDITOR_FINALIZATION_LOCK = threading.Lock()
+_EDITOR_META_LOCK = threading.Lock()
 
 
 def _save_meta(job_directory, meta):
+    meta["updated_at"] = datetime.now(timezone.utc).isoformat()
     (job_directory / "meta.json").write_text(json.dumps(meta, indent=2))
+
+
+def _load_meta(job_directory):
+    return json.loads((job_directory / "meta.json").read_text())
+
+
+def _run_editor_build(job_directory, build_fn, *args, log_cb=None):
+    try:
+        result = build_fn(*args, log_cb=log_cb)
+    except Exception:
+        with _EDITOR_META_LOCK:
+            meta = _load_meta(job_directory)
+            meta.update({
+                "status": "error",
+                "pipeline_error": "Model building failed.",
+            })
+            _save_meta(job_directory, meta)
+        raise
+
+    with _EDITOR_META_LOCK:
+        meta = _load_meta(job_directory)
+        meta["status"] = "complete"
+        meta.pop("pipeline_error", None)
+        _save_meta(job_directory, meta)
+    return result
 
 
 def _run_editor_pipeline(job_id):
@@ -43,7 +81,8 @@ def _run_editor_pipeline(job_id):
     )
     editor_state = load_editor_state(job_id)
     extraction_path = job_directory / "extraction_output.json"
-    meta = {
+    meta = _load_meta(job_directory)
+    meta.update({
         "job_id": job_id,
         "sheet_type": (
             "fieldwall"
@@ -53,7 +92,7 @@ def _run_editor_pipeline(job_id):
         "source": "manual_editor",
         "extraction_path": str(extraction_path),
         "status": "normalizing",
-    }
+    })
     _save_meta(job_directory, meta)
 
     normalized_path = (
@@ -101,20 +140,28 @@ def _run_editor_pipeline(job_id):
     output_prefix = str(
         job_directory / "06_gempy_model" / "trench_model"
     )
-    task_id = start_task(
-        build_gempy.run_build,
-        meta["points_csv"],
-        meta["orientations_csv"],
-        output_prefix,
-    )
-    meta["gempy_task_id"] = task_id
-    _save_meta(job_directory, meta)
+    with _EDITOR_META_LOCK:
+        task_id = start_task(
+            _run_editor_build,
+            job_directory,
+            build_gempy.run_build,
+            meta["points_csv"],
+            meta["orientations_csv"],
+            output_prefix,
+        )
+        meta = _load_meta(job_directory)
+        meta.update({
+            "task_id": task_id,
+            "gempy_task_id": task_id,
+        })
+        _save_meta(job_directory, meta)
+    return task_id
 
 
 def _job_status(job_directory, meta):
-    if meta.get("status") == "editing":
-        return "editing"
-    task = TASKS.get(meta.get("gempy_task_id"))
+    if meta.get("status") in {"editing", "complete", "error"}:
+        return meta["status"]
+    task = TASKS.get(meta.get("task_id") or meta.get("gempy_task_id"))
     if task:
         return {
             "done": "complete",
@@ -124,6 +171,48 @@ def _job_status(job_directory, meta):
     if list((job_directory / "06_gempy_model").glob("*.gempy")):
         return "complete"
     return meta.get("status", "extracted")
+
+
+def _refresh_job_status(job_directory, meta):
+    status = _job_status(job_directory, meta)
+    if status != meta.get("status"):
+        meta["status"] = status
+        _save_meta(job_directory, meta)
+    return status
+
+
+def _load_finalized_output(job_directory):
+    output_path = job_directory / "extraction_output.json"
+    if not output_path.exists():
+        return None
+    return json.loads(output_path.read_text())
+
+
+def _finalization_payload(job_id, job_directory, meta, output=None):
+    status = _refresh_job_status(job_directory, meta)
+    payload = {
+        "job_id": job_id,
+        "status": status,
+        "results_url": f"/jobs/{job_id}",
+        "visualizer_url": f"/visualizer?job={job_id}",
+        "output": (
+            _load_finalized_output(job_directory)
+            if output is None
+            else output
+        ),
+    }
+    task_id = meta.get("task_id") or meta.get("gempy_task_id")
+    if task_id is not None:
+        payload["task_id"] = task_id
+    return payload
+
+
+def _finalization_status_code(status):
+    if status == "error":
+        return 500
+    if status == "complete":
+        return 200
+    return 202
 
 
 def _job_file_url(job_id, job_directory, path):
@@ -330,30 +419,65 @@ def get_editor_state(job_id):
 
 @app.route("/editor/<job_id>/finalize", methods=["POST"])
 def finalize_editor(job_id):
+    job_directory = editor_pipeline.JOBS_DIR / job_id
+    with _EDITOR_FINALIZATION_LOCK:
+        try:
+            meta = _load_meta(job_directory)
+        except FileNotFoundError:
+            abort(404, description="unknown editor session")
+        status = _refresh_job_status(job_directory, meta)
+        if status in EDITOR_PIPELINE_STATUSES:
+            payload = _finalization_payload(job_id, job_directory, meta)
+            if status == "error":
+                payload["error"] = "Model processing could not be completed."
+            return jsonify(payload), _finalization_status_code(status)
+
+        try:
+            finalized = finalize_editor_session(job_id)
+        except editor_pipeline.EditorStructuralValidationError as error:
+            return jsonify({"error": str(error)}), 400
+        except ValidationError:
+            return jsonify({
+                "error": "The saved editor data is not valid.",
+            }), 400
+        except FileNotFoundError:
+            abort(404, description="unknown editor session")
+
+        output = finalized.model_dump(mode="json")
+        meta["status"] = "finalizing"
+        meta.pop("pipeline_error", None)
+        _save_meta(job_directory, meta)
+
     try:
-        finalized = finalize_editor_session(job_id)
-    except editor_pipeline.EditorStructuralValidationError as error:
-        return jsonify({"error": str(error)}), 400
-    except ValidationError as error:
-        return jsonify({"error": str(error)}), 400
-    except FileNotFoundError as error:
-        abort(404, description=str(error))
-    try:
-        _run_editor_pipeline(job_id)
-    except Exception as error:
-        job_directory = editor_pipeline.JOBS_DIR / job_id
-        meta_path = job_directory / "meta.json"
-        meta = json.loads(meta_path.read_text()) if meta_path.exists() else {
-            "job_id": job_id,
-            "source": "manual_editor",
-            "extraction_path": str(
-                job_directory / "extraction_output.json"
-            ),
-        }
-        meta.update({"status": "error", "pipeline_error": str(error)})
+        task_id = _run_editor_pipeline(job_id)
+    except Exception:
+        meta = _load_meta(job_directory)
+        meta.update({
+            "status": "error",
+            "pipeline_error": "Pipeline startup failed.",
+        })
         _save_meta(job_directory, meta)
         app.logger.exception("Editor pipeline failed for job %s", job_id)
-    return jsonify(finalized.model_dump(mode="json"))
+        payload = _finalization_payload(
+            job_id,
+            job_directory,
+            meta,
+            output,
+        )
+        payload["error"] = "Model processing could not be started."
+        return jsonify(payload), 500
+
+    meta = _load_meta(job_directory)
+    if task_id is not None:
+        meta.update({
+            "task_id": task_id,
+            "gempy_task_id": task_id,
+        })
+        if meta.get("status") not in {"complete", "error"}:
+            meta["status"] = "building"
+        _save_meta(job_directory, meta)
+    payload = _finalization_payload(job_id, job_directory, meta, output)
+    return jsonify(payload), _finalization_status_code(payload["status"])
 
 
 if __name__ == "__main__":
