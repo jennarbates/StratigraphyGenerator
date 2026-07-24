@@ -201,14 +201,15 @@ def check_features(layer, top, bottom, where, report, monotonic_tolerance_m):
 
 
 def check_face(face, report, monotonic_tolerance_m, top_continuity_tolerance_m,
-               max_plausible_depth_m):
+               max_plausible_depth_m, source="extraction"):
     fname = face.get("face") or "UNNAMED FACE"
     layers = face.get("layers") or []
     if not layers:
         report.warn(fname, "no layers")
         return
 
-    check_parallel_layers(layers, fname, report)
+    if source != "manual_editor":
+        check_parallel_layers(layers, fname, report)
 
     prev_bottom = None
     prev_name = None
@@ -222,7 +223,8 @@ def check_face(face, report, monotonic_tolerance_m, top_continuity_tolerance_m,
         bottom = check_boundary(layer.get("bottomBoundary"), f"{where} bottom", report,
                                  max_plausible_depth_m)
 
-        check_uniform_spacing(layer.get("bottomBoundary"), f"{where} bottom", report)
+        if source != "manual_editor":
+            check_uniform_spacing(layer.get("bottomBoundary"), f"{where} bottom", report)
 
         if prev_bottom and top:
             for x, y in top:
@@ -327,7 +329,7 @@ def validate(data, monotonic_tolerance_m=DEFAULT_MONOTONIC_TOLERANCE_M,
                 f"gridLabels ({len(gl)}) and gridLabelXMeters ({len(gx)}) "
                 "differ in length")
         check_face(face, report, monotonic_tolerance_m, top_continuity_tolerance_m,
-                   max_plausible_depth_m)
+                   max_plausible_depth_m, data.get("source", "extraction"))
 
     return report
 
