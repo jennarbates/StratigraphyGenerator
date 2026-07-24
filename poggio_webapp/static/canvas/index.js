@@ -8,6 +8,7 @@ import {
   assembleFieldWallPolygonMetadata,
   cancelCurrentPolygon,
   debounce,
+  defaultDocumentMetadata,
   deleteClosedPolygon,
   edgeMidpoint,
   fieldWallMetadataFormValues,
@@ -64,6 +65,35 @@ const registrationFace = document.querySelector("#grid-registration-face");
 const registrationInputs = [
   ...registrationForm.querySelectorAll("[data-registration-field]"),
 ];
+const documentMetadataForm = document.querySelector(
+  "#document-metadata-form",
+);
+const documentTrenchLabelInput = document.querySelector(
+  "#document-trench-label",
+);
+const documentFaceLabelField = document.querySelector(
+  "#document-face-label-field",
+);
+const documentFaceLabelInput = document.querySelector(
+  "#document-face-label",
+);
+const documentRecordersLabel = document.querySelector(
+  "#document-recorders-label",
+);
+const documentRecordersInput = document.querySelector(
+  "#document-recorders",
+);
+const documentDateLabel = document.querySelector("#document-date-label");
+const documentDateInput = document.querySelector("#document-date");
+const documentNorthArrowField = document.querySelector(
+  "#document-north-arrow-field",
+);
+const documentNorthArrowSelect = document.querySelector(
+  "#document-north-arrow",
+);
+const documentGeneralNoteInput = document.querySelector(
+  "#document-general-note",
+);
 const faceSetupDialog = document.querySelector("#face-setup-dialog");
 const faceSetupForm = document.querySelector("#face-setup-form");
 const faceCountField = document.querySelector("#face-count-field");
@@ -97,6 +127,7 @@ let schemaType = requestedSchemaType === FIELD_WALL_SCHEMA
   ? FIELD_WALL_SCHEMA
   : "ArchaeologicalDiagram";
 let isFieldWall = schemaType === FIELD_WALL_SCHEMA;
+let documentMetadata = defaultDocumentMetadata(schemaType);
 const editorState = {
   activeFaceIndex: -1,
   faces: [],
@@ -154,7 +185,11 @@ function saveEditorSession({ keepalive = false } = {}) {
     .then(async () => {
       persistCurrentFace();
       const revisionToSave = changeRevision;
-      const state = assembleEditorSessionState(editorState, schemaType);
+      const state = assembleEditorSessionState(
+        editorState,
+        schemaType,
+        documentMetadata,
+      );
       showSaveState("saving");
 
       try {
@@ -356,6 +391,8 @@ function restoreEditorSession(savedState) {
   }
 
   canvasContainer.replaceChildren();
+  documentMetadata = restoredState.documentMetadata;
+  renderDocumentMetadataForm();
   editorState.faces = restoredState.faces.map(restoreFaceState);
   const requestedFaceIndex = restoredState.activeFaceIndex;
   editorState.activeFaceIndex = (
@@ -829,6 +866,49 @@ function cancelCanvasPointerAction(event) {
   pointerAction = null;
 }
 
+function documentRecorderNames() {
+  return documentRecordersInput.value
+    .split(/[,\n]/)
+    .map((name) => name.trim())
+    .filter(Boolean);
+}
+
+function readDocumentMetadataForm() {
+  const metadata = {
+    trenchLabel: documentTrenchLabelInput.value.trim(),
+    recorders: documentRecorderNames(),
+    date: documentDateInput.value.trim(),
+    generalNote: documentGeneralNoteInput.value.trim(),
+  };
+
+  if (!isFieldWall) {
+    return metadata;
+  }
+
+  return {
+    ...metadata,
+    faceLabel: documentFaceLabelInput.value.trim(),
+    northArrowPresent: documentNorthArrowSelect.value === ""
+      ? null
+      : documentNorthArrowSelect.value === "present",
+  };
+}
+
+function renderDocumentMetadataForm() {
+  documentTrenchLabelInput.value = documentMetadata.trenchLabel ?? "";
+  documentFaceLabelInput.value = documentMetadata.faceLabel ?? "";
+  documentRecordersInput.value = Array.isArray(documentMetadata.recorders)
+    ? documentMetadata.recorders.join(", ")
+    : (documentMetadata.recorders ?? "");
+  documentDateInput.value = documentMetadata.date ?? "";
+  documentNorthArrowSelect.value = (
+    documentMetadata.northArrowPresent === true
+      ? "present"
+      : (documentMetadata.northArrowPresent === false ? "absent" : "")
+  );
+  documentGeneralNoteInput.value = documentMetadata.generalNote ?? "";
+}
+
 function configureSchemaFields() {
   materialField.hidden = isFieldWall;
   materialSelect.disabled = isFieldWall;
@@ -837,6 +917,14 @@ function configureSchemaFields() {
     input.disabled = !isFieldWall;
   }
   faceCountField.hidden = isFieldWall;
+  documentFaceLabelField.hidden = !isFieldWall;
+  documentFaceLabelInput.disabled = !isFieldWall;
+  documentNorthArrowField.hidden = !isFieldWall;
+  documentNorthArrowSelect.disabled = !isFieldWall;
+  documentRecordersLabel.textContent = isFieldWall
+    ? "Recorder or recorders"
+    : "Recorder or illustrator";
+  documentDateLabel.textContent = isFieldWall ? "Date" : "Year or date";
 }
 
 closeShapeButton.addEventListener("pointerup", (event) => {
@@ -1011,6 +1099,15 @@ registrationForm.addEventListener("submit", (event) => {
   event.preventDefault();
 });
 
+documentMetadataForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+});
+
+documentMetadataForm.addEventListener("input", () => {
+  documentMetadata = readDocumentMetadataForm();
+  scheduleAutosave();
+});
+
 registrationInputs.forEach((input) => {
   input.addEventListener("input", () => {
     if (!currentFace) {
@@ -1154,6 +1251,7 @@ async function loadEditorSession() {
 
 async function initializeEditor() {
   configureSchemaFields();
+  renderDocumentMetadataForm();
   faceCountInput.value = "1";
   renderFaceNameFields();
 

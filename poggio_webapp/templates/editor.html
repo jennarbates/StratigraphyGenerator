@@ -71,6 +71,52 @@
       <aside class="metadata-sidebar" aria-labelledby="polygon-list-heading">
         <section
           class="grid-registration"
+          aria-labelledby="document-metadata-heading"
+        >
+          <h2 id="document-metadata-heading">Drawing details</h2>
+          <p>Optional context saved with the whole drawing.</p>
+          <form id="document-metadata-form">
+            <div class="grid-registration-fields">
+              <label>
+                Trench label <span>(optional)</span>
+                <input id="document-trench-label" type="text">
+              </label>
+              <label id="document-face-label-field">
+                Face label <span>(optional)</span>
+                <input id="document-face-label" type="text">
+              </label>
+              <label>
+                <span id="document-recorders-label">Recorder or illustrator</span>
+                <span>(optional)</span>
+                <input
+                  id="document-recorders"
+                  type="text"
+                  placeholder="Separate multiple names with commas"
+                >
+              </label>
+              <label>
+                <span id="document-date-label">Year or date</span>
+                <span>(optional)</span>
+                <input id="document-date" type="text">
+              </label>
+              <label id="document-north-arrow-field">
+                North arrow
+                <select id="document-north-arrow">
+                  <option value="">Unknown</option>
+                  <option value="present">Present</option>
+                  <option value="absent">Not present</option>
+                </select>
+              </label>
+              <label>
+                General note <span>(optional)</span>
+                <textarea id="document-general-note" rows="3"></textarea>
+              </label>
+            </div>
+          </form>
+        </section>
+
+        <section
+          class="grid-registration"
           aria-labelledby="grid-registration-heading"
         >
           <h2 id="grid-registration-heading">Grid registration</h2>

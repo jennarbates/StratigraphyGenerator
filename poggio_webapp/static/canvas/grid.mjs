@@ -650,20 +650,40 @@ export function assembleFinalizeState(
       polygons: [],
       polygonMetadata: {},
     };
+    const suppliedRecorders = (
+      documentMetadata.recorders
+      ?? documentMetadata.recorder
+      ?? documentMetadata.illustrator
+      ?? documentMetadata.illustrators
+    );
+    const suppliedNote = (
+      documentMetadata.generalNote
+      ?? documentMetadata.note
+    );
 
     return {
-      trenchLabel: documentMetadata.trenchLabel ?? null,
-      faceLabel: documentMetadata.faceLabel ?? face.name,
-      illustrators: documentMetadata.illustrators ?? [],
-      date: documentMetadata.date ?? null,
-      northArrowPresent: documentMetadata.northArrowPresent ?? null,
+      trenchLabel: optionalText(documentMetadata.trenchLabel),
+      faceLabel: optionalText(documentMetadata.faceLabel),
+      illustrators: suppliedRecorders === undefined
+        ? null
+        : (recorderNames(suppliedRecorders).length > 0
+          ? recorderNames(suppliedRecorders)
+          : null),
+      date: optionalText(documentMetadata.date),
+      northArrowPresent: (
+        typeof documentMetadata.northArrowPresent === "boolean"
+          ? documentMetadata.northArrowPresent
+          : null
+      ),
       gridSquareCm: documentMetadata.gridSquareCm ?? (
         GRID_SPACING_METERS * 100
       ),
       gridTiePoints: documentMetadata.gridTiePoints ?? [],
       loci: documentMetadata.loci ?? fieldWallLoci(face),
       layers: fieldWallLayers(face),
-      marginalia: documentMetadata.marginalia ?? [],
+      marginalia: suppliedNote === undefined
+        ? (documentMetadata.marginalia ?? [])
+        : (optionalText(suppliedNote) ? [optionalText(suppliedNote)] : []),
     };
   }
 
@@ -672,14 +692,7 @@ export function assembleFinalizeState(
   }
 
   return {
-    metadata: documentMetadata.metadata ?? {
-      currentFilePath: "manual-editor",
-      suggestedFilename: null,
-      trenchLabel: null,
-      scale: null,
-      credits: null,
-      marginalia: [],
-    },
+    metadata: archaeologicalDocumentMetadata(documentMetadata),
     trenchProfiles: editorState.faces.map((face) => ({
       face: face.name,
       gridLabels: face.gridLabels ?? [],
@@ -725,9 +738,140 @@ function cloneJsonValue(value) {
   return value;
 }
 
-export function snapshotEditorState(editorState) {
+function optionalText(value) {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  return value.trim() || null;
+}
+
+function recorderNames(value) {
+  const values = Array.isArray(value)
+    ? value
+    : (typeof value === "string" ? value.split(/[,\n]/) : []);
+
+  return values
+    .map(optionalText)
+    .filter((value) => value !== null);
+}
+
+function archaeologicalDocumentMetadata(documentMetadata) {
+  const metadata = documentMetadata.metadata ?? {};
+  const suppliedRecorders = (
+    documentMetadata.recorders
+    ?? documentMetadata.recorder
+    ?? documentMetadata.illustrator
+  );
+  const recorders = suppliedRecorders === undefined
+    ? (metadata.credits?.attributions ?? []).map(({ name }) => name)
+    : recorderNames(suppliedRecorders);
+  const date = (
+    documentMetadata.date === undefined
+      ? metadata.credits?.year
+      : optionalText(documentMetadata.date)
+  ) ?? null;
+  const suppliedNote = (
+    documentMetadata.generalNote
+    ?? documentMetadata.note
+  );
+  const marginalia = suppliedNote === undefined
+    ? (metadata.marginalia ?? [])
+    : (optionalText(suppliedNote) ? [optionalText(suppliedNote)] : []);
+  const credits = suppliedRecorders === undefined
+    && documentMetadata.date === undefined
+    ? (metadata.credits ?? null)
+    : (
+      recorders.length > 0 || date !== null
+        ? {
+          attributions: recorders.length > 0
+            ? recorders.map((name) => ({ name, role: "illustrator" }))
+            : null,
+          year: date,
+        }
+        : null
+    );
+
+  return {
+    currentFilePath: metadata.currentFilePath ?? "manual-editor",
+    suggestedFilename: metadata.suggestedFilename ?? null,
+    trenchLabel: documentMetadata.trenchLabel === undefined
+      ? (metadata.trenchLabel ?? null)
+      : optionalText(documentMetadata.trenchLabel),
+    scale: metadata.scale ?? null,
+    credits,
+    marginalia,
+  };
+}
+
+export function defaultDocumentMetadata(schemaType) {
+  const defaults = {
+    trenchLabel: "",
+    recorders: [],
+    date: "",
+    generalNote: "",
+  };
+
+  if (schemaType === "FieldWallProfile") {
+    return {
+      ...defaults,
+      faceLabel: "",
+      northArrowPresent: null,
+    };
+  }
+
+  return defaults;
+}
+
+function normalizedDocumentMetadata(documentMetadata, schemaType) {
+  const source = documentMetadata ?? {};
+
+  if (schemaType === "ArchaeologicalDiagram" && source.metadata) {
+    return {
+      trenchLabel: source.metadata.trenchLabel ?? "",
+      recorders: (source.metadata.credits?.attributions ?? [])
+        .map(({ name }) => name)
+        .filter((name) => typeof name === "string" && name.trim()),
+      date: source.metadata.credits?.year ?? "",
+      generalNote: (source.metadata.marginalia ?? []).join("\n"),
+    };
+  }
+
+  const normalized = {
+    trenchLabel: optionalText(source.trenchLabel) ?? "",
+    recorders: recorderNames(
+      source.recorders
+      ?? source.recorder
+      ?? source.illustrator
+      ?? source.illustrators,
+    ),
+    date: optionalText(source.date) ?? "",
+    generalNote: optionalText(
+      source.generalNote
+      ?? source.note
+      ?? (Array.isArray(source.marginalia)
+        ? source.marginalia.join("\n")
+        : undefined),
+    ) ?? "",
+  };
+
+  if (schemaType === "FieldWallProfile") {
+    return {
+      ...normalized,
+      faceLabel: optionalText(source.faceLabel) ?? "",
+      northArrowPresent: typeof source.northArrowPresent === "boolean"
+        ? source.northArrowPresent
+        : null,
+    };
+  }
+
+  return normalized;
+}
+
+export function snapshotEditorState(editorState, documentMetadata = {}) {
   return {
     activeFaceIndex: editorState.activeFaceIndex,
+    documentMetadata: cloneJsonValue(documentMetadata),
     faces: editorState.faces.map((face) => ({
       name: face.name,
       gridRegistration: cloneJsonValue(face.gridRegistration ?? {}),
@@ -755,7 +899,20 @@ export function reconstructEditorState(savedState) {
     throw new TypeError("Saved editor state must include a faces array.");
   }
 
-  return cloneJsonValue(resumableState);
+  const reconstructed = cloneJsonValue(resumableState);
+  const schemaType = savedState?.schemaType === "FieldWallProfile"
+    ? "FieldWallProfile"
+    : "ArchaeologicalDiagram";
+  const savedDocumentMetadata = (
+    resumableState.documentMetadata
+    ?? savedState?.documentMetadata
+    ?? defaultDocumentMetadata(schemaType)
+  );
+  reconstructed.documentMetadata = normalizedDocumentMetadata(
+    savedDocumentMetadata,
+    schemaType,
+  );
+  return reconstructed;
 }
 
 function assembleSaveGridConfig(editorState) {
@@ -791,6 +948,7 @@ export function assembleEditorSessionState(
 
   return {
     schemaType,
+    documentMetadata: cloneJsonValue(documentMetadata),
     finalizeState: assembleFinalizeState(
       editorState,
       schemaType,
@@ -798,6 +956,6 @@ export function assembleEditorSessionState(
     ),
     gridConfig: assembleSaveGridConfig(editorState),
     editorState: structuralEditorState,
-    resumeState: snapshotEditorState(editorState),
+    resumeState: snapshotEditorState(editorState, documentMetadata),
   };
 }

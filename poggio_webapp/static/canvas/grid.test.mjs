@@ -11,6 +11,7 @@ import {
   assembleFinalizeState,
   cancelCurrentPolygon,
   debounce,
+  defaultDocumentMetadata,
   deleteClosedPolygon,
   edgeMidpoint,
   fieldWallMetadataFormValues,
@@ -406,6 +407,142 @@ const fixtureDocumentMetadata = {
   inferred_notes: chunkThreeArchaeologicalFixture.inferred_notes,
   rawTranscription: chunkThreeArchaeologicalFixture.rawTranscription,
 };
+
+const archaeologicalDrawingMetadata = {
+  trenchLabel: "T104",
+  recorders: ["A. Recorder"],
+  date: "2026",
+  generalNote: "Profile redrawn after cleaning.",
+};
+
+const fieldWallDrawingMetadata = {
+  trenchLabel: "T104",
+  faceLabel: "Southern baulk",
+  recorders: ["A. Recorder", "B. Illustrator"],
+  date: "2026-07-24",
+  northArrowPresent: false,
+  generalNote: "Wall profile recorded after rain.",
+};
+
+test("document metadata is included in resumable saved state", () => {
+  const savedState = assembleEditorSessionState(
+    fixtureEditorState,
+    "ArchaeologicalDiagram",
+    archaeologicalDrawingMetadata,
+  );
+
+  assert.deepEqual(
+    savedState.resumeState.documentMetadata,
+    archaeologicalDrawingMetadata,
+  );
+  assert.deepEqual(savedState.documentMetadata, archaeologicalDrawingMetadata);
+});
+
+test("document metadata survives JSON serialization and reconstruction", () => {
+  const savedState = assembleEditorSessionState(
+    createFieldWallEditorState({
+      locus: "1042",
+      munsell: "10YR 5/3",
+      note: "Compact",
+    }),
+    "FieldWallProfile",
+    fieldWallDrawingMetadata,
+  );
+  const reconstructed = reconstructEditorState(
+    JSON.parse(JSON.stringify(savedState)),
+  );
+
+  assert.deepEqual(
+    reconstructed.documentMetadata,
+    fieldWallDrawingMetadata,
+  );
+});
+
+test("archaeological drawing metadata maps into ArchaeologicalDiagram.metadata", () => {
+  const assembled = assembleFinalizeState(
+    fixtureEditorState,
+    "ArchaeologicalDiagram",
+    archaeologicalDrawingMetadata,
+  );
+
+  assert.deepEqual(assembled.metadata, {
+    currentFilePath: "manual-editor",
+    suggestedFilename: null,
+    trenchLabel: "T104",
+    scale: null,
+    credits: {
+      attributions: [{
+        name: "A. Recorder",
+        role: "illustrator",
+      }],
+      year: "2026",
+    },
+    marginalia: ["Profile redrawn after cleaning."],
+  });
+});
+
+test("field-wall drawing metadata maps into FieldWallProfile top-level fields", () => {
+  const assembled = assembleFinalizeState(
+    createFieldWallEditorState({
+      locus: "1042",
+      munsell: "10YR 5/3",
+      note: "Compact",
+    }),
+    "FieldWallProfile",
+    fieldWallDrawingMetadata,
+  );
+
+  assert.equal(assembled.trenchLabel, "T104");
+  assert.equal(assembled.faceLabel, "Southern baulk");
+  assert.deepEqual(
+    assembled.illustrators,
+    ["A. Recorder", "B. Illustrator"],
+  );
+  assert.equal(assembled.date, "2026-07-24");
+  assert.equal(assembled.northArrowPresent, false);
+  assert.deepEqual(
+    assembled.marginalia,
+    ["Wall profile recorded after rain."],
+  );
+});
+
+test("a legacy state without documentMetadata loads with defaults", () => {
+  const reconstructed = reconstructEditorState({
+    schemaType: "FieldWallProfile",
+    resumeState: {
+      activeFaceIndex: 0,
+      faces: createFieldWallEditorState({}).faces,
+    },
+  });
+
+  assert.deepEqual(
+    reconstructed.documentMetadata,
+    defaultDocumentMetadata("FieldWallProfile"),
+  );
+});
+
+test("existing saved-state fixtures still load without document metadata", () => {
+  const reconstructed = reconstructEditorState({
+    schemaType: "ArchaeologicalDiagram",
+    editorState: fixtureEditorState,
+  });
+
+  assert.deepEqual(reconstructed.faces, fixtureEditorState.faces);
+  assert.deepEqual(
+    reconstructed.documentMetadata,
+    defaultDocumentMetadata("ArchaeologicalDiagram"),
+  );
+});
+
+test("field-wall gridSquareCm defaults to 25 when not explicitly supplied", () => {
+  const assembled = assembleFinalizeState(
+    createFieldWallEditorState({}),
+    "FieldWallProfile",
+    fieldWallDrawingMetadata,
+  );
+
+  assert.equal(assembled.gridSquareCm, 25);
+});
 
 test("full editor state assembles to the exact Chunk 3 finalize fixture", () => {
   const assembled = assembleEditorSessionState(
