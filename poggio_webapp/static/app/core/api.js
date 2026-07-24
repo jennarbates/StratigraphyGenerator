@@ -24,7 +24,7 @@ export async function ensureJob() {
   if (state.jobId) return state.jobId;
   const r = await api("/api/jobs", { method: "POST" });
   state.jobId = r.job_id;
-  $jobBadge.textContent = `job ${state.jobId}`;
+  $jobBadge.textContent = `Current drawing · ${state.jobId.slice(-6)}`;
   return state.jobId;
 }
 

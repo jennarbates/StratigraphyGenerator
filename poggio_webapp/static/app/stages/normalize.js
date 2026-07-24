@@ -6,10 +6,16 @@ import { $content, banner, errorBanner } from "../core/ui.js";
 export function renderNormalize() {
   $content.innerHTML = `
     <div class="panel">
-      <h2>04 · Normalize</h2>
-      <p class="lede">Fixes literal "null" strings and de-duplicates floor / cross-layer
-      features. Non-destructive — every change is logged.</p>
-      <div class="btn-row"><button id="nRun">Run normalizer</button></div>
+      <div class="stage-kicker">Step 4 of 8</div>
+      <h2>Clean up the data</h2>
+      <p class="lede">This automatically fixes small formatting problems and
+      removes accidental duplicates. It does not move any of the lines you traced.</p>
+      <div class="plain-note">
+        <span class="note-icon" aria-hidden="true">✓</span>
+        <span><strong>No settings are needed.</strong><br>
+        Choose the button once, then continue when the check is complete.</span>
+      </div>
+      <div class="btn-row"><button id="nRun">Clean up my data</button></div>
       <div id="nError"></div>
       <div id="nResult"></div>
     </div>
@@ -29,21 +35,28 @@ export function renderNormalize() {
       state.completed.normalize = true;
       const resEl = document.getElementById("nResult");
       resEl.innerHTML = r.log.length
-        ? banner("warn", `${r.log.length} change(s) applied — see log below.`)
-        : banner("ok", "No changes needed.");
+        ? banner("ok", `${r.log.length} small formatting change${r.log.length === 1 ? " was" : "s were"} made.`)
+        : banner("ok", "No changes were needed.");
       if (r.log.length) {
+        const details = document.createElement("details");
+        details.className = "technical-details";
+        const summary = document.createElement("summary");
+        summary.textContent = "See exactly what changed";
         const box = document.createElement("div");
         box.className = "log-box";
         box.textContent = r.log.join("\n");
-        resEl.appendChild(box);
+        details.appendChild(summary);
+        details.appendChild(box);
+        resEl.appendChild(details);
       }
-      resEl.innerHTML += `<div class="download-list"><a class="file-link" href="${r.file_url}" download>output_clean.json</a></div>`;
+      resEl.insertAdjacentHTML("beforeend",
+        `<div class="download-list"><a class="file-link" href="${r.file_url}" download>Download cleaned data</a></div>`);
       refreshChrome();
     } catch (e) {
       errEl.innerHTML = errorBanner(e);
     } finally {
       btn.disabled = false;
-      btn.textContent = "Run normalizer";
+      btn.textContent = "Clean up my data";
     }
   });
 }

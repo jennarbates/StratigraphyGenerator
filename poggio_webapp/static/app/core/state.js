@@ -1,15 +1,15 @@
 export const STRATA = ["#9c6b3e", "#b98a4f", "#8a8c53", "#6c7a80", "#a4522f", "#5b7a9c", "#8a5ba0"];
 
 export const STEPS = [
-  { id: "scan",       title: "Scan",          sub: "01_scans",              num: "01" },
-  { id: "preprocess", title: "Preprocess",    sub: "02_preprocess",         num: "02" },
-  { id: "draw",       title: "Trace drawing", sub: "03_extraction",         num: "03" },
-  { id: "extract",    title: "AI fallback",   sub: "03_extraction",         num: "03" },
-  { id: "normalize",  title: "Normalize",     sub: "04_normalize_validate", num: "04" },
-  { id: "validate",   title: "Validate",      sub: "04_normalize_validate", num: "04" },
-  { id: "convert",    title: "Convert coords", sub: "05_convert_coords",    num: "05" },
-  { id: "gempy",      title: "3D model",      sub: "06_gempy_model",        num: "06" },
-  { id: "visualize",  title: "Visualize",     sub: "07_visualizer",         num: "07" },
+  { id: "scan",       title: "Add your drawing",        sub: "Choose a file to begin",              num: "1" },
+  { id: "preprocess", title: "Prepare the image",       sub: "Make lines easier to see",             num: "2" },
+  { id: "draw",       title: "Trace the layers",        sub: "Click along the drawing",              num: "3" },
+  { id: "extract",    title: "Other ways to add data",  sub: "Import a file or use automatic reading", num: "OR", optional: true },
+  { id: "normalize",  title: "Clean up the data",       sub: "Fix small formatting issues",          num: "4" },
+  { id: "validate",   title: "Check for problems",      sub: "Make sure the result looks safe",      num: "5" },
+  { id: "convert",    title: "Place it on the site",    sub: "Add surveyed coordinates",             num: "6" },
+  { id: "gempy",      title: "Create the 3D model",     sub: "Build the final model",                 num: "7" },
+  { id: "visualize",  title: "View and download",       sub: "Open your finished work",              num: "8" },
 ];
 
 export const state = {

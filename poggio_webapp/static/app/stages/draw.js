@@ -19,100 +19,132 @@ export function renderDraw() {
 
   $content.innerHTML = `
     <div class="panel">
-      <h2>03 · Trace drawing</h2>
-      <p class="lede">This is the primary extraction workflow. You calibrate
-      the image, trace each boundary, and outline any internal features. The
-      server converts those clicks directly into measured JSON. Computer vision
-      and Gemini are not required and do not alter the geometry.</p>
+      <div class="stage-kicker">Step 3 of 8</div>
+      <h2>Trace the layers</h2>
+      <p class="lede">You’ll click directly on the drawing to show where each
+      soil layer begins and ends. Nothing has to be perfect—you can undo any
+      misplaced point.</p>
+
+      <div class="plain-note">
+        <span class="note-icon" aria-hidden="true">i</span>
+        <span><strong>This step has four short parts.</strong><br>
+        Set the scale, trace the lines, optionally mark features, then add names.</span>
+      </div>
 
       ${isPdf ? `
-        <p class="hint">PDFs must first be converted to an image in
-        <strong>02 · Preprocess</strong>.</p>
+        <p class="hint">Your PDF has been turned into an image that you can click.</p>
         <div class="btn-row">
           <button class="secondary" id="dwShow" ${state.preprocess.cleanUrl ? "" : "disabled"}>
-            1 · Open tracing image
+            Open the drawing and start
           </button>
         </div>
       ` : `
         <label class="field">
-          <span class="label-text">Image rotation</span>
+          <span class="label-text">Is the drawing already upright?</span>
           <select id="dwRotate">
-            <option value="0">0° (already upright)</option>
-            <option value="90">90° clockwise</option>
-            <option value="180">180°</option>
-            <option value="270">270° clockwise</option>
+            <option value="0">Yes, it is upright</option>
+            <option value="90">Turn it 90° to the right</option>
+            <option value="180">Turn it upside down</option>
+            <option value="270">Turn it 90° to the left</option>
           </select>
         </label>
         <div class="btn-row">
-          <button class="secondary" id="dwShow">1 · Open tracing image</button>
+          <button id="dwShow">Open the drawing and start</button>
         </div>
       `}
 
       <div id="dwWrap" style="display:none">
-        <h3 style="margin-top:20px">A · Calibrate</h3>
-        <p class="hint" id="dwHint"></p>
+        <section class="drawing-section">
+        <h3><span class="section-label">A</span> Set the scale</h3>
+        <p class="hint">Click three points on the drawing in the order shown
+        below. This tells the app its size and which way is down.</p>
+        <p class="calibration-prompt" id="dwHint" aria-live="polite"></p>
         <div class="btn-row">
-          <button class="secondary" id="dwRecal">Clear calibration clicks</button>
+          <button class="secondary" id="dwRecal">Start these three clicks again</button>
         </div>
         <label class="field">
-          <span class="label-text">Real width between the two top reference points (m)</span>
+          <span class="label-text">Distance between your first two clicks, in metres</span>
           <input type="number" id="dwRefM" step="0.01" min="0.01"
-                 placeholder="e.g. 4" value="${dw.refM ?? ""}">
-          <span class="hint">Use the sheet’s tie labels, scale bar, or known wall width.</span>
+                 placeholder="For example: 4" value="${dw.refM ?? ""}">
+          <span class="hint">Look for a measurement or scale bar on the sheet.
+          If you are unsure, ask the person responsible for the trench record.</span>
         </label>
+        </section>
 
         <div id="dwTools" style="display:none">
-          <h3 style="margin-top:20px">B · Trace boundaries</h3>
-          <p class="hint">Create a boundary, then click along the ink line in
-          order from left to right. The first layer starts at the surface; each
-          bottom boundary closes one ${isField ? "locus" : "layer"} and becomes
-          the top of the next.</p>
+          <section class="drawing-section">
+          <h3><span class="section-label">B</span> Trace the soil lines</h3>
+          <ol class="task-list">
+            <li><span class="task-number">1</span><span>Choose <strong>Start the surface line</strong>,
+            then click along the top of the drawing from left to right.</span></li>
+            <li><span class="task-number">2</span><span>Type the ${nameLabel}, choose
+            <strong>Start this lower line</strong>, then click along that line.</span></li>
+            <li><span class="task-number">3</span><span>Repeat for every lower soil line.</span></li>
+          </ol>
           <div class="btn-row">
-            <button class="secondary" id="dwNewSurface">+ Surface line</button>
-            <input id="dwName" placeholder="${nameLabel}" style="width:150px">
-            <button class="secondary" id="dwNewBottom">+ Bottom boundary</button>
+            <button class="secondary" id="dwNewSurface">Start the surface line</button>
+            <input id="dwName" aria-label="${nameLabel}" placeholder="${nameLabel}" style="width:170px">
+            <button class="secondary" id="dwNewBottom">Start this lower line</button>
           </div>
           <div class="btn-row">
-            <button class="secondary" id="dwUndo">Undo selected point</button>
-            <button class="secondary" id="dwDelete">Delete selected item</button>
+            <button class="secondary" id="dwUndo">Undo my last point</button>
+            <button class="secondary" id="dwDelete">Delete the selected line or shape</button>
             <span id="dwActive" class="hint"></span>
           </div>
           <div id="dwBoundaryChips" class="btn-row" style="flex-wrap:wrap"></div>
+          </section>
 
-          <h3 style="margin-top:24px">C · Draw internal features <span class="hint">(optional)</span></h3>
-          <p class="hint">Choose a feature type, create a polygon, click around
-          its outline, then finish it. Polygons can represent stones, cuts,
-          lenses, voids, or anything else inside the layers.</p>
+          <details class="optional-section">
+          <summary>C · Mark rocks, cuts, or other features (optional)</summary>
+          <div class="details-body">
+          <p class="hint">Choose what you found, start a shape, then click around
+          its outside edge. Choose “Finish this shape” when you return to the start.</p>
           <div class="btn-row">
-            <select id="dwFeatureType" style="max-width:180px">
+            <select id="dwFeatureType" aria-label="Type of feature" style="max-width:210px">
               ${FEATURE_TYPES.map((type) => `<option>${type}</option>`).join("")}
             </select>
-            <input id="dwFeatureDesc" placeholder="description (optional)" style="min-width:220px">
-            <button class="secondary" id="dwNewFeature">+ New feature polygon</button>
-            <button class="secondary" id="dwFinishFeature">Finish polygon</button>
+            <input id="dwFeatureDesc" aria-label="Optional feature description"
+                   placeholder="Short note (optional)" style="min-width:220px">
+            <button class="secondary" id="dwNewFeature">Start a new shape</button>
+            <button class="secondary" id="dwFinishFeature">Finish this shape</button>
           </div>
           <div id="dwFeatureChips" class="btn-row" style="flex-wrap:wrap"></div>
           <div id="dwFeatureMeta"></div>
+          </div>
+          </details>
         </div>
 
-        <div id="dwImgWrap" style="position:relative;display:inline-block;max-width:100%;margin-top:10px">
-          <img id="dwImg" style="max-width:100%;display:block;cursor:crosshair">
+        <div id="dwImgWrap" class="image-workspace" style="position:relative;display:inline-block;max-width:100%;margin-top:10px">
+          <img id="dwImg" alt="Trench drawing to trace" style="max-width:100%;display:block;cursor:crosshair">
           <svg id="dwSvg" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></svg>
         </div>
       </div>
 
       <div id="dwMetaWrap" style="display:none">
-        <h3 style="margin-top:22px">D · Layer details and build</h3>
-        <div class="btn-row">
-          <input id="dwTrench" placeholder="trench label (e.g. T104)" value="${esc(dw.trenchLabel)}">
-          <input id="dwFace" placeholder="face label (e.g. south baulk)" value="${esc(dw.faceLabel)}">
-          ${isField ? `<input type="number" id="dwSquareCm" step="0.5" min="0.1"
-            placeholder="grid square (cm)" value="${dw.squareCm ?? ""}" style="width:160px">` : ""}
+        <section class="drawing-section">
+        <h3><span class="section-label">D</span> Add names and save</h3>
+        <p class="hint">Copy these names from the drawing. Leave an optional
+        description blank if the sheet does not provide one.</p>
+        <div class="field-grid">
+          <label class="field">
+            <span class="label-text">Trench name</span>
+            <input id="dwTrench" placeholder="For example: T104" value="${esc(dw.trenchLabel)}">
+          </label>
+          <label class="field">
+            <span class="label-text">Side of the trench</span>
+            <input id="dwFace" placeholder="For example: south baulk" value="${esc(dw.faceLabel)}">
+          </label>
+          ${isField ? `<label class="field">
+            <span class="label-text">Large grid-square size, in centimetres</span>
+            <input type="number" id="dwSquareCm" step="0.5" min="0.1"
+              placeholder="For example: 20" value="${dw.squareCm ?? ""}">
+          </label>` : ""}
         </div>
         <div id="dwMeta"></div>
         <div class="btn-row">
-          <button id="dwBuild">2 · Build manual extraction</button>
+          <button id="dwBuild">Save my traced drawing</button>
         </div>
+        </section>
       </div>
 
       <div id="dwResult"></div>
@@ -121,10 +153,10 @@ export function renderDraw() {
   `;
 
   const CAL_LABELS = [
-    "Click the drawing’s TOP-LEFT reference point.",
-    "Click the TOP-RIGHT reference point.",
-    "Click the LOWEST point of the drawing so the app knows which direction is down.",
-    "Calibration points are set. Enter the real width, then trace the drawing.",
+    "Click 1 of 3: choose the top-left reference point on the drawing.",
+    "Click 2 of 3: choose the matching top-right reference point.",
+    "Click 3 of 3: choose the lowest point anywhere on the trench drawing.",
+    "All three points are set. Enter the distance below to continue.",
   ];
   const CAL_COLORS = ["#c0269a", "#d17a1f", "#2a7ab5"];
   const errEl = () => document.getElementById("dwError");
@@ -155,9 +187,9 @@ export function renderDraw() {
         button.style.outline = "3px solid #2a7ab5";
       }
       const label = boundary.kind === "surface"
-        ? "surface"
+        ? "surface line"
         : `${isField ? "locus" : "layer"} ${boundary.name}`;
-      button.textContent = `${label} (${boundary.points.length} pts)`;
+      button.textContent = `${label} · ${boundary.points.length} point${boundary.points.length === 1 ? "" : "s"}`;
       button.addEventListener("click", () => setActive("boundary", index));
       holder.appendChild(button);
     });
@@ -173,7 +205,7 @@ export function renderDraw() {
         button.style.outline = "3px solid #2a7ab5";
       }
       const status = feature.closed ? "closed" : "drawing";
-      button.textContent = `F${index + 1}: ${feature.feature_type} (${feature.points.length} pts, ${status})`;
+      button.textContent = `Shape ${index + 1}: ${feature.feature_type} · ${feature.points.length} points · ${status}`;
       button.addEventListener("click", () => setActive("feature", index));
       holder.appendChild(button);
     });
@@ -184,10 +216,10 @@ export function renderDraw() {
     holder.innerHTML = dw.features.map((feature, index) => `
       <div class="btn-row" style="align-items:center;gap:8px" data-feature-index="${index}">
         <span class="hint" style="min-width:28px">F${index + 1}</span>
-        <select data-role="type">
+        <select data-role="type" aria-label="Type for shape ${index + 1}">
           ${FEATURE_TYPES.map((type) => `<option ${type === feature.feature_type ? "selected" : ""}>${type}</option>`).join("")}
         </select>
-        <input data-role="description" placeholder="description (optional)"
+        <input data-role="description" aria-label="Description for shape ${index + 1}" placeholder="Short note (optional)"
                value="${esc(feature.description || "")}" style="flex:1;min-width:220px">
       </div>
     `).join("");
@@ -210,9 +242,11 @@ export function renderDraw() {
     holder.innerHTML = bottoms().map((boundary) => `
       <div class="btn-row" style="align-items:center;gap:8px" data-name="${esc(boundary.name)}">
         <span class="hint" style="min-width:95px">${isField ? "locus" : "layer"} ${esc(boundary.name)}</span>
-        <input data-role="a" placeholder="${isField ? "Munsell (e.g. 10YR 5/3)" : "material (e.g. clay fill)"}"
+        <input data-role="a" aria-label="${isField ? "Munsell colour" : "Material"} for ${esc(boundary.name)}"
+               placeholder="${isField ? "Soil colour (for example: 10YR 5/3)" : "Material (for example: clay fill)"}"
                value="${esc((store[boundary.name] || {}).a || "")}">
-        <input data-role="b" placeholder="description (optional)" style="flex:1;min-width:180px"
+        <input data-role="b" aria-label="Optional description for ${esc(boundary.name)}"
+               placeholder="Short note (optional)" style="flex:1;min-width:180px"
                value="${esc((store[boundary.name] || {}).b || "")}">
       </div>
     `).join("");
@@ -282,8 +316,8 @@ export function renderDraw() {
 
     const active = activeItem();
     document.getElementById("dwActive").textContent = active
-      ? `Selected ${dw.activeKind}: ${active.kind === "surface" ? "surface" : active.name || active.feature_type}`
-      : "Select an item before adding points.";
+      ? `Now adding points to: ${active.kind === "surface" ? "surface line" : active.name || active.feature_type}`
+      : "Choose a line or shape before clicking the drawing.";
 
     renderBoundaryChips();
     renderFeatureChips();
@@ -366,11 +400,11 @@ export function renderDraw() {
   document.getElementById("dwNewBottom").addEventListener("click", () => {
     const name = document.getElementById("dwName").value.trim();
     if (!name) {
-      errEl().innerHTML = banner("err", `Enter a ${nameLabel} before creating the boundary.`);
+      errEl().innerHTML = banner("err", `Type a ${nameLabel}, then choose “Start this lower line.”`);
       return;
     }
     if (dw.boundaries.some((boundary) => boundary.kind === "bottom" && boundary.name === name)) {
-      errEl().innerHTML = banner("err", `A bottom boundary named ${esc(name)} already exists.`);
+      errEl().innerHTML = banner("err", `${esc(name)} has already been added. Use a different name or select the existing line.`);
       return;
     }
     errEl().innerHTML = "";
@@ -389,12 +423,12 @@ export function renderDraw() {
 
   document.getElementById("dwFinishFeature").addEventListener("click", () => {
     if (dw.activeKind !== "feature") {
-      errEl().innerHTML = banner("err", "Select a feature polygon first.");
+      errEl().innerHTML = banner("err", "Start or select a shape before finishing it.");
       return;
     }
     const feature = dw.features[dw.activeIdx];
     if (!feature || feature.points.length < 3) {
-      errEl().innerHTML = banner("err", "A feature polygon needs at least three points.");
+      errEl().innerHTML = banner("err", "Click at least three points around the feature before finishing the shape.");
       return;
     }
     feature.closed = true;
@@ -437,19 +471,19 @@ export function renderDraw() {
     const invalidFeature = dw.features.find((feature) => feature.points.length > 0 && feature.points.length < 3);
 
     if (!calibReady()) {
-      errEl().innerHTML = banner("err", "Finish calibration: three clicks and a real reference width.");
+      errEl().innerHTML = banner("err", "Complete all three scale clicks and enter the distance between the first two.");
       return;
     }
     if (!validBottoms.length) {
-      errEl().innerHTML = banner("err", "Trace at least one bottom boundary with two or more points.");
+      errEl().innerHTML = banner("err", "Add at least one lower soil line with two or more points.");
       return;
     }
     if (invalidBottom) {
-      errEl().innerHTML = banner("err", `Boundary ${esc(invalidBottom.name)} needs at least two points.`);
+      errEl().innerHTML = banner("err", `${esc(invalidBottom.name)} needs at least two clicks on the drawing.`);
       return;
     }
     if (invalidFeature) {
-      errEl().innerHTML = banner("err", "Delete or finish the incomplete feature polygon before building.");
+      errEl().innerHTML = banner("err", "Finish the incomplete feature shape, or delete it, before saving.");
       return;
     }
 
@@ -503,20 +537,25 @@ export function renderDraw() {
       });
       resultHolder.innerHTML += banner(
         "ok",
-        `<strong>Manual extraction built.</strong> ${result.n_boundaries} traced boundaries and ` +
-        `${result.n_features} feature polygons were converted at ${result.px_per_m} px/m. ` +
-        `No CV or model altered the geometry.`
+        `Your traced drawing has been saved with ${result.n_boundaries} soil line${result.n_boundaries === 1 ? "" : "s"} ` +
+        `and ${result.n_features} feature shape${result.n_features === 1 ? "" : "s"}.`
       );
 
+      const technical = document.createElement("details");
+      technical.className = "technical-details";
+      const summary = document.createElement("summary");
+      summary.textContent = "Technical data";
+      technical.appendChild(summary);
       const tree = document.createElement("div");
       tree.className = "json-tree";
       tree.appendChild(renderJsonTree(JSON.parse(result.raw_json)));
-      resultHolder.appendChild(tree);
+      technical.appendChild(tree);
+      resultHolder.appendChild(technical);
 
       const nextRow = document.createElement("div");
       nextRow.className = "btn-row";
       const nextButton = document.createElement("button");
-      nextButton.textContent = "Continue to Normalize →";
+      nextButton.textContent = "Continue to clean up the data →";
       nextButton.addEventListener("click", () => goToStep("normalize"));
       nextRow.appendChild(nextButton);
       resultHolder.appendChild(nextRow);

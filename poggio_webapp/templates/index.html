@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Trench Digitization Pipeline</title>
+<title>Poggio Civitate · Drawing to 3D</title>
 <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
@@ -21,27 +21,70 @@
         </svg>
       </div>
       <div>
-        <h1>Trench Digitization</h1>
-        <p class="brand-sub">scan &rarr; 3D model</p>
+        <h1>Poggio Civitate</h1>
+        <p class="brand-sub">Drawing to 3D guide</p>
       </div>
     </div>
 
-    <nav class="steps" id="steps">
-      <!-- populated by app.js -->
-    </nav>
+    {% if result_job %}
+      <div class="result-sidebar-card">
+        <span>Viewing saved drawing</span>
+        <strong>Drawing {{ result_job.job_id[-6:] }}</strong>
+        <em>
+          {% if result_job.status == "complete" %}
+            3D model ready
+          {% elif result_job.status == "error" %}
+            Needs attention
+          {% else %}
+            Work in progress
+          {% endif %}
+        </em>
+      </div>
+    {% else %}
+      <div class="sidebar-progress" aria-live="polite">
+        <div class="sidebar-progress-copy">
+          <span>Your progress</span>
+          <strong id="progressText">Not started</strong>
+        </div>
+        <div class="progress-track" aria-hidden="true">
+          <span id="progressBar"></span>
+        </div>
+      </div>
 
-    <div class="job-badge" id="jobBadge">no job yet</div>
+      <nav class="steps" id="steps" aria-label="Drawing to 3D steps">
+        <!-- populated by app.js -->
+      </nav>
 
-    <section aria-labelledby="job-list-heading">
-      <h2 id="job-list-heading">Jobs</h2>
+      <div class="job-badge" id="jobBadge" aria-live="polite">No drawing started</div>
+
+      <div class="sidebar-help">
+        <strong>Unsure what to do?</strong>
+        <span>Complete the highlighted step. Recommended settings are already chosen for you.</span>
+      </div>
+    {% endif %}
+
+    <section class="previous-work" aria-labelledby="job-list-heading">
+      <h2 id="job-list-heading">Previous work</h2>
       <ul data-job-list>
         {% for job in jobs %}
           <li data-job-source="{{ job.source }}" data-job-status="{{ job.status }}">
-            <a href="{{ job.results_url }}">{{ job.job_id }}</a>
-            <span>{{ job.source_label }} · {{ job.status }}</span>
+            <a href="{{ job.results_url }}">
+              <strong>Drawing {{ job.job_id[-6:] }}</strong>
+              <span>
+                {% if job.status == "complete" %}
+                  Ready to view
+                {% elif job.status == "error" %}
+                  Needs attention
+                {% elif job.status == "building" %}
+                  Creating 3D model
+                {% else %}
+                  Work in progress
+                {% endif %}
+              </span>
+            </a>
           </li>
         {% else %}
-          <li>No completed jobs yet.</li>
+          <li class="empty-job">Your finished drawings will appear here.</li>
         {% endfor %}
       </ul>
     </section>
@@ -49,21 +92,31 @@
 
   {% if result_job %}
   <main class="content" id="content" data-results-view data-job-source="{{ result_job.source }}">
-    <div class="panel">
-      <h2>Job {{ result_job.job_id }}</h2>
-      <p>{{ result_job.source_label }} · {{ result_job.status }}</p>
+    <div class="panel result-panel">
+      <div class="stage-kicker">Saved drawing {{ result_job.job_id[-6:] }}</div>
+      <h2>
+        {% if result_job.status == "complete" %}
+          Your 3D model is ready
+        {% elif result_job.status == "error" %}
+          This drawing needs attention
+        {% else %}
+          Your 3D model is being created
+        {% endif %}
+      </h2>
+      <p class="lede">View the model below or save a copy to your computer.</p>
       {% if result_job.section_url %}
         <figure>
-          <img src="{{ result_job.section_url }}" alt="GemPy model cross-section">
-          <figcaption>GemPy model cross-section</figcaption>
+          <img class="result-image" src="{{ result_job.section_url }}" alt="Cross-section of the completed trench model">
+          <figcaption>Cross-section of your trench model</figcaption>
         </figure>
       {% endif %}
-      <div class="download-list">
+      <div class="result-actions">
+        <a class="button-link" href="{{ result_job.visualizer_url }}">Open the interactive view</a>
         {% if result_job.model_url %}
-          <a class="file-link" href="{{ result_job.model_url }}" download>model.gempy</a>
+          <a class="button-link secondary" href="{{ result_job.model_url }}" download>Download the model file</a>
         {% endif %}
-        <a class="file-link" href="{{ result_job.visualizer_url }}">Open visualizer</a>
       </div>
+      <a class="quiet-link" href="/">Start another drawing</a>
     </div>
   </main>
   {% else %}

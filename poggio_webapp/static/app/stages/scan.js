@@ -6,26 +6,44 @@ import { $content, banner, errorBanner } from "../core/ui.js";
 export function renderScan() {
   $content.innerHTML = `
     <div class="panel">
-      <h2>01 · Scan</h2>
-      <p class="lede">Upload the raw drawing: an archival illustrator sheet (hatch-pattern
-      legend) or a modern hand-drawn field sheet (Locus number + Munsell color).
-      Each uses a different extraction schema downstream.</p>
+      <div class="stage-kicker">Step 1 of 8</div>
+      <h2>Add your trench drawing</h2>
+      <p class="lede">First, tell us what kind of drawing you have. Then choose
+      the image or PDF from your computer.</p>
 
-      <div class="sheet-type-choice">
-        <div class="sheet-card ${state.sheetType === "illustrator" ? "selected" : ""}" data-type="illustrator">
-          <h3>Illustrator sheet</h3>
-          <p>Drawn hatch/fill legend mapped to named materials. e.g. Trench 23, 1980.</p>
-        </div>
-        <div class="sheet-card ${state.sheetType === "fieldwall" ? "selected" : ""}" data-type="fieldwall">
-          <h3>Field recording sheet</h3>
-          <p>Hand-drawn on graph paper, Locus number + Munsell soil color. e.g. T104.</p>
-        </div>
+      <div class="plain-note">
+        <span class="note-icon" aria-hidden="true">i</span>
+        <span><strong>Your original file stays unchanged.</strong><br>
+        The app makes a working copy for this drawing.</span>
       </div>
 
-      <div class="dropzone" id="dropzone">
+      <div class="sheet-type-choice">
+        <button type="button" class="sheet-card ${state.sheetType === "illustrator" ? "selected" : ""}"
+                data-type="illustrator" aria-pressed="${state.sheetType === "illustrator"}">
+          <span class="choice-check" aria-hidden="true">✓</span>
+          <h3>Illustrated trench sheet</h3>
+          <p>Choose this for a polished drawing with patterns or shading that
+          describe soil and materials.</p>
+        </button>
+        <button type="button" class="sheet-card ${state.sheetType === "fieldwall" ? "selected" : ""}"
+                data-type="fieldwall" aria-pressed="${state.sheetType === "fieldwall"}">
+          <span class="choice-check" aria-hidden="true">✓</span>
+          <h3>Hand-drawn field sheet</h3>
+          <p>Choose this for a drawing on graph paper with locus numbers and
+          handwritten soil colours.</p>
+        </button>
+      </div>
+
+      <div class="dropzone" id="dropzone" role="button" tabindex="0"
+           aria-label="Choose a trench drawing from your computer">
         <input type="file" id="fileInput" accept=".png,.jpg,.jpeg,.pdf,.tif,.tiff">
-        <div id="dzLabel">Drop a scan here, or click to choose a file<br>
-        <span class="hint">PNG, JPEG, TIFF, or PDF</span></div>
+        <svg class="dropzone-icon" viewBox="0 0 48 48" aria-hidden="true">
+          <path fill="currentColor" d="M24 5 13 17h7v13h8V17h7L24 5Zm-15 27v8h30v-8h4v12H5V32h4Z"/>
+        </svg>
+        <strong id="dzLabel">${state.scan.filename ? `${state.scan.filename} is ready` : "Drag your drawing here"}</strong>
+        <span>or</span>
+        <button type="button" id="chooseFile">Choose a file</button>
+        <span class="file-types">PNG, JPEG, TIFF, or PDF</span>
       </div>
 
       <div id="scanError"></div>
@@ -42,7 +60,20 @@ export function renderScan() {
 
   const dz = document.getElementById("dropzone");
   const input = document.getElementById("fileInput");
-  dz.addEventListener("click", () => input.click());
+  const choose = document.getElementById("chooseFile");
+  dz.addEventListener("click", (event) => {
+    if (event.target !== choose) input.click();
+  });
+  dz.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      input.click();
+    }
+  });
+  choose.addEventListener("click", (event) => {
+    event.stopPropagation();
+    input.click();
+  });
   ["dragenter", "dragover"].forEach((ev) =>
     dz.addEventListener(ev, (e) => { e.preventDefault(); dz.classList.add("drag"); }));
   ["dragleave", "drop"].forEach((ev) =>
@@ -61,14 +92,17 @@ function renderScanPreview() {
   const el = document.getElementById("scanPreview");
   if (!el) return;
   let html = state.scan.isPdf
-    ? `<p class="lede">Uploaded ${state.scan.filename} (PDF — will be rasterized during preprocessing).</p>`
-    : `<img class="preview-img" src="${state.scan.url}">`;
+    ? `<div class="preview-card"><h3>Drawing added</h3>
+       <p>${state.scan.filename} is a PDF. The next step will turn its first page
+       into an image you can work with.</p></div>`
+    : `<div class="preview-card"><h3>Drawing added</h3>
+       <img class="preview-img" src="${state.scan.url}" alt="Preview of the uploaded trench drawing"></div>`;
   if (state.scan.dims) {
-    html += `<p class="hint" style="margin-top:8px">${state.scan.dims.width} × ${state.scan.dims.height} px</p>`;
+    html += `<p class="hint" style="margin-top:8px">Image size: ${state.scan.dims.width} × ${state.scan.dims.height} pixels</p>`;
   }
   if (state.scan.recommendedUpscale) {
     html += banner("ok",
-      `Suggested upscale for preprocessing: <strong>${state.scan.recommendedUpscale.factor}×</strong> — ${state.scan.recommendedUpscale.reason}`);
+      "Your drawing has been added. Continue to prepare the image.");
   }
   el.innerHTML = html;
 }
@@ -89,7 +123,9 @@ async function handleScanFile(file) {
     state.scan.recommendedUpscale = r.recommended_upscale;
     invalidateDownstream("scan");
     state.completed.scan = true;
-    document.getElementById("dzLabel").textContent = `${file.name} uploaded`;
+    const label = document.getElementById("dzLabel");
+    label.textContent = `${file.name} is ready`;
+    label.classList.add("upload-ready");
     renderScanPreview();
     refreshChrome();
   } catch (e) {

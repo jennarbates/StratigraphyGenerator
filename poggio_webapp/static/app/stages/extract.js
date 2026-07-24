@@ -4,7 +4,7 @@ import {
   extractWaitStatus,
   pollTask,
 } from "../core/api.js";
-import { refreshChrome } from "../core/navigation.js";
+import { goToStep, refreshChrome } from "../core/navigation.js";
 import { invalidateDownstream, state } from "../core/state.js";
 import {
   $content,
@@ -19,50 +19,66 @@ export function renderExtract() {
 
   $content.innerHTML = `
     <div class="panel">
-      <h2>03 · AI fallback</h2>
-      <p class="lede">Use this only when you prefer automatic transcription or
-      need to reuse an older extraction. The recommended workflow is
-      <strong>03 · Trace drawing</strong>, where the user controls every boundary
-      and feature coordinate.</p>
+      <div class="stage-kicker">Optional alternative</div>
+      <h2>Other ways to add the drawing data</h2>
+      <p class="lede">Most people should use <strong>Trace the layers</strong>.
+      Use this page only if you already have a data file or have been asked to
+      use automatic reading.</p>
+
+      <div class="btn-row">
+        <button class="secondary" id="exBackTrace">&larr; Return to Trace the layers</button>
+      </div>
 
       ${manualReady ? banner("ok",
-        "A manual extraction is already installed. Running or uploading another extraction will replace it.") : ""}
+        "Traced data is already saved. Importing or automatically reading the drawing will replace it.") : ""}
 
-      <h3>Automatic transcription with Gemini</h3>
-      <p class="hint">This path analyzes the preprocessed image and may require
-      substantial manual review. It does not use the boundary polygons from the
-      manual tracing screen.</p>
-
-      <label class="field">
-        <span class="label-text">Gemini API key</span>
-        <input type="password" id="exApiKey" placeholder="GEMINI_API_KEY" value="${state.apiKey}">
-        <span class="hint">Sent only to your local server for this request.</span>
-      </label>
-
-      ${isField ? `
-        <label class="field">
-          <span class="label-text">Bold grid square size (cm)</span>
-          <input type="number" id="exSquareCm" placeholder="e.g. 20" step="0.5" min="0.1"
-                 value="${state.draw.squareCm ?? ""}">
-        </label>
-      ` : ""}
-
-      <label class="field">
-        <span class="label-text">Max output tokens</span>
-        <input type="number" id="exMaxTokens" value="65536" step="8192" min="8192">
-      </label>
-
-      <div class="btn-row">
-        <button id="exRun">Run automatic extraction</button>
+      <div class="action-card">
+        <h3>Import a data file you already have</h3>
+        <p class="hint">Choose a JSON file previously made by this app. If you
+        do not know what that means, return to “Trace the layers.”</p>
+        <div class="btn-row">
+          <input type="file" id="exJsonFile" accept=".json,application/json" style="display:none">
+          <button class="secondary" id="exUpload">Choose an existing data file</button>
+        </div>
       </div>
 
-      <h3 style="margin-top:26px">Reuse a previous extraction</h3>
-      <p class="hint">Upload a JSON previously produced by this pipeline. No API
-      key or model call is required.</p>
-      <div class="btn-row">
-        <input type="file" id="exJsonFile" accept=".json,application/json" style="display:none">
-        <button class="secondary" id="exUpload">Upload extraction JSON</button>
-      </div>
+      <details class="advanced-settings">
+        <summary>Read the drawing automatically with Gemini</summary>
+        <div class="details-body">
+          <div class="warning-card">
+            <strong>Automatic reading can make mistakes.</strong>
+            A person should carefully compare its result with the original drawing.
+          </div>
+          <label class="field">
+            <span class="label-text">Gemini API key</span>
+            <input type="password" id="exApiKey" placeholder="Paste the key here" value="${state.apiKey}">
+            <span class="hint">This is a private access key supplied by Google.
+            It is sent only to the local server for this one request.</span>
+          </label>
+
+          ${isField ? `
+            <label class="field">
+              <span class="label-text">Large grid-square size, in centimetres</span>
+              <input type="number" id="exSquareCm" placeholder="For example: 20" step="0.5" min="0.1"
+                     value="${state.draw.squareCm ?? ""}">
+            </label>
+          ` : ""}
+
+          <details class="technical-details">
+            <summary>Technical limit</summary>
+            <div class="details-body">
+              <label class="field">
+                <span class="label-text">Maximum output tokens</span>
+                <input type="number" id="exMaxTokens" value="65536" step="8192" min="8192">
+              </label>
+            </div>
+          </details>
+
+          <div class="btn-row">
+            <button id="exRun">Read the drawing automatically</button>
+          </div>
+        </div>
+      </details>
 
       <div id="exError"></div>
       <div id="exLog" class="log-box" style="display:none"></div>
@@ -77,13 +93,20 @@ export function renderExtract() {
     resultHolder.innerHTML = "";
     if (warning) resultHolder.innerHTML += banner("warn", warning);
     resultHolder.innerHTML += banner("ok", okMessage);
+    const details = document.createElement("details");
+    details.className = "technical-details";
+    const summary = document.createElement("summary");
+    summary.textContent = "Technical data";
+    details.appendChild(summary);
     const tree = document.createElement("div");
     tree.className = "json-tree";
     if (data) tree.appendChild(renderJsonTree(data));
     else tree.textContent = rawJson;
-    resultHolder.appendChild(tree);
+    details.appendChild(tree);
+    resultHolder.appendChild(details);
   }
 
+  document.getElementById("exBackTrace").addEventListener("click", () => goToStep("draw"));
   const fileInput = document.getElementById("exJsonFile");
   document.getElementById("exUpload").addEventListener("click", () => fileInput.click());
   fileInput.addEventListener("change", async () => {
@@ -106,7 +129,7 @@ export function renderExtract() {
       state.completed.extract = true;
       showExtractionResult(
         result.raw_json,
-        `Installed <strong>${file.name}</strong> as this job’s extraction. Gemini was not called.`
+        `<strong>${file.name}</strong> is ready to use.`
       );
       refreshChrome();
     } catch (error) {
@@ -125,14 +148,14 @@ export function renderExtract() {
     if (!state.completed.preprocess) {
       errEl.innerHTML = banner(
         "err",
-        "Run 02 · Preprocess first. Automatic extraction uses the cleaned image."
+        "Prepare the image before asking Gemini to read it."
       );
       return;
     }
 
     const apiKey = document.getElementById("exApiKey").value.trim();
     if (!apiKey) {
-      errEl.innerHTML = banner("err", "A Gemini API key is required for automatic extraction.");
+      errEl.innerHTML = banner("err", "Paste a Gemini API key before starting automatic reading.");
       return;
     }
     state.apiKey = apiKey;
@@ -144,7 +167,7 @@ export function renderExtract() {
     if (isField) {
       const squareCm = Number(document.getElementById("exSquareCm").value);
       if (!squareCm) {
-        errEl.innerHTML = banner("err", "Bold grid square size is required for a field sheet.");
+        errEl.innerHTML = banner("err", "Enter the large grid-square size shown on the field sheet.");
         return;
       }
       body.square_cm = squareCm;
@@ -170,7 +193,7 @@ export function renderExtract() {
       errEl.innerHTML = errorBanner(error);
     } finally {
       button.disabled = false;
-      button.textContent = "Run automatic extraction";
+      button.textContent = "Read the drawing automatically";
     }
   });
 
@@ -178,8 +201,8 @@ export function renderExtract() {
     showExtractionResult(
       state.extract.rawJson,
       state.completed.draw
-        ? "Current extraction was built from manual tracing."
-        : "Current extraction is installed."
+        ? "Your traced drawing data is ready."
+        : "The imported drawing data is ready."
     );
   }
 }
