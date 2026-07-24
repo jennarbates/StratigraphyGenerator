@@ -90,6 +90,7 @@ class FieldWallProfile(BaseModel):
     layers: list[LocusLayer] | None
     marginalia: list[str] | None
     source: Literal["extraction", "manual_editor"] = "extraction"
+    finds: list[dict] = []
 
 
 

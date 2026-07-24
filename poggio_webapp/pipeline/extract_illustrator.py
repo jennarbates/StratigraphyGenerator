@@ -120,6 +120,7 @@ class ArchaeologicalDiagram(BaseModel):
     inferred_notes: list[str] | None = None
     rawTranscription: str | None = None
     source: Literal["extraction", "manual_editor"] = "extraction"
+    finds: list[dict] = []
 
 
 PROMPT_TEMPLATE = """
