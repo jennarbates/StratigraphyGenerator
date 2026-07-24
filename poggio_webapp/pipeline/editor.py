@@ -54,3 +54,32 @@ def load_editor_state(job_id: str) -> dict:
     if not state_path.exists():
         return {}
     return json.loads(state_path.read_text())
+
+
+def finalize_editor_session(job_id: str):
+    """
+    Validate saved editor state and write the corresponding extraction JSON.
+
+    The saved state is assumed to match its selected Pydantic schema
+    field-for-field. Pydantic validation errors intentionally propagate.
+    """
+    from .extract_fieldwall import FieldWallProfile
+    from .extract_illustrator import ArchaeologicalDiagram
+
+    session_dir = JOBS_DIR / job_id
+    if not session_dir.is_dir():
+        raise FileNotFoundError(f"Editor job directory does not exist: {job_id}")
+
+    metadata = json.loads((session_dir / "editor_meta.json").read_text())
+    state = json.loads((session_dir / "editor_state.json").read_text())
+    schema_models = {
+        "ArchaeologicalDiagram": ArchaeologicalDiagram,
+        "FieldWallProfile": FieldWallProfile,
+    }
+    model_class = schema_models[metadata["schema_type"]]
+    validated = model_class(**{**state, "source": "manual_editor"})
+
+    (session_dir / "extraction_output.json").write_text(
+        validated.model_dump_json(indent=2)
+    )
+    return validated
