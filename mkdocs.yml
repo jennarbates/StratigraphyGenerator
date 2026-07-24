@@ -34,5 +34,10 @@ exclude_docs: |
 
 nav:
   - Home: index.md
+  - Concepts:
+      - Geometric normalization: concepts/geometric-normalization.md
+      - Markers, features, and finds: concepts/markers-features-and-finds.md
   - Project:
       - Capability status: project/capability-status.md
+  - Reference:
+      - Drawing guidelines: reference/drawing-guidelines.md
