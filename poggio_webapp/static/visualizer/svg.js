@@ -7,6 +7,7 @@ import {
   projectPolyline,
 } from "./coordinates.mjs";
 import { $, esc } from "./dom.js";
+import { legacyViewBox } from "./viewbox.mjs";
 
 // extent across a face's points
 export function faceExtent(face){
@@ -191,8 +192,7 @@ export function buildSVG(
 }
 
 function buildLegacySVG(face, maxX, maxY, wrap){
-  const vbPad=0.04, vbW=maxX*(1+2*vbPad), vbH=maxY*(1+2*vbPad);
-  const ox=maxX*vbPad, oy=maxY*vbPad;
+  const {vbW, vbH, ox, oy} = legacyViewBox(maxX, maxY);
   const X=x=>x+ox, Y=y=>y+oy;
   const show=id=>$(id).checked;
   const s=[`<svg viewBox="0 0 ${vbW} ${vbH}" preserveAspectRatio="none">`];
