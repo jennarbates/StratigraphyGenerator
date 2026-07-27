@@ -11,6 +11,7 @@ from .features import bp as features_bp
 from .markers import bp as markers_bp
 from .manual import bp as manual_bp
 from .task_status import bp as task_status_bp
+from .text_metadata import bp as text_metadata_bp
 from .processing import bp as processing_bp
 from .gempy import bp as gempy_bp
 
@@ -25,6 +26,7 @@ BLUEPRINTS = (
     markers_bp,
     manual_bp,
     task_status_bp,
+    text_metadata_bp,
     processing_bp,
     gempy_bp,
 )
