@@ -120,6 +120,152 @@ export function flattenTextCandidates(candidateData) {
   return rows;
 }
 
+function hasReviewStatus(row) {
+  return isRecord(row) && REVIEW_STATUSES.has(row.status);
+}
+
+function candidatesFrom(value) {
+  return Array.isArray(value) ? value : flattenTextCandidates(value);
+}
+
+/**
+ * Create editable review rows without changing the extraction candidates.
+ *
+ * When verified data is supplied, its audit trail restores previously saved
+ * decisions. Otherwise every candidate starts unreviewed with the proposal in
+ * the editable final-value field.
+ */
+export function createTextReviewRows(candidateData, verifiedData = null) {
+  const auditByPath = new Map();
+  if (isRecord(verifiedData) && Array.isArray(verifiedData.audit)) {
+    verifiedData.audit.forEach((entry) => {
+      if (isRecord(entry) && typeof entry.fieldPath === "string") {
+        auditByPath.set(entry.fieldPath, entry);
+      }
+    });
+  }
+
+  return flattenTextCandidates(candidateData).map((candidate) => {
+    const saved = auditByPath.get(candidate.fieldPath);
+    if (!hasReviewStatus(saved)) {
+      return {
+        fieldPath: candidate.fieldPath,
+        status: null,
+        finalValue: candidate.proposed ?? null,
+      };
+    }
+    return {
+      fieldPath: candidate.fieldPath,
+      status: saved.status,
+      finalValue: saved.status === "unreadable"
+        ? null
+        : (saved.final ?? null),
+    };
+  });
+}
+
+/**
+ * A review is complete only when every displayed candidate has a decision.
+ * An extraction with no candidates is therefore complete.
+ */
+export function areTextCandidateReviewsComplete(
+  candidateDataOrRows,
+  reviewRows,
+) {
+  const candidates = candidatesFrom(candidateDataOrRows);
+  const reviewedPaths = new Set(
+    Array.isArray(reviewRows)
+      ? reviewRows
+        .filter(hasReviewStatus)
+        .map((row) => row.fieldPath)
+      : [],
+  );
+  return candidates.every((candidate) => reviewedPaths.has(candidate.fieldPath));
+}
+
+/**
+ * Apply one explicit review decision and return a new row.
+ */
+export function setTextCandidateReviewStatus(candidate, reviewRow, status) {
+  if (!isRecord(candidate) || typeof candidate.fieldPath !== "string") {
+    throw new TypeError("candidate must have a fieldPath");
+  }
+  if (!REVIEW_STATUSES.has(status)) {
+    throw new RangeError(`Unknown review status: ${status}`);
+  }
+
+  const next = {
+    ...(isRecord(reviewRow) ? reviewRow : {}),
+    fieldPath: candidate.fieldPath,
+    status,
+  };
+  if (status === "accepted") {
+    next.finalValue = candidate.proposed ?? null;
+  } else if (status === "unreadable") {
+    next.finalValue = null;
+  } else if (!Object.prototype.hasOwnProperty.call(next, "finalValue")) {
+    next.finalValue = candidate.proposed ?? null;
+  }
+  return next;
+}
+
+/**
+ * Store an edited final value. Editing an accepted proposal makes the review
+ * an explicit correction; typing after "unreadable" likewise makes the value
+ * readable again.
+ */
+export function changeTextCandidateFinalValue(
+  candidate,
+  reviewRow,
+  finalValue,
+) {
+  if (!isRecord(candidate) || typeof candidate.fieldPath !== "string") {
+    throw new TypeError("candidate must have a fieldPath");
+  }
+  const previousStatus = hasReviewStatus(reviewRow)
+    ? reviewRow.status
+    : null;
+  return {
+    ...(isRecord(reviewRow) ? reviewRow : {}),
+    fieldPath: candidate.fieldPath,
+    status: previousStatus === "accepted" || previousStatus === "unreadable"
+      ? "corrected"
+      : previousStatus,
+    finalValue,
+  };
+}
+
+/**
+ * Accept only high-confidence candidates that do not yet have a decision.
+ * Medium/low-confidence and already reviewed rows are returned unchanged.
+ */
+export function acceptAllHighConfidenceProposals(
+  candidateDataOrRows,
+  reviewRows,
+) {
+  const candidates = candidatesFrom(candidateDataOrRows);
+  const reviewsByPath = new Map();
+  if (Array.isArray(reviewRows)) {
+    reviewRows.forEach((row) => {
+      if (isRecord(row) && typeof row.fieldPath === "string") {
+        reviewsByPath.set(row.fieldPath, row);
+      }
+    });
+  }
+
+  return candidates.map((candidate) => {
+    const existing = reviewsByPath.get(candidate.fieldPath) || {
+      fieldPath: candidate.fieldPath,
+      status: null,
+      finalValue: candidate.proposed ?? null,
+    };
+    if (candidate.confidence !== "high" || hasReviewStatus(existing)) {
+      return { ...existing };
+    }
+    return setTextCandidateReviewStatus(candidate, existing, "accepted");
+  });
+}
+
 function validBoundingBox(value) {
   if (!Array.isArray(value) || value.length !== 4) return null;
   if (!value.every(

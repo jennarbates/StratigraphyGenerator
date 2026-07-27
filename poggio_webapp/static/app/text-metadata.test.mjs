@@ -2,10 +2,15 @@
 import assert from "node:assert/strict";
 
 import {
+  acceptAllHighConfidenceProposals,
   applyVerifiedTextToDrawState,
+  areTextCandidateReviewsComplete,
   buildVerifiedTextPayload,
+  changeTextCandidateFinalValue,
+  createTextReviewRows,
   flattenTextCandidates,
   getVerifiedLoci,
+  setTextCandidateReviewStatus,
 } from "./text-metadata.js";
 
 function test(name, callback) {
@@ -129,6 +134,127 @@ test("lists receive stable numeric paths", () => {
       "document.illustrators.2",
     ],
   );
+});
+
+test("completion requires every displayed candidate to have a review status", () => {
+  const data = candidateData();
+  const candidates = flattenTextCandidates(data);
+  const reviews = createTextReviewRows(data);
+
+  assert.equal(
+    areTextCandidateReviewsComplete(candidates, reviews),
+    false,
+  );
+
+  const completed = reviews.map((row, index) => ({
+    ...row,
+    status: index % 2 === 0 ? "accepted" : "unreadable",
+  }));
+  assert.equal(
+    areTextCandidateReviewsComplete(candidates, completed),
+    true,
+  );
+});
+
+test("bulk acceptance affects only unreviewed high-confidence proposals", () => {
+  const data = candidateData();
+  const candidates = flattenTextCandidates(data);
+  const reviews = createTextReviewRows(data);
+  const alreadyCorrected = candidates.find(
+    (row) => row.fieldPath === "document.trenchLabel",
+  );
+  reviews[candidates.indexOf(alreadyCorrected)] = {
+    fieldPath: alreadyCorrected.fieldPath,
+    status: "corrected",
+    finalValue: "T-104",
+  };
+
+  const result = acceptAllHighConfidenceProposals(candidates, reviews);
+  const byPath = new Map(result.map((row) => [row.fieldPath, row]));
+
+  assert.deepEqual(byPath.get("document.trenchLabel"), {
+    fieldPath: "document.trenchLabel",
+    status: "corrected",
+    finalValue: "T-104",
+  });
+  assert.equal(
+    byPath.get("document.gridSquareCm").status,
+    "accepted",
+  );
+  assert.equal(
+    byPath.get("document.faceLabel").status,
+    null,
+  );
+  assert.equal(
+    byPath.get("document.otherText.0").status,
+    null,
+  );
+});
+
+test("editing an accepted value makes it corrected", () => {
+  const row = flattenTextCandidates(candidateData()).find(
+    (candidateRow) => candidateRow.fieldPath === "document.trenchLabel",
+  );
+  const accepted = setTextCandidateReviewStatus(row, null, "accepted");
+  const edited = changeTextCandidateFinalValue(accepted, accepted, "T-104");
+
+  assert.equal(accepted.status, "accepted");
+  assert.equal(accepted.finalValue, "T104");
+  assert.equal(edited.status, "corrected");
+  assert.equal(edited.finalValue, "T-104");
+});
+
+test("unreadable decisions clear the final output", () => {
+  const data = candidateData();
+  const candidateRow = flattenTextCandidates(data).find(
+    (row) => row.fieldPath === "document.trenchLabel",
+  );
+  const unreadable = setTextCandidateReviewStatus(
+    candidateRow,
+    {
+      fieldPath: candidateRow.fieldPath,
+      status: "corrected",
+      finalValue: "T-104",
+    },
+    "unreadable",
+  );
+  const payload = buildVerifiedTextPayload(data, [unreadable]);
+
+  assert.equal(unreadable.finalValue, null);
+  assert.equal(payload.document.trenchLabel, null);
+  assert.equal(
+    payload.audit.find(
+      (row) => row.fieldPath === candidateRow.fieldPath,
+    ).final,
+    null,
+  );
+});
+
+test("empty candidate lists are already complete and build an empty payload", () => {
+  const data = {
+    schemaVersion: 1,
+    sheetType: "fieldwall",
+    document: {},
+    loci: [],
+  };
+  const reviews = createTextReviewRows(data);
+  const payload = buildVerifiedTextPayload(data, reviews);
+
+  assert.deepEqual(reviews, []);
+  assert.equal(areTextCandidateReviewsComplete(data, reviews), true);
+  assert.deepEqual(payload.document, {
+    trenchLabel: null,
+    faceLabel: null,
+    date: null,
+    gridSquareCm: null,
+    northArrowPresent: null,
+    illustrators: [],
+    gridTiePoints: [],
+    marginalia: [],
+    otherText: [],
+  });
+  assert.deepEqual(payload.loci, []);
+  assert.deepEqual(payload.audit, []);
 });
 
 test("accepted, corrected, and unreadable reviews build the verified contract", () => {
