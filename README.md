@@ -56,11 +56,19 @@ supports two independent ways to begin.
 3. Upload a PNG, JPEG, TIFF, or PDF. The app keeps the original unchanged,
    shows an image preview (or a PDF-ready message), reports image dimensions
    when available, and unlocks **Prepare the image**.
-4. Continue through preprocess, trace/extract, normalize, validate, surveyed
+4. Field-wall uploads may use **Read writing** to create text-only proposals,
+   but every proposal must be accepted, corrected, or marked unreadable
+   before verification is saved. The step can also be skipped. It never
+   generates geometry; boundaries and features remain human-traced.
+5. Continue through preprocess, trace/extract, normalize, validate, surveyed
    coordinate conversion, model building, and results as described below.
 
 Uploading creates an ordinary pipeline job only after a file is selected. It
 does not create a blank-editor session.
+
+The field-wall text workflow, API-key handling, saved candidate and verified
+file locations, autofill precedence, Munsell uncertainty, and manual-entry
+fallback are documented in `poggio_webapp/README.md`.
 
 ### Create a diagram from scratch
 
@@ -117,14 +125,19 @@ does not create a blank-editor session.
 From the repository root:
 
 ```bash
-.venv/bin/python -m pytest -q
+PYTHON=.venv/bin/python
+if [ ! -x "$PYTHON" ]; then
+  PYTHON=python3
+fi
+
+"$PYTHON" -m pytest -q
 node poggio_webapp/static/canvas/grid.test.mjs
 node poggio_webapp/static/app/stages/start-options.test.mjs
+node poggio_webapp/static/app/text-metadata.test.mjs
+node poggio_webapp/static/app/stages/verify-text-navigation.test.mjs
 git diff --check
 git status --short
 ```
-
-If `.venv/bin/python` is unavailable, use `python3 -m pytest -q`.
 
 ## How it works
 

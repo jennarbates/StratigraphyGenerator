@@ -102,6 +102,53 @@ provide the surveyed width, review the detected vertices, and let Gemini
 classify only those fixed coordinates. Finalizing that classification does
 not make another network call.
 
+#### Read and verify field-wall writing
+
+The **Read writing** step is available only for uploaded **Hand-drawn field
+sheet** jobs. It asks Gemini for text proposals such as trench and face
+labels, dates, illustrators, grid labels, locus numbers, Munsell notation,
+descriptions, marginal notes, and other readable writing. This is text-only
+assistance: it does not trace boundaries, identify marker positions, classify
+drawn features, or generate geometry. Every boundary and feature used by the
+manual workflow remains based on a person's clicks.
+
+Automatic reading is fallible. Before a result can be saved as verified,
+every returned proposal must be explicitly accepted, corrected, or marked
+unreadable. A value marked unreadable is saved as `null`; in particular, an
+uncertain Munsell value is not guessed or derived from a colour name. The
+tracing chooser labels such a verified locus **Munsell unreadable**, and the
+person tracing can leave it empty or type a value supported by the original
+record.
+
+The Gemini API key is entered in a password field and sent to the local
+server only for that extraction request. It remains in the current page's
+runtime memory while the page is open; it is not written to `meta.json`,
+candidate output, verified output, or any other job file. Candidate and
+verified data are intentionally separate:
+
+```text
+jobs/<job_id>/03_extraction/text_candidates.json
+jobs/<job_id>/03_extraction/verified_text.json
+```
+
+Saving verification never overwrites the candidates, and refreshing the page
+does not rewrite either file. Whenever the active job's text state is loaded,
+the app reconstructs the review from the saved verification, including
+corrections and unreadable decisions.
+
+Verified values autofill only empty tracing fields. Existing manual trench
+labels, face labels, grid-square sizes, Munsell values, and descriptions are
+not replaced. The manual values sent when the trace is saved take precedence
+over verified values; verified values fill the remaining metadata. The locus
+chooser also always offers **Add a missing locus manually**, so a locus omitted
+by automatic reading can still be traced and entered.
+
+Automatic reading is optional. **Continue without automatic reading** records
+the step as skipped and opens the same manual tracing workflow with ordinary
+text-entry fields. Illustrated trench uploads also continue through their
+existing manual label and geometry workflow; this field-wall text feature
+does not run for illustrator jobs.
+
 ### Create a diagram from scratch
 
 1. Select **Create a diagram from scratch**, choose the illustrated or
@@ -165,14 +212,26 @@ not make another network call.
 Run from the repository root:
 
 ```bash
-.venv/bin/python -m pytest -q
+PYTHON=.venv/bin/python
+if [ ! -x "$PYTHON" ]; then
+  PYTHON=python3
+fi
+
+"$PYTHON" -m pytest -q
 node poggio_webapp/static/canvas/grid.test.mjs
 node poggio_webapp/static/app/stages/start-options.test.mjs
+node poggio_webapp/static/app/text-metadata.test.mjs
+node poggio_webapp/static/app/stages/verify-text-navigation.test.mjs
 git diff --check
 git status --short
 ```
 
-If `.venv/bin/python` does not exist, substitute `python3 -m pytest -q`.
+The Python suite includes
+`tests/test_text_autofill_workflow.py`, a network-free integration test of
+field-wall upload, mocked candidate extraction, verification, manual tracing,
+metadata precedence, coordinate preservation, artifact separation, and
+API-key non-persistence. The two text-focused Node tests cover browser-side
+verification/autofill rules and skip/navigation behavior.
 
 ## Notes / known limits
 
