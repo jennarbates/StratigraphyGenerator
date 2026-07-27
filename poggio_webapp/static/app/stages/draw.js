@@ -2,7 +2,10 @@ import { apiJson } from "../core/api.js";
 import { goToStep, refreshChrome } from "../core/navigation.js";
 import { STRATA, invalidateDownstream, state } from "../core/state.js";
 import { pointInsideBand } from "../../boundary-label.js";
-import { applyVerifiedTextToDrawState } from "../text-metadata.js";
+import {
+  applyVerifiedTextToDrawState,
+  buildVerifiedLocusChoices,
+} from "../text-metadata.js";
 import {
   $content,
   banner,
@@ -30,6 +33,10 @@ export function renderDraw() {
   const isField = state.sheetType === "fieldwall";
   const nameLabel = isField ? "locus number" : "layer name";
   const isPdf = state.scan.isPdf;
+  const hasVerifiedLoci = isField && buildVerifiedLocusChoices(
+    verifiedText,
+    dw.boundaries,
+  ).some((choice) => choice.kind === "verified");
 
   $content.innerHTML = `
     <div class="panel">
@@ -92,7 +99,9 @@ export function renderDraw() {
             <p class="hint">A locus is named by its <strong>top</strong> line on a field sheet.
             The next locus top also closes the locus above it.</p>
             <ol class="task-list">
-              <li><span class="task-number">1</span><span>Type the first locus number, choose
+              <li><span class="task-number">1</span><span>${hasVerifiedLoci
+                ? "Choose the first verified locus, choose"
+                : "Type the first locus number, choose"}
               <strong>Start the top of this locus</strong>, then click along that line
               from left to right.</span></li>
               <li><span class="task-number">2</span><span>Repeat for the top of every
@@ -101,8 +110,22 @@ export function renderDraw() {
               <strong>Start the final bottom line</strong> and trace the line below
               the deepest locus.</span></li>
             </ol>
-            <div class="btn-row">
+            ${hasVerifiedLoci ? `
+              <div class="locus-chooser">
+                <label class="field locus-chooser-field">
+                  <span class="label-text">Choose a verified locus</span>
+                  <select id="dwLocusChoice"></select>
+                  <span class="hint">Loci whose top boundary is already present are unavailable.</span>
+                </label>
+                <label class="field locus-manual-entry" id="dwManualLocus" hidden>
+                  <span class="label-text">Missing locus number</span>
+                  <input id="dwName" aria-label="${nameLabel}" placeholder="${nameLabel}">
+                </label>
+              </div>
+            ` : `
               <input id="dwName" aria-label="${nameLabel}" placeholder="${nameLabel}" style="width:170px">
+            `}
+            <div class="btn-row locus-start-actions">
               <button class="secondary" id="dwNewTop">Start the top of this locus</button>
               <button class="secondary" id="dwNewBase">Start the final bottom line</button>
             </div>
@@ -220,6 +243,40 @@ export function renderDraw() {
     dw.activeKind = kind;
     dw.activeIdx = index;
     redraw();
+  }
+
+  function renderLocusChooser() {
+    const select = document.getElementById("dwLocusChoice");
+    if (!select) return;
+
+    const previousValue = select.value;
+    select.innerHTML = "";
+
+    const prompt = document.createElement("option");
+    prompt.value = "";
+    prompt.textContent = "Choose a verified locus";
+    select.appendChild(prompt);
+
+    buildVerifiedLocusChoices(verifiedText, dw.boundaries)
+      .forEach((choice) => {
+        const option = document.createElement("option");
+        option.dataset.kind = choice.kind;
+        option.value = choice.kind === "manual"
+          ? "__manual_locus_entry__"
+          : choice.locusNumber;
+        option.textContent = choice.available
+          ? choice.label
+          : `${choice.label} — already traced`;
+        option.disabled = !choice.available;
+        select.appendChild(option);
+      });
+
+    const previousOption = Array.from(select.options).find(
+      (option) => option.value === previousValue && !option.disabled,
+    );
+    select.value = previousOption ? previousValue : "";
+    const manualEntry = document.getElementById("dwManualLocus");
+    manualEntry.hidden = select.selectedOptions[0]?.dataset.kind !== "manual";
   }
 
   function renderBoundaryChips() {
@@ -403,6 +460,7 @@ export function renderDraw() {
     renderFeatureChips();
     renderFeatureMeta();
     renderLayerMeta();
+    renderLocusChooser();
   }
 
   function showImage() {
@@ -478,9 +536,17 @@ export function renderDraw() {
   });
 
   function startNamedLine(kind, actionLabel) {
-    const name = document.getElementById("dwName").value.trim();
+    const chooser = document.getElementById("dwLocusChoice");
+    const selectedChoice = chooser?.selectedOptions[0];
+    const isManualChoice = selectedChoice?.dataset.kind === "manual";
+    const name = chooser && !isManualChoice
+      ? selectedChoice?.value || ""
+      : document.getElementById("dwName").value.trim();
     if (!name) {
-      errEl().innerHTML = banner("err", `Type a ${nameLabel}, then choose “${actionLabel}.”`);
+      const message = chooser && !isManualChoice
+        ? `Choose a verified locus or “Add a missing locus manually,” then choose “${actionLabel}.”`
+        : `Type a ${nameLabel}, then choose “${actionLabel}.”`;
+      errEl().innerHTML = banner("err", message);
       return;
     }
     if (dw.boundaries.some((boundary) => boundary.kind === kind && boundary.name === name)) {
@@ -490,6 +556,7 @@ export function renderDraw() {
     errEl().innerHTML = "";
     dw.boundaries.push({ kind, name, points: [] });
     document.getElementById("dwName").value = "";
+    if (chooser) chooser.value = "";
     setActive("boundary", dw.boundaries.length - 1);
   }
 
@@ -499,6 +566,15 @@ export function renderDraw() {
 
   document.getElementById("dwNewTop")?.addEventListener("click", () => {
     startNamedLine("top", "Start the top of this locus");
+  });
+
+  document.getElementById("dwLocusChoice")?.addEventListener("change", () => {
+    const selectedChoice = document.getElementById("dwLocusChoice")
+      .selectedOptions[0];
+    document.getElementById("dwManualLocus").hidden = (
+      selectedChoice?.dataset.kind !== "manual"
+    );
+    errEl().innerHTML = "";
   });
 
   document.getElementById("dwNewBase")?.addEventListener("click", () => {

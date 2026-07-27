@@ -1123,6 +1123,34 @@ details > summary::marker{
   border-top: 1px solid var(--panel-border);
 }
 
+.locus-chooser{
+  max-width: 680px;
+  padding: 16px;
+  background: #f7f6f1;
+  border: 1px solid var(--panel-border);
+  border-radius: 9px;
+}
+
+.locus-chooser .field:last-child{
+  margin-bottom: 0;
+}
+
+.locus-chooser-field select{
+  font-family: var(--font-body);
+}
+
+.locus-manual-entry{
+  max-width: 280px;
+}
+
+.locus-manual-entry[hidden]{
+  display: none;
+}
+
+.locus-start-actions{
+  flex-wrap: wrap;
+}
+
 .section-label{
   display: inline-flex;
   align-items: center;

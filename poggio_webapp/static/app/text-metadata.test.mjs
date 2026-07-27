@@ -5,12 +5,14 @@ import {
   acceptAllHighConfidenceProposals,
   applyVerifiedTextToDrawState,
   areTextCandidateReviewsComplete,
+  buildVerifiedLocusChoices,
   buildVerifiedTextPayload,
   changeTextCandidateFinalValue,
   createTextReviewRows,
   flattenTextCandidates,
   getVerifiedLoci,
   setTextCandidateReviewStatus,
+  verifiedLocusDisplayLabel,
 } from "./text-metadata.js";
 
 function test(name, callback) {
@@ -344,6 +346,101 @@ test("loci without a final locus number are excluded from choices", () => {
       description: "brown silty soil",
     },
   ]);
+});
+
+test("verified loci produce chooser display labels", () => {
+  assert.equal(
+    verifiedLocusDisplayLabel({
+      locusNumber: "1042",
+      munsellRaw: "10YR 5/3",
+      description: "brown silty soil",
+    }),
+    "1042 — 10YR 5/3 — brown silty soil",
+  );
+  assert.equal(
+    verifiedLocusDisplayLabel({
+      locusNumber: "1043",
+      munsellRaw: "7.5YR 4/4",
+      description: null,
+    }),
+    "1043 — 7.5YR 4/4",
+  );
+});
+
+test("missing chooser metadata never renders null text", () => {
+  const missingMunsell = verifiedLocusDisplayLabel({
+    locusNumber: "1044",
+    munsellRaw: null,
+    description: "silty soil",
+  });
+  const missingDescription = verifiedLocusDisplayLabel({
+    locusNumber: "1045",
+    munsellRaw: "5YR 4/6",
+    description: null,
+  });
+
+  assert.equal(missingMunsell, "1044 — Munsell unreadable — silty soil");
+  assert.equal(missingDescription, "1045 — 5YR 4/6");
+  assert.equal(missingMunsell.includes("null"), false);
+  assert.equal(missingDescription.includes("null"), false);
+});
+
+test("chooser marks loci with existing top boundaries unavailable", () => {
+  const choices = buildVerifiedLocusChoices(
+    verifiedData({
+      loci: [
+        {
+          locusNumber: "1042",
+          munsellRaw: "10YR 5/3",
+          description: "brown silty soil",
+        },
+        {
+          locusNumber: "1043",
+          munsellRaw: "7.5YR 4/4",
+          description: null,
+        },
+      ],
+    }),
+    [
+      { kind: "top", name: "1042", points: [] },
+      { kind: "bottom", name: "1043", points: [] },
+    ],
+  );
+
+  assert.equal(
+    choices.find((choice) => choice.locusNumber === "1042").available,
+    false,
+  );
+  assert.equal(
+    choices.find((choice) => choice.locusNumber === "1043").available,
+    true,
+  );
+});
+
+test("chooser always includes manual entry and excludes invalid locus numbers", () => {
+  const choices = buildVerifiedLocusChoices(verifiedData({
+    loci: [
+      { locusNumber: null, munsellRaw: null, description: null },
+      { locusNumber: "", munsellRaw: "10YR 5/3", description: null },
+      { locusNumber: "   ", munsellRaw: null, description: "blank" },
+      { locusNumber: 1042, munsellRaw: null, description: "not a string" },
+      { locusNumber: "1043", munsellRaw: null, description: null },
+    ],
+  }));
+
+  assert.deepEqual(
+    choices.filter((choice) => choice.kind === "verified")
+      .map((choice) => choice.locusNumber),
+    ["1043"],
+  );
+  assert.deepEqual(choices.at(-1), {
+    kind: "manual",
+    locusNumber: null,
+    label: "Add a missing locus manually",
+    munsellRaw: null,
+    description: null,
+    available: true,
+  });
 });
 
 test("autofill fills blanks and preserves manual values", () => {

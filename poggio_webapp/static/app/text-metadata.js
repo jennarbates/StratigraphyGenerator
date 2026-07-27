@@ -467,6 +467,63 @@ export function getVerifiedLoci(verifiedData) {
 }
 
 /**
+ * Format one verified locus for the tracing chooser.
+ */
+export function verifiedLocusDisplayLabel(locus) {
+  if (!isRecord(locus)) return null;
+  const locusNumber = readableText(locus.locusNumber);
+  if (locusNumber === null) return null;
+
+  const munsell = readableText(locus.munsellRaw) ?? "Munsell unreadable";
+  const description = readableText(locus.description);
+  return [locusNumber, munsell, description]
+    .filter((value) => value !== null)
+    .join(" — ");
+}
+
+/**
+ * Build chooser rows from verified text and the boundaries already traced.
+ *
+ * The manual row is always last so a missing model result can still be added.
+ */
+export function buildVerifiedLocusChoices(verifiedData, boundaries = []) {
+  const usedLocusNumbers = new Set(
+    Array.isArray(boundaries)
+      ? boundaries.flatMap((boundary) => {
+        if (!isRecord(boundary) || boundary.kind !== "top") return [];
+        const name = readableText(boundary.name);
+        return name === null ? [] : [name];
+      })
+      : [],
+  );
+  const seenLocusNumbers = new Set();
+  const choices = [];
+
+  getVerifiedLoci(verifiedData).forEach((locus) => {
+    if (seenLocusNumbers.has(locus.locusNumber)) return;
+    seenLocusNumbers.add(locus.locusNumber);
+    choices.push({
+      kind: "verified",
+      locusNumber: locus.locusNumber,
+      label: verifiedLocusDisplayLabel(locus),
+      munsellRaw: locus.munsellRaw,
+      description: locus.description,
+      available: !usedLocusNumbers.has(locus.locusNumber),
+    });
+  });
+
+  choices.push({
+    kind: "manual",
+    locusNumber: null,
+    label: "Add a missing locus manually",
+    munsellRaw: null,
+    description: null,
+    available: true,
+  });
+  return choices;
+}
+
+/**
  * Apply readable verified text to empty draw fields without mutating state.
  */
 export function applyVerifiedTextToDrawState(drawState, verifiedData) {
