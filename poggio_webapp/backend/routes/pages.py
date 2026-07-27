@@ -52,6 +52,9 @@ def visualizer_files(job_id):
                or meta.get("scan_path"))
         if img and Path(img).exists() and not img.lower().endswith(".pdf"):
             out["image_url"] = rel_url(job_id, Path(img))
+            manual_calib = meta.get("manual_calibration")
+            if manual_calib and img == meta.get("manual_image_path"):
+                out["calibration"] = manual_calib
         # calib exists but we can't trust it against whatever image we just
         # served (rotated copy missing) — omit it rather than misalign.
 

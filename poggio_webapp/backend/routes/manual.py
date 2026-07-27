@@ -471,6 +471,7 @@ def build_manual_extraction(job_id):
     meta["extraction_path"] = str(out_path)
     meta["manual_image_path"] = source_path
     meta["manual_calibration"] = {
+        "kind": "manual",
         "origin_px": payload["calibration"]["origin_px"],
         "ref_px": payload["calibration"]["ref_px"],
         "lowest_px": payload["calibration"]["lowest_px"],

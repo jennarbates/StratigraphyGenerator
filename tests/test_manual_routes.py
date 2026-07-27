@@ -8,12 +8,23 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT / "poggio_webapp"))
 
+import backend.jobs as jobs
+from app import app
 from backend.routes.manual import (
     Calibration,
     _build_fieldwall,
     _build_illustrator,
     _converted_points,
 )
+
+
+@pytest.fixture
+def client(tmp_path, monkeypatch):
+    jobs_dir = tmp_path / "jobs"
+    jobs_dir.mkdir()
+    monkeypatch.setattr(jobs, "JOBS_DIR", jobs_dir)
+    app.config.update(TESTING=True)
+    return app.test_client()
 
 
 @pytest.fixture
@@ -87,6 +98,39 @@ def _illustrator_payload(include_surface=True):
             }
         ],
     }
+
+
+def _manual_route_payload():
+    return {
+        **_illustrator_payload(),
+        "calibration": {
+            "origin_px": [100.25, 200.5],
+            "ref_px": [200.25, 200.5],
+            "lowest_px": [100.25, 300.5],
+            "ref_meters": 1.0,
+        },
+    }
+
+
+def test_manual_calibration_includes_kind(client):
+    job_id = "manual-calibration-kind"
+    job_dir = jobs.JOBS_DIR / job_id
+    job_dir.mkdir()
+    scan_path = job_dir / "scan.png"
+    scan_path.write_bytes(b"scan")
+    (job_dir / "meta.json").write_text(json.dumps({
+        "scan_path": str(scan_path),
+        "sheet_type": "illustrator",
+    }))
+
+    response = client.post(
+        f"/api/jobs/{job_id}/boundaries/manual",
+        json=_manual_route_payload(),
+    )
+
+    assert response.status_code == 200
+    meta = json.loads((job_dir / "meta.json").read_text())
+    assert meta["manual_calibration"]["kind"] == "manual"
 
 
 def test_fieldwall_bottom_boundary_contains_matching_source_pixels(calibration):
