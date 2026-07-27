@@ -2,6 +2,7 @@ import { apiJson } from "../core/api.js";
 import { goToStep, refreshChrome } from "../core/navigation.js";
 import { STRATA, invalidateDownstream, state } from "../core/state.js";
 import { pointInsideBand } from "../../boundary-label.js";
+import { applyVerifiedTextToDrawState } from "../text-metadata.js";
 import {
   $content,
   banner,
@@ -11,8 +12,20 @@ import {
 } from "../core/ui.js";
 
 const FEATURE_TYPES = ["rock/stone", "cut", "lens", "void", "other feature"];
+let lastAppliedVerifiedText = null;
 
 export function renderDraw() {
+  const verifiedText = state.verifyText.verified;
+  const alreadyApplied = state.verifyText.appliedToDraw
+    && lastAppliedVerifiedText === verifiedText;
+  if (verifiedText && !alreadyApplied) {
+    state.draw = applyVerifiedTextToDrawState(state.draw, verifiedText);
+    state.verifyText.appliedToDraw = true;
+    lastAppliedVerifiedText = verifiedText;
+  } else if (!verifiedText) {
+    lastAppliedVerifiedText = null;
+  }
+
   const dw = state.draw;
   const isField = state.sheetType === "fieldwall";
   const nameLabel = isField ? "locus number" : "layer name";
@@ -284,7 +297,7 @@ export function renderDraw() {
     holder.querySelectorAll("[data-name]").forEach((row) => {
       const name = row.dataset.name;
       ["a", "b"].forEach((key) => {
-        row.querySelector(`[data-role="${key}"]`).addEventListener("change", (event) => {
+        row.querySelector(`[data-role="${key}"]`).addEventListener("input", (event) => {
           store[name] = store[name] || {};
           store[name][key] = event.target.value;
         });
@@ -538,13 +551,13 @@ export function renderDraw() {
     redraw();
   });
 
-  document.getElementById("dwTrench").addEventListener("change", (event) => {
+  document.getElementById("dwTrench").addEventListener("input", (event) => {
     dw.trenchLabel = event.target.value;
   });
-  document.getElementById("dwFace").addEventListener("change", (event) => {
+  document.getElementById("dwFace").addEventListener("input", (event) => {
     dw.faceLabel = event.target.value;
   });
-  document.getElementById("dwSquareCm")?.addEventListener("change", (event) => {
+  document.getElementById("dwSquareCm")?.addEventListener("input", (event) => {
     dw.squareCm = Number(event.target.value) || null;
   });
 

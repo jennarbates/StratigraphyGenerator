@@ -374,6 +374,21 @@ test("autofill fills blanks and preserves manual values", () => {
   });
 });
 
+test("autofill fills a blank trench and preserves an existing face", () => {
+  const result = applyVerifiedTextToDrawState(
+    {
+      trenchLabel: "",
+      faceLabel: "Manual face",
+      squareCm: null,
+      lociMeta: {},
+    },
+    verifiedData(),
+  );
+
+  assert.equal(result.trenchLabel, "T104");
+  assert.equal(result.faceLabel, "Manual face");
+});
+
 test("autofill does not replace an existing grid size", () => {
   const result = applyVerifiedTextToDrawState(
     {
@@ -386,6 +401,49 @@ test("autofill does not replace an existing grid size", () => {
   );
 
   assert.equal(result.squareCm, 25);
+});
+
+test("autofill creates locus metadata", () => {
+  const result = applyVerifiedTextToDrawState(
+    {
+      trenchLabel: "",
+      faceLabel: "",
+      squareCm: null,
+      lociMeta: {},
+    },
+    verifiedData(),
+  );
+
+  assert.deepEqual(result.lociMeta, {
+    1042: {
+      a: "10YR 5/3",
+      b: "brown silty soil",
+    },
+  });
+});
+
+test("autofill preserves existing Munsell and locus descriptions", () => {
+  const result = applyVerifiedTextToDrawState(
+    {
+      trenchLabel: "",
+      faceLabel: "",
+      squareCm: null,
+      lociMeta: {
+        1042: {
+          a: "manual colour",
+          b: "manual description",
+        },
+      },
+    },
+    verifiedData(),
+  );
+
+  assert.deepEqual(result.lociMeta, {
+    1042: {
+      a: "manual colour",
+      b: "manual description",
+    },
+  });
 });
 
 test("autofill is idempotent", () => {
@@ -401,13 +459,49 @@ test("autofill is idempotent", () => {
   assert.deepEqual(twice, once);
 });
 
+test("replacement verified text fills remaining blanks only", () => {
+  const firstVerified = verifiedData({
+    document: {
+      ...verifiedData().document,
+      faceLabel: null,
+    },
+  });
+  const secondVerified = verifiedData({
+    document: {
+      ...verifiedData().document,
+      trenchLabel: "T999",
+      faceLabel: "West face",
+    },
+  });
+  const once = applyVerifiedTextToDrawState(
+    {
+      trenchLabel: "",
+      faceLabel: "",
+      squareCm: null,
+      lociMeta: {},
+    },
+    firstVerified,
+  );
+  const twice = applyVerifiedTextToDrawState(once, secondVerified);
+
+  assert.equal(twice.trenchLabel, "T104");
+  assert.equal(twice.faceLabel, "West face");
+});
+
 test("input objects are not mutated", () => {
   const drawState = {
     trenchLabel: "",
     faceLabel: "",
     squareCm: null,
     lociMeta: {},
+    clicks: [[5, 6], [7, 8], [9, 10]],
     boundaries: [{ name: "1042", points: [[1, 2]] }],
+    features: [{
+      feature_type: "rock/stone",
+      description: "stone",
+      points: [[11, 12], [13, 14], [15, 16]],
+      closed: true,
+    }],
   };
   const verified = verifiedData();
   const drawSnapshot = structuredClone(drawState);
@@ -419,6 +513,9 @@ test("input objects are not mutated", () => {
   assert.notEqual(result, drawState);
   assert.notEqual(result.lociMeta, drawState.lociMeta);
   assert.notEqual(result.boundaries, drawState.boundaries);
+  assert.deepEqual(result.clicks, drawSnapshot.clicks);
+  assert.deepEqual(result.boundaries, drawSnapshot.boundaries);
+  assert.deepEqual(result.features, drawSnapshot.features);
 });
 
 test("unreadable and malformed verified data are ignored safely", () => {
