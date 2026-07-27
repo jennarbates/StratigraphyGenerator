@@ -708,6 +708,11 @@ export function renderDraw() {
         munsellRaw: (dw.lociMeta[boundary.name] || {}).a || null,
         description: (dw.lociMeta[boundary.name] || {}).b || null,
       }));
+      payload.verifiedText = {
+        document: verifiedText?.document || {},
+        loci: Array.isArray(verifiedText?.loci) ? verifiedText.loci : [],
+        audit: Array.isArray(verifiedText?.audit) ? verifiedText.audit : [],
+      };
     } else {
       payload.layerInfo = Object.fromEntries(validNamedLines.map((boundary) => [boundary.name, {
         inferredMaterial: (dw.layerMeta[boundary.name] || {}).a || null,

@@ -312,10 +312,71 @@ def _manual_fieldwall_boundaries(payload: dict[str, Any], calib: Calibration):
     return tops, base, warnings
 
 
+def _record(value: Any) -> dict[str, Any]:
+    return value if isinstance(value, dict) else {}
+
+
+def _readable_text(value: Any) -> str | None:
+    if not isinstance(value, str):
+        return None
+    value = value.strip()
+    return value or None
+
+
+def _readable_text_list(value: Any) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    return [
+        text
+        for item in value
+        if (text := _readable_text(item)) is not None
+    ]
+
+
+def _positive_number(value: Any) -> float | None:
+    if isinstance(value, bool):
+        return None
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(number) or number <= 0:
+        return None
+    return number
+
+
+def _verified_fieldwall_text(payload: dict[str, Any]) -> tuple[
+    dict[str, Any],
+    dict[str, dict[str, Any]],
+]:
+    """Return only final, scalar verified values carried by the draw request.
+
+    Candidate values have nested proposal objects, so the scalar/list readers
+    below deliberately ignore them if they are ever posted accidentally.
+    """
+    verified = _record(payload.get("verifiedText"))
+    document = _record(verified.get("document"))
+    loci_by_number: dict[str, dict[str, Any]] = {}
+    loci = verified.get("loci")
+    if isinstance(loci, list):
+        for row in loci:
+            row = _record(row)
+            locus_number = _readable_text(row.get("locusNumber"))
+            if locus_number is not None:
+                loci_by_number[locus_number] = row
+    return document, loci_by_number
+
+
 def _build_fieldwall(payload: dict[str, Any], calib: Calibration, source_path: str | None):
     tops, base, warnings = _manual_fieldwall_boundaries(payload, calib)
     loci_rows = payload.get("loci") or []
-    loci_meta = {str(row.get("locusNumber", "")).strip(): row for row in loci_rows}
+    loci_meta = {
+        locus_number: row
+        for row in loci_rows
+        if isinstance(row, dict)
+        and (locus_number := _readable_text(row.get("locusNumber"))) is not None
+    }
+    verified_document, verified_loci = _verified_fieldwall_text(payload)
 
     bands = [
         (
@@ -337,13 +398,22 @@ def _build_fieldwall(payload: dict[str, Any], calib: Calibration, source_path: s
     for i, top in enumerate(tops):
         name = top["name"]
         info = loci_meta.get(name, {})
-        munsell_raw = str(info.get("munsellRaw") or "").strip()
-        description = str(info.get("description") or "").strip() or None
+        verified_info = verified_loci.get(name, {})
+        munsell_raw = (
+            _readable_text(info.get("munsellRaw"))
+            or _readable_text(verified_info.get("munsellRaw"))
+        )
+        description = (
+            _readable_text(info.get("description"))
+            or _readable_text(verified_info.get("description"))
+        )
         loci.append({
             "locusNumber": name,
             "munsell": {"raw": munsell_raw, "colorName": None} if munsell_raw else None,
             "description": description,
-            "confidence": "human-entered",
+            "confidence": (
+                "human-verified" if verified_info else "human-entered"
+            ),
         })
         layers.append({
             "locusNumber": name,
@@ -352,22 +422,54 @@ def _build_fieldwall(payload: dict[str, Any], calib: Calibration, source_path: s
             "featuresInLayer": assigned[i] or None,
         })
 
+    trench_label = (
+        _readable_text(payload.get("trenchLabel"))
+        or _readable_text(verified_document.get("trenchLabel"))
+    )
+    face_label = (
+        _readable_text(payload.get("faceLabel"))
+        or _readable_text(verified_document.get("faceLabel"))
+    )
+    square_cm = (
+        _positive_number(payload.get("square_cm"))
+        or _positive_number(verified_document.get("gridSquareCm"))
+    )
+    illustrators = _readable_text_list(verified_document.get("illustrators"))
+    grid_tie_points = [
+        {"rawText": raw_text, "approxXMeters": None}
+        for raw_text in _readable_text_list(
+            verified_document.get("gridTiePoints")
+        )
+    ]
+    marginalia = [
+        "Boundary and feature geometry was manually traced by a user.",
+        "Named field-wall lines are locus tops; each next locus top closes "
+        "the locus above, and the separate final line closes the deepest locus.",
+        f"Source image: {source_path}" if source_path else "Source image unavailable.",
+    ]
+    marginalia.extend(
+        _readable_text_list(verified_document.get("marginalia"))
+    )
+    marginalia.extend(
+        f"Other readable text: {text}"
+        for text in _readable_text_list(verified_document.get("otherText"))
+    )
+
     data = {
-        "trenchLabel": str(payload.get("trenchLabel") or "").strip() or None,
-        "faceLabel": str(payload.get("faceLabel") or "").strip() or None,
-        "illustrators": None,
-        "date": None,
-        "northArrowPresent": None,
-        "gridSquareCm": payload.get("square_cm"),
-        "gridTiePoints": [],
+        "trenchLabel": trench_label,
+        "faceLabel": face_label,
+        "illustrators": illustrators or None,
+        "date": _readable_text(verified_document.get("date")),
+        "northArrowPresent": (
+            verified_document.get("northArrowPresent")
+            if isinstance(verified_document.get("northArrowPresent"), bool)
+            else None
+        ),
+        "gridSquareCm": square_cm,
+        "gridTiePoints": grid_tie_points or None,
         "loci": loci,
         "layers": layers,
-        "marginalia": [
-            "Boundary and feature geometry was manually traced by a user.",
-            "Named field-wall lines are locus tops; each next locus top closes "
-            "the locus above, and the separate final line closes the deepest locus.",
-            f"Source image: {source_path}" if source_path else "Source image unavailable.",
-        ],
+        "marginalia": marginalia,
     }
     return data, warnings
 

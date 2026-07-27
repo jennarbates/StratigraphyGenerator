@@ -262,3 +262,102 @@ def test_serialized_json_round_trips_source_pixel(calibration):
         restored["layers"][0]["featuresInLayer"][0]["shapePoints"][0]["sourcePixel"]
         == [140.125, 250.625]
     )
+
+
+def test_verified_text_is_merged_without_replacing_manual_draw_values(calibration):
+    payload = _fieldwall_payload()
+    payload.update({
+        "trenchLabel": "Manual trench",
+        "faceLabel": "Manual face",
+        "square_cm": 25,
+        "loci": [{
+            "locusNumber": "1042",
+            "munsellRaw": "7.5YR 4/4",
+            "description": None,
+        }],
+        "verifiedText": {
+            "document": {
+                "trenchLabel": "Verified trench",
+                "faceLabel": "Verified face",
+                "gridSquareCm": 20,
+                "illustrators": ["A. Recorder", "B. Illustrator"],
+                "date": "15 July 2026",
+                "northArrowPresent": False,
+                "gridTiePoints": ["E 194", "E 190"],
+                "marginalia": ["Continued on reverse"],
+                "otherText": ["Scale checked by JB"],
+            },
+            "loci": [{
+                "locusNumber": "1042",
+                "munsellRaw": "10YR 5/3",
+                "description": "brown silty soil",
+            }],
+            "audit": [],
+        },
+    })
+
+    data, _ = _build_fieldwall(payload, calibration, None)
+
+    assert data["trenchLabel"] == "Manual trench"
+    assert data["faceLabel"] == "Manual face"
+    assert data["gridSquareCm"] == 25
+    assert data["illustrators"] == ["A. Recorder", "B. Illustrator"]
+    assert data["date"] == "15 July 2026"
+    assert data["northArrowPresent"] is False
+    assert data["gridTiePoints"] == [
+        {"rawText": "E 194", "approxXMeters": None},
+        {"rawText": "E 190", "approxXMeters": None},
+    ]
+    assert data["loci"][0] == {
+        "locusNumber": "1042",
+        "munsell": {"raw": "7.5YR 4/4", "colorName": None},
+        "description": "brown silty soil",
+        "confidence": "human-verified",
+    }
+    assert "Continued on reverse" in data["marginalia"]
+    assert "Other readable text: Scale checked by JB" in data["marginalia"]
+    assert data["marginalia"][0] == (
+        "Boundary and feature geometry was manually traced by a user."
+    )
+
+
+def test_manual_locus_not_present_in_verified_text_remains_human_entered(calibration):
+    payload = _fieldwall_payload()
+    payload["verifiedText"] = {
+        "document": {},
+        "loci": [{
+            "locusNumber": "9999",
+            "munsellRaw": "10YR 5/3",
+            "description": None,
+        }],
+        "audit": [],
+    }
+
+    data, _ = _build_fieldwall(payload, calibration, None)
+
+    assert data["loci"][0]["confidence"] == "human-entered"
+    assert data["loci"][0]["munsell"] is None
+
+
+def test_verified_draw_fields_are_used_when_manual_values_are_empty(calibration):
+    payload = _fieldwall_payload()
+    payload.update({
+        "trenchLabel": None,
+        "faceLabel": "",
+        "square_cm": None,
+        "verifiedText": {
+            "document": {
+                "trenchLabel": "Verified trench",
+                "faceLabel": "Verified face",
+                "gridSquareCm": 20,
+            },
+            "loci": [],
+            "audit": [],
+        },
+    })
+
+    data, _ = _build_fieldwall(payload, calibration, None)
+
+    assert data["trenchLabel"] == "Verified trench"
+    assert data["faceLabel"] == "Verified face"
+    assert data["gridSquareCm"] == 20
