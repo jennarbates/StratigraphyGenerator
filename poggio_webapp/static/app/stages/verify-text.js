@@ -13,6 +13,8 @@ import {
   changeTextCandidateFinalValue,
   createTextReviewRows,
   flattenTextCandidates,
+  normalizedBboxToPixels,
+  padPixelBbox,
   setTextCandidateReviewStatus,
 } from "../text-metadata.js";
 import {
@@ -76,6 +78,8 @@ const FIELD_SECTIONS = Object.freeze([
 const reviewRowsByJob = new Map();
 const taskProgressByJob = new Map();
 const activeTaskPolls = new Map();
+const SOURCE_PREVIEW_MAX_WIDTH = 320;
+const SOURCE_PREVIEW_MAX_HEIGHT = 112;
 let renderToken = 0;
 
 function currentReviews() {
@@ -350,9 +354,19 @@ function candidateCard(candidate, review, index) {
   const notes = candidate.notes
     ? `<p class="vt-candidate-notes">${esc(candidate.notes)}</p>`
     : "";
+  const hasPotentialSource = Array.isArray(candidate.bbox);
   return `
     <article class="vt-candidate ${status ? `is-${status}` : ""}"
              data-candidate-index="${index}">
+      <figure class="vt-source-preview">
+        <figcaption>Source preview</figcaption>
+        ${hasPotentialSource
+          ? `<canvas class="vt-source-canvas"
+                     data-source-index="${index}"
+                     aria-label="Source preview for ${esc(candidate.fieldPath)}"></canvas>
+             <p class="vt-source-unavailable" hidden>Source area unavailable.</p>`
+          : `<p class="vt-source-unavailable">Source area unavailable.</p>`}
+      </figure>
       <div class="vt-candidate-source">
         <div>
           <span class="vt-data-label">Raw transcription</span>
@@ -387,6 +401,100 @@ function candidateCard(candidate, review, index) {
       </div>
     </article>
   `;
+}
+
+function markSourcePreviewUnavailable(canvas) {
+  if (!canvas) return;
+  canvas.hidden = true;
+  const fallback = canvas.parentElement?.querySelector(
+    ".vt-source-unavailable",
+  );
+  if (fallback) fallback.hidden = false;
+}
+
+function renderSourcePreview(canvas, candidate, image) {
+  const pixelBbox = normalizedBboxToPixels(
+    candidate.bbox,
+    image.naturalWidth,
+    image.naturalHeight,
+  );
+  if (!pixelBbox) {
+    markSourcePreviewUnavailable(canvas);
+    return;
+  }
+
+  const textHeight = pixelBbox[3] - pixelBbox[1];
+  const padding = Math.max(12, Math.round(textHeight * 0.65));
+  const crop = padPixelBbox(
+    pixelBbox,
+    image.naturalWidth,
+    image.naturalHeight,
+    padding,
+  );
+  if (!crop) {
+    markSourcePreviewUnavailable(canvas);
+    return;
+  }
+
+  const cropWidth = crop[2] - crop[0];
+  const cropHeight = crop[3] - crop[1];
+  const scale = Math.min(
+    SOURCE_PREVIEW_MAX_WIDTH / cropWidth,
+    SOURCE_PREVIEW_MAX_HEIGHT / cropHeight,
+  );
+  canvas.width = Math.max(1, Math.round(cropWidth * scale));
+  canvas.height = Math.max(1, Math.round(cropHeight * scale));
+
+  const context = canvas.getContext("2d");
+  if (!context) {
+    markSourcePreviewUnavailable(canvas);
+    return;
+  }
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = "high";
+  try {
+    context.drawImage(
+      image,
+      crop[0],
+      crop[1],
+      cropWidth,
+      cropHeight,
+      0,
+      0,
+      canvas.width,
+      canvas.height,
+    );
+  } catch {
+    markSourcePreviewUnavailable(canvas);
+  }
+}
+
+function bindSourcePreviews(candidates, token) {
+  const canvases = Array.from(
+    document.querySelectorAll(".vt-source-canvas"),
+  );
+  if (canvases.length === 0) return;
+
+  const sourceUrl = state.preprocess.cleanUrl || state.scan.url;
+  if (!sourceUrl) {
+    canvases.forEach(markSourcePreviewUnavailable);
+    return;
+  }
+
+  const image = new Image();
+  image.onload = () => {
+    if (token !== renderToken || state.current !== "verifyText") return;
+    canvases.forEach((canvas) => {
+      const candidate = candidates[Number(canvas.dataset.sourceIndex)];
+      if (candidate) renderSourcePreview(canvas, candidate, image);
+      else markSourcePreviewUnavailable(canvas);
+    });
+  };
+  image.onerror = () => {
+    if (token !== renderToken || state.current !== "verifyText") return;
+    canvases.forEach(markSourcePreviewUnavailable);
+  };
+  image.src = sourceUrl;
 }
 
 function sectionHtml(section, candidates, reviewsByPath, candidateIndexes) {
@@ -589,6 +697,7 @@ function renderReview(token, justSaved = false) {
     <div id="vtError"></div>
   `;
   bindReviewControls(candidates, token);
+  bindSourcePreviews(candidates, token);
   updateReviewSummary(candidates);
 }
 

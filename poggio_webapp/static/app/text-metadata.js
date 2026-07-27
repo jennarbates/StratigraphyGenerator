@@ -129,6 +129,80 @@ function candidatesFrom(value) {
 }
 
 /**
+ * Convert a [xMin, yMin, xMax, yMax] box from normalized 0-1000
+ * coordinates to source-image pixel coordinates.
+ *
+ * The input is never changed. Edges outside the normalized range are clamped
+ * to the image, while malformed or empty boxes return null.
+ */
+export function normalizedBboxToPixels(bbox, imageWidth, imageHeight) {
+  if (
+    !Array.isArray(bbox)
+    || bbox.length !== 4
+    || !bbox.every((coordinate) => Number.isFinite(coordinate))
+    || !Number.isFinite(imageWidth)
+    || !Number.isFinite(imageHeight)
+    || imageWidth <= 0
+    || imageHeight <= 0
+  ) {
+    return null;
+  }
+
+  const [xMin, yMin, xMax, yMax] = bbox;
+  if (xMin >= xMax || yMin >= yMax) return null;
+
+  const clampNormalized = (coordinate) => (
+    Math.min(1000, Math.max(0, coordinate))
+  );
+  const pixels = [
+    Math.floor((clampNormalized(xMin) / 1000) * imageWidth),
+    Math.floor((clampNormalized(yMin) / 1000) * imageHeight),
+    Math.ceil((clampNormalized(xMax) / 1000) * imageWidth),
+    Math.ceil((clampNormalized(yMax) / 1000) * imageHeight),
+  ];
+  pixels[0] = Math.min(imageWidth, Math.max(0, pixels[0]));
+  pixels[1] = Math.min(imageHeight, Math.max(0, pixels[1]));
+  pixels[2] = Math.min(imageWidth, Math.max(0, pixels[2]));
+  pixels[3] = Math.min(imageHeight, Math.max(0, pixels[3]));
+
+  return pixels[0] < pixels[2] && pixels[1] < pixels[3]
+    ? pixels
+    : null;
+}
+
+/**
+ * Add context around a pixel box without allowing the crop to leave the
+ * source image.
+ */
+export function padPixelBbox(bbox, imageWidth, imageHeight, padding) {
+  if (
+    !Array.isArray(bbox)
+    || bbox.length !== 4
+    || !bbox.every((coordinate) => Number.isFinite(coordinate))
+    || !Number.isFinite(imageWidth)
+    || !Number.isFinite(imageHeight)
+    || imageWidth <= 0
+    || imageHeight <= 0
+  ) {
+    return null;
+  }
+
+  const [xMin, yMin, xMax, yMax] = bbox;
+  if (xMin >= xMax || yMin >= yMax) return null;
+  const safePadding = Number.isFinite(padding) ? Math.max(0, padding) : 0;
+  const padded = [
+    Math.max(0, Math.floor(xMin - safePadding)),
+    Math.max(0, Math.floor(yMin - safePadding)),
+    Math.min(imageWidth, Math.ceil(xMax + safePadding)),
+    Math.min(imageHeight, Math.ceil(yMax + safePadding)),
+  ];
+
+  return padded[0] < padded[2] && padded[1] < padded[3]
+    ? padded
+    : null;
+}
+
+/**
  * Create editable review rows without changing the extraction candidates.
  *
  * When verified data is supplied, its audit trail restores previously saved

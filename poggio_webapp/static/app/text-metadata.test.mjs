@@ -11,6 +11,8 @@ import {
   createTextReviewRows,
   flattenTextCandidates,
   getVerifiedLoci,
+  normalizedBboxToPixels,
+  padPixelBbox,
   setTextCandidateReviewStatus,
   verifiedLocusDisplayLabel,
 } from "./text-metadata.js";
@@ -95,6 +97,60 @@ function verifiedData(overrides = {}) {
     ...overrides,
   };
 }
+
+test("full-image normalized box maps to full-image pixels", () => {
+  assert.deepEqual(
+    normalizedBboxToPixels([0, 0, 1000, 1000], 2400, 1600),
+    [0, 0, 2400, 1600],
+  );
+});
+
+test("partial normalized box maps to source-image pixels", () => {
+  assert.deepEqual(
+    normalizedBboxToPixels([250, 125, 750, 875], 2400, 1600),
+    [600, 200, 1800, 1400],
+  );
+});
+
+test("normalized coordinates are clamped to image bounds", () => {
+  assert.deepEqual(
+    normalizedBboxToPixels([-100, -50, 1100, 1200], 2400, 1600),
+    [0, 0, 2400, 1600],
+  );
+});
+
+test("invalid and missing bounding boxes return null", () => {
+  assert.equal(
+    normalizedBboxToPixels([800, 20, 200, 120], 2400, 1600),
+    null,
+  );
+  assert.equal(
+    normalizedBboxToPixels([10, 20, Number.NaN, 120], 2400, 1600),
+    null,
+  );
+  assert.equal(
+    normalizedBboxToPixels([10, 20, 100], 2400, 1600),
+    null,
+  );
+  assert.equal(
+    normalizedBboxToPixels(undefined, 2400, 1600),
+    null,
+  );
+});
+
+test("source crop padding cannot produce negative coordinates", () => {
+  assert.deepEqual(
+    padPixelBbox([0, 0, 80, 30], 2400, 1600, 48),
+    [0, 0, 128, 78],
+  );
+});
+
+test("source crop padding cannot extend beyond image dimensions", () => {
+  assert.deepEqual(
+    padPixelBbox([2320, 1570, 2400, 1600], 2400, 1600, 48),
+    [2272, 1522, 2400, 1600],
+  );
+});
 
 test("candidate flattening produces stable field paths", () => {
   const rows = flattenTextCandidates(candidateData());
