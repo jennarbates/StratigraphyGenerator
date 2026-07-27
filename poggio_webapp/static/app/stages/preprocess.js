@@ -8,7 +8,7 @@ export function renderPreprocess() {
   const defaultUpscale = rec ? rec.factor : 2;
   $content.innerHTML = `
     <div class="panel">
-      <div class="stage-kicker">Step 2 of 8</div>
+      <div class="stage-kicker">Step 2 of 9</div>
       <h2>Prepare the image</h2>
       <p class="lede">We’ll make the drawing clearer so its lines are easier to
       trace. The recommended settings work for most drawings.</p>

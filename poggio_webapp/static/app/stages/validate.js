@@ -6,7 +6,7 @@ import { $content, banner, errorBanner } from "../core/ui.js";
 export function renderValidate() {
   $content.innerHTML = `
     <div class="panel">
-      <div class="stage-kicker">Step 5 of 8</div>
+      <div class="stage-kicker">Step 6 of 9</div>
       <h2>Check for problems</h2>
       <p class="lede">The app will look for crossed lines, unlikely depths, and
       features outside their soil layers. It will tell you clearly if anything

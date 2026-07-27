@@ -5,6 +5,7 @@ let renderApp = null;
 const PRIMARY_FLOW = [
   "scan",
   "preprocess",
+  "verifyText",
   "draw",
   "normalize",
   "validate",

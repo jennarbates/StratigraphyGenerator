@@ -44,7 +44,7 @@ export function renderScan() {
 
   $content.innerHTML = `
     <div class="panel">
-      <div class="stage-kicker">Step 1 of 8</div>
+      <div class="stage-kicker">Step 1 of 9</div>
       <h2>Add your trench drawing</h2>
       <p class="lede">Choose how you want to begin, then tell us what kind of
       diagram you are making.</p>

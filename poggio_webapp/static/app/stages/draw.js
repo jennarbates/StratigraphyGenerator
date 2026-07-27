@@ -20,7 +20,7 @@ export function renderDraw() {
 
   $content.innerHTML = `
     <div class="panel">
-      <div class="stage-kicker">Step 3 of 8</div>
+      <div class="stage-kicker">Step 4 of 9</div>
       <h2>Trace the layers</h2>
       <p class="lede">You’ll click directly on the drawing to show where each
       soil layer begins and ends. Nothing has to be perfect—you can undo any

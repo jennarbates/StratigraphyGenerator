@@ -13,11 +13,13 @@ import { renderNormalize } from "./stages/normalize.js";
 import { renderPreprocess } from "./stages/preprocess.js";
 import { renderScan } from "./stages/scan.js";
 import { renderValidate } from "./stages/validate.js";
+import { renderVerifyText } from "./stages/verify-text.js";
 import { renderVisualize } from "./stages/visualize.js";
 
 const RENDERERS = {
   scan: renderScan,
   preprocess: renderPreprocess,
+  verifyText: renderVerifyText,
   draw: renderDraw,
   extract: renderExtract,
   normalize: renderNormalize,

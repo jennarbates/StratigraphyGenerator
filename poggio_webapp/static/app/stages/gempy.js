@@ -6,7 +6,7 @@ import { $content, banner, errorBanner } from "../core/ui.js";
 export function renderGempy() {
   $content.innerHTML = `
     <div class="panel">
-      <div class="stage-kicker">Step 7 of 8</div>
+      <div class="stage-kicker">Step 8 of 9</div>
       <h2>Create the 3D model</h2>
       <p class="lede">The app now has everything it needs. Choose the button
       below and it will turn your traced layers into a 3D model.</p>

@@ -11,7 +11,7 @@ import {
 export function renderConvert() {
   $content.innerHTML = `
     <div class="panel">
-      <div class="stage-kicker">Step 6 of 8</div>
+      <div class="stage-kicker">Step 7 of 9</div>
       <h2>Place the drawing on the site</h2>
       <p class="lede">Add the surveyed position of each trench face so the
       drawing appears in the correct place and at the correct height.</p>

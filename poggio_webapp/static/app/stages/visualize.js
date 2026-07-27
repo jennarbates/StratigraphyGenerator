@@ -5,7 +5,7 @@ import { $content } from "../core/ui.js";
 export function renderVisualize() {
   $content.innerHTML = `
     <div class="panel">
-      <div class="stage-kicker">Step 8 of 8 · Finished</div>
+      <div class="stage-kicker">Step 9 of 9 · Finished</div>
       <h2>View and download your work</h2>
       <p class="lede">Open the interactive view to explore the trench drawing
       and its traced layers. Your files can also be saved for later use.</p>

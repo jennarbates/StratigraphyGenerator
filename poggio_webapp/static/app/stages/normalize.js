@@ -6,7 +6,7 @@ import { $content, banner, errorBanner } from "../core/ui.js";
 export function renderNormalize() {
   $content.innerHTML = `
     <div class="panel">
-      <div class="stage-kicker">Step 4 of 8</div>
+      <div class="stage-kicker">Step 5 of 9</div>
       <h2>Clean up the data</h2>
       <p class="lede">This automatically fixes small formatting problems and
       removes accidental duplicates. It does not move any of the lines you traced.</p>
