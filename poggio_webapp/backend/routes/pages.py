@@ -44,7 +44,7 @@ def visualizer_files(job_id):
 
     if calib and rotated_candidate.exists():
         out["image_url"] = rel_url(job_id, rotated_candidate)
-        out["marker_calib"] = calib
+        out["calibration"] = calib
     else:
         # Image: preprocessed clean image if present, else the raw scan —
         # unless the scan is a PDF, which a browser <img> can't show.

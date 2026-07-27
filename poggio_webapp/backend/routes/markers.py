@@ -14,6 +14,17 @@ from ..tasks import start_task
 bp = Blueprint("markers", __name__)
 
 
+def _build_marker_calib(body, px_per_m):
+    return {
+        "kind": "manual",
+        "origin_px": body["origin_px"],
+        "ref_px": body["ref_px"],
+        "lowest_px": [body["origin_px"][0], float(body["bottom_px_y"])],
+        "ref_meters": float(body["ref_meters"]),
+        "px_per_m": px_per_m,
+    }
+
+
 @bp.route("/api/jobs/<job_id>/markers/preview", methods=["POST"])
 def markers_preview(job_id):
     """Write the rotated working copy the user clicks reference points on.
@@ -77,8 +88,7 @@ def markers_detect(job_id):
     # CV output if someone skips straight past review.
     meta["markers_path"] = str(markers_path)
     meta["marker_square_cm"] = float(body["square_cm"])
-    meta["marker_calib"] = {"origin_px": result["origin_px"],
-                            "px_per_m": result["px_per_m"]}
+    meta["marker_calib"] = _build_marker_calib(body, result["px_per_m"])
     save_meta(job_id, meta)
 
     return jsonify({
