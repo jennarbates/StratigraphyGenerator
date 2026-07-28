@@ -11,7 +11,11 @@
     - poggio_webapp/static/app/core/state.js
     - poggio_webapp/backend/routes/__init__.py
     - poggio_webapp/app.py
-  purpose: Current user-facing and backend capability matrix
+    - poggio_webapp/pipeline/build_gempy.py
+    - poggio_webapp/backend/routes/pages.py
+    - poggio_webapp/static/model3d-viewer.js
+    - poggio_webapp/static/visualizer/model3d.js
+  purpose: Current user-facing and backend capability matrix, including 3D surfaces
 
 - page: reference/drawing-guidelines.md
   sources:
@@ -151,7 +155,9 @@
     - poggio_webapp/backend/routes/pages.py
     - poggio_webapp/static/visualizer/index.js
     - poggio_webapp/static/visualizer/view.js
-  purpose: Visualizer use, comparison, overlays, and downloads
+    - poggio_webapp/static/visualizer/model3d.js
+    - poggio_webapp/static/model3d-viewer.js
+  purpose: Visualizer use, 2D comparison and overlays, 3D surfaces, and downloads
 
 - page: workflows/logging-finds.md
   sources:
@@ -273,6 +279,7 @@
     - poggio_webapp/backend/routes/scans.py
     - poggio_webapp/backend/routes/extraction.py
     - poggio_webapp/backend/routes/processing.py
+    - poggio_webapp/backend/routes/pages.py
     - poggio_webapp/app.py
   purpose: HTTP route, request, response, and UI-status reference
 
@@ -295,8 +302,9 @@
     - poggio_webapp/backend/routes/scans.py
     - poggio_webapp/backend/routes/processing.py
     - poggio_webapp/backend/routes/gempy.py
+    - poggio_webapp/backend/routes/pages.py
     - poggio_webapp/pipeline/build_gempy.py
-  purpose: Output artifact names, formats, and producing stages
+  purpose: Output artifact names, browser manifest, formats, and producing stages
 
 - page: reference/troubleshooting.md
   sources:

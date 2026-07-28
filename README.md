@@ -22,7 +22,7 @@ poggio_webapp/           the pipeline + browser GUI  <- start here
   tools/                 standalone helpers not wired into the GUI
                          (pixel_picker.html; detectFieldWallMarkers.py is now
                          superseded by pipeline/detect_markers.py)
-  static/, templates/    frontend (static/visualizer.html is the A/B viewer)
+  static/, templates/    frontend (2D extraction review + 3D surface viewer)
   jobs/                  created at runtime, one folder per session
 ```
 
@@ -112,6 +112,26 @@ fallback are documented in `poggio_webapp/README.md`.
    processing fails, the saved draft remains available from the recovery link
    and **Previous work**.
 
+### Review results in 2D or 3D
+
+Open **View and download** for the interactive visualizer. Its **2D drawing**
+mode reviews extracted face geometry, source-image overlays, and A/B
+comparisons. For a completed job with a viewer manifest, **3D model** loads
+all available GemPy boundary-surface OBJ files in one Z-up scene. The saved-job
+results page and the interactive visualizer use the same OBJ renderer.
+
+The 3D controls provide per-surface visibility, show/hide all, opacity,
+wireframe, axes/bounds, reset, and top/front/side/3D camera views. Orbit, zoom,
+and pan work with mouse or touch. If one OBJ fails, the other surfaces remain
+usable and the viewer names the failed surface; if WebGL is unavailable, the
+page reports a recoverable error and 2D review remains available.
+
+This Phase A view shows interpolated boundary **surfaces**, not the solid
+lithology volume stored in the NumPy output. It is a review aid, not a
+scientifically authoritative reconstruction. Check registration provenance,
+validation warnings, and the single-face interpolation warning before
+interpreting any geometry.
+
 ### Workflow limitations
 
 - Drawing is polygon-based; there is no freehand paint or brush tool.
@@ -137,6 +157,18 @@ node poggio_webapp/static/canvas/grid.test.mjs
 node poggio_webapp/static/app/stages/start-options.test.mjs
 node poggio_webapp/static/app/text-metadata.test.mjs
 node poggio_webapp/static/app/stages/verify-text-navigation.test.mjs
+node poggio_webapp/static/visualizer/viewbox.test.mjs
+node poggio_webapp/static/visualizer/alignment-policy.test.mjs
+node poggio_webapp/static/visualizer/schema-core.test.mjs
+node poggio_webapp/static/visualizer/coordinates.test.mjs
+node poggio_webapp/static/visualizer/model3d-core.test.mjs
+node poggio_webapp/static/visualizer/view-mode.test.mjs
+"$PYTHON" -m pytest -q \
+  tests/test_gempy_mesh_export.py \
+  tests/test_gempy_viewer_manifest.py \
+  tests/test_visualizer_files_route.py \
+  tests/test_visualizer_static_dependencies.py
+"$PYTHON" tools/docs/check_docs.py
 git diff --check
 git status --short
 ```
@@ -590,10 +622,16 @@ lazily so the rest of the app works without it. Given the two CSVs:
 - **Outputs**: the `.gempy` project file (`save_model=True` by default);
   a `.npz` of the raw lithology block array plus its resolution/extent (so
   the voxel grid can be reloaded without recomputing); one `.obj` mesh per
-  surface (`export_meshes`, vertex/face arrays from
-  `solution.raw_arrays`, filenames sanitized via `safe_filename` — any
-  character outside `[A-Za-z0-9_.-]` becomes `_`); and, if plotting
-  succeeds, a 2D cross-section PNG at the requested
+  surface (`export_meshes`, vertex/face arrays from `solution.raw_arrays`);
+  and `trench_model_viewer.json`, a durable versioned manifest for the browser
+  viewer. Before export, every OBJ vertex array is restored from GemPy's
+  internal transform with `input_transform.apply_inverse`, so its coordinates
+  are site coordinates in metres. OBJ filenames are sanitized via
+  `safe_filename` — any character outside `[A-Za-z0-9_.-]` becomes `_` — while
+  the original surface name remains in the OBJ comment and manifest. The
+  manifest stores only paths relative to `06_gempy_model/`, never job
+  filesystem paths. If plotting succeeds, the builder also writes a 2D
+  cross-section PNG at the requested
   `vertical_exaggeration` plus an optional **zoomed** second PNG. The zoom
   range (`middle_zoom_range`) defaults to just the *middle* surfaces
   (dropping the shallowest and deepest, which tend to be much thicker/less
@@ -604,6 +642,10 @@ lazily so the rest of the app works without it. Given the two CSVs:
   logged as a warning rather than failing the whole build — the model
   itself is still saved even if matplotlib/gempy_viewer chokes on
   rendering it.
+
+The browser uses locally vendored Three.js `0.185.1` core, OrbitControls, and
+OBJLoader modules. Neither the saved-job result viewer nor the interactive
+visualizer requires a JavaScript CDN at runtime.
 
 ## Known open items
 

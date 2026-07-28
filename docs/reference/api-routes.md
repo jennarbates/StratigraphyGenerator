@@ -14,7 +14,7 @@ source_files:
   - poggio_webapp/backend/routes/gempy.py
   - poggio_webapp/backend/routes/task_status.py
   - poggio_webapp/backend/routes/pages.py
-verified_against: a8b58f1
+verified_against: 09ad663
 ---
 
 # API Routes
@@ -46,9 +46,9 @@ This reference documents all HTTP endpoints available in the Flask backend. All 
 | `/api/jobs/<job_id>/gempy` | POST | JSON: `points_csv`, `orientations_csv`, `output_prefix` | `{task_id}` | **Yes** | supported | Start GemPy 3D model build |
 | `/api/jobs/<job_id>/gempy/result/<task_id>` | GET | none | `{status, result, error}` | No | supported | Poll for GemPy build results |
 | `/api/tasks/<task_id>` | GET | none | `{status, result, error, progress}` | No | supported | Get status of any asynchronous task |
-| `/api/jobs/<job_id>/visualizer-files` | GET | none | `{...file_urls}` | No | supported | List available visualizer assets |
+| `/api/jobs/<job_id>/visualizer-files` | GET | none | `{...file_urls, model3d?}` | No | supported | List 2D assets and, when valid surfaces exist, safe 3D model data |
 | `/` | GET | none | HTML | No | supported | Render React web UI |
-| `/visualizer` | GET | none | HTML | No | supported | 3D model viewer page |
+| `/visualizer` | GET | query `job=<job_id>` (optional) | HTML | No | supported | Interactive 2D extraction and 3D surface viewer |
 
 ---
 
@@ -226,6 +226,55 @@ Routes returning file URLs include a `_url` suffix (e.g., `file_url`, `points_cs
 ```
 GET /api/jobs/<job_id>/file?path=<relative_path>
 ```
+
+### Visualizer model response
+
+`GET /api/jobs/<job_id>/visualizer-files` preserves its existing scan,
+extraction, and calibration keys. When a supported
+`06_gempy_model/trench_model_viewer.json` contains at least one existing OBJ,
+the response additionally contains:
+
+```json
+{
+  "model3d": {
+    "schema_version": 1,
+    "kind": "gempy-surface-model",
+    "coordinate_system": {
+      "units": "m",
+      "up_axis": "Z"
+    },
+    "extent": [0, 10, 0, 5, 90, 100],
+    "resolution": [50, 50, 30],
+    "series_order": ["Topsoil", "Fill"],
+    "single_face_note": null,
+    "surfaces": [
+      {
+        "name": "Topsoil",
+        "url": "/api/jobs/abc123def456/file?path=06_gempy_model/trench_model_meshes/Topsoil.obj"
+      }
+    ],
+    "lith_block_url": "/api/jobs/abc123def456/file?path=06_gempy_model/trench_model_lith_block.npz",
+    "warnings": []
+  }
+}
+```
+
+The response replaces manifest `mesh_path` and `lith_block_path` values with
+validated job-file URLs; filesystem paths are never returned. A metadata
+`model_outputs.viewer_manifest` path is preferred when it resolves inside the
+job. Otherwise the route uses the durable conventional manifest path above,
+so a server restart does not depend on the in-memory GemPy task record.
+
+A missing OBJ is omitted and named in `model3d.warnings`; other readable
+surfaces remain available. If no surface exists, the route omits `model3d`.
+A missing lithology archive omits `lith_block_url` without affecting surfaces.
+Malformed JSON, unsupported schemas, absolute paths outside the job, and
+relative traversal are ignored safely without breaking the existing 2D
+payload. Surface names are returned only as JSON data.
+
+The Phase A browser does not fetch `lith_block_url`; the URL keeps the
+scientific artifact discoverable for download while the 3D view renders
+boundary surfaces rather than a solid volume.
 
 ---
 

@@ -12,9 +12,10 @@ poggio_webapp/
                         extract_fieldwall, normalizer, validator,
                         convert_coords, build_gempy)
   templates/index.html the wizard shell
-  static/app.js         all frontend logic (vanilla JS, no build step)
+  static/app/           modular frontend logic (vanilla JS, no build step)
+  static/model3d-viewer.js  shared OBJ surface renderer
   static/style.css      styling
-  static/visualizer.html  your original 07_visualizer, served as-is
+  static/visualizer.html  2D extraction + 3D surface visualizer shell
   tools/                standalone helpers NOT wired into the GUI
                         (pixel_picker.html; detectFieldWallMarkers.py is
                         superseded by pipeline/detect_markers.py, which is
@@ -92,6 +93,26 @@ before supplying or drawing the geometry:
    `surfaceZ`, and `bearing_deg` for every face.
 6. **Create the 3D model**, then use **View and download** for the completed
    result.
+
+**View and download** has two distinct modes. **2D drawing** preserves face
+tabs, source-image overlay alignment, and A/B extraction comparison.
+**3D model** is available when
+`06_gempy_model/trench_model_viewer.json` describes at least one readable
+GemPy OBJ surface. Completed jobs opened with `?job=<job_id>` start in 3D when
+that model is present, and can always return to 2D when extraction data exists.
+The saved-job results page and this interactive visualizer share
+`static/model3d-viewer.js`; there is only one OBJ loading/rendering engine.
+
+In 3D, use the surface checkboxes or **Show all**/**Hide all**, opacity,
+wireframe, axes/bounds, and Reset/Top/Front/Side/3D camera controls. Mouse and
+touch support orbit, zoom, and pan. A failed OBJ is listed without hiding
+successfully loaded surfaces. An all-failed or WebGL-unavailable model shows a
+recoverable message, and the 2D mode continues to work.
+
+The scene displays boundary surfaces in site coordinates with Z up and units
+in metres. It does not render the solid `lith_block` volume. Model validity
+still depends on surveyed registration, trustworthy extraction, validation
+review, and the single-face interpolation warning.
 
 An upload creates a normal pipeline job when the file is selected. It does
 not call `/editor/new` or create a blank-editor draft.
@@ -223,6 +244,18 @@ node poggio_webapp/static/canvas/grid.test.mjs
 node poggio_webapp/static/app/stages/start-options.test.mjs
 node poggio_webapp/static/app/text-metadata.test.mjs
 node poggio_webapp/static/app/stages/verify-text-navigation.test.mjs
+node poggio_webapp/static/visualizer/viewbox.test.mjs
+node poggio_webapp/static/visualizer/alignment-policy.test.mjs
+node poggio_webapp/static/visualizer/schema-core.test.mjs
+node poggio_webapp/static/visualizer/coordinates.test.mjs
+node poggio_webapp/static/visualizer/model3d-core.test.mjs
+node poggio_webapp/static/visualizer/view-mode.test.mjs
+"$PYTHON" -m pytest -q \
+  tests/test_gempy_mesh_export.py \
+  tests/test_gempy_viewer_manifest.py \
+  tests/test_visualizer_files_route.py \
+  tests/test_visualizer_static_dependencies.py
+"$PYTHON" tools/docs/check_docs.py
 git diff --check
 git status --short
 ```
@@ -261,3 +294,6 @@ verification/autofill rules and skip/navigation behavior.
   are not implemented.
 - Completed models support viewing and downloading, not arbitrary reopening
   for edits. Failed model processing does retain an editor recovery path.
+- The interactive 3D view renders GemPy boundary surfaces only. The saved
+  NumPy lithology block remains a download/scientific artifact and is not
+  shown as a solid voxel volume in Phase A.
