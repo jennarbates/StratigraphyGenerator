@@ -7,6 +7,7 @@ import {
   projectPolyline,
 } from "./coordinates.mjs";
 import { $, esc } from "./dom.js";
+import { layerFillPath } from "./layer-fill.mjs";
 import { legacyViewBox } from "./viewbox.mjs";
 
 // extent across a face's points
@@ -91,6 +92,16 @@ function buildCalibratedSVG(
   const layerLabels=[];
   (face.layers||[]).forEach((l,li)=>{
     const mat=l.inferredMaterial||l.layerName||"?", col=colorFor(mat);
+    if(show("tFill")){
+      const fillPoint=p=>({
+        ...pointToSourcePixel(p,calibration),
+        along:meterX(p),
+      });
+      const topPts=(l.topBoundary||[]).filter(projectablePoint).map(fillPoint);
+      const botPts=(l.bottomBoundary||[]).filter(projectablePoint).map(fillPoint);
+      const d=layerFillPath(topPts,botPts);
+      if(d)s.push(`<path d="${d}" fill="${col}" fill-opacity="0.4" stroke="none"/>`);
+    }
     const line=(pts,isSurf)=>{
       const P=(pts||[]).filter(projectablePoint);
       if(!P.length)return {source:[],pixels:[]};
@@ -209,6 +220,19 @@ function buildLegacySVG(face, maxX, maxY, wrap){
   const layerLabels=[];
   (face.layers||[]).forEach((l,li)=>{
     const mat=l.inferredMaterial||l.layerName||"?", col=colorFor(mat);
+    if(show("tFill")){
+      const fillPoint=p=>({
+        x:X(p.xCoordinateMeters),
+        y:Y(p.yCoordinateMeters),
+        along:p.xCoordinateMeters,
+      });
+      const has=p=>Number.isFinite(p.xCoordinateMeters)
+        &&Number.isFinite(p.yCoordinateMeters);
+      const topPts=(l.topBoundary||[]).filter(has).map(fillPoint);
+      const botPts=(l.bottomBoundary||[]).filter(has).map(fillPoint);
+      const d=layerFillPath(topPts,botPts);
+      if(d)s.push(`<path d="${d}" fill="${col}" fill-opacity="0.4" stroke="none"/>`);
+    }
     const line=(pts,isSurf)=>{
       const P=(pts||[]).filter(p=>typeof p.xCoordinateMeters==="number"&&typeof p.yCoordinateMeters==="number");
       if(!P.length)return P;

@@ -34,7 +34,7 @@ export function ready(){
       legend.appendChild(row);}));});
 
   $("controls").style.display="block";
-  ["tBounds","tPoints","tFeatures","tGrid","tLabels"].forEach(id=>$(id).onchange=draw);
+  ["tFill","tBounds","tPoints","tFeatures","tGrid","tLabels"].forEach(id=>$(id).onchange=draw);
   draw();
 }
 
