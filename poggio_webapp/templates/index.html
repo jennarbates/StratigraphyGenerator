@@ -135,7 +135,28 @@
         {% endif %}
       </p>
       {% if result_job.source != "manual_editor" or result_job.status == "complete" %}
-        {% if result_job.section_url %}
+        {% if result_job.status == "complete" and result_job.mesh_urls %}
+          <div id="viewer3d" class="viewer3d">
+            <script type="application/json" id="viewer3d-meshes">{{ result_job.mesh_urls | tojson }}</script>
+            <div class="viewer3d-canvas-wrap">
+              <canvas id="viewer3d-canvas"></canvas>
+              <p class="viewer3d-status" id="viewer3d-status">Loading 3D model&hellip;</p>
+            </div>
+            <div class="viewer3d-controls">
+              <div class="viewer3d-slider">
+                <label for="viewer3d-ve">Vertical exaggeration <span id="viewer3d-ve-val">3&times;</span></label>
+                <input type="range" id="viewer3d-ve" min="1" max="10" step="0.5" value="3">
+              </div>
+              <button type="button" class="filebtn" id="viewer3d-reset">Reset view</button>
+              <div class="viewer3d-legend" id="viewer3d-legend"></div>
+            </div>
+          </div>
+          {% if result_job.section_url %}
+            <p class="quiet-link" style="margin-top:6px">
+              <a href="{{ result_job.section_url }}" target="_blank" rel="noopener">View the flat cross-section instead</a>
+            </p>
+          {% endif %}
+        {% elif result_job.section_url %}
           <figure>
             <img class="result-image" src="{{ result_job.section_url }}" alt="Cross-section of the completed trench model">
             <figcaption>Cross-section of your trench model</figcaption>
@@ -176,6 +197,17 @@
 <script src="/static/results.js"></script>
 {% elif not result_job %}
 <script src="/static/app.js"></script>
+{% endif %}
+{% if result_job and result_job.status == "complete" and result_job.mesh_urls %}
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.169.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.169.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module" src="/static/viewer3d.js"></script>
 {% endif %}
 </body>
 </html>

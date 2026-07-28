@@ -328,6 +328,51 @@ def test_complete_results_page_keeps_visualization_and_download_links(
     assert "download" in links_by_href[model_url]
 
 
+def test_complete_results_page_uses_mesh_viewer_with_section_fallback(
+    client,
+    tmp_path,
+):
+    job_id = "complete-mesh-viewer-job"
+    job_directory = _write_job_meta(
+        tmp_path,
+        job_id,
+        status="complete",
+        source="manual_editor",
+    )
+    model_directory = job_directory / "06_gempy_model"
+    mesh_directory = model_directory / "trench_model_meshes"
+    mesh_directory.mkdir(parents=True)
+    (mesh_directory / "Layer_1.obj").write_text(
+        "v 0 0 0\nv 1 0 0\nv 0 1 0\nf 1 2 3\n"
+    )
+    section_path = model_directory / "trench_model_section_y.png"
+    section_path.write_bytes(b"png")
+
+    job = app_module._job_record(job_directory)
+    response = client.get(f"/jobs/{job_id}")
+    page = _parse_results_page(response)
+    html = response.get_data(as_text=True)
+
+    assert job["mesh_urls"] == [
+        {
+            "name": "Layer 1",
+            "url": (
+                f"/api/jobs/{job_id}/file"
+                "?path=06_gempy_model/trench_model_meshes/Layer_1.obj"
+            ),
+        }
+    ]
+    assert response.status_code == 200
+    assert 'id="viewer3d"' in html
+    assert "/static/viewer3d.js" in page.scripts
+    assert "Layer 1" in html
+    assert "View the flat cross-section instead" in html
+    assert (
+        f"/api/jobs/{job_id}/file"
+        "?path=06_gempy_model/trench_model_section_y.png"
+    ) in html
+
+
 def test_ordinary_upload_results_keep_existing_actions(client, tmp_path):
     job_id = "uploaded-results-job"
     _write_job_meta(tmp_path, job_id, status="building")

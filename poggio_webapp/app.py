@@ -281,6 +281,9 @@ def _job_record(job_directory):
         for path in (job_directory / "06_gempy_model").glob("*section*.png")
         if "zoom" not in path.name
     )
+    mesh_paths = sorted(
+        (job_directory / "06_gempy_model").glob("*_meshes/*.obj")
+    )
     return {
         "job_id": job_id,
         "source": source,
@@ -308,6 +311,13 @@ def _job_record(job_directory):
             job_directory,
             section_paths[0] if section_paths else None,
         ),
+        "mesh_urls": [
+            {
+                "name": path.stem.replace("_", " "),
+                "url": _job_file_url(job_id, job_directory, path),
+            }
+            for path in mesh_paths
+        ],
     }
 
 
