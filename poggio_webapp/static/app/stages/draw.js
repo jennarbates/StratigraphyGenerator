@@ -2,6 +2,7 @@ import { apiJson } from "../core/api.js";
 import { goToStep, refreshChrome } from "../core/navigation.js";
 import { STRATA, invalidateDownstream, state } from "../core/state.js";
 import { pointInsideBand } from "../../boundary-label.js";
+import { ensureLocusTopBoundary } from "../draw-loci.js";
 import {
   applyVerifiedTextToDrawState,
   buildVerifiedLocusChoices,
@@ -100,12 +101,13 @@ export function renderDraw() {
             The next locus top also closes the locus above it.</p>
             <ol class="task-list">
               <li><span class="task-number">1</span><span>${hasVerifiedLoci
-                ? "Choose the first verified locus, choose"
-                : "Type the first locus number, choose"}
-              <strong>Start the top of this locus</strong>, then click along that line
+                ? "Choose the first verified locus. Its top line starts automatically,"
+                : "Type the first locus number, choose <strong>Start the top of this locus</strong>,"}
+              then click along that line
               from left to right.</span></li>
-              <li><span class="task-number">2</span><span>Repeat for the top of every
-              deeper locus.</span></li>
+              <li><span class="task-number">2</span><span>${hasVerifiedLoci
+                ? "Choose the next verified locus to switch to its top line. Repeat for every deeper locus."
+                : "Repeat for the top of every deeper locus."}</span></li>
               <li><span class="task-number">3</span><span>Choose
               <strong>Start the final bottom line</strong> and trace the line below
               the deepest locus.</span></li>
@@ -115,7 +117,7 @@ export function renderDraw() {
                 <label class="field locus-chooser-field">
                   <span class="label-text">Choose a verified locus</span>
                   <select id="dwLocusChoice"></select>
-                  <span class="hint">Loci whose top boundary is already present are unavailable.</span>
+                  <span class="hint">Selecting a locus starts its top line. Select it again to continue adding points to that line.</span>
                 </label>
                 <label class="field locus-manual-entry" id="dwManualLocus" hidden>
                   <span class="label-text">Missing locus number</span>
@@ -126,7 +128,9 @@ export function renderDraw() {
               <input id="dwName" aria-label="${nameLabel}" placeholder="${nameLabel}" style="width:170px">
             `}
             <div class="btn-row locus-start-actions">
-              <button class="secondary" id="dwNewTop">Start the top of this locus</button>
+              <button class="secondary" id="dwNewTop" ${hasVerifiedLoci ? "hidden" : ""}>
+                ${hasVerifiedLoci ? "Start the manually entered locus" : "Start the top of this locus"}
+              </button>
               <button class="secondary" id="dwNewBase">Start the final bottom line</button>
             </div>
           ` : `
@@ -146,7 +150,7 @@ export function renderDraw() {
           <div class="btn-row">
             <button class="secondary" id="dwUndo">Undo my last point</button>
             <button class="secondary" id="dwDelete">Delete the selected line or shape</button>
-            <span id="dwActive" class="hint"></span>
+            <span id="dwActive" class="hint" aria-live="polite"></span>
           </div>
           <div id="dwBoundaryChips" class="btn-row" style="flex-wrap:wrap"></div>
           </section>
@@ -249,7 +253,6 @@ export function renderDraw() {
     const select = document.getElementById("dwLocusChoice");
     if (!select) return;
 
-    const previousValue = select.value;
     select.innerHTML = "";
 
     const prompt = document.createElement("option");
@@ -266,17 +269,27 @@ export function renderDraw() {
           : choice.locusNumber;
         option.textContent = choice.available
           ? choice.label
-          : `${choice.label} — already traced`;
-        option.disabled = !choice.available;
+          : `${choice.label} — top already started`;
         select.appendChild(option);
       });
 
-    const previousOption = Array.from(select.options).find(
-      (option) => option.value === previousValue && !option.disabled,
+    const activeBoundary = dw.activeKind === "boundary"
+      ? dw.boundaries[dw.activeIdx]
+      : null;
+    const activeOption = Array.from(select.options).find(
+      (option) => (
+        option.dataset.kind === "verified"
+        && activeBoundary?.kind === "top"
+        && option.value === activeBoundary.name
+      ),
     );
-    select.value = previousOption ? previousValue : "";
+    select.value = activeOption ? activeOption.value : "";
+    const isManualChoice = (
+      select.selectedOptions[0]?.dataset.kind === "manual"
+    );
     const manualEntry = document.getElementById("dwManualLocus");
-    manualEntry.hidden = select.selectedOptions[0]?.dataset.kind !== "manual";
+    manualEntry.hidden = !isManualChoice;
+    document.getElementById("dwNewTop").hidden = !isManualChoice;
   }
 
   function renderBoundaryChips() {
@@ -569,12 +582,20 @@ export function renderDraw() {
   });
 
   document.getElementById("dwLocusChoice")?.addEventListener("change", () => {
-    const selectedChoice = document.getElementById("dwLocusChoice")
-      .selectedOptions[0];
-    document.getElementById("dwManualLocus").hidden = (
-      selectedChoice?.dataset.kind !== "manual"
-    );
+    const chooser = document.getElementById("dwLocusChoice");
+    const selectedChoice = chooser.selectedOptions[0];
+    const isManualChoice = selectedChoice?.dataset.kind === "manual";
+    document.getElementById("dwManualLocus").hidden = !isManualChoice;
+    document.getElementById("dwNewTop").hidden = !isManualChoice;
     errEl().innerHTML = "";
+
+    if (selectedChoice?.dataset.kind !== "verified") return;
+
+    const { index } = ensureLocusTopBoundary(
+      dw.boundaries,
+      selectedChoice.value,
+    );
+    if (index >= 0) setActive("boundary", index);
   });
 
   document.getElementById("dwNewBase")?.addEventListener("click", () => {
