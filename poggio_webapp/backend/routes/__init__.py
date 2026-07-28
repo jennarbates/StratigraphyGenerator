@@ -14,6 +14,7 @@ from .task_status import bp as task_status_bp
 from .text_metadata import bp as text_metadata_bp
 from .processing import bp as processing_bp
 from .gempy import bp as gempy_bp
+from .harris import bp as harris_bp
 
 
 BLUEPRINTS = (
@@ -29,6 +30,7 @@ BLUEPRINTS = (
     text_metadata_bp,
     processing_bp,
     gempy_bp,
+    harris_bp,
 )
 
 
