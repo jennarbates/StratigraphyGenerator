@@ -15,6 +15,9 @@ from backend import config, create_app, harris_store
 
 UNIT_A = "unit-00000000000a"
 UNIT_B = "unit-00000000000b"
+FIELD_JOB = "111111111111"
+ILLUSTRATOR_JOB = "222222222222"
+MALFORMED_JOB = "333333333333"
 
 
 @pytest.fixture
@@ -81,6 +84,122 @@ def _source_snapshot(jobs_dir):
         for path in sorted(jobs_dir.rglob("*"))
         if path.is_file()
     }
+
+
+def _field_point(x, depth):
+    return {"xMeters": x, "depthMeters": depth}
+
+
+def _illustrator_point(x, y):
+    return {"xCoordinateMeters": x, "yCoordinateMeters": y}
+
+
+def _field_document(labels=("Shared", "Lower")):
+    shared_boundary = [
+        _field_point(0.0, 0.4),
+        _field_point(1.0, 0.5),
+    ]
+    return {
+        "trenchLabel": "T123",
+        "faceLabel": "North baulk",
+        "loci": [
+            {"locusNumber": label, "description": f"Locus {label}"}
+            for label in labels
+        ],
+        "layers": [
+            {
+                "locusNumber": labels[0],
+                "topBoundary": [
+                    _field_point(0.0, 0.0),
+                    _field_point(1.0, 0.0),
+                ],
+                "bottomBoundary": shared_boundary,
+            },
+            {
+                "locusNumber": labels[1],
+                "topBoundary": shared_boundary,
+                "bottomBoundary": [
+                    _field_point(0.0, 0.9),
+                    _field_point(1.0, 1.0),
+                ],
+            },
+        ],
+    }
+
+
+def _illustrator_document():
+    return {
+        "metadata": {"trenchLabel": "T123"},
+        "trenchProfiles": [
+            {
+                "face": "East",
+                "layers": [
+                    {
+                        "layerName": "Shared",
+                        "topBoundary": [
+                            _illustrator_point(0.0, 0.0),
+                            _illustrator_point(1.0, 0.0),
+                        ],
+                        "bottomBoundary": [
+                            _illustrator_point(0.0, 0.5),
+                            _illustrator_point(1.0, 0.5),
+                        ],
+                    }
+                ],
+            },
+            {
+                "face": "West",
+                "layers": [
+                    {
+                        "layerName": "West layer",
+                        "topBoundary": [
+                            _illustrator_point(0.0, 0.0),
+                            _illustrator_point(1.0, 0.0),
+                        ],
+                        "bottomBoundary": [
+                            _illustrator_point(0.0, 0.6),
+                            _illustrator_point(1.0, 0.6),
+                        ],
+                    }
+                ],
+            },
+        ],
+    }
+
+
+def _write_job(route_context, job_id, document):
+    job_dir = route_context.jobs_dir / job_id
+    job_dir.mkdir(parents=True, exist_ok=True)
+    (job_dir / "meta.json").write_text(
+        json.dumps({"title": f"Source {job_id}"}),
+        encoding="utf-8",
+    )
+    (job_dir / "extraction_output.json").write_text(
+        json.dumps(document),
+        encoding="utf-8",
+    )
+    return job_dir
+
+
+def _import(client, matrix, job_ids):
+    return client.post(
+        f"/api/harris-matrices/{matrix['matrix_id']}/sources",
+        json={"job_ids": job_ids, "revision": matrix["revision"]},
+    )
+
+
+def _suggestion(matrix, suggestion_type):
+    return next(
+        suggestion
+        for suggestion in matrix["suggestions"]
+        if suggestion["suggestion_type"] == suggestion_type
+    )
+
+
+def _matrix_bytes(route_context, matrix_id):
+    return (
+        route_context.matrices_dir / matrix_id / "matrix.json"
+    ).read_bytes()
 
 
 def test_empty_list(route_context):
@@ -326,3 +445,313 @@ def test_delete_is_method_not_allowed(route_context):
     )
 
     assert response.status_code == 405
+
+
+def test_source_discovery_lists_supported_schemas_with_safe_summaries(
+    route_context,
+):
+    _write_job(route_context, FIELD_JOB, _field_document())
+    _write_job(
+        route_context,
+        ILLUSTRATOR_JOB,
+        _illustrator_document(),
+    )
+    malformed_dir = route_context.jobs_dir / MALFORMED_JOB
+    malformed_dir.mkdir()
+    (malformed_dir / "extraction_output.json").write_text(
+        "{not-json",
+        encoding="utf-8",
+    )
+
+    response = route_context.client.get("/api/harris-source-jobs")
+
+    assert response.status_code == 200
+    summaries = response.get_json()
+    assert summaries == [
+        {
+            "job_id": FIELD_JOB,
+            "schema_type": "FieldWallProfile",
+            "trench": "T123",
+            "faces": ["North baulk"],
+            "unit_count": 2,
+        },
+        {
+            "job_id": ILLUSTRATOR_JOB,
+            "schema_type": "ArchaeologicalDiagram",
+            "trench": "T123",
+            "faces": ["East", "West"],
+            "unit_count": 2,
+        },
+    ]
+    serialized = json.dumps(summaries)
+    assert str(route_context.jobs_dir) not in serialized
+    assert "extraction_output.json" not in serialized
+
+
+def test_imports_field_wall_and_multiface_jobs_atomically(
+    route_context,
+):
+    _write_job(route_context, FIELD_JOB, _field_document())
+    _write_job(
+        route_context,
+        ILLUSTRATOR_JOB,
+        _illustrator_document(),
+    )
+    sources_before = _source_snapshot(route_context.jobs_dir)
+    created = _create(route_context.client)
+
+    response = _import(
+        route_context.client,
+        created,
+        [FIELD_JOB, ILLUSTRATOR_JOB],
+    )
+
+    assert response.status_code == 200
+    imported = response.get_json()
+    assert imported["revision"] == 1
+    assert imported["source_job_ids"] == [FIELD_JOB, ILLUSTRATOR_JOB]
+    assert len(imported["units"]) == 4
+    assert {
+        ref["schema_type"]
+        for unit in imported["units"]
+        for ref in unit["source_refs"]
+    } == {"FieldWallProfile", "ArchaeologicalDiagram"}
+    assert {
+        ref["face"]
+        for unit in imported["units"]
+        for ref in unit["source_refs"]
+        if ref["job_id"] == ILLUSTRATOR_JOB
+    } == {"East", "West"}
+    assert imported["import_warnings"] == []
+    assert imported["suggestions"]
+    assert all(
+        suggestion["status"] == "pending"
+        for suggestion in imported["suggestions"]
+    )
+    assert imported["relations"] == []
+    assert imported["correlations"] == []
+    assert str(route_context.jobs_dir) not in json.dumps(imported)
+    assert _source_snapshot(route_context.jobs_dir) == sources_before
+
+
+def test_reimport_is_idempotent_and_preserves_sources(route_context):
+    _write_job(route_context, FIELD_JOB, _field_document())
+    sources_before = _source_snapshot(route_context.jobs_dir)
+    created = _create(route_context.client)
+    first = _import(
+        route_context.client,
+        created,
+        [FIELD_JOB],
+    ).get_json()
+
+    response = _import(
+        route_context.client,
+        first,
+        [FIELD_JOB, FIELD_JOB],
+    )
+
+    assert response.status_code == 200
+    second = response.get_json()
+    assert second["revision"] == 2
+    assert second["source_job_ids"] == [FIELD_JOB]
+    assert second["units"] == first["units"]
+    assert second["suggestions"] == first["suggestions"]
+    assert _source_snapshot(route_context.jobs_dir) == sources_before
+
+
+def test_stale_import_revision_returns_409_without_writing(
+    route_context,
+):
+    _write_job(route_context, FIELD_JOB, _field_document())
+    created = _create(route_context.client)
+    imported = _import(
+        route_context.client,
+        created,
+        [FIELD_JOB],
+    ).get_json()
+    before = _matrix_bytes(route_context, created["matrix_id"])
+
+    response = route_context.client.post(
+        f"/api/harris-matrices/{created['matrix_id']}/sources",
+        json={"job_ids": [FIELD_JOB], "revision": 0},
+    )
+
+    assert response.status_code == 409
+    assert response.get_json()["code"] == "revision_conflict"
+    assert imported["revision"] == 1
+    assert _matrix_bytes(route_context, created["matrix_id"]) == before
+
+
+def test_malformed_job_aborts_multi_job_import_without_partial_save(
+    route_context,
+):
+    _write_job(route_context, FIELD_JOB, _field_document())
+    malformed_dir = route_context.jobs_dir / MALFORMED_JOB
+    malformed_dir.mkdir()
+    (malformed_dir / "meta.json").write_bytes(b'{"title":"bad"}\n')
+    (malformed_dir / "extraction_output.json").write_bytes(b"{not-json")
+    sources_before = _source_snapshot(route_context.jobs_dir)
+    created = _create(route_context.client)
+    before = _matrix_bytes(route_context, created["matrix_id"])
+
+    response = _import(
+        route_context.client,
+        created,
+        [FIELD_JOB, MALFORMED_JOB],
+    )
+
+    assert response.status_code == 400
+    assert response.get_json()["code"] == "source_import_error"
+    assert _matrix_bytes(route_context, created["matrix_id"]) == before
+    assert _source_snapshot(route_context.jobs_dir) == sources_before
+
+
+def test_accept_ordering_suggestion_saves_one_revision(route_context):
+    _write_job(route_context, FIELD_JOB, _field_document())
+    created = _create(route_context.client)
+    imported = _import(
+        route_context.client,
+        created,
+        [FIELD_JOB],
+    ).get_json()
+    suggestion = _suggestion(imported, "ordering")
+
+    response = route_context.client.post(
+        (
+            f"/api/harris-matrices/{created['matrix_id']}"
+            f"/suggestions/{suggestion['id']}"
+        ),
+        json={"action": "accept", "revision": imported["revision"]},
+    )
+
+    assert response.status_code == 200
+    reviewed = response.get_json()
+    assert reviewed["revision"] == imported["revision"] + 1
+    assert _suggestion(reviewed, "ordering")["status"] == "accepted"
+    assert len(reviewed["relations"]) == 1
+    assert reviewed["relations"][0]["source"] == "suggestion"
+
+
+def test_reject_correlation_saves_once_without_adding_group(
+    route_context,
+):
+    _write_job(route_context, FIELD_JOB, _field_document())
+    _write_job(
+        route_context,
+        ILLUSTRATOR_JOB,
+        _illustrator_document(),
+    )
+    created = _create(route_context.client)
+    imported = _import(
+        route_context.client,
+        created,
+        [FIELD_JOB, ILLUSTRATOR_JOB],
+    ).get_json()
+    suggestion = _suggestion(imported, "correlation")
+
+    response = route_context.client.post(
+        (
+            f"/api/harris-matrices/{created['matrix_id']}"
+            f"/suggestions/{suggestion['id']}"
+        ),
+        json={"action": "reject", "revision": imported["revision"]},
+    )
+
+    assert response.status_code == 200
+    reviewed = response.get_json()
+    assert reviewed["revision"] == imported["revision"] + 1
+    assert _suggestion(reviewed, "correlation")["status"] == "rejected"
+    assert reviewed["correlations"] == []
+
+
+def test_suggestion_review_rejects_invalid_action_and_unknown_id(
+    route_context,
+):
+    _write_job(route_context, FIELD_JOB, _field_document())
+    created = _create(route_context.client)
+    imported = _import(
+        route_context.client,
+        created,
+        [FIELD_JOB],
+    ).get_json()
+    suggestion = _suggestion(imported, "ordering")
+    before = _matrix_bytes(route_context, created["matrix_id"])
+    url = (
+        f"/api/harris-matrices/{created['matrix_id']}"
+        f"/suggestions/{suggestion['id']}"
+    )
+
+    invalid = route_context.client.post(
+        url,
+        json={"action": "maybe", "revision": imported["revision"]},
+    )
+    unknown = route_context.client.post(
+        (
+            f"/api/harris-matrices/{created['matrix_id']}"
+            "/suggestions/suggestion-ffffffffffff"
+        ),
+        json={"action": "accept", "revision": imported["revision"]},
+    )
+
+    assert invalid.status_code == 400
+    assert invalid.get_json()["code"] == "invalid_request"
+    assert unknown.status_code == 404
+    assert unknown.get_json()["code"] == "suggestion_not_found"
+    assert _matrix_bytes(route_context, created["matrix_id"]) == before
+
+
+def test_cycle_producing_acceptance_leaves_stored_bytes_unchanged(
+    route_context,
+):
+    _write_job(route_context, FIELD_JOB, _field_document())
+    created = _create(route_context.client)
+    imported = _import(
+        route_context.client,
+        created,
+        [FIELD_JOB],
+    ).get_json()
+    suggestion = _suggestion(imported, "ordering")
+    imported.pop("import_warnings")
+    imported["relations"] = [
+        _relation(
+            "rel-000000000001",
+            suggestion["older_id"],
+            suggestion["younger_id"],
+        )
+    ]
+    saved = route_context.client.put(
+        f"/api/harris-matrices/{created['matrix_id']}",
+        json=imported,
+    ).get_json()
+    before = _matrix_bytes(route_context, created["matrix_id"])
+
+    response = route_context.client.post(
+        (
+            f"/api/harris-matrices/{created['matrix_id']}"
+            f"/suggestions/{suggestion['id']}"
+        ),
+        json={"action": "accept", "revision": saved["revision"]},
+    )
+
+    assert response.status_code == 400
+    assert response.get_json()["code"] == "suggestion_review_error"
+    assert "cycle" in response.get_json()["error"]
+    assert _matrix_bytes(route_context, created["matrix_id"]) == before
+
+
+@pytest.mark.parametrize(
+    "job_id",
+    ["../111111111111", "ABCDEF123456", "11111111111g"],
+)
+def test_import_rejects_invalid_or_traversal_job_ids(
+    route_context,
+    job_id,
+):
+    created = _create(route_context.client)
+    before = _matrix_bytes(route_context, created["matrix_id"])
+
+    response = _import(route_context.client, created, [job_id])
+
+    assert response.status_code == 400
+    assert response.get_json()["code"] == "invalid_request"
+    assert _matrix_bytes(route_context, created["matrix_id"]) == before
