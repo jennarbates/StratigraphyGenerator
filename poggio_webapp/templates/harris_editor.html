@@ -42,6 +42,14 @@
       <button id="reload-matrix" type="button">Reload newer version</button>
     </section>
 
+    <p
+      id="editor-error"
+      class="editor-error"
+      role="alert"
+      aria-live="assertive"
+      hidden
+    ></p>
+
     <section class="harris-panel" aria-labelledby="matrix-details-heading">
       <h2 id="matrix-details-heading">Matrix details</h2>
       <form id="matrix-metadata-form" class="metadata-grid">
@@ -66,44 +74,219 @@
 
     <div class="editor-regions">
       <section
-        class="harris-panel future-region"
+        class="harris-panel editor-region sources-region"
         data-harris-region="sources"
         aria-labelledby="sources-heading"
       >
         <h2 id="sources-heading">Sources</h2>
-        <p>Source drawing jobs will appear here.</p>
+        <p class="section-help">
+          Select one or more drawing jobs to import their recorded units.
+          Source files are never changed.
+        </p>
+        <fieldset class="source-picker">
+          <legend>Available drawing jobs</legend>
+          <div id="source-job-list" class="source-job-list">
+            <p class="harris-empty">Loading source jobs…</p>
+          </div>
+        </fieldset>
+        <div class="harris-actions">
+          <button id="import-sources" type="button" disabled>
+            Import selected jobs
+          </button>
+          <span
+            id="source-status"
+            class="harris-status"
+            aria-live="polite"
+          ></span>
+        </div>
+        <div
+          id="import-warning-region"
+          class="import-warning-region"
+          aria-live="polite"
+          hidden
+        >
+          <h3>Import warnings</h3>
+          <ul id="import-warnings"></ul>
+        </div>
       </section>
       <section
-        class="harris-panel future-region"
+        class="harris-panel editor-region units-region"
         data-harris-region="units"
         aria-labelledby="units-heading"
       >
         <h2 id="units-heading">Units</h2>
-        <p>Imported and manually added units will appear here.</p>
+        <label class="harris-field" for="unit-filter">
+          <span>Search units</span>
+          <input
+            id="unit-filter"
+            type="search"
+            placeholder="Label, description, type, or source job"
+          >
+        </label>
+        <form id="add-unit-form" class="compact-form">
+          <label class="harris-field" for="manual-unit-label">
+            <span>Manual unit label</span>
+            <input id="manual-unit-label" name="label" type="text" required>
+          </label>
+          <label class="harris-field" for="manual-unit-type">
+            <span>Manual unit type</span>
+            <select id="manual-unit-type" name="unit_type">
+              <option value="deposit">Deposit</option>
+              <option value="cut">Cut</option>
+              <option value="structure">Structure</option>
+              <option value="interface">Interface</option>
+              <option value="natural">Natural</option>
+              <option value="unknown" selected>Unknown</option>
+            </select>
+          </label>
+          <label class="harris-field compact-form-wide" for="manual-unit-description">
+            <span>Manual unit description</span>
+            <input
+              id="manual-unit-description"
+              name="description"
+              type="text"
+            >
+          </label>
+          <button type="submit">Add manual unit</button>
+        </form>
+        <div class="table-scroll">
+          <table class="editor-table">
+            <caption>Matrix units</caption>
+            <thead>
+              <tr>
+                <th scope="col">Label and type</th>
+                <th scope="col">Description</th>
+                <th scope="col">Source</th>
+                <th scope="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="unit-table-body"></tbody>
+          </table>
+        </div>
+        <p id="unit-empty" class="harris-empty">
+          No units match the current search.
+        </p>
       </section>
       <section
-        class="harris-panel future-region"
+        class="harris-panel editor-region"
         data-harris-region="relationships"
         aria-labelledby="relationships-heading"
       >
         <h2 id="relationships-heading">Relationships</h2>
-        <p>Chronological relationships will appear here.</p>
+        <p class="section-help">
+          Record every relationship from a younger unit to an older unit.
+        </p>
+        <form id="add-relationship-form" class="compact-form">
+          <label class="harris-field" for="younger-unit">
+            <span>Younger unit</span>
+            <select id="younger-unit" name="younger_id" required></select>
+          </label>
+          <label class="harris-field" for="older-unit">
+            <span>Older unit</span>
+            <select id="older-unit" name="older_id" required></select>
+          </label>
+          <label class="harris-field" for="relationship-kind">
+            <span>Relationship kind</span>
+            <select id="relationship-kind" name="kind">
+              <option value="above">Above</option>
+              <option value="cuts">Cuts</option>
+              <option value="fills">Fills</option>
+              <option value="precedes">Precedes</option>
+              <option value="other">Other</option>
+            </select>
+          </label>
+          <label class="harris-field" for="relationship-evidence">
+            <span>Relationship evidence</span>
+            <input
+              id="relationship-evidence"
+              name="evidence"
+              type="text"
+            >
+          </label>
+          <label class="harris-field compact-form-wide" for="relationship-notes">
+            <span>Relationship notes</span>
+            <input id="relationship-notes" name="notes" type="text">
+          </label>
+          <button type="submit">Add younger-to-older relationship</button>
+        </form>
+        <div class="table-scroll">
+          <table class="editor-table">
+            <caption>Saved relationships</caption>
+            <thead>
+              <tr>
+                <th scope="col">Chronology</th>
+                <th scope="col">Kind</th>
+                <th scope="col">Evidence and notes</th>
+                <th scope="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="relationship-table-body"></tbody>
+          </table>
+        </div>
+        <p id="relationship-empty" class="harris-empty">
+          No relationships have been saved.
+        </p>
       </section>
       <section
-        class="harris-panel future-region"
+        class="harris-panel editor-region"
         data-harris-region="correlations"
         aria-labelledby="correlations-heading"
       >
         <h2 id="correlations-heading">Correlations</h2>
-        <p>Correlated units will appear here.</p>
+        <p class="section-help">
+          Correlation means the selected source units are treated as parts
+          of the same stratigraphic unit. It is not a chronological
+          relationship.
+        </p>
+        <form id="add-correlation-form">
+          <label class="harris-field" for="correlation-units">
+            <span>Units to correlate</span>
+            <select
+              id="correlation-units"
+              name="unit_ids"
+              multiple
+              size="6"
+              required
+            ></select>
+          </label>
+          <label class="harris-field" for="correlation-notes">
+            <span>Correlation notes</span>
+            <input id="correlation-notes" name="notes" type="text">
+          </label>
+          <button type="submit">Correlate selected units</button>
+        </form>
+        <ul id="correlation-list" class="record-list"></ul>
+        <p id="correlation-empty" class="harris-empty">
+          No correlation groups have been saved.
+        </p>
       </section>
       <section
-        class="harris-panel future-region"
+        class="harris-panel editor-region suggestions-region"
         data-harris-region="suggestions"
         aria-labelledby="suggestions-heading"
       >
         <h2 id="suggestions-heading">Suggestions</h2>
-        <p>Pending relationship suggestions will appear here.</p>
+        <p class="section-help">
+          Suggestions do not change the matrix until you review them
+          individually.
+        </p>
+        <p
+          id="review-status"
+          class="harris-status"
+          aria-live="polite"
+        ></p>
+        <section aria-labelledby="pending-suggestions-heading">
+          <h3 id="pending-suggestions-heading">Pending</h3>
+          <ul id="pending-suggestions" class="suggestion-list"></ul>
+        </section>
+        <section aria-labelledby="accepted-suggestions-heading">
+          <h3 id="accepted-suggestions-heading">Accepted</h3>
+          <ul id="accepted-suggestions" class="suggestion-list"></ul>
+        </section>
+        <section aria-labelledby="rejected-suggestions-heading">
+          <h3 id="rejected-suggestions-heading">Rejected</h3>
+          <ul id="rejected-suggestions" class="suggestion-list"></ul>
+        </section>
       </section>
       <section
         class="harris-panel future-region diagram-region"

@@ -144,7 +144,7 @@ def test_editor_shell_loads_without_embedding_matrix_metadata(page_context):
     assert response.status_code == 200
     assert "Harris matrix editor" in page.headings
     label_text = {text for _attributes, text in page.labels}
-    assert {
+    expected_labels = {
         "Title",
         "Site",
         "Trench",
@@ -160,7 +160,11 @@ def test_editor_shell_loads_without_embedding_matrix_metadata(page_context):
         "Relationship notes",
         "Units to correlate",
         "Correlation notes",
-    } <= label_text
+    }
+    assert all(
+        any(text.startswith(expected) for text in label_text)
+        for expected in expected_labels
+    )
     assert set(page.regions) == {
         "sources",
         "units",
@@ -182,7 +186,7 @@ def test_editor_shell_loads_without_embedding_matrix_metadata(page_context):
     assert hostile_unit.encode() not in response.data
     assert b'data-injected="yes"' not in response.data
     assert str(matrices_dir).encode() not in response.data
-    assert {"Imported units", "Saved relationships"} <= set(page.captions)
+    assert {"Matrix units", "Saved relationships"} <= set(page.captions)
 
     labelled_ids = {
         attributes["for"]

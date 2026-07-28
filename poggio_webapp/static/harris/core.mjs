@@ -552,6 +552,184 @@ export function removeCorrelation(matrix, correlationId) {
   return updated;
 }
 
+export function filterUnits(units, query) {
+  requireArray(units, "units");
+  requireString(query, "unit filter query");
+  units.forEach((unit, index) => {
+    validateUnit(unit, `units[${index}]`);
+  });
+
+  const normalizedQuery = query.trim().toLocaleLowerCase();
+  const matches = normalizedQuery === ""
+    ? units
+    : units.filter(unit => {
+      const searchable = [
+        unit.label,
+        unit.description ?? "",
+        unit.unit_type,
+        ...unit.source_refs.flatMap(sourceRef => [
+          sourceRef.job_id,
+          sourceRef.schema_type,
+          sourceRef.face,
+        ]),
+      ];
+      return searchable.some(value => (
+        value.toLocaleLowerCase().includes(normalizedQuery)
+      ));
+    });
+  return copyData(matches);
+}
+
+export function formatSourceJobDisplay(sourceJob) {
+  requireObject(sourceJob, "source job");
+  requireIdentifier(sourceJob.job_id, MATRIX_ID, "source job.job_id");
+  requireEnum(
+    sourceJob.schema_type,
+    SOURCE_SCHEMA_TYPES,
+    "source job.schema_type",
+  );
+  requireString(sourceJob.trench, "source job.trench");
+  requireArray(sourceJob.faces, "source job.faces");
+  sourceJob.faces.forEach((face, index) => {
+    requireString(face, `source job.faces[${index}]`);
+  });
+  requireNonNegativeInteger(sourceJob.unit_count, "source job.unit_count");
+
+  const schemaNames = {
+    FieldWallProfile: "Field wall profile",
+    ArchaeologicalDiagram: "Illustrator archaeological diagram",
+  };
+  return {
+    jobId: sourceJob.job_id,
+    schema: schemaNames[sourceJob.schema_type],
+    trench: sourceJob.trench,
+    faces: sourceJob.faces.length > 0
+      ? sourceJob.faces.join(", ")
+      : "No recorded face",
+    unitCount: `${sourceJob.unit_count} ${
+      sourceJob.unit_count === 1 ? "unit" : "units"
+    }`,
+  };
+}
+
+export function relationshipUnitOptions(units) {
+  requireArray(units, "units");
+  units.forEach((unit, index) => {
+    validateUnit(unit, `units[${index}]`);
+  });
+  const collator = new Intl.Collator("en", {
+    numeric: true,
+    sensitivity: "base",
+  });
+  return units
+    .map(unit => ({ value: unit.id, label: unit.label }))
+    .sort((first, second) => (
+      collator.compare(first.label, second.label)
+      || first.value.localeCompare(second.value)
+    ));
+}
+
+function countPhrase(count, singular) {
+  return `${count} ${singular}${count === 1 ? "" : "s"}`;
+}
+
+export function summarizeUnitCascade(matrix, unitId) {
+  const current = editableMatrix(matrix);
+  const selectedUnit = current.units.find(unit => unit.id === unitId);
+  if (selectedUnit === undefined) {
+    invalid("unit ID", "must identify an existing unit");
+  }
+
+  const relationCount = current.relations.filter(relation => (
+    relation.younger_id === unitId || relation.older_id === unitId
+  )).length;
+  const correlationCount = current.correlations.filter(
+    correlation => correlation.unit_ids.includes(unitId),
+  ).length;
+  const pendingSuggestionCount = current.suggestions.filter(
+    suggestion => (
+      suggestion.status === "pending"
+      && (
+        suggestion.younger_id === unitId
+        || suggestion.older_id === unitId
+        || suggestion.correlation_unit_ids.includes(unitId)
+      )
+    ),
+  ).length;
+
+  const consequences = [];
+  if (relationCount > 0) {
+    consequences.push(countPhrase(relationCount, "relationship"));
+  }
+  if (pendingSuggestionCount > 0) {
+    consequences.push(
+      countPhrase(pendingSuggestionCount, "pending suggestion"),
+    );
+  }
+  if (correlationCount > 0) {
+    consequences.push(countPhrase(correlationCount, "correlation group"));
+  }
+  const detail = consequences.length > 0
+    ? ` This also removes or changes ${consequences.join(", ")}.`
+    : "";
+
+  return {
+    relationCount,
+    correlationCount,
+    pendingSuggestionCount,
+    message: (
+      `Delete unit “${selectedUnit.label}”?${detail} `
+      + "This cannot be undone."
+    ),
+  };
+}
+
+export function groupSuggestionsByStatus(matrix) {
+  const current = editableMatrix(matrix);
+  const groups = {
+    pending: [],
+    accepted: [],
+    rejected: [],
+  };
+  current.suggestions.forEach(suggestion => {
+    groups[suggestion.status].push(suggestion);
+  });
+  return groups;
+}
+
+export async function reviewSuggestionWithServer(
+  matrix,
+  suggestionId,
+  action,
+  sendReview,
+) {
+  const current = editableMatrix(matrix);
+  requireIdentifier(suggestionId, SUGGESTION_ID, "suggestion ID");
+  if (!["accept", "reject"].includes(action)) {
+    invalid("suggestion action", "must be accept or reject");
+  }
+  const suggestion = current.suggestions.find(
+    item => item.id === suggestionId,
+  );
+  if (suggestion === undefined) {
+    invalid("suggestion ID", "must identify an existing suggestion");
+  }
+  if (suggestion.status !== "pending") {
+    invalid("suggestion", "must still be pending");
+  }
+  if (typeof sendReview !== "function") {
+    throw new TypeError("Suggestion review requires a request function.");
+  }
+
+  const saved = await sendReview({
+    matrixId: current.matrix_id,
+    suggestionId,
+    action,
+    revision: current.revision,
+  });
+  return applySavedResponse(current, saved);
+}
+
 export function saveRequestPayload(matrix) {
   const validated = validateMatrixPayload(matrix);
   return Object.fromEntries(

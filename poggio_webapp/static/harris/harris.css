@@ -30,6 +30,7 @@ body {
 
 button,
 input,
+select,
 textarea {
   font: inherit;
 }
@@ -49,6 +50,7 @@ button:hover {
 
 button:focus-visible,
 input:focus-visible,
+select:focus-visible,
 textarea:focus-visible,
 a:focus-visible {
   outline: 3px solid rgb(122 52 40 / 30%);
@@ -141,6 +143,7 @@ button:disabled {
 }
 
 .harris-field input,
+.harris-field select,
 .harris-field textarea {
   width: 100%;
   border: 1px solid #aaa18f;
@@ -153,6 +156,16 @@ button:disabled {
 .harris-field textarea {
   min-height: 7rem;
   resize: vertical;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .harris-actions {
@@ -254,12 +267,244 @@ button:disabled {
   margin-top: 1rem;
 }
 
+.editor-region,
 .future-region {
   min-height: 8.5rem;
 }
 
+.section-help,
 .future-region p {
   margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.section-help {
+  margin-bottom: 1rem;
+}
+
+.editor-error {
+  margin: 0 0 1rem;
+  border: 1px solid #cf8e8e;
+  border-radius: 0.45rem;
+  padding: 0.8rem 1rem;
+  color: var(--danger);
+  background: #fff0f0;
+  font-weight: 700;
+}
+
+.editor-error[hidden],
+.import-warning-region[hidden] {
+  display: none;
+}
+
+.source-picker {
+  min-width: 0;
+  margin: 0 0 1rem;
+  border: 1px solid var(--line);
+  border-radius: 0.45rem;
+  padding: 0.8rem;
+}
+
+.source-picker legend {
+  padding: 0 0.35rem;
+  font-weight: 750;
+}
+
+.source-job-list {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.source-job {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.7rem;
+  align-items: start;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 0.55rem;
+}
+
+.source-job:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.source-job input {
+  margin-top: 0.3rem;
+}
+
+.source-job-label {
+  display: grid;
+  gap: 0.2rem;
+  cursor: pointer;
+}
+
+.source-job-label span,
+.source-ref,
+.source-ref-list {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.source-imported {
+  color: var(--success) !important;
+  font-weight: 700;
+}
+
+.import-warning-region {
+  margin-top: 1rem;
+  border-left: 4px solid var(--warning);
+  padding: 0.1rem 0 0.1rem 0.8rem;
+}
+
+.import-warning-region h3,
+.suggestions-region h3 {
+  margin: 0.8rem 0 0.5rem;
+  font-size: 1rem;
+}
+
+.import-warning-region ul {
+  margin: 0;
+  padding-left: 1.3rem;
+}
+
+.units-region,
+.suggestions-region {
+  grid-column: 1 / -1;
+}
+
+.compact-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 1rem;
+  margin: 1rem 0 1.25rem;
+}
+
+.compact-form-wide,
+.compact-form > button {
+  grid-column: 1 / -1;
+}
+
+.compact-form > button {
+  justify-self: start;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.editor-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.editor-table caption {
+  padding: 0 0 0.6rem;
+  font-weight: 750;
+  text-align: left;
+}
+
+.editor-table th,
+.editor-table td {
+  border-bottom: 1px solid var(--line);
+  padding: 0.65rem;
+  vertical-align: top;
+}
+
+.editor-table th {
+  color: var(--muted);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.editor-table input,
+.editor-table select {
+  width: 100%;
+  min-width: 9rem;
+  margin-bottom: 0.35rem;
+  border: 1px solid #aaa18f;
+  border-radius: 0.3rem;
+  padding: 0.5rem;
+  color: var(--ink);
+  background: white;
+}
+
+.source-ref-list {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.unit-warning {
+  display: block;
+  margin-top: 0.25rem;
+  color: var(--warning);
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.secondary-button,
+.danger-button {
+  padding: 0.5rem 0.7rem;
+  color: var(--accent);
+  background: white;
+}
+
+.secondary-button:hover,
+.danger-button:hover {
+  color: white;
+}
+
+.danger-button {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.danger-button:hover {
+  background: var(--danger);
+}
+
+.record-list,
+.suggestion-list {
+  display: grid;
+  gap: 0.65rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.record-list-item,
+.suggestion-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 0.4rem;
+  padding: 0.75rem;
+}
+
+.record-list-item > div,
+.suggestion-item {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.record-detail {
+  display: block;
+  color: var(--muted);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.suggestion-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.3rem;
 }
 
 .diagram-region {
@@ -281,7 +526,18 @@ button:disabled {
   }
 
   .metadata-notes,
+  .units-region,
+  .suggestions-region,
   .diagram-region {
+    grid-column: auto;
+  }
+
+  .compact-form {
+    grid-template-columns: 1fr;
+  }
+
+  .compact-form-wide,
+  .compact-form > button {
     grid-column: auto;
   }
 

@@ -5,11 +5,17 @@ import {
   addManualUnit,
   applySavedResponse,
   createAutosaveController,
+  filterUnits,
+  formatSourceJobDisplay,
+  groupSuggestionsByStatus,
+  relationshipUnitOptions,
   removeCorrelation,
   removeRelation,
   removeUnitCascade,
+  reviewSuggestionWithServer,
   saveRequestPayload,
   setCorrelation,
+  summarizeUnitCascade,
   updateMatrixMetadata,
   updateUnit,
   validateMatrixPayload,
@@ -34,6 +40,45 @@ function unit(id, label = id) {
     unit_type: "deposit",
     description: null,
     source_refs: [],
+  };
+}
+
+function sourceUnit({
+  id,
+  label,
+  description = null,
+  unitType = "deposit",
+  jobId = "111111111111",
+  face = "North baulk",
+  sourceLabel = label,
+}) {
+  return {
+    id,
+    label,
+    unit_type: unitType,
+    description,
+    source_refs: [{
+      job_id: jobId,
+      schema_type: "FieldWallProfile",
+      face,
+      layer_index: 0,
+      source_label: sourceLabel,
+    }],
+  };
+}
+
+function orderingSuggestion(overrides = {}) {
+  return {
+    id: "suggestion-00000000000a",
+    suggestion_type: "ordering",
+    status: "pending",
+    younger_id: UNIT_A,
+    older_id: UNIT_B,
+    relation_kind: "above",
+    correlation_unit_ids: [],
+    reason: "Shared boundary",
+    source_refs: [],
+    ...overrides,
   };
 }
 
@@ -438,6 +483,144 @@ test("keeps user-controlled HTML-looking strings as inert state data", () => {
   assert.equal(globalThis.pwned, undefined);
 });
 
+test("filters units across editable and source fields", () => {
+  const units = [
+    sourceUnit({
+      id: UNIT_A,
+      label: "Locus 7",
+      description: "Occupation floor",
+      jobId: "111111111111",
+    }),
+    sourceUnit({
+      id: UNIT_B,
+      label: "Cut 12",
+      description: "Foundation trench",
+      unitType: "cut",
+      jobId: "222222222222",
+      face: "East",
+    }),
+    unit(UNIT_C, "Manual fill"),
+  ];
+  const before = clone(units);
+
+  assert.deepEqual(
+    filterUnits(units, "  LOCUS  "),
+    [units[0]],
+  );
+  assert.deepEqual(filterUnits(units, "foundation"), [units[1]]);
+  assert.deepEqual(filterUnits(units, "CUT"), [units[1]]);
+  assert.deepEqual(filterUnits(units, "222222222222"), [units[1]]);
+  assert.deepEqual(filterUnits(units, ""), units);
+  assert.deepEqual(units, before);
+});
+
+test("formats safe source display parts without retaining paths", () => {
+  const display = formatSourceJobDisplay({
+    job_id: "111111111111",
+    schema_type: "FieldWallProfile",
+    trench: "T123",
+    faces: ["North baulk", "East"],
+    unit_count: 2,
+    extraction_path: "/private/jobs/111111111111/output.json",
+    normalized_path: "/private/jobs/111111111111/clean.json",
+  });
+
+  assert.deepEqual(display, {
+    jobId: "111111111111",
+    schema: "Field wall profile",
+    trench: "T123",
+    faces: "North baulk, East",
+    unitCount: "2 units",
+  });
+  assert.doesNotMatch(JSON.stringify(display), /private|path|output\.json/);
+});
+
+test("orders relationship unit options by human-readable label", () => {
+  const units = [
+    unit(UNIT_A, "10"),
+    unit(UNIT_C, "Locus 2"),
+    unit(UNIT_B, "2"),
+  ];
+
+  assert.deepEqual(
+    relationshipUnitOptions(units).map(option => option.label),
+    ["2", "10", "Locus 2"],
+  );
+  assert.deepEqual(
+    relationshipUnitOptions(units).map(option => option.value),
+    [UNIT_B, UNIT_A, UNIT_C],
+  );
+});
+
+test("summarizes dependent records before cascading unit deletion", () => {
+  const input = minimalMatrix({
+    units: [unit(UNIT_A, "Locus 7"), unit(UNIT_B), unit(UNIT_C)],
+    relations: [{
+      id: RELATION_A,
+      younger_id: UNIT_A,
+      older_id: UNIT_B,
+      kind: "above",
+      evidence: "",
+      source: "manual",
+      notes: null,
+    }],
+    correlations: [{
+      id: CORRELATION_A,
+      unit_ids: [UNIT_A, UNIT_B, UNIT_C],
+      notes: null,
+    }],
+    suggestions: [
+      orderingSuggestion(),
+      orderingSuggestion({
+        id: "suggestion-00000000000b",
+        status: "rejected",
+      }),
+    ],
+  });
+
+  const summary = summarizeUnitCascade(input, UNIT_A);
+
+  assert.deepEqual(
+    {
+      relationCount: summary.relationCount,
+      correlationCount: summary.correlationCount,
+      pendingSuggestionCount: summary.pendingSuggestionCount,
+    },
+    {
+      relationCount: 1,
+      correlationCount: 1,
+      pendingSuggestionCount: 1,
+    },
+  );
+  assert.match(summary.message, /Locus 7/);
+  assert.match(summary.message, /1 relationship/);
+  assert.match(summary.message, /1 correlation group/);
+  assert.match(summary.message, /1 pending suggestion/);
+});
+
+test("groups suggestions into pending, accepted, and rejected", () => {
+  const pending = orderingSuggestion();
+  const accepted = orderingSuggestion({
+    id: "suggestion-00000000000b",
+    status: "accepted",
+  });
+  const rejected = orderingSuggestion({
+    id: "suggestion-00000000000c",
+    status: "rejected",
+  });
+  const matrix = minimalMatrix({
+    units: [unit(UNIT_A), unit(UNIT_B)],
+    suggestions: [rejected, pending, accepted],
+  });
+
+  const grouped = groupSuggestionsByStatus(matrix);
+
+  assert.deepEqual(grouped.pending, [pending]);
+  assert.deepEqual(grouped.accepted, [accepted]);
+  assert.deepEqual(grouped.rejected, [rejected]);
+  assert.notEqual(grouped.pending[0], pending);
+});
+
 async function autosaveHarness(save) {
   const scheduled = [];
   const cancelled = [];
@@ -506,4 +689,84 @@ await (async () => {
     ["unsaved", "saving", "conflict"],
   );
   console.log("✓ conflict stops automatic retries");
+})();
+
+await (async () => {
+  const input = minimalMatrix({
+    revision: 2,
+    units: [unit(UNIT_A), unit(UNIT_B)],
+    suggestions: [orderingSuggestion()],
+  });
+  const before = clone(input);
+  let resolveResponse;
+  let requestPayload;
+  const response = new Promise(resolve => {
+    resolveResponse = resolve;
+  });
+
+  const review = reviewSuggestionWithServer(
+    input,
+    "suggestion-00000000000a",
+    "accept",
+    request => {
+      requestPayload = request;
+      return response;
+    },
+  );
+
+  assert.deepEqual(input, before);
+  assert.equal(input.suggestions[0].status, "pending");
+  assert.deepEqual(requestPayload, {
+    matrixId: "a1b2c3d4e5f6",
+    suggestionId: "suggestion-00000000000a",
+    action: "accept",
+    revision: 2,
+  });
+
+  resolveResponse(minimalMatrix({
+    revision: 3,
+    units: [unit(UNIT_A), unit(UNIT_B)],
+    suggestions: [orderingSuggestion({ status: "accepted" })],
+  }));
+  const reviewed = await review;
+
+  assert.equal(reviewed.revision, 3);
+  assert.equal(reviewed.suggestions[0].status, "accepted");
+  assert.deepEqual(input, before);
+  console.log("✓ review action waits for the saved server response");
+})();
+
+await (async () => {
+  const input = minimalMatrix({
+    revision: 2,
+    units: [unit(UNIT_A), unit(UNIT_B)],
+    suggestions: [orderingSuggestion()],
+  });
+  const before = clone(input);
+
+  await assert.rejects(
+    reviewSuggestionWithServer(
+      input,
+      "suggestion-00000000000a",
+      "accept",
+      async () => {
+        throw new Error("Cycle detected");
+      },
+    ),
+    /Cycle detected/,
+  );
+  assert.deepEqual(input, before);
+  assert.equal(input.suggestions[0].status, "pending");
+
+  await assert.rejects(
+    reviewSuggestionWithServer(
+      input,
+      "suggestion-00000000000a",
+      "reject",
+      async () => clone(input),
+    ),
+    /newer revision/i,
+  );
+  assert.deepEqual(input, before);
+  console.log("✓ failed or stale review preserves the current matrix");
 })();
