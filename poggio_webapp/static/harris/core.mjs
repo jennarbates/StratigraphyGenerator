@@ -574,3 +574,114 @@ export function applySavedResponse(current, saved) {
   }
   return savedMatrix;
 }
+
+export function createAutosaveController({
+  save,
+  onStatus = () => {},
+  delayMs = 800,
+  scheduleTimeout = globalThis.setTimeout,
+  cancelTimeout = globalThis.clearTimeout,
+} = {}) {
+  if (typeof save !== "function") {
+    throw new TypeError("Autosave requires a save function.");
+  }
+  if (typeof onStatus !== "function") {
+    throw new TypeError("Autosave onStatus must be a function.");
+  }
+  if (
+    !Number.isInteger(delayMs)
+    || delayMs < 600
+    || delayMs > 1000
+  ) {
+    throw new RangeError(
+      "Autosave delay must be between 600 and 1000 milliseconds.",
+    );
+  }
+  if (
+    typeof scheduleTimeout !== "function"
+    || typeof cancelTimeout !== "function"
+  ) {
+    throw new TypeError("Autosave timer functions must be callable.");
+  }
+
+  let status = "saved";
+  let timer = null;
+  let saving = false;
+  let queued = false;
+  let stopped = false;
+
+  function setStatus(nextStatus, error = null) {
+    status = nextStatus;
+    onStatus(nextStatus, error);
+  }
+
+  function armTimer() {
+    timer = scheduleTimeout(() => {
+      timer = null;
+      return flush();
+    }, delayMs);
+  }
+
+  function schedule() {
+    if (stopped) {
+      return false;
+    }
+    queued = true;
+    setStatus("unsaved");
+    if (saving) {
+      return true;
+    }
+    if (timer !== null) {
+      cancelTimeout(timer);
+    }
+    armTimer();
+    return true;
+  }
+
+  async function flush() {
+    if (stopped || saving || !queued) {
+      return false;
+    }
+    if (timer !== null) {
+      cancelTimeout(timer);
+      timer = null;
+    }
+
+    queued = false;
+    saving = true;
+    setStatus("saving");
+    try {
+      await save();
+    } catch (error) {
+      saving = false;
+      if (error?.status === 409) {
+        queued = false;
+        stopped = true;
+        setStatus("conflict", error);
+      } else {
+        setStatus("error", error);
+      }
+      return false;
+    }
+
+    saving = false;
+    if (queued) {
+      setStatus("unsaved");
+      armTimer();
+    } else {
+      setStatus("saved");
+    }
+    return true;
+  }
+
+  return {
+    schedule,
+    flush,
+    get status() {
+      return status;
+    },
+    get stopped() {
+      return stopped;
+    },
+  };
+}

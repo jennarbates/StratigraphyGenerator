@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Harris matrix editor · Poggio Civitate</title>
+  <link rel="stylesheet" href="/static/harris/harris.css">
+</head>
+<body>
+  <main
+    id="harris-editor"
+    class="harris-page harris-editor"
+    data-matrix-id="{{ matrix_id }}"
+  >
+    <header class="harris-header">
+      <div>
+        <p class="harris-kicker">Poggio Civitate field recording</p>
+        <h1>Harris matrix editor</h1>
+      </div>
+      <div class="editor-header-actions">
+        <span
+          id="save-status"
+          class="save-status"
+          data-state="loading"
+          aria-live="polite"
+        >Loading…</span>
+        <a class="harris-link" href="/harris">All matrices</a>
+      </div>
+    </header>
+
+    <section
+      id="conflict-panel"
+      class="conflict-panel"
+      role="alert"
+      hidden
+    >
+      <div>
+        <strong>Newer work exists.</strong>
+        This page stopped autosaving so it will not overwrite the newer
+        version.
+      </div>
+      <button id="reload-matrix" type="button">Reload newer version</button>
+    </section>
+
+    <section class="harris-panel" aria-labelledby="matrix-details-heading">
+      <h2 id="matrix-details-heading">Matrix details</h2>
+      <form id="matrix-metadata-form" class="metadata-grid">
+        <label class="harris-field" for="editor-title">
+          <span>Title</span>
+          <input id="editor-title" name="title" type="text" disabled>
+        </label>
+        <label class="harris-field" for="editor-site">
+          <span>Site</span>
+          <input id="editor-site" name="site" type="text" disabled>
+        </label>
+        <label class="harris-field" for="editor-trench">
+          <span>Trench</span>
+          <input id="editor-trench" name="trench" type="text" disabled>
+        </label>
+        <label class="harris-field metadata-notes" for="editor-notes">
+          <span>Notes</span>
+          <textarea id="editor-notes" name="notes" rows="4" disabled></textarea>
+        </label>
+      </form>
+    </section>
+
+    <div class="editor-regions">
+      <section
+        class="harris-panel future-region"
+        data-harris-region="sources"
+        aria-labelledby="sources-heading"
+      >
+        <h2 id="sources-heading">Sources</h2>
+        <p>Source drawing jobs will appear here.</p>
+      </section>
+      <section
+        class="harris-panel future-region"
+        data-harris-region="units"
+        aria-labelledby="units-heading"
+      >
+        <h2 id="units-heading">Units</h2>
+        <p>Imported and manually added units will appear here.</p>
+      </section>
+      <section
+        class="harris-panel future-region"
+        data-harris-region="relationships"
+        aria-labelledby="relationships-heading"
+      >
+        <h2 id="relationships-heading">Relationships</h2>
+        <p>Chronological relationships will appear here.</p>
+      </section>
+      <section
+        class="harris-panel future-region"
+        data-harris-region="correlations"
+        aria-labelledby="correlations-heading"
+      >
+        <h2 id="correlations-heading">Correlations</h2>
+        <p>Correlated units will appear here.</p>
+      </section>
+      <section
+        class="harris-panel future-region"
+        data-harris-region="suggestions"
+        aria-labelledby="suggestions-heading"
+      >
+        <h2 id="suggestions-heading">Suggestions</h2>
+        <p>Pending relationship suggestions will appear here.</p>
+      </section>
+      <section
+        class="harris-panel future-region diagram-region"
+        data-harris-region="diagram"
+        aria-labelledby="diagram-heading"
+      >
+        <h2 id="diagram-heading">Diagram</h2>
+        <p>The Harris Matrix diagram will appear here.</p>
+      </section>
+    </div>
+  </main>
+
+  <script type="module" src="/static/harris/editor.js"></script>
+</body>
+</html>

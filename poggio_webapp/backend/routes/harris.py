@@ -2,7 +2,7 @@
 
 from typing import Annotated, Literal
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, render_template, request
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -157,6 +157,27 @@ def _load_expected_revision(matrix_id, expected_revision):
             matrix.revision,
         )
     return matrix
+
+
+@bp.route("/harris")
+def harris_index_page():
+    return render_template("harris_index.html")
+
+
+@bp.route("/harris/<matrix_id>")
+def harris_editor_page(matrix_id):
+    try:
+        harris_store.load_matrix(matrix_id)
+    except (
+        harris_store.InvalidMatrixIdError,
+        harris_store.MatrixNotFoundError,
+        harris_store.InvalidMatrixError,
+    ) as error:
+        return _store_error_response(error)
+    return render_template(
+        "harris_editor.html",
+        matrix_id=matrix_id,
+    )
 
 
 @bp.route("/api/harris-matrices", methods=["GET"])

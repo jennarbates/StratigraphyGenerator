@@ -4,6 +4,7 @@ import {
   addManualRelation,
   addManualUnit,
   applySavedResponse,
+  createAutosaveController,
   removeCorrelation,
   removeRelation,
   removeUnitCascade,
@@ -436,3 +437,73 @@ test("keeps user-controlled HTML-looking strings as inert state data", () => {
   assert.equal(withUnit.units[0].description, htmlLooking);
   assert.equal(globalThis.pwned, undefined);
 });
+
+async function autosaveHarness(save) {
+  const scheduled = [];
+  const cancelled = [];
+  const statuses = [];
+  const controller = createAutosaveController({
+    delayMs: 800,
+    save,
+    onStatus(status) {
+      statuses.push(status);
+    },
+    scheduleTimeout(callback, delayMs) {
+      const timer = { callback, delayMs };
+      scheduled.push(timer);
+      return timer;
+    },
+    cancelTimeout(timer) {
+      cancelled.push(timer);
+    },
+  });
+  return { controller, scheduled, cancelled, statuses };
+}
+
+await (async () => {
+  const saves = [];
+  const harness = await autosaveHarness(async () => {
+    saves.push("saved");
+  });
+
+  assert.equal(harness.controller.schedule(), true);
+  assert.equal(harness.controller.status, "unsaved");
+  assert.equal(harness.scheduled.length, 1);
+  assert.equal(harness.scheduled[0].delayMs, 800);
+
+  assert.equal(harness.controller.schedule(), true);
+  assert.equal(harness.cancelled.length, 1);
+  assert.equal(harness.scheduled.length, 2);
+
+  await harness.scheduled[1].callback();
+
+  assert.deepEqual(saves, ["saved"]);
+  assert.equal(harness.controller.status, "saved");
+  assert.deepEqual(
+    harness.statuses,
+    ["unsaved", "unsaved", "saving", "saved"],
+  );
+  console.log("✓ debounces changes and reports save states");
+})();
+
+await (async () => {
+  const conflict = Object.assign(new Error("newer work exists"), {
+    status: 409,
+  });
+  const harness = await autosaveHarness(async () => {
+    throw conflict;
+  });
+
+  harness.controller.schedule();
+  await harness.scheduled[0].callback();
+
+  assert.equal(harness.controller.status, "conflict");
+  assert.equal(harness.controller.stopped, true);
+  assert.equal(harness.controller.schedule(), false);
+  assert.equal(harness.scheduled.length, 1);
+  assert.deepEqual(
+    harness.statuses,
+    ["unsaved", "saving", "conflict"],
+  );
+  console.log("✓ conflict stops automatic retries");
+})();
