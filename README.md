@@ -56,10 +56,12 @@ supports two independent ways to begin.
 3. Upload a PNG, JPEG, TIFF, or PDF. The app keeps the original unchanged,
    shows an image preview (or a PDF-ready message), reports image dimensions
    when available, and unlocks **Prepare the image**.
-4. Field-wall uploads may use **Read writing** to create text-only proposals,
-   but every proposal must be accepted, corrected, or marked unreadable
-   before verification is saved. The step can also be skipped. It never
-   generates geometry; boundaries and features remain human-traced.
+4. Field-wall uploads may use **Read writing** to review the labels returned
+   by the existing Gemini field-wall extraction; there is no separate
+   text-specific Gemini call. Every proposal must be accepted, corrected, or
+   marked unreadable before verification is saved. The step can also be
+   skipped, and automatically returned geometry is not treated as a human
+   trace.
 5. Continue through preprocess, trace/extract, normalize, validate, surveyed
    coordinate conversion, model building, and results as described below.
 

@@ -4,6 +4,8 @@ import sys
 from pathlib import Path
 
 import pytest
+from google import genai
+from google.genai import _transformers
 from pydantic import ValidationError
 
 
@@ -59,6 +61,49 @@ def test_manual_editor_source_is_accepted():
 
     assert diagram.source == "manual_editor"
     assert field_wall.source == "manual_editor"
+
+
+def test_fieldwall_schema_requests_review_candidates_without_reserializing_them():
+    schema = FieldWallProfile.model_json_schema()
+    payload = {
+        **_field_wall_data(),
+        "textCandidates": {
+            "schemaVersion": 1,
+            "sheetType": "fieldwall",
+            "document": {},
+            "loci": [],
+        },
+    }
+
+    field_wall = FieldWallProfile.model_validate(payload)
+
+    assert "textCandidates" in schema["properties"]
+    assert "finds" not in schema["properties"]
+    assert field_wall.textCandidates is not None
+    assert "textCandidates" not in field_wall.model_dump()
+    assert field_wall.model_dump()["finds"] == []
+
+
+def test_fieldwall_schema_is_accepted_by_gemini_converter():
+    client = genai.Client(api_key="not-a-real-key")
+    try:
+        converted = _transformers.t_schema(
+            client._api_client,
+            FieldWallProfile,
+        )
+    finally:
+        client.close()
+
+    assert "textCandidates" in converted.properties
+    serialized = json.dumps(
+        converted.model_dump(
+            mode="json",
+            by_alias=True,
+            exclude_none=True,
+        )
+    )
+    assert "additional_properties" not in serialized
+    assert "additionalProperties" not in serialized
 
 
 def test_invalid_source_is_rejected():

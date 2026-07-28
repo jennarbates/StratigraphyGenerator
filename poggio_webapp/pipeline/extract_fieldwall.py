@@ -14,9 +14,11 @@ from typing import Literal
 from google import genai
 from google.genai import errors, types
 from PIL import Image
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from pydantic.json_schema import SkipJsonSchema
 
 from pipeline._extract_common import generate_with_retry
+from pipeline.extract_text import BoundingBox
 
 # See extract_illustrator.py — same rationale: locally-generated preprocessed
 # scans, not untrusted uploads, so raise PIL's decompression-bomb cap.
@@ -78,6 +80,61 @@ class GridTiePoint(BaseModel):
     approxXMeters: float | None = None
 
 
+class GeminiTextCandidate(BaseModel):
+    """Provider-facing candidate without unsupported extra-field metadata."""
+
+    raw: str
+    proposed: str | None = None
+    confidence: Literal["high", "medium", "low"]
+    bbox: BoundingBox | None = None
+    notes: str | None = None
+
+
+class GeminiNumberCandidate(BaseModel):
+    raw: str
+    proposed: float | None = None
+    confidence: Literal["high", "medium", "low"]
+    bbox: BoundingBox | None = None
+    notes: str | None = None
+
+
+class GeminiBooleanCandidate(BaseModel):
+    raw: str
+    proposed: bool | None = None
+    confidence: Literal["high", "medium", "low"]
+    bbox: BoundingBox | None = None
+    notes: str | None = None
+
+
+class GeminiLocusTextCandidate(BaseModel):
+    locusNumber: GeminiTextCandidate | None = None
+    munsellRaw: GeminiTextCandidate | None = None
+    description: GeminiTextCandidate | None = None
+
+
+class GeminiDocumentTextCandidates(BaseModel):
+    trenchLabel: GeminiTextCandidate | None = None
+    faceLabel: GeminiTextCandidate | None = None
+    date: GeminiTextCandidate | None = None
+    gridSquareCm: GeminiNumberCandidate | None = None
+    northArrowPresent: GeminiBooleanCandidate | None = None
+    illustrators: list[GeminiTextCandidate] = Field(default_factory=list)
+    gridTiePoints: list[GeminiTextCandidate] = Field(default_factory=list)
+    marginalia: list[GeminiTextCandidate] = Field(default_factory=list)
+    otherText: list[GeminiTextCandidate] = Field(default_factory=list)
+
+
+class GeminiFieldWallTextCandidates(BaseModel):
+    """Gemini-compatible mirror; the strict contract validates its response."""
+
+    schemaVersion: int = Field(default=1, strict=True, ge=1, le=1)
+    sheetType: Literal["fieldwall"] = "fieldwall"
+    document: GeminiDocumentTextCandidates = Field(
+        default_factory=GeminiDocumentTextCandidates
+    )
+    loci: list[GeminiLocusTextCandidate] = Field(default_factory=list)
+
+
 class FieldWallProfile(BaseModel):
     trenchLabel: str | None
     faceLabel: str | None
@@ -89,8 +146,19 @@ class FieldWallProfile(BaseModel):
     loci: list[Locus] | None
     layers: list[LocusLayer] | None
     marginalia: list[str] | None
+    # Returned in the same Gemini response for the human writing-review UI.
+    # Excluding it from model_dump keeps the established downstream
+    # FieldWallProfile artifact contract unchanged when Python reserializes it.
+    textCandidates: GeminiFieldWallTextCandidates | None = Field(
+        default=None,
+        exclude=True,
+    )
     source: Literal["extraction", "manual_editor"] = "extraction"
-    finds: list[dict] = []
+    # Finds are added by the human finds workflow, never by Gemini. Omitting
+    # this open-ended dict from the provider schema avoids google-genai's
+    # unsupported additionalProperties representation while preserving the
+    # established model/output default.
+    finds: SkipJsonSchema[list[dict]] = []
 
 
 
@@ -143,6 +211,23 @@ easting vs. elevation vs. something else) — that is a site-records question
 for a human, not something to infer from the drawing. Only fill
 `approxXMeters` if it is unambiguous which point along the face the label
 marks; otherwise leave null.
+
+============================================================
+TEXT REVIEW CANDIDATES
+============================================================
+In addition to the established top-level text fields, fill `textCandidates`
+for the human writing-review screen:
+  - `raw`: preserve the visible spelling, spacing, capitalization, and
+    punctuation exactly.
+  - `proposed`: the value recommended for the corresponding top-level field;
+    use null rather than guessing.
+  - `confidence`: high, medium, or low.
+  - `bbox`: the text's normalized image box in
+    [xMin, yMin, xMax, yMax] order, with every coordinate from 0 to 1000.
+    Use null when the text cannot be located reliably.
+Put unrelated readable writing in `textCandidates.document.otherText`.
+These boxes locate writing only; never use them for boundaries, markers,
+features, or any other geometry.
 
 ============================================================
 BOUNDARIES — FIND THE MARKED POINTS, DON'T ESTIMATE A CURVE
@@ -220,6 +305,7 @@ FIELDS TO FILL
 ============================================================
 trenchLabel, faceLabel, illustrators, date, northArrowPresent, gridSquareCm
 (echo {square_cm} back), gridTiePoints[], loci[], layers[], marginalia[],
+textCandidates,
 
 Emit ONLY the JSON conforming to the schema.
 """

@@ -225,6 +225,14 @@ function extractionControls({
         <span class="hint">The key is sent to the local server for this request
         and kept only in this page’s runtime memory.</span>
       </label>
+      <label class="field">
+        <span class="label-text">Large grid-square size, in centimetres</span>
+        <input type="number" id="vtSquareCm" placeholder="For example: 20"
+               step="0.5" min="0.1" value="${state.draw.squareCm ?? ""}"
+               ${disabled ? "disabled" : ""}>
+        <span class="hint">The existing Gemini drawing reader uses this value
+        to calibrate the field-wall sheet.</span>
+      </label>
       <div class="btn-row">
         <button id="vtStart" ${disabled ? "disabled" : ""}>
           ${loading
@@ -246,6 +254,13 @@ function bindApiKeyInput() {
   input.addEventListener("input", () => {
     state.apiKey = input.value;
   });
+
+  const squareInput = document.getElementById("vtSquareCm");
+  if (squareInput) {
+    squareInput.addEventListener("input", () => {
+      state.draw.squareCm = Number(squareInput.value) || null;
+    });
+  }
 }
 
 function bindSkipButton() {
@@ -276,6 +291,7 @@ function bindStartButton(token) {
   button.addEventListener("click", async () => {
     const error = document.getElementById("vtError");
     const apiKeyInput = document.getElementById("vtApiKey");
+    const squareInput = document.getElementById("vtSquareCm");
     error.innerHTML = "";
     const apiKey = apiKeyInput.value.trim();
     if (!apiKey) {
@@ -286,8 +302,18 @@ function bindStartButton(token) {
       apiKeyInput.focus();
       return;
     }
+    const squareCm = Number(squareInput.value);
+    if (!squareCm) {
+      error.innerHTML = banner(
+        "err",
+        "Enter the large grid-square size shown on the field sheet.",
+      );
+      squareInput.focus();
+      return;
+    }
 
     state.apiKey = apiKey;
+    state.draw.squareCm = squareCm;
     state.verifyText.status = "extracting";
     state.verifyText.error = null;
     taskProgressByJob.set(state.jobId, { log: [], elapsed: 0 });
@@ -296,7 +322,7 @@ function bindStartButton(token) {
     try {
       const started = await apiJson(
         `/api/jobs/${state.jobId}/text-extraction`,
-        { api_key: apiKey },
+        { api_key: apiKey, square_cm: squareCm },
       );
       state.verifyText.taskId = started.task_id;
       monitorExtraction(started.task_id, token);
@@ -337,8 +363,9 @@ function renderRunning() {
   body.innerHTML = `
     <div class="vt-running" role="status" aria-live="polite">
       <span class="spinner" aria-hidden="true"></span>
-      <strong>Reading the visible writing…</strong>
-      <span>The app is transcribing text only.</span>
+      <strong>Reading the field-wall drawing…</strong>
+      <span>The existing Gemini extraction is running; its writing will be
+      shown here for review.</span>
     </div>
     ${extractionControls({ disabled: true })}
     <div id="vtLog" class="log-box"></div>
@@ -869,13 +896,13 @@ export function renderVerifyText() {
     <div class="panel verify-text-stage">
       <div class="stage-kicker">Step 3 of 9</div>
       <h2>Check the writing</h2>
-      <p class="lede">Read and verify written labels before tracing the field
-      wall. Automatic reading can make mistakes, so every candidate needs a
-      person’s decision.</p>
+      <p class="lede">Review the written labels returned by the existing
+      Gemini field-wall extraction. Automatic reading can make mistakes, so
+      every candidate needs a person’s decision.</p>
       <div class="plain-note">
         <span class="note-icon" aria-hidden="true">i</span>
-        <span>This step extracts text only. It does not trace boundaries,
-        identify markers, or generate any geometry.</span>
+        <span>This review accepts only the writing. Any automatically generated
+        geometry remains separate and is not treated as a human trace.</span>
       </div>
       <div id="vtBody"></div>
     </div>

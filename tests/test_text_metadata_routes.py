@@ -71,6 +71,23 @@ def _candidate_payload():
     }
 
 
+def _fieldwall_payload():
+    return {
+        "trenchLabel": None,
+        "faceLabel": None,
+        "illustrators": [],
+        "date": None,
+        "northArrowPresent": None,
+        "gridSquareCm": None,
+        "gridTiePoints": [],
+        "loci": [],
+        "layers": [],
+        "marginalia": [],
+        "source": "extraction",
+        "finds": [],
+    }
+
+
 def _verified_payload():
     return {
         "schemaVersion": 1,
@@ -117,28 +134,34 @@ def _run_tasks_synchronously(monkeypatch, task_id="text-task-123"):
 def _mock_successful_extraction(monkeypatch):
     extraction_calls = []
     payload = _candidate_payload()
+    fieldwall = _fieldwall_payload()
 
-    def fake_run_text_extraction(
+    def fake_run_fieldwall_extraction(
         image_path,
-        api_key,
+        square_cm,
         output_path,
+        api_key,
+        max_output_tokens=65_536,
         progress_cb=None,
     ):
         extraction_calls.append(
             {
                 "image_path": image_path,
+                "square_cm": square_cm,
                 "api_key": api_key,
                 "output_path": output_path,
+                "max_output_tokens": max_output_tokens,
                 "progress_cb": progress_cb,
             }
         )
-        Path(output_path).write_text(json.dumps(payload), encoding="utf-8")
-        return payload
+        raw_json = json.dumps(fieldwall)
+        Path(output_path).write_text(raw_json, encoding="utf-8")
+        return raw_json, None
 
     monkeypatch.setattr(
-        text_metadata.p_extract_text,
-        "run_text_extraction",
-        fake_run_text_extraction,
+        text_metadata.p_extract_fieldwall,
+        "run_extraction",
+        fake_run_fieldwall_extraction,
     )
     return payload, extraction_calls
 
@@ -184,8 +207,9 @@ def test_job_without_uploaded_image_is_rejected(route_context):
     assert "upload" in response.get_json()["error"]
 
 
-def test_missing_api_key_is_rejected(route_context):
+def test_missing_api_key_is_rejected(route_context, monkeypatch):
     _create_job(route_context)
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
 
     response = route_context.client.post(
         "/api/jobs/fieldwall-job/text-extraction",
@@ -194,6 +218,18 @@ def test_missing_api_key_is_rejected(route_context):
 
     assert response.status_code == 400
     assert "api_key" in response.get_json()["error"]
+
+
+def test_missing_grid_square_size_is_rejected(route_context):
+    _create_job(route_context)
+
+    response = route_context.client.post(
+        "/api/jobs/fieldwall-job/text-extraction",
+        json={"api_key": "secret"},
+    )
+
+    assert response.status_code == 400
+    assert "square_cm" in response.get_json()["error"]
 
 
 def test_clean_image_is_preferred_and_async_completion_is_recorded(
@@ -207,17 +243,20 @@ def test_clean_image_is_preferred_and_async_completion_is_recorded(
 
     response = route_context.client.post(
         "/api/jobs/fieldwall-job/text-extraction",
-        json={"api_key": api_key},
+        json={"api_key": api_key, "square_cm": 20},
     )
 
-    output_path = directory / "03_extraction" / "text_candidates.json"
+    candidates_path = directory / "03_extraction" / "text_candidates.json"
+    extraction_path = directory / "03_extraction" / "field_wall.json"
     meta = _read_meta(directory)
     assert response.status_code == 200
     assert response.get_json() == {"task_id": "text-task-123"}
     assert extraction_calls[0]["image_path"] == meta["clean_image_path"]
-    assert extraction_calls[0]["output_path"] == str(output_path)
-    assert json.loads(output_path.read_text(encoding="utf-8")) == payload
-    assert meta["text_candidates_path"] == str(output_path)
+    assert extraction_calls[0]["square_cm"] == 20
+    assert extraction_calls[0]["output_path"] == str(extraction_path)
+    assert json.loads(candidates_path.read_text(encoding="utf-8")) == payload
+    assert meta["extraction_path"] == str(extraction_path)
+    assert meta["text_candidates_path"] == str(candidates_path)
     assert meta["text_verification_status"] == "ready_for_review"
     assert meta["text_extraction_task_id"] == "text-task-123"
     assert api_key not in (directory / "meta.json").read_text(encoding="utf-8")
@@ -230,7 +269,7 @@ def test_scan_image_is_used_as_fallback(route_context, monkeypatch):
 
     response = route_context.client.post(
         "/api/jobs/fieldwall-job/text-extraction",
-        json={"api_key": "secret"},
+        json={"api_key": "secret", "square_cm": 20},
     )
 
     assert response.status_code == 200
@@ -252,7 +291,7 @@ def test_status_is_extracting_before_async_task_starts(
 
     response = route_context.client.post(
         "/api/jobs/fieldwall-job/text-extraction",
-        json={"api_key": "secret"},
+        json={"api_key": "secret", "square_cm": 20},
     )
 
     assert response.status_code == 200
@@ -275,15 +314,15 @@ def test_async_failure_records_only_a_safe_error(route_context, monkeypatch):
         return "failed-task"
 
     monkeypatch.setattr(
-        text_metadata.p_extract_text,
-        "run_text_extraction",
+        text_metadata.p_extract_fieldwall,
+        "run_extraction",
         failing_extraction,
     )
     monkeypatch.setattr(text_metadata, "start_task", fake_start_task)
 
     response = route_context.client.post(
         "/api/jobs/fieldwall-job/text-extraction",
-        json={"api_key": api_key},
+        json={"api_key": api_key, "square_cm": 20},
     )
 
     meta_text = (directory / "meta.json").read_text(encoding="utf-8")
@@ -296,6 +335,20 @@ def test_async_failure_records_only_a_safe_error(route_context, monkeypatch):
     assert meta["text_extraction_error"] == "Text extraction failed. Please try again."
     assert state["error"] == meta["text_extraction_error"]
     assert api_key not in meta_text
+
+
+def test_provider_schema_400_is_not_misreported_as_an_api_key_error():
+    class ProviderSchemaError(Exception):
+        code = 400
+
+    error = ProviderSchemaError(
+        "Invalid JSON payload at generation_config.response_schema"
+    )
+
+    assert text_metadata._safe_extraction_error(error) == (
+        "Gemini rejected the structured-output schema. "
+        "This is a server configuration error, not an API-key error."
+    )
 
 
 def test_get_returns_candidates_when_available(route_context):

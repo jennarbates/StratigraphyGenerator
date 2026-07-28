@@ -2,35 +2,12 @@
 
 import json
 import re
+from copy import deepcopy
 from enum import Enum
 from pathlib import Path
 from typing import Annotated, Literal
 
-from google import genai
-from google.genai import types
-from PIL import Image
-from pydantic import AfterValidator, BaseModel, ConfigDict, Field, ValidationError
-
-from ._extract_common import check_response, generate_with_retry
-
-
-# Preprocessed scans may be intentionally large, but Gemini does not need the
-# full working resolution. Keep this aligned with the existing extractors.
-Image.MAX_IMAGE_PIXELS = None
-MAX_SEND_DIMENSION = 3072
-
-
-def _cap_for_sending(img: Image.Image, max_dim: int = MAX_SEND_DIMENSION) -> Image.Image:
-    """Shrink an image to ``max_dim`` on its longest side without enlarging it."""
-    width, height = img.size
-    if max(width, height) <= max_dim:
-        return img
-
-    scale = max_dim / max(width, height)
-    return img.resize(
-        (int(width * scale), int(height * scale)),
-        Image.Resampling.LANCZOS,
-    )
+from pydantic import AfterValidator, BaseModel, ConfigDict, Field
 
 
 class ConfidenceLevel(str, Enum):
@@ -67,25 +44,25 @@ BoundingBox = Annotated[
 
 class TextCandidate(_ContractModel):
     raw: str
-    proposed: str | None
+    proposed: str | None = None
     confidence: ConfidenceLevel
-    bbox: BoundingBox | None
+    bbox: BoundingBox | None = None
     notes: str | None = None
 
 
 class NumberCandidate(_ContractModel):
     raw: str
-    proposed: float | None
+    proposed: float | None = None
     confidence: ConfidenceLevel
-    bbox: BoundingBox | None
+    bbox: BoundingBox | None = None
     notes: str | None = None
 
 
 class BooleanCandidate(_ContractModel):
     raw: str
-    proposed: bool | None
+    proposed: bool | None = None
     confidence: ConfidenceLevel
-    bbox: BoundingBox | None
+    bbox: BoundingBox | None = None
     notes: str | None = None
 
 
@@ -108,7 +85,10 @@ class DocumentTextCandidates(_ContractModel):
 
 
 class FieldWallTextCandidates(_ContractModel):
-    schemaVersion: Literal[1] = 1
+    # google-genai rejects numeric Literal values while translating a
+    # Pydantic response schema. Strict bounds preserve the exact same
+    # contract (only the integer 1 is valid) without emitting a numeric const.
+    schemaVersion: Annotated[int, Field(strict=True, ge=1, le=1)] = 1
     sheetType: Literal["fieldwall"] = "fieldwall"
     document: DocumentTextCandidates = Field(default_factory=DocumentTextCandidates)
     loci: list[LocusTextCandidate] = Field(default_factory=list)
@@ -176,110 +156,196 @@ def normalize_munsell(raw: str | None) -> tuple[str | None, bool]:
     return proposed, _MUNSELL_STRUCTURE.fullmatch(proposed) is not None
 
 
-def build_prompt() -> str:
-    """Return the instructions for text-only field-wall transcription."""
-    return """
-You are extracting text from a modern archaeological field-wall recording
-sheet into the provided FieldWallTextCandidates JSON schema.
-
-TEXT ONLY
-- Transcribe visible text only.
-- Do not trace boundaries.
-- Do not return layer coordinates.
-- Do not identify marker positions.
-- Do not classify features.
-- Do not estimate geometry.
-- Do not interpret archaeological chronology.
-
-TRANSCRIPTION RULES
-- Do not complete partially visible text.
-- Use null when text is unreadable or uncertain. A null is better than a guess.
-- Preserve raw transcription. Store it exactly as it appears in each
-  candidate's raw field, including spelling, spacing, capitalization, and
-  punctuation.
-- Put standardized text only in proposed; never silently standardize raw.
-- Associate a Munsell value with a locus only when the association is visually
-  clear. Otherwise leave the association null.
-- Record unrelated readable text under otherText (`document.otherText`).
-
-BOUNDING BOXES
-- Return bounding boxes normalized to the inclusive 0-1000 coordinate range.
-- The required bounding-box order is [xMin, yMin, xMax, yMax].
-- A bounding box locates text only; it must never describe a boundary, layer,
-  feature, marker, or other geometry.
-- Use null for a bounding box when its position cannot be located reliably.
-
-Return only JSON that conforms to FieldWallTextCandidates.
-""".strip()
+def _confidence_level(value: object) -> ConfidenceLevel:
+    """Map the original extractor's free-text confidence conservatively."""
+    text = str(value or "").strip().lower()
+    if text in {level.value for level in ConfidenceLevel}:
+        return ConfidenceLevel(text)
+    if any(word in text for word in ("uncertain", "ambiguous", "faded", "illegible")):
+        return ConfidenceLevel.LOW
+    if any(word in text for word in ("certain", "clear", "confident")):
+        return ConfidenceLevel.HIGH
+    return ConfidenceLevel.MEDIUM
 
 
-def run_text_extraction(
-    image_path: str,
-    api_key: str,
-    output_path: str,
-    progress_cb=None,
+def _text_candidate(
+    value: object,
+    confidence: ConfidenceLevel = ConfidenceLevel.MEDIUM,
+) -> TextCandidate | None:
+    if value is None:
+        return None
+    raw = str(value)
+    if not raw.strip():
+        return None
+    return TextCandidate(
+        raw=raw,
+        proposed=raw,
+        confidence=confidence,
+        bbox=None,
+    )
+
+
+_DOCUMENT_SINGLE_CANDIDATES = (
+    "trenchLabel",
+    "faceLabel",
+    "date",
+    "gridSquareCm",
+    "northArrowPresent",
+)
+_DOCUMENT_CANDIDATE_LISTS = (
+    "illustrators",
+    "gridTiePoints",
+    "marginalia",
+    "otherText",
+)
+_LOCUS_CANDIDATES = ("locusNumber", "munsellRaw", "description")
+
+
+def _candidate_dicts(payload: dict):
+    document = payload.get("document")
+    if isinstance(document, dict):
+        for field_name in _DOCUMENT_SINGLE_CANDIDATES:
+            candidate = document.get(field_name)
+            if isinstance(candidate, dict):
+                yield candidate
+        for field_name in _DOCUMENT_CANDIDATE_LISTS:
+            candidates = document.get(field_name)
+            if isinstance(candidates, list):
+                for candidate in candidates:
+                    if isinstance(candidate, dict):
+                        yield candidate
+
+    for locus in payload.get("loci") or []:
+        if not isinstance(locus, dict):
+            continue
+        for field_name in _LOCUS_CANDIDATES:
+            candidate = locus.get(field_name)
+            if isinstance(candidate, dict):
+                yield candidate
+
+
+def _valid_bbox(value: object) -> bool:
+    if not isinstance(value, list) or len(value) != 4:
+        return False
+    if any(type(coordinate) is not int for coordinate in value):
+        return False
+    if any(coordinate < 0 or coordinate > 1000 for coordinate in value):
+        return False
+    x_min, y_min, x_max, y_max = value
+    return x_min < x_max and y_min < y_max
+
+
+def _embedded_candidates(payload: dict) -> dict | None:
+    embedded = payload.get("textCandidates")
+    if not isinstance(embedded, dict):
+        return None
+
+    embedded = deepcopy(embedded)
+    for candidate in _candidate_dicts(embedded):
+        bbox = candidate.get("bbox")
+        if bbox is not None and not _valid_bbox(bbox):
+            candidate["bbox"] = None
+    return FieldWallTextCandidates.model_validate(embedded).model_dump(mode="json")
+
+
+def candidates_from_fieldwall_extraction(
+    extraction: str | dict,
+    output_path: str | None = None,
 ) -> dict:
-    """Extract, validate, persist, and return text candidates from an image."""
-    source_path = Path(image_path)
-    if not source_path.is_file():
-        raise RuntimeError(f"file not found: {image_path}")
+    """Adapt the existing Gemini field-wall result for human text review.
 
-    if progress_cb:
-        progress_cb("transcribing visible text only...")
+    This performs no provider call. The established ``extract_fieldwall``
+    pipeline remains the single Gemini integration; this function only shapes
+    the text already present in its JSON into the review contract.
+    """
+    payload = json.loads(extraction) if isinstance(extraction, str) else extraction
+    if not isinstance(payload, dict):
+        raise ValueError("field-wall extraction must be a JSON object")
 
-    client = genai.Client(
-        api_key=api_key,
-        http_options=types.HttpOptions(timeout=240_000),
-    )
-
-    with Image.open(source_path) as source_image:
-        original_size = source_image.size
-        image = _cap_for_sending(source_image)
-        if image.size != original_size and progress_cb:
-            progress_cb(
-                f"resized {original_size[0]}x{original_size[1]} -> "
-                f"{image.size[0]}x{image.size[1]} before sending to Gemini"
+    embedded = _embedded_candidates(payload)
+    if embedded is not None:
+        result = embedded
+        if output_path:
+            destination = Path(output_path)
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            destination.write_text(
+                json.dumps(result, indent=2, ensure_ascii=False) + "\n",
+                encoding="utf-8",
             )
+        return result
 
-        response = generate_with_retry(
-            client,
-            progress_cb=progress_cb,
-            model="gemini-2.5-flash",
-            contents=[image, build_prompt()],
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json",
-                response_schema=FieldWallTextCandidates,
-                temperature=0.1,
-                max_output_tokens=65_536,
-                thinking_config=types.ThinkingConfig(thinking_budget=1024),
-            ),
+    grid_ties = []
+    for tie in payload.get("gridTiePoints") or []:
+        raw_text = tie.get("rawText") if isinstance(tie, dict) else tie
+        candidate = _text_candidate(raw_text)
+        if candidate is not None:
+            grid_ties.append(candidate)
+
+    loci = []
+    for locus in payload.get("loci") or []:
+        if not isinstance(locus, dict):
+            continue
+        confidence = _confidence_level(locus.get("confidence"))
+        munsell = locus.get("munsell")
+        munsell_raw = munsell.get("raw") if isinstance(munsell, dict) else None
+        loci.append(
+            LocusTextCandidate(
+                locusNumber=_text_candidate(locus.get("locusNumber"), confidence),
+                munsellRaw=_text_candidate(munsell_raw, confidence),
+                description=_text_candidate(locus.get("description"), confidence),
+            )
         )
 
-    raw_json = response.text
-    warning = check_response(response, raw_json)
-    if warning:
-        raise ValueError(
-            "Invalid structured output for FieldWallTextCandidates: "
-            f"{warning}"
+    grid_square = payload.get("gridSquareCm")
+    grid_candidate = None
+    if isinstance(grid_square, (int, float)) and not isinstance(grid_square, bool):
+        grid_candidate = NumberCandidate(
+            raw=f"{grid_square:g}",
+            proposed=float(grid_square),
+            confidence=ConfidenceLevel.HIGH,
+            bbox=None,
         )
 
-    try:
-        candidates = FieldWallTextCandidates.model_validate_json(raw_json)
-    except (ValidationError, TypeError, ValueError) as exc:
-        raise ValueError(
-            "Invalid structured output for FieldWallTextCandidates: "
-            f"{exc}"
-        ) from exc
+    north_arrow = payload.get("northArrowPresent")
+    north_candidate = None
+    if isinstance(north_arrow, bool):
+        north_candidate = BooleanCandidate(
+            raw="present" if north_arrow else "not present",
+            proposed=north_arrow,
+            confidence=ConfidenceLevel.MEDIUM,
+            bbox=None,
+        )
 
-    result = candidates.model_dump(mode="json")
-    destination = Path(output_path)
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    destination.write_text(
-        json.dumps(result, indent=2, ensure_ascii=False) + "\n",
-        encoding="utf-8",
+    def text_list(values):
+        candidates = []
+        for value in values or []:
+            candidate = _text_candidate(value)
+            if candidate is not None:
+                candidates.append(candidate)
+        return candidates
+
+    candidates = FieldWallTextCandidates(
+        document=DocumentTextCandidates(
+            trenchLabel=_text_candidate(payload.get("trenchLabel")),
+            faceLabel=_text_candidate(payload.get("faceLabel")),
+            date=_text_candidate(payload.get("date")),
+            gridSquareCm=grid_candidate,
+            northArrowPresent=north_candidate,
+            illustrators=text_list(payload.get("illustrators")),
+            gridTiePoints=grid_ties,
+            marginalia=text_list(payload.get("marginalia")),
+            otherText=[],
+        ),
+        loci=loci,
     )
+    result = candidates.model_dump(mode="json")
 
-    if progress_cb:
-        progress_cb(f"wrote {output_path}")
+    if output_path:
+        destination = Path(output_path)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_text(
+            json.dumps(result, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
 
     return result

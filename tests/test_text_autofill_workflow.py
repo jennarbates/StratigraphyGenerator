@@ -205,14 +205,26 @@ def test_text_autofill_to_manual_fieldwall_json_is_network_free(
     assert upload_response.status_code == 200
     assert (job_dir / "01_scan" / "field-wall.png").is_file()
 
-    def fake_run_text_extraction(
+    def fake_run_fieldwall_extraction(
         image_path,
-        supplied_api_key,
+        square_cm,
         output_path,
+        supplied_api_key,
+        max_output_tokens=65_536,
         progress_cb=None,
     ):
         assert Path(image_path) == job_dir / "01_scan" / "field-wall.png"
+        assert square_cm == 20
         assert supplied_api_key == api_key
+        raw_json = json.dumps({"gridSquareCm": square_cm, "layers": []})
+        Path(output_path).write_text(
+            raw_json,
+            encoding="utf-8",
+        )
+        return raw_json, None
+
+    def fake_candidates_from_extraction(raw_json, output_path):
+        assert json.loads(raw_json)["gridSquareCm"] == 20
         Path(output_path).write_text(
             json.dumps(candidates, indent=2),
             encoding="utf-8",
@@ -224,15 +236,20 @@ def test_text_autofill_to_manual_fieldwall_json_is_network_free(
         return "network-free-text-task"
 
     monkeypatch.setattr(
+        text_metadata.p_extract_fieldwall,
+        "run_extraction",
+        fake_run_fieldwall_extraction,
+    )
+    monkeypatch.setattr(
         text_metadata.p_extract_text,
-        "run_text_extraction",
-        fake_run_text_extraction,
+        "candidates_from_fieldwall_extraction",
+        fake_candidates_from_extraction,
     )
     monkeypatch.setattr(text_metadata, "start_task", run_synchronously)
 
     extraction_response = client.post(
         f"/api/jobs/{job_id}/text-extraction",
-        json={"api_key": api_key},
+        json={"api_key": api_key, "square_cm": 20},
     )
     assert extraction_response.status_code == 200
     assert extraction_response.get_json() == {

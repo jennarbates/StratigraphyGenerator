@@ -115,6 +115,27 @@ def test_candidate_json_round_trips_through_pydantic():
     assert parsed.model_dump(mode="json") == payload
 
 
+def test_candidate_nullable_values_may_be_omitted():
+    payload = _candidate_payload()
+    del payload["document"]["trenchLabel"]["proposed"]
+    del payload["document"]["trenchLabel"]["bbox"]
+
+    parsed = FieldWallTextCandidates.model_validate(payload)
+    trench_label = parsed.model_dump(mode="json")["document"]["trenchLabel"]
+
+    assert trench_label["proposed"] is None
+    assert trench_label["bbox"] is None
+
+
+@pytest.mark.parametrize("schema_version", [0, 2, 1.0, "1"])
+def test_candidate_schema_version_accepts_only_integer_one(schema_version):
+    payload = _candidate_payload()
+    payload["schemaVersion"] = schema_version
+
+    with pytest.raises(ValidationError):
+        FieldWallTextCandidates.model_validate(payload)
+
+
 def test_verified_json_round_trips_through_pydantic():
     payload = _verified_payload()
 

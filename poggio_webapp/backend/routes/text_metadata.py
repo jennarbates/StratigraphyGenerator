@@ -1,9 +1,11 @@
 """Routes for extracting and verifying field-wall text metadata."""
 
 import json
+import os
 from pathlib import Path
 
 from flask import Blueprint, abort, jsonify, request
+from pipeline import extract_fieldwall as p_extract_fieldwall
 from pipeline import extract_text as p_extract_text
 from pydantic import ValidationError
 
@@ -20,6 +22,15 @@ ERROR_KEY = "text_extraction_error"
 
 def _safe_extraction_error(error: Exception) -> str:
     """Return a useful error without persisting exception or credential data."""
+    if (
+        getattr(error, "code", None) == 400
+        and "response_schema" in str(error)
+        and "Invalid JSON payload" in str(error)
+    ):
+        return (
+            "Gemini rejected the structured-output schema. "
+            "This is a server configuration error, not an API-key error."
+        )
     if getattr(error, "code", None) in {
         400,
         401,
@@ -36,20 +47,31 @@ def _safe_extraction_error(error: Exception) -> str:
     return "Text extraction failed. Please try again."
 
 
-def _run_text_extraction_task(
+def _run_fieldwall_extraction_task(
     job_id: str,
     image_path: str,
+    square_cm: float,
     api_key: str,
-    output_path: str,
+    extraction_path: str,
+    candidates_path: str,
+    max_output_tokens: int = 65_536,
     progress_cb=None,
 ) -> dict:
-    """Run extraction and durably record its success or safe failure state."""
+    """Run the established field-wall extraction and expose its text for review."""
     try:
-        result = p_extract_text.run_text_extraction(
+        raw_json, warning = p_extract_fieldwall.run_extraction(
             image_path,
+            square_cm,
+            extraction_path,
             api_key,
-            output_path,
+            max_output_tokens=max_output_tokens,
             progress_cb=progress_cb,
+        )
+        if warning:
+            raise ValueError(warning)
+        result = p_extract_text.candidates_from_fieldwall_extraction(
+            raw_json,
+            candidates_path,
         )
     except Exception as error:
         safe_error = _safe_extraction_error(error)
@@ -60,9 +82,11 @@ def _run_text_extraction_task(
         raise RuntimeError(safe_error) from error
 
     meta = load_meta(job_id)
-    meta["text_candidates_path"] = output_path
+    meta["extraction_path"] = extraction_path
+    meta["text_candidates_path"] = candidates_path
     meta[STATUS_KEY] = "ready_for_review"
     meta.pop(ERROR_KEY, None)
+    meta.pop("normalized_path", None)
     save_meta(job_id, meta)
     return result
 
@@ -80,23 +104,36 @@ def start_text_extraction(job_id):
         abort(400, description="the job's uploaded image is missing on disk")
 
     body = request.get_json(force=True, silent=True) or {}
-    api_key = body.get("api_key")
+    api_key = body.get("api_key") or os.environ.get("GEMINI_API_KEY")
     if not api_key:
         abort(400, description="api_key is required")
 
-    output_path = job_dir(job_id) / "03_extraction" / "text_candidates.json"
-    output_path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        square_cm = float(body.get("square_cm"))
+    except (TypeError, ValueError):
+        square_cm = 0
+    if square_cm <= 0:
+        abort(400, description="square_cm is required for field-wall sheets")
+
+    max_output_tokens = int(body.get("max_output_tokens", 65_536))
+    extraction_dir = job_dir(job_id) / "03_extraction"
+    extraction_path = extraction_dir / "field_wall.json"
+    candidates_path = extraction_dir / "text_candidates.json"
+    extraction_dir.mkdir(parents=True, exist_ok=True)
 
     meta[STATUS_KEY] = "extracting"
     meta.pop(ERROR_KEY, None)
     save_meta(job_id, meta)
 
     task_id = start_task(
-        _run_text_extraction_task,
+        _run_fieldwall_extraction_task,
         job_id,
         image_path,
+        square_cm,
         api_key,
-        str(output_path),
+        str(extraction_path),
+        str(candidates_path),
+        max_output_tokens,
     )
 
     # Reload so a very fast task cannot have ready_for_review/error replaced

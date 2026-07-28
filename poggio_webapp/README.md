@@ -105,12 +105,13 @@ not make another network call.
 #### Read and verify field-wall writing
 
 The **Read writing** step is available only for uploaded **Hand-drawn field
-sheet** jobs. It asks Gemini for text proposals such as trench and face
-labels, dates, illustrators, grid labels, locus numbers, Munsell notation,
-descriptions, marginal notes, and other readable writing. This is text-only
-assistance: it does not trace boundaries, identify marker positions, classify
-drawn features, or generate geometry. Every boundary and feature used by the
-manual workflow remains based on a person's clicks.
+sheet** jobs. It uses the existing Gemini field-wall extraction and adapts
+that result into review proposals such as trench and face labels, dates,
+illustrators, grid labels, locus numbers, Munsell notation, descriptions, and
+marginal notes. There is no second text-specific Gemini request. The review
+accepts only the writing; geometry returned by the existing extractor is not
+treated as a person's trace. Every boundary and feature used by the manual
+workflow remains based on a person's clicks.
 
 Automatic reading is fallible. Before a result can be saved as verified,
 every returned proposal must be explicitly accepted, corrected, or marked
