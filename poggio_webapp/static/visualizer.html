@@ -16,62 +16,83 @@
 
 <div class="layout">
   <aside>
-    <label class="toggle" style="margin-bottom:6px;font-weight:600">
-      <input type="checkbox" id="compareMode"> Compare two runs
-    </label>
+    <div id="controls2d">
+      <label class="toggle" style="margin-bottom:6px;font-weight:600">
+        <input type="checkbox" id="compareMode"> Compare two runs
+      </label>
 
-    <div class="row">
-      <label class="filebtn" id="jsonLabelA"><span>Load JSON (A)</span>
-        <input type="file" id="jsonInputA" accept=".json" hidden></label>
-    </div>
-    <div class="row" id="rowB" style="display:none">
-      <label class="filebtn b" id="jsonLabelB"><span>Load JSON (B)</span>
-        <input type="file" id="jsonInputB" accept=".json" hidden></label>
-    </div>
-    <div class="row">
-      <label class="filebtn" id="imgLabel"><span>Load drawing image</span>
-        <input type="file" id="imgInput" accept="image/*" hidden></label>
-    </div>
-    <div class="drop" id="drop">
-      Drag <strong>JSON</strong> + <strong>image</strong> here
-      <small id="dropSub">image + one JSON</small>
-    </div>
-
-    <div id="controls" style="display:none">
-      <h2 class="section">Faces</h2>
-      <div class="face-tabs" id="faceTabs"></div>
-      <h2 class="section">Show</h2>
-      <label class="toggle"><input type="checkbox" id="tFill" checked> Fill layers</label>
-      <label class="toggle"><input type="checkbox" id="tBounds" checked> Layer boundaries</label>
-      <label class="toggle"><input type="checkbox" id="tPoints" checked> Boundary points</label>
-      <label class="toggle"><input type="checkbox" id="tFeatures" checked> Features</label>
-      <label class="toggle"><input type="checkbox" id="tGrid" checked> Grid labels</label>
-      <label class="toggle"><input type="checkbox" id="tLabels"> Layer names</label>
-      <h2 class="section">Layers</h2>
-      <div id="legend"></div>
-      <h2 class="section">Overlay alignment</h2>
       <div class="row">
-        <button class="filebtn" id="alignBtn">Align overlay to drawing</button>
+        <label class="filebtn" id="jsonLabelA"><span>Load JSON (A)</span>
+          <input type="file" id="jsonInputA" accept=".json" hidden></label>
+      </div>
+      <div class="row" id="rowB" style="display:none">
+        <label class="filebtn b" id="jsonLabelB"><span>Load JSON (B)</span>
+          <input type="file" id="jsonInputB" accept=".json" hidden></label>
       </div>
       <div class="row">
-        <button class="filebtn" id="alignReset">Reset alignment</button>
+        <label class="filebtn" id="imgLabel"><span>Load drawing image</span>
+          <input type="file" id="imgInput" accept="image/*" hidden></label>
       </div>
-      <p class="hint" id="alignHint" style="font-size:11.5px;margin:2px 0 0">The overlay assumes the
-      drawn section fills the whole image. For a photo with margins, click
-      <b>Align</b> then drag a box over just the drawn wall (frame line to
-      frame line).</p>
+      <div class="drop" id="drop">
+        Drag <strong>JSON</strong> + <strong>image</strong> here
+        <small id="dropSub">image + one JSON</small>
+      </div>
+
+      <div id="controls" style="display:none">
+        <h2 class="section">Faces</h2>
+        <div class="face-tabs" id="faceTabs"></div>
+        <h2 class="section">Show</h2>
+        <label class="toggle"><input type="checkbox" id="tFill" checked> Fill layers</label>
+        <label class="toggle"><input type="checkbox" id="tBounds" checked> Layer boundaries</label>
+        <label class="toggle"><input type="checkbox" id="tPoints" checked> Boundary points</label>
+        <label class="toggle"><input type="checkbox" id="tFeatures" checked> Features</label>
+        <label class="toggle"><input type="checkbox" id="tGrid" checked> Grid labels</label>
+        <label class="toggle"><input type="checkbox" id="tLabels"> Layer names</label>
+        <h2 class="section">Layers</h2>
+        <div id="legend"></div>
+        <h2 class="section">Overlay alignment</h2>
+        <div class="row">
+          <button class="filebtn" id="alignBtn">Align overlay to drawing</button>
+        </div>
+        <div class="row">
+          <button class="filebtn" id="alignReset">Reset alignment</button>
+        </div>
+        <p class="hint" id="alignHint" style="font-size:11.5px;margin:2px 0 0">The overlay assumes the
+        drawn section fills the whole image. For a photo with margins, click
+        <b>Align</b> then drag a box over just the drawn wall (frame line to
+        frame line).</p>
+      </div>
     </div>
+
+    <section class="model3d-sidebar" id="controls3d" hidden>
+      <h2 class="section">3D model</h2>
+      <p class="hint" id="model3dSummary"></p>
+      <p class="hint" id="model3dStatus">Preparing 3D model…</p>
+    </section>
   </aside>
 
   <main id="main">
-    <div class="empty" id="empty">
-      <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
-        <path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 12l9 4 9-4"/><path d="M3 17l9 4 9-4"/>
-      </svg>
-      Load an <b>output.json</b> and its <b>drawing image</b> to see the extracted
-      layers and features overlaid on the section.<br>
-      Tick <b>Compare two runs</b> to load a second JSON and view them side by side.
-    </div>
+    <nav class="model3d-mode-switch" aria-label="Visualizer view">
+      <button class="model3d-mode-button active" id="mode2d"
+        type="button" aria-controls="view2d" aria-pressed="true">2D drawing</button>
+      <button class="model3d-mode-button" id="mode3d"
+        type="button" aria-controls="view3d" aria-pressed="false" hidden>3D model</button>
+    </nav>
+
+    <section class="model3d-view-2d" id="view2d">
+      <div class="empty" id="empty">
+        <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
+          <path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 12l9 4 9-4"/><path d="M3 17l9 4 9-4"/>
+        </svg>
+        Load an <b>output.json</b> and its <b>drawing image</b> to see the extracted
+        layers and features overlaid on the section.<br>
+        Tick <b>Compare two runs</b> to load a second JSON and view them side by side.
+      </div>
+    </section>
+
+    <section class="model3d-view-3d" id="view3d" hidden>
+      <div class="model3d-canvas" id="model3dCanvas"></div>
+    </section>
   </main>
 </div>
 
