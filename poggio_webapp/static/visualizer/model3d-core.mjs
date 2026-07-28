@@ -1,3 +1,5 @@
+import { validateVolumeMetadata } from "./volume3d-core.mjs";
+
 const MODEL_KIND = "gempy-surface-model";
 const SUPPORTED_SCHEMA_VERSION = 1;
 const MIN_OPACITY = 0.1;
@@ -159,8 +161,8 @@ function validatedSurfaces(value) {
 /**
  * Validate an API model3d payload and return a detached, normalized copy.
  *
- * Optional `lith_block_url` is retained for later volume support, but this
- * surface-only module never fetches it.
+ * Optional download and browser-volume metadata are retained after the same
+ * safe URL and schema checks used by their isolated renderers.
  */
 export function validateModel3d(raw) {
   if (!isObject(raw)) {
@@ -203,6 +205,19 @@ export function validateModel3d(raw) {
       raw.lith_block_url,
       "model3d.lith_block_url",
     );
+  }
+
+  if (raw.volume !== undefined && raw.volume !== null) {
+    normalized.volume = validateVolumeMetadata(raw.volume);
+    if (
+      normalized.volume.shape.some(
+        (dimension, axis) => dimension !== normalized.resolution[axis],
+      )
+    ) {
+      throw new TypeError(
+        "model3d.volume.shape must match model3d.resolution",
+      );
+    }
   }
 
   return normalized;

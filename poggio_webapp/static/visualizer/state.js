@@ -11,4 +11,6 @@ export const state = {
   viewModeExplicit: false,
   openedFromJob: false,
   modelViewer: null,
+  modelViewerType: null,
+  modelRendererType: "surfaces",
 };

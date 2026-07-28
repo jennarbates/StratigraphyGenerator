@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { viewModeModel } from "./view-mode.mjs";
+import {
+  modelRendererTypeModel,
+  viewModeModel,
+} from "./view-mode.mjs";
 
 test("no model exposes only the 2D mode", () => {
   assert.deepEqual(
@@ -98,5 +101,86 @@ test("a rejected invalid model leaves valid extraction in 2D", () => {
       show2dControls: true,
       show3dControls: false,
     },
+  );
+});
+
+test("surface rendering remains the default when surfaces and volume exist", () => {
+  assert.deepEqual(
+    modelRendererTypeModel({
+      hasSurfaces: true,
+      hasVolume: true,
+    }),
+    {
+      type: "surfaces",
+      canSelectSurfaces: true,
+      canSelectVolume: true,
+      showSurfaceControls: true,
+      showVolumeControls: false,
+    },
+  );
+});
+
+test("renderer type selection exposes only the matching 3D controls", () => {
+  assert.deepEqual(
+    modelRendererTypeModel({
+      hasSurfaces: true,
+      hasVolume: true,
+      requestedType: "volume",
+    }),
+    {
+      type: "volume",
+      canSelectSurfaces: true,
+      canSelectVolume: true,
+      showSurfaceControls: false,
+      showVolumeControls: true,
+    },
+  );
+  assert.deepEqual(
+    modelRendererTypeModel({
+      hasSurfaces: true,
+      hasVolume: false,
+      requestedType: "surfaces",
+    }),
+    {
+      type: "surfaces",
+      canSelectSurfaces: true,
+      canSelectVolume: false,
+      showSurfaceControls: true,
+      showVolumeControls: false,
+    },
+  );
+});
+
+test("a volume-only model selects the volume renderer", () => {
+  assert.deepEqual(
+    modelRendererTypeModel({
+      hasSurfaces: false,
+      hasVolume: true,
+    }),
+    {
+      type: "volume",
+      canSelectSurfaces: false,
+      canSelectVolume: true,
+      showSurfaceControls: false,
+      showVolumeControls: true,
+    },
+  );
+});
+
+test("renderer selection rejects unavailable or invalid states", () => {
+  assert.throws(
+    () => modelRendererTypeModel({
+      hasSurfaces: false,
+      hasVolume: false,
+    }),
+    /at least one 3D renderer must be available/,
+  );
+  assert.throws(
+    () => modelRendererTypeModel({
+      hasSurfaces: true,
+      hasVolume: true,
+      requestedType: "voxels",
+    }),
+    /requestedType must be null, "surfaces", or "volume"/,
   );
 });

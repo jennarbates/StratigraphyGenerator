@@ -302,3 +302,108 @@ export function groupCellsByLithology(values, metadata, slices = {}) {
       cells,
     }));
 }
+
+/**
+ * Stable renderer-neutral fallback color for a numeric lithology ID.
+ */
+export function deterministicLithologyColor(lithology) {
+  if (
+    !isObject(lithology)
+    || !Number.isInteger(lithology.id)
+    || lithology.id < 0
+    || lithology.id > MAX_UINT16
+  ) {
+    throw new TypeError(
+      `lithology.id must be an integer from 0 through ${MAX_UINT16}`,
+    );
+  }
+  const hue = ((lithology.id * 137.508) + 24) % 360;
+  return `hsl(${hue.toFixed(3)}, 55%, 52%)`;
+}
+
+/**
+ * Return initial UI state for the lithology, slice, helper, and camera
+ * controls without depending on a DOM or renderer.
+ */
+export function volume3dControlState(
+  metadata,
+  colorFor = deterministicLithologyColor,
+) {
+  const volume = validateVolumeMetadata(metadata);
+  if (typeof colorFor !== "function") {
+    throw new TypeError("colorFor must be a function");
+  }
+
+  return {
+    lithologies: volume.lithologies.map((lithology, index) => ({
+      ...lithology,
+      color: colorFor(lithology, index),
+      visible: true,
+    })),
+    slices: Object.fromEntries(
+      volume.shape.map(
+        (dimension, axis) => [SUPPORTED_AXES[axis], dimension - 1],
+      ),
+    ),
+    helpersVisible: true,
+    cameraView: "isometric",
+  };
+}
+
+function normalizedStatusCount(value, name) {
+  if (!Number.isSafeInteger(value) || value < 0) {
+    throw new TypeError(`${name} must be a non-negative safe integer`);
+  }
+  return value;
+}
+
+function statusErrorMessage(error) {
+  if (error instanceof Error && error.message) return error.message;
+  if (typeof error === "string" && error.trim()) return error;
+  return "Unknown error.";
+}
+
+/**
+ * Convert volume renderer progress into concise aria-live status text.
+ */
+export function volumeLoadStatusSummary(detail) {
+  if (!isObject(detail)) {
+    throw new TypeError("volume load detail must be an object");
+  }
+  const total = normalizedStatusCount(detail.total, "total");
+  const visible = normalizedStatusCount(detail.visible ?? 0, "visible");
+
+  if (detail.phase === "loading") {
+    return {
+      status: `Loading ${total} volume cells…`,
+      warning: "",
+      recoverable: false,
+    };
+  }
+  if (
+    detail.phase === "complete"
+    || detail.phase === "slices"
+    || detail.phase === "visibility"
+  ) {
+    return {
+      status: `Showing ${visible} of ${total} volume cells.`,
+      warning: "",
+      recoverable: false,
+    };
+  }
+  if (detail.phase === "error") {
+    return {
+      status: visible > 0
+        ? `Showing ${visible} of ${total} volume cells.`
+        : "No lithology volume cells could be displayed.",
+      warning: `The lithology volume could not load: ${
+        statusErrorMessage(detail.error)
+      }`,
+      recoverable: true,
+    };
+  }
+
+  throw new TypeError(
+    'volume load detail phase must be "loading", "complete", "slices", "visibility", or "error"',
+  );
+}

@@ -7,7 +7,9 @@ import {
   groupCellsByLithology,
   validateVolumeMetadata,
   visibleCellRange,
+  volume3dControlState,
   volumeIndex,
+  volumeLoadStatusSummary,
 } from "./volume3d-core.mjs";
 
 function validMetadata(overrides = {}) {
@@ -238,4 +240,81 @@ test("coordinate and slice helpers reject out-of-range coordinates clearly", () 
       message: /out of range/,
     });
   }
+});
+
+test("volume3dControlState initializes non-cubic slices and lithologies", () => {
+  const controls = volume3dControlState(
+    validMetadata(),
+    (lithology, index) => `${index}:${lithology.name}`,
+  );
+
+  assert.deepEqual(controls.slices, { x: 1, y: 2, z: 3 });
+  assert.equal(controls.helpersVisible, true);
+  assert.equal(controls.cameraView, "isometric");
+  assert.deepEqual(controls.lithologies, [
+    {
+      id: 2,
+      name: "Fill",
+      color: "0:Fill",
+      visible: true,
+    },
+    {
+      id: 7,
+      name: "Basement",
+      color: "1:Basement",
+      visible: true,
+    },
+  ]);
+});
+
+test("volumeLoadStatusSummary reports loading, slicing, and recovery", () => {
+  assert.deepEqual(
+    volumeLoadStatusSummary({
+      phase: "loading",
+      total: 24,
+      visible: 0,
+    }),
+    {
+      status: "Loading 24 volume cells…",
+      warning: "",
+      recoverable: false,
+    },
+  );
+  assert.deepEqual(
+    volumeLoadStatusSummary({
+      phase: "complete",
+      total: 24,
+      visible: 24,
+    }),
+    {
+      status: "Showing 24 of 24 volume cells.",
+      warning: "",
+      recoverable: false,
+    },
+  );
+  assert.deepEqual(
+    volumeLoadStatusSummary({
+      phase: "slices",
+      total: 24,
+      visible: 12,
+    }),
+    {
+      status: "Showing 12 of 24 volume cells.",
+      warning: "",
+      recoverable: false,
+    },
+  );
+  assert.deepEqual(
+    volumeLoadStatusSummary({
+      phase: "error",
+      total: 24,
+      visible: 0,
+      error: new Error("HTTP 404"),
+    }),
+    {
+      status: "No lithology volume cells could be displayed.",
+      warning: "The lithology volume could not load: HTTP 404",
+      recoverable: true,
+    },
+  );
 });

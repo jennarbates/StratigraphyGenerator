@@ -167,6 +167,50 @@ test("validateModel3d preserves safe optional lith-block metadata", () => {
   assert.equal(validateModel3d(raw).lith_block_url, raw.lith_block_url);
 });
 
+test("validateModel3d preserves validated volume metadata", () => {
+  const volume = {
+    schema_version: 1,
+    format: "raw",
+    dtype: "uint16-le",
+    layout: "C",
+    axes: ["x", "y", "z"],
+    shape: [50, 40, 30],
+    url: "/api/jobs/job-1/file?path=06_gempy_model/trench_model_lith_block.bin",
+    lithologies: [
+      { id: 1, name: "Topsoil" },
+      { id: 2, name: "Fill" },
+    ],
+  };
+  const normalized = validateModel3d(validModel({ volume }));
+
+  assert.deepEqual(normalized.volume, volume);
+  assert.notStrictEqual(normalized.volume, volume);
+  assert.notStrictEqual(normalized.volume.shape, volume.shape);
+  assert.notStrictEqual(normalized.volume.lithologies, volume.lithologies);
+});
+
+test("validateModel3d rejects invalid or resolution-mismatched volume metadata", () => {
+  const baseVolume = {
+    schema_version: 1,
+    format: "raw",
+    dtype: "uint16-le",
+    layout: "C",
+    axes: ["x", "y", "z"],
+    shape: [50, 40, 30],
+    url: "/api/jobs/job-1/file?path=06_gempy_model/trench_model_lith_block.bin",
+    lithologies: [{ id: 1, name: "Topsoil" }],
+  };
+
+  expectTypeError(
+    validModel({ volume: { ...baseVolume, dtype: "uint16" } }),
+    /volume\.dtype must be "uint16-le"/,
+  );
+  expectTypeError(
+    validModel({ volume: { ...baseVolume, shape: [50, 40, 29] } }),
+    /volume\.shape must match model3d\.resolution/,
+  );
+});
+
 test("extentCenter and extentSize calculate a non-cubic extent exactly", () => {
   const extent = [-4, 8, 10, 16, 90, 93];
 

@@ -12,11 +12,21 @@ import {
   modelLoadStatusSummary,
   setAllSurfaceVisibility,
 } from "./model3d-core.mjs";
+import { createVolume3dViewer } from "./volume3d.js";
+import {
+  volume3dControlState,
+  volumeLoadStatusSummary,
+} from "./volume3d-core.mjs";
 import { buildSVG, faceExtent } from "./svg.js";
 import { state } from "./state.js";
-import { viewModeModel } from "./view-mode.mjs";
+import {
+  modelRendererTypeModel,
+  viewModeModel,
+} from "./view-mode.mjs";
 
 let model3dControls = null;
+let volume3dControls = null;
+const VOLUME_AXES = ["x", "y", "z"];
 
 export function ready(){
   const primary = state.dataA || state.dataB;
@@ -93,17 +103,75 @@ function applyViewMode(mode){
 
   if(mode.mode==="3d"){
     window.onresize=null;
+    const rendererMode=resolvedModelRendererType();
+    state.modelRendererType=rendererMode.type;
+    applyModelRendererType(rendererMode);
     startModelViewer();
   }else{
     disposeModelViewer();
   }
 }
 
+function resolvedModelRendererType(
+  requestedType=state.modelRendererType,
+){
+  return modelRendererTypeModel({
+    hasSurfaces:state.model3d.surfaces.length>0,
+    hasVolume:Boolean(state.model3d.volume),
+    requestedType,
+  });
+}
+
+function selectModelRendererType(requestedType){
+  const mode=resolvedModelRendererType(requestedType);
+  if(mode.type!==requestedType) return;
+  if(
+    state.modelRendererType===requestedType
+    && state.modelViewerType===requestedType
+  ) return;
+  disposeModelViewer();
+  state.modelRendererType=requestedType;
+  applyModelRendererType(mode);
+  startModelViewer();
+}
+
+function applyModelRendererType(mode){
+  const surfaces=$("model3dRendererSurfaces");
+  surfaces.hidden=!mode.canSelectSurfaces;
+  surfaces.setAttribute(
+    "aria-pressed",
+    String(mode.type==="surfaces"),
+  );
+  surfaces.onclick=()=>selectModelRendererType("surfaces");
+
+  const volume=$("model3dRendererVolume");
+  volume.hidden=!mode.canSelectVolume;
+  volume.setAttribute("aria-pressed",String(mode.type==="volume"));
+  volume.onclick=()=>selectModelRendererType("volume");
+
+  $("model3dSurfaceControls").hidden=!mode.showSurfaceControls;
+  $("model3dVolumeControls").hidden=!mode.showVolumeControls;
+}
+
 function startModelViewer(){
+  const rendererMode=resolvedModelRendererType();
+  state.modelRendererType=rendererMode.type;
+  applyModelRendererType(rendererMode);
   if(state.modelViewer){
-    state.modelViewer.resize();
-    return;
+    if(state.modelViewerType===rendererMode.type){
+      state.modelViewer.resize();
+      return;
+    }
+    disposeModelViewer();
   }
+  if(rendererMode.type==="volume"){
+    startVolumeViewer();
+  }else{
+    startSurfaceViewer();
+  }
+}
+
+function startSurfaceViewer(){
   const container=$("model3dCanvas");
   const surfaces=state.model3d.surfaces.length;
   const units=state.model3d.coordinate_system.units;
@@ -147,13 +215,17 @@ function startModelViewer(){
   }
 
   state.modelViewer=viewer;
+  state.modelViewerType="surfaces";
   viewer.canvas?.setAttribute(
     "aria-describedby",
     "model3dInstructions model3dStatus model3dWarning",
   );
-  bindModel3dControls(viewer);
+  bindSurfaceModelControls(viewer);
   viewer.load().catch(error=>{
-    if(state.modelViewer!==viewer) return;
+    if(
+      state.modelViewer!==viewer
+      || state.modelViewerType!=="surfaces"
+    ) return;
     const summary=viewer.loadSummary();
     setModelLoadUi({
       phase:"error",
@@ -166,15 +238,113 @@ function startModelViewer(){
   });
 }
 
+function startVolumeViewer(){
+  const container=$("model3dCanvas");
+  const volume=state.model3d.volume;
+  const total=volume.shape.reduce(
+    (product,dimension)=>product*dimension,
+    1,
+  );
+  const units=state.model3d.coordinate_system.units;
+  const size=extentSize(state.model3d.extent);
+  $("model3dSummary").textContent=[
+    `${total.toLocaleString()} volume cells`,
+    `${size.map(value=>Number(value.toFixed(2))).join(" × ")} ${units}`,
+    "Z-up",
+  ].join(" · ");
+  $("model3dVolumeResolution").textContent=[
+    "Volume cells reflect the chosen GemPy resolution:",
+    `${volume.shape.join(" × ")} cells along X × Y × Z.`,
+    "Each slice maximum includes cell 0 through the selected index.",
+  ].join(" ");
+  container.replaceChildren();
+  volume3dControls=volume3dControlState(
+    volume,
+    lithology=>colorFor(lithology.name),
+  );
+  setVolumeLoadUi({
+    phase:"loading",
+    total,
+    visible:0,
+  });
+
+  let viewer;
+  try{
+    viewer=createVolume3dViewer(container,state.model3d,{
+      helpersVisible:volume3dControls.helpersVisible,
+      colorFor:lithology=>colorFor(lithology.name),
+      onProgress:detail=>{
+        if(viewer&&state.modelViewer!==viewer) return;
+        setVolumeLoadUi(detail);
+      },
+    });
+  }catch(error){
+    setVolumeLoadUi({
+      phase:"error",
+      total,
+      visible:0,
+      error,
+    });
+    console.warn("Lithology volume viewer initialization failed",error);
+    return;
+  }
+
+  state.modelViewer=viewer;
+  state.modelViewerType="volume";
+  viewer.canvas?.setAttribute(
+    "aria-describedby",
+    "model3dVolumeResolution model3dInstructions model3dStatus model3dWarning",
+  );
+  bindVolumeModelControls(viewer,false);
+  viewer.load().then(summary=>{
+    if(
+      state.modelViewer!==viewer
+      || state.modelViewerType!=="volume"
+    ) return;
+    volume3dControls.lithologies=summary.lithologies.map(lithology=>({
+      id:lithology.id,
+      name:lithology.name,
+      color:lithology.color,
+      visible:lithology.visible,
+    }));
+    renderLithologyControls(viewer,true);
+    setVolumeSliceControlsEnabled(true);
+    setVolumeLoadUi({
+      phase:"complete",
+      total:summary.total,
+      visible:summary.visible,
+    });
+  }).catch(error=>{
+    if(
+      state.modelViewer!==viewer
+      || state.modelViewerType!=="volume"
+    ) return;
+    setVolumeLoadUi({
+      phase:"error",
+      total,
+      visible:viewer.visibleInstanceCount(),
+      error,
+    });
+    console.warn("Lithology volume viewer load failed",error);
+  });
+}
+
 function disposeModelViewer(){
-  if(!state.modelViewer) return;
+  if(!state.modelViewer){
+    state.modelViewerType=null;
+    model3dControls=null;
+    volume3dControls=null;
+    return;
+  }
   const viewer=state.modelViewer;
   state.modelViewer=null;
+  state.modelViewerType=null;
   model3dControls=null;
+  volume3dControls=null;
   viewer.dispose();
 }
 
-function bindModel3dControls(viewer){
+function bindSurfaceModelControls(viewer){
   renderSurfaceControls(viewer);
 
   $("model3dShowAll").onclick=()=>setEverySurfaceVisible(viewer,true);
@@ -197,10 +367,21 @@ function bindModel3dControls(viewer){
     viewer.setWireframe(event.target.checked);
   };
 
+  bindCommonModelControls(viewer,model3dControls);
+}
+
+function bindVolumeModelControls(viewer,enabled){
+  renderLithologyControls(viewer,enabled);
+  configureVolumeSliceControls(viewer);
+  setVolumeSliceControlsEnabled(enabled);
+  bindCommonModelControls(viewer,volume3dControls);
+}
+
+function bindCommonModelControls(viewer,controlState){
   const helpers=$("model3dHelpers");
-  helpers.checked=model3dControls.helpersVisible;
+  helpers.checked=controlState.helpersVisible;
   helpers.onchange=event=>{
-    model3dControls.helpersVisible=event.target.checked;
+    controlState.helpersVisible=event.target.checked;
     viewer.setHelpersVisible(event.target.checked);
   };
 
@@ -216,7 +397,7 @@ function bindModel3dControls(viewer){
       if(viewer.setCameraView(control.view)) updateCameraControls(control.view);
     };
   });
-  updateCameraControls(model3dControls.cameraView);
+  updateCameraControls(controlState.cameraView);
   setCameraControlsEnabled(false);
 
   $("model3dUse2d").onclick=()=>selectViewMode("2d");
@@ -256,6 +437,82 @@ function renderSurfaceControls(viewer){
   });
 }
 
+function renderLithologyControls(viewer,enabled){
+  const root=$("model3dLithologies");
+  root.replaceChildren();
+  volume3dControls.lithologies.forEach((lithology,index)=>{
+    const label=document.createElement("label");
+    label.className="model3d-surface";
+
+    const input=document.createElement("input");
+    input.type="checkbox";
+    input.checked=lithology.visible;
+    input.disabled=!enabled;
+    input.id=`model3dLithology${index}`;
+    input.onchange=event=>{
+      volume3dControls.lithologies[index]={
+        ...volume3dControls.lithologies[index],
+        visible:event.target.checked,
+      };
+      viewer.setLithologyVisible(lithology.id,event.target.checked);
+    };
+
+    const swatch=document.createElement("span");
+    swatch.className="model3d-swatch";
+    swatch.style.backgroundColor=lithology.color;
+    swatch.setAttribute("aria-hidden","true");
+
+    const name=document.createElement("span");
+    name.className="model3d-surface-name";
+    name.textContent=lithology.name;
+
+    label.append(input,swatch,name);
+    root.appendChild(label);
+  });
+}
+
+function configureVolumeSliceControls(viewer){
+  VOLUME_AXES.forEach((axis,index)=>{
+    const dimension=state.model3d.volume.shape[index];
+    const input=$(volumeSliceId(axis));
+    input.max=String(dimension-1);
+    input.value=String(volume3dControls.slices[axis]);
+    updateVolumeSliceOutput(axis);
+    input.oninput=event=>{
+      const maximum=Number(event.target.value);
+      volume3dControls.slices[axis]=maximum;
+      updateVolumeSliceOutput(axis);
+      viewer.setMaximumSlice(axis,maximum);
+    };
+  });
+
+  $("model3dResetSlices").onclick=()=>{
+    VOLUME_AXES.forEach((axis,index)=>{
+      volume3dControls.slices[axis]=state.model3d.volume.shape[index]-1;
+      $(volumeSliceId(axis)).value=String(volume3dControls.slices[axis]);
+      updateVolumeSliceOutput(axis);
+    });
+    viewer.resetSlices();
+  };
+}
+
+function volumeSliceId(axis){
+  return `model3dSlice${axis.toUpperCase()}`;
+}
+
+function updateVolumeSliceOutput(axis){
+  const input=$(volumeSliceId(axis));
+  $(`${volumeSliceId(axis)}Value`).textContent=
+    `${input.value} / ${input.max}`;
+}
+
+function setVolumeSliceControlsEnabled(enabled){
+  VOLUME_AXES.forEach(axis=>{
+    $(volumeSliceId(axis)).disabled=!enabled;
+  });
+  $("model3dResetSlices").disabled=!enabled;
+}
+
 function setEverySurfaceVisible(viewer,visible){
   model3dControls.surfaces=setAllSurfaceVisibility(
     model3dControls.surfaces,
@@ -277,8 +534,15 @@ function cameraButtonId(id){
   return `model3dCamera${suffix}`;
 }
 
+function activeModelControls(){
+  return state.modelRendererType==="volume"
+    ? volume3dControls
+    : model3dControls;
+}
+
 function updateCameraControls(activeView){
-  if(model3dControls) model3dControls.cameraView=activeView;
+  const controls=activeModelControls();
+  if(controls) controls.cameraView=activeView;
   cameraControlModel(activeView).forEach(control=>{
     if(control.pressed===null) return;
     $(cameraButtonId(control.id)).setAttribute(
@@ -311,6 +575,28 @@ function setModelLoadUi(detail){
     setCameraControlsEnabled(false);
   }
   configureModelRecovery(summary.recoverable);
+}
+
+function setVolumeLoadUi(detail){
+  const summary=volumeLoadStatusSummary(detail);
+  $("model3dStatus").textContent=summary.status;
+  setModelWarning(summary.warning);
+
+  if(detail.phase==="complete"){
+    setCameraControlsEnabled(detail.visible>0);
+  }else if(detail.phase==="error"){
+    setCameraControlsEnabled(false);
+  }
+  configureModelRecovery(summary.recoverable);
+}
+
+function setModelWarning(primaryWarning){
+  const warning=$("model3dWarning");
+  const messages=[];
+  if(primaryWarning) messages.push(primaryWarning);
+  (state.model3d?.warnings||[]).forEach(message=>messages.push(message));
+  warning.textContent=messages.join(" ");
+  warning.hidden=messages.length===0;
 }
 
 function configureModelRecovery(visible){
