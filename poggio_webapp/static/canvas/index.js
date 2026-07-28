@@ -23,6 +23,7 @@ import {
   updateFinalizeControl,
   validateBearingDeg,
 } from "./grid.mjs";
+import { munsellToHex } from "../munsell-color.js";
 
 const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 const POLYGON_COLORS = [
@@ -344,12 +345,16 @@ function createSvgElement(name, attributes = {}) {
   return element;
 }
 
+function fallbackPolygonColor(polygonId) {
+  return POLYGON_COLORS[(polygonId - 1) % POLYGON_COLORS.length];
+}
+
 function createPolygon(face) {
   const id = allocatePolygonId(face);
 
   return {
     id,
-    color: POLYGON_COLORS[(id - 1) % POLYGON_COLORS.length],
+    color: fallbackPolygonColor(id),
     vertices: [],
     closed: false,
   };
@@ -432,15 +437,16 @@ function restoreFaceState(savedFace, faceIndex) {
     bearing_deg: "",
     ...savedFace.gridRegistration,
   };
-  face.polygons = (savedFace.polygons ?? []).map((polygon) => ({
-    ...polygon,
-    color: (
-      polygon.color
-      ?? POLYGON_COLORS[(polygon.id - 1) % POLYGON_COLORS.length]
-    ),
-    vertices: (polygon.vertices ?? []).map(({ x, y }) => ({ x, y })),
-  }));
   face.polygonMetadata = savedFace.polygonMetadata ?? {};
+  face.polygons = (savedFace.polygons ?? []).map((polygon) => {
+    const fallback = polygon.color ?? fallbackPolygonColor(polygon.id);
+    const munsell = face.polygonMetadata[polygon.id]?.munsell;
+    return {
+      ...polygon,
+      color: isFieldWall ? munsellToHex(munsell, fallback) : fallback,
+      vertices: (polygon.vertices ?? []).map(({ x, y }) => ({ x, y })),
+    };
+  });
 
   const largestPolygonId = face.polygons.reduce(
     (largestId, polygon) => Math.max(largestId, Number(polygon.id) || 0),
@@ -1159,11 +1165,17 @@ metadataForm.addEventListener("submit", (event) => {
   }
 
   if (isFieldWall) {
-    polygonMetadata[polygonId] = assembleFieldWallPolygonMetadata({
+    const metadata = assembleFieldWallPolygonMetadata({
       locus: locusInput.value,
       munsell: munsellInput.value,
       note: metadataNoteInput.value,
     });
+    polygonMetadata[polygonId] = metadata;
+    const polygon = findPolygon(polygonId);
+    polygon.color = munsellToHex(
+      metadata.munsell,
+      fallbackPolygonColor(polygonId),
+    );
   } else {
     polygonMetadata[polygonId] = {
       material: materialSelect.value,
@@ -1172,6 +1184,7 @@ metadataForm.addEventListener("submit", (event) => {
   }
 
   metadataDialog.close();
+  renderPolygons();
   renderPolygonList();
   coordinateReport.textContent = `Saved metadata for polygon ${polygonId}.`;
   scheduleAutosave();

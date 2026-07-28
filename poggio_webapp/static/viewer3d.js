@@ -7,6 +7,7 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
+import { munsellToHex } from "./munsell-color.js";
 
 const root = document.getElementById("viewer3d");
 if (root) {
@@ -32,7 +33,9 @@ function init(root) {
   const style = getComputedStyle(document.documentElement);
   const strataVars = ["--strata-1", "--strata-2", "--strata-3", "--strata-4", "--strata-5"];
   const palette = strataVars.map((v) => (style.getPropertyValue(v) || "#8a8c53").trim());
-  const colorFor = (i) => palette[i % palette.length];
+  const colorFor = (entry, i) => (
+    munsellToHex(entry?.name, palette[i % palette.length])
+  );
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(style.getPropertyValue("--panel")?.trim() || "#ffffff");
@@ -70,7 +73,7 @@ function init(root) {
   const surfaces = [];
 
   meshList.forEach((entry, i) => {
-    const color = colorFor(i);
+    const color = colorFor(entry, i);
     loader.load(
       entry.url,
       (obj) => {

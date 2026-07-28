@@ -2,6 +2,7 @@ import { apiJson } from "../core/api.js";
 import { goToStep, refreshChrome } from "../core/navigation.js";
 import { STRATA, invalidateDownstream, state } from "../core/state.js";
 import { pointInsideBand } from "../../boundary-label.js";
+import { munsellToHex } from "../../munsell-color.js";
 import { ensureLocusTopBoundary } from "../draw-loci.js";
 import {
   applyVerifiedTextToDrawState,
@@ -235,6 +236,18 @@ export function renderDraw() {
     return `${isField ? "locus" : "layer"} ${boundary.name}`;
   }
 
+  function boundaryColor(boundary, index) {
+    if (boundary.kind === "surface" || boundary.kind === "base") {
+      return "#2a7ab5";
+    }
+    const fallback = STRATA[index % STRATA.length];
+    if (!isField || boundary.kind !== "top") return fallback;
+    return munsellToHex(
+      (dw.lociMeta[boundary.name] || {}).a,
+      fallback,
+    );
+  }
+
   if (!isPdf) document.getElementById("dwRotate").value = String(dw.rotate || 0);
 
   function activeItem() {
@@ -367,10 +380,14 @@ export function renderDraw() {
     holder.querySelectorAll("[data-name]").forEach((row) => {
       const name = row.dataset.name;
       ["a", "b"].forEach((key) => {
-        row.querySelector(`[data-role="${key}"]`).addEventListener("input", (event) => {
+        const input = row.querySelector(`[data-role="${key}"]`);
+        input.addEventListener("input", (event) => {
           store[name] = store[name] || {};
           store[name][key] = event.target.value;
         });
+        if (isField && key === "a") {
+          input.addEventListener("change", redraw);
+        }
       });
     });
   }
@@ -393,9 +410,7 @@ export function renderDraw() {
 
     dw.boundaries.forEach((boundary, index) => {
       const selected = dw.activeKind === "boundary" && dw.activeIdx === index;
-      const color = boundary.kind === "surface" || boundary.kind === "base"
-        ? "#2a7ab5"
-        : STRATA[index % STRATA.length];
+      const color = boundaryColor(boundary, index);
       if (boundary.points.length > 1) {
         output += `<polyline points="${boundary.points.map((point) => point.join(",")).join(" ")}"
           fill="none" stroke="${color}" stroke-width="${radius * (selected ? 0.95 : 0.58)}"
@@ -450,7 +465,7 @@ export function renderDraw() {
         if (!labelPoint) return;
 
         const label = `Locus ${top.name}`;
-        const color = STRATA[dw.boundaries.indexOf(top) % STRATA.length];
+        const color = boundaryColor(top, dw.boundaries.indexOf(top));
         output += `<text x="${labelPoint.x}" y="${labelPoint.y}"
           fill="${color}" font-size="${radius * 3.1}" font-family="sans-serif"
           font-weight="700" text-anchor="middle" dominant-baseline="middle"
