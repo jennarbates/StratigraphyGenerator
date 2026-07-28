@@ -6,4 +6,9 @@ export const state = {
   calibration: null,
   activeFace: 0,
   compare: false,
+  model3d: null,
+  viewMode: "2d",
+  viewModeExplicit: false,
+  openedFromJob: false,
+  modelViewer: null,
 };

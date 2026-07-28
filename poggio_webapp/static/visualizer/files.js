@@ -1,4 +1,5 @@
 import { $ } from "./dom.js";
+import { validateModel3d } from "./model3d-core.mjs";
 import { ingest } from "./schema.js";
 import { state } from "./state.js";
 import { ready } from "./view.js";
@@ -49,11 +50,20 @@ document.body.addEventListener("drop",e=>{
 (async function autoloadFromJob(){
   const job = new URLSearchParams(location.search).get("job");
   if(!job) return;
+  state.openedFromJob = true;
   try{
     const r = await fetch(`/api/jobs/${job}/visualizer-files`);
     if(!r.ok) return;               // unknown job — fall back to manual pickers
     const f = await r.json();
     state.calibration = f.calibration || null;
+    state.model3d = null;
+    if(f.model3d !== undefined && f.model3d !== null){
+      try{
+        state.model3d = validateModel3d(f.model3d);
+      }catch(e){
+        console.warn("invalid 3D model payload; continuing without 3D", e);
+      }
+    }
     if(f.image_url){
       state.imageUrl = f.image_url;        // plain URL; revokeObjectURL no-ops on it
       state.imageKey = "job:"+job+":"+f.image_url;
@@ -71,8 +81,9 @@ document.body.addEventListener("drop",e=>{
         mark("jsonLabelB", "auto: " + b.label);
       }
     }
-    if(state.dataA || state.imageUrl) ready();
   }catch(e){
     console.warn("autoload from job failed; use the file pickers", e);
+  }finally{
+    if(state.model3d || state.dataA || state.imageUrl) ready();
   }
 })();
