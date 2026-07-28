@@ -23,11 +23,13 @@ class _PageParser(HTMLParser):
         self.regions = []
         self.scripts = []
         self.live_regions = []
+        self.elements = []
         self._capture = None
         self._text = []
 
     def handle_starttag(self, tag, attrs):
         attributes = dict(attrs)
+        self.elements.append((tag, attributes))
         if tag in {"button", "caption", "h1", "h2"}:
             self._capture = (tag, attributes)
             self._text = []
@@ -232,3 +234,57 @@ def test_page_html_contains_no_server_paths(page_context):
     assert str(REPO_ROOT).encode() not in rendered
     assert str(matrices_dir).encode() not in rendered
     assert json.dumps(str(matrices_dir)).encode() not in rendered
+
+
+def test_editor_exposes_saved_diagram_preview_and_export_controls(
+    page_context,
+):
+    client, _matrices_dir = page_context
+    matrix = _create_matrix(client)
+
+    response = client.get(f"/harris/{matrix['matrix_id']}")
+    page = _parse(response)
+    by_id = {
+        attributes["id"]: (tag, attributes)
+        for tag, attributes in page.elements
+        if "id" in attributes
+    }
+
+    assert {
+        "diagram-preview",
+        "diagram-empty",
+        "diagram-preview-status",
+        "download-json",
+        "download-svg",
+        "print-matrix",
+        "print-matrix-title",
+        "print-matrix-footer",
+    } <= set(by_id)
+    assert by_id["diagram-preview"][0] == "img"
+    assert by_id["diagram-preview"][1]["alt"] == (
+        "Saved Harris Matrix diagram"
+    )
+    assert by_id["download-json"][1]["href"].endswith("/export.json")
+    assert by_id["download-svg"][1]["href"].endswith("/export.svg")
+    assert "Print / Save as PDF" in page.buttons
+    assert any(
+        region.get("id") == "diagram-preview-status"
+        and region.get("aria-live") == "polite"
+        for region in page.live_regions
+    )
+
+
+def test_print_css_keeps_only_saved_diagram_content(page_context):
+    client, _matrices_dir = page_context
+
+    response = client.get("/static/harris/harris.css")
+    css = response.get_data(as_text=True)
+    print_css = css[css.index("@media print"):]
+
+    assert response.status_code == 200
+    assert ".harris-editor > :not(.editor-regions)" in print_css
+    assert ".editor-regions > :not(.diagram-region)" in print_css
+    assert ".diagram-heading-row" in print_css
+    assert ".diagram-preview-status" in print_css
+    assert ".print-only" in print_css
+    assert ".print-matrix-footer" in print_css

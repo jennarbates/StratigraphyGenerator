@@ -512,6 +512,84 @@ button:disabled {
   min-height: 13rem;
 }
 
+.diagram-heading-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.diagram-heading-row h2 {
+  margin-bottom: 0;
+}
+
+.diagram-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.55rem;
+}
+
+.diagram-actions button,
+.export-link {
+  border: 1px solid var(--accent);
+  border-radius: 0.4rem;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.export-link {
+  color: var(--accent);
+  background: white;
+  text-decoration: none;
+}
+
+.export-link:hover {
+  color: white;
+  background: var(--accent-dark);
+}
+
+.diagram-help {
+  margin-top: 0.7rem;
+}
+
+.diagram-preview-shell {
+  min-height: 10rem;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 0.45rem;
+  padding: 0.75rem;
+  background: white;
+}
+
+.diagram-preview {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.diagram-preview[hidden] {
+  display: none;
+}
+
+.diagram-preview-shell .harris-empty {
+  margin: 3.5rem auto;
+  text-align: center;
+}
+
+.diagram-preview-status {
+  margin: 0.65rem 0 0;
+}
+
+.diagram-preview-status[data-state="error"] {
+  color: var(--danger);
+}
+
+.print-only {
+  display: none;
+}
+
 @media (max-width: 720px) {
   .harris-header,
   .conflict-panel {
@@ -543,5 +621,83 @@ button:disabled {
 
   .editor-header-actions {
     justify-content: space-between;
+  }
+
+  .diagram-heading-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .diagram-actions {
+    justify-content: flex-start;
+  }
+}
+
+@media print {
+  @page {
+    size: landscape;
+    margin: 12mm;
+  }
+
+  body {
+    min-width: 0;
+    color: #252c27;
+    background: white;
+  }
+
+  .harris-page {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  .harris-editor > :not(.editor-regions),
+  .editor-regions > :not(.diagram-region),
+  .diagram-heading-row,
+  .diagram-help,
+  .diagram-preview-status {
+    display: none !important;
+  }
+
+  .editor-regions {
+    display: block;
+    margin: 0;
+  }
+
+  .diagram-region {
+    min-height: 0;
+    border: 0;
+    padding: 0;
+    background: white;
+    box-shadow: none;
+  }
+
+  .print-only {
+    display: block;
+  }
+
+  #print-matrix-title {
+    margin: 0 0 5mm;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 20pt;
+  }
+
+  .diagram-preview-shell {
+    min-height: 0;
+    overflow: visible;
+    border: 0;
+    padding: 0;
+  }
+
+  .diagram-preview {
+    width: 100%;
+    max-height: 155mm;
+    object-fit: contain;
+  }
+
+  .print-matrix-footer {
+    margin: 4mm 0 0;
+    color: #657067;
+    font-size: 9pt;
   }
 }

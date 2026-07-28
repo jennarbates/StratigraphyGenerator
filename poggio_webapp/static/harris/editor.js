@@ -69,6 +69,15 @@ const suggestionLists = {
   rejected: document.querySelector("#rejected-suggestions"),
 };
 
+const diagramPreview = document.querySelector("#diagram-preview");
+const diagramEmpty = document.querySelector("#diagram-empty");
+const diagramStatus = document.querySelector("#diagram-preview-status");
+const downloadJson = document.querySelector("#download-json");
+const downloadSvg = document.querySelector("#download-svg");
+const printButton = document.querySelector("#print-matrix");
+const printTitle = document.querySelector("#print-matrix-title");
+const printFooter = document.querySelector("#print-matrix-footer");
+
 const UNIT_TYPE_LABELS = {
   deposit: "Deposit",
   cut: "Cut",
@@ -124,6 +133,11 @@ function setSourceStatus(message, state = "") {
 function setReviewStatus(message, state = "") {
   reviewStatus.textContent = message;
   reviewStatus.dataset.state = state;
+}
+
+function setDiagramStatus(message, state = "") {
+  diagramStatus.textContent = message;
+  diagramStatus.dataset.state = state;
 }
 
 async function responseJson(response) {
@@ -643,6 +657,52 @@ function renderEditorSections() {
   renderSuggestions();
 }
 
+function refreshSavedDiagram(matrix) {
+  const matrixId = encodeURIComponent(matrix.matrix_id);
+  const exportBase = `/api/harris-matrices/${matrixId}/export`;
+  downloadJson.href = `${exportBase}.json`;
+  downloadSvg.href = `${exportBase}.svg`;
+  printTitle.textContent = matrix.title || "Untitled Harris Matrix";
+  printFooter.textContent = (
+    `${matrix.site || "Site not recorded"} · `
+    + `${matrix.trench ? `Trench ${matrix.trench}` : "Trench not recorded"}`
+    + ` · Saved revision ${matrix.revision} · ${matrix.updated_at}`
+  );
+
+  if (matrix.units.length === 0) {
+    diagramPreview.hidden = true;
+    diagramPreview.removeAttribute("src");
+    diagramEmpty.hidden = false;
+    printButton.disabled = false;
+    setDiagramStatus("The saved matrix has no units.", "saved");
+    return;
+  }
+
+  diagramEmpty.hidden = true;
+  diagramPreview.hidden = true;
+  printButton.disabled = true;
+  setDiagramStatus("Loading saved diagram…", "loading");
+  diagramPreview.src = (
+    `${exportBase}.svg?inline=1`
+    + `&revision=${encodeURIComponent(matrix.revision)}`
+  );
+}
+
+diagramPreview.addEventListener("load", () => {
+  diagramPreview.hidden = false;
+  printButton.disabled = false;
+  setDiagramStatus("Saved diagram is up to date.", "saved");
+});
+
+diagramPreview.addEventListener("error", () => {
+  diagramPreview.hidden = true;
+  printButton.disabled = true;
+  setDiagramStatus(
+    "The saved diagram could not be rendered. Check the matrix graph.",
+    "error",
+  );
+});
+
 function restoreLastSavedMatrix() {
   if (lastSavedMatrix === null) {
     return;
@@ -683,6 +743,7 @@ async function saveCurrentMatrix() {
     JSON.stringify(localSnapshot) !== JSON.stringify(snapshot)
   );
   lastSavedMatrix = saved;
+  refreshSavedDiagram(saved);
   if (changedWhileSaving) {
     localSnapshot.revision = saved.revision;
     localSnapshot.updated_at = saved.updated_at;
@@ -791,6 +852,7 @@ async function importSelectedSources() {
     populateMetadata(currentMatrix);
     renderImportWarnings(warnings);
     renderEditorSections();
+    refreshSavedDiagram(currentMatrix);
     setStatus("saved");
     setSourceStatus(
       `Imported ${jobIds.length} drawing ${
@@ -852,6 +914,7 @@ async function reviewSuggestion(suggestionId, action) {
     lastSavedMatrix = reviewed;
     populateMetadata(reviewed);
     renderEditorSections();
+    refreshSavedDiagram(reviewed);
     setStatus("saved");
     setReviewStatus(
       action === "accept"
@@ -966,6 +1029,10 @@ reloadButton.addEventListener("click", () => {
   globalThis.location.reload();
 });
 
+printButton.addEventListener("click", () => {
+  globalThis.print();
+});
+
 async function loadMatrix() {
   setStatus("loading");
   try {
@@ -977,6 +1044,7 @@ async function loadMatrix() {
     lastSavedMatrix = currentMatrix;
     populateMetadata(currentMatrix);
     renderEditorSections();
+    refreshSavedDiagram(currentMatrix);
     setStatus("saved");
   } catch (error) {
     setStatus("error", error);

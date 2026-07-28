@@ -2,7 +2,7 @@
 
 from typing import Annotated, Literal
 
-from flask import Blueprint, jsonify, render_template, request
+from flask import Blueprint, Response, jsonify, render_template, request
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -21,6 +21,7 @@ from pipeline.harris_suggestions import (
     generate_suggestions,
     review_suggestion,
 )
+from pipeline.harris_render import HarrisRenderError, render_harris_svg
 
 from .. import config, harris_store
 
@@ -108,6 +109,16 @@ def _request_object():
 
 def _matrix_response(matrix, status=200):
     return jsonify(matrix.model_dump(mode="json")), status
+
+
+def _export_response(content, mimetype, filename, *, attachment=True):
+    disposition = "attachment" if attachment else "inline"
+    response = Response(content, mimetype=mimetype)
+    response.headers["Content-Disposition"] = (
+        f'{disposition}; filename="{filename}"'
+    )
+    response.headers["Cache-Control"] = "no-store"
+    return response
 
 
 def _import_response(matrix, warnings):
@@ -221,6 +232,52 @@ def get_harris_matrix(matrix_id):
     ) as error:
         return _store_error_response(error)
     return _matrix_response(matrix)
+
+
+@bp.route("/api/harris-matrices/<matrix_id>/export.json", methods=["GET"])
+def export_harris_matrix_json(matrix_id):
+    try:
+        matrix = harris_store.load_matrix(matrix_id)
+    except (
+        harris_store.InvalidMatrixIdError,
+        harris_store.MatrixNotFoundError,
+        harris_store.InvalidMatrixError,
+    ) as error:
+        return _store_error_response(error)
+
+    filename = f"harris-matrix-{matrix.matrix_id}.json"
+    return _export_response(
+        matrix.model_dump_json(indent=2) + "\n",
+        "application/json",
+        filename,
+    )
+
+
+@bp.route("/api/harris-matrices/<matrix_id>/export.svg", methods=["GET"])
+def export_harris_matrix_svg(matrix_id):
+    try:
+        matrix = harris_store.load_matrix(matrix_id)
+        svg = render_harris_svg(matrix)
+    except (
+        harris_store.InvalidMatrixIdError,
+        harris_store.MatrixNotFoundError,
+        harris_store.InvalidMatrixError,
+    ) as error:
+        return _store_error_response(error)
+    except HarrisRenderError as error:
+        return _error_response(
+            str(error),
+            "matrix_render_error",
+            400,
+        )
+
+    filename = f"harris-matrix-{matrix.matrix_id}.svg"
+    return _export_response(
+        svg,
+        "image/svg+xml",
+        filename,
+        attachment=request.args.get("inline") != "1",
+    )
 
 
 @bp.route("/api/harris-matrices/<matrix_id>", methods=["PUT"])

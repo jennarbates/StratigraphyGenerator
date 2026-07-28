@@ -289,12 +289,53 @@
         </section>
       </section>
       <section
-        class="harris-panel future-region diagram-region"
+        class="harris-panel diagram-region"
         data-harris-region="diagram"
         aria-labelledby="diagram-heading"
       >
-        <h2 id="diagram-heading">Diagram</h2>
-        <p>The Harris Matrix diagram will appear here.</p>
+        <div class="diagram-heading-row">
+          <h2 id="diagram-heading">Diagram</h2>
+          <div class="diagram-actions" aria-label="Matrix exports">
+            <a
+              id="download-json"
+              class="export-link"
+              href="/api/harris-matrices/{{ matrix_id }}/export.json"
+              download
+            >Download JSON</a>
+            <a
+              id="download-svg"
+              class="export-link"
+              href="/api/harris-matrices/{{ matrix_id }}/export.svg"
+              download
+            >Download SVG</a>
+            <button id="print-matrix" type="button" disabled>
+              Print / Save as PDF
+            </button>
+          </div>
+        </div>
+        <p class="section-help diagram-help">
+          This preview shows the latest saved revision. Unsaved edits do not
+          change the diagram.
+        </p>
+        <h2 id="print-matrix-title" class="print-only"></h2>
+        <div id="diagram-preview-shell" class="diagram-preview-shell">
+          <p id="diagram-empty" class="harris-empty" hidden>
+            This saved matrix has no units yet. Add or import units and save
+            to generate the diagram.
+          </p>
+          <img
+            id="diagram-preview"
+            class="diagram-preview"
+            alt="Saved Harris Matrix diagram"
+            hidden
+          >
+        </div>
+        <p
+          id="diagram-preview-status"
+          class="harris-status diagram-preview-status"
+          aria-live="polite"
+        >Loading saved diagram…</p>
+        <p id="print-matrix-footer" class="print-only print-matrix-footer"></p>
       </section>
     </div>
   </main>

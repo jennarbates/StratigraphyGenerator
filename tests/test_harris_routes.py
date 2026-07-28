@@ -3,6 +3,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from types import SimpleNamespace
+from xml.etree import ElementTree
 
 import pytest
 
@@ -11,6 +12,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT / "poggio_webapp"))
 
 from backend import config, create_app, harris_store
+from pipeline.harris_matrix import HarrisMatrix
 
 
 UNIT_A = "unit-00000000000a"
@@ -755,3 +757,110 @@ def test_import_rejects_invalid_or_traversal_job_ids(
     assert response.status_code == 400
     assert response.get_json()["code"] == "invalid_request"
     assert _matrix_bytes(route_context, created["matrix_id"]) == before
+
+
+def _save_export_matrix(route_context, *, hostile_label=None):
+    matrix = _create(route_context.client)
+    matrix["units"] = [
+        _unit(UNIT_A),
+        _unit(UNIT_B),
+    ]
+    matrix["units"][0]["label"] = hostile_label or "Young"
+    matrix["units"][1]["label"] = "Old"
+    matrix["relations"] = [
+        _relation("rel-000000000001", UNIT_A, UNIT_B)
+    ]
+    response = route_context.client.put(
+        f"/api/harris-matrices/{matrix['matrix_id']}",
+        json=matrix,
+    )
+    assert response.status_code == 200
+    return response.get_json()
+
+
+def test_json_and_svg_exports_have_safe_attachment_names_and_mime_types(
+    route_context,
+):
+    sources_before = _source_snapshot(route_context.jobs_dir)
+    matrix = _save_export_matrix(route_context)
+    base = f"/api/harris-matrices/{matrix['matrix_id']}/export"
+
+    json_response = route_context.client.get(f"{base}.json")
+    svg_response = route_context.client.get(f"{base}.svg")
+
+    assert json_response.status_code == 200
+    assert json_response.mimetype == "application/json"
+    assert json_response.headers["Content-Disposition"] == (
+        f'attachment; filename="harris-matrix-{matrix["matrix_id"]}.json"'
+    )
+    assert svg_response.status_code == 200
+    assert svg_response.mimetype == "image/svg+xml"
+    assert svg_response.headers["Content-Disposition"] == (
+        f'attachment; filename="harris-matrix-{matrix["matrix_id"]}.svg"'
+    )
+    assert _source_snapshot(route_context.jobs_dir) == sources_before
+
+
+def test_json_export_round_trips_through_versioned_model(route_context):
+    matrix = _save_export_matrix(route_context)
+
+    response = route_context.client.get(
+        f"/api/harris-matrices/{matrix['matrix_id']}/export.json"
+    )
+    exported = HarrisMatrix.model_validate_json(response.data)
+
+    assert exported.model_dump(mode="json") == matrix
+    assert exported.schema_version == 1
+
+
+def test_inline_svg_uses_renderer_without_attachment(route_context):
+    matrix = _save_export_matrix(route_context)
+
+    inline = route_context.client.get(
+        f"/api/harris-matrices/{matrix['matrix_id']}/export.svg?inline=1"
+    )
+    attached = route_context.client.get(
+        f"/api/harris-matrices/{matrix['matrix_id']}/export.svg"
+    )
+
+    assert inline.status_code == 200
+    assert inline.data == attached.data
+    assert not inline.headers["Content-Disposition"].startswith("attachment")
+
+
+@pytest.mark.parametrize("extension", ["json", "svg"])
+def test_export_routes_preserve_invalid_and_missing_matrix_behavior(
+    route_context,
+    extension,
+):
+    invalid = route_context.client.get(
+        f"/api/harris-matrices/not-a-matrix/export.{extension}"
+    )
+    missing = route_context.client.get(
+        f"/api/harris-matrices/aaaaaaaaaaaa/export.{extension}"
+    )
+
+    assert invalid.status_code == 400
+    assert invalid.get_json()["code"] == "invalid_matrix_id"
+    assert missing.status_code == 404
+    assert missing.get_json()["code"] == "matrix_not_found"
+
+
+def test_malicious_exported_label_remains_escaped_in_http_svg(
+    route_context,
+):
+    hostile = '<script src="https://evil.example/x">& "unit"</script>'
+    matrix = _save_export_matrix(
+        route_context,
+        hostile_label=hostile,
+    )
+
+    response = route_context.client.get(
+        f"/api/harris-matrices/{matrix['matrix_id']}/export.svg"
+    )
+    text = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert "<script" not in text.casefold()
+    assert "&lt;script" in text.casefold()
+    assert hostile in " ".join(ElementTree.fromstring(text).itertext())
