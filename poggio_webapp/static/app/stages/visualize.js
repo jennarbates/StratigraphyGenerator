@@ -8,7 +8,8 @@ export function renderVisualize() {
       <div class="stage-kicker">Step 9 of 9 · Finished</div>
       <h2>View and download your work</h2>
       <p class="lede">Open the interactive view to explore the trench drawing
-      and its traced layers. Your files can also be saved for later use.</p>
+      and its traced layers. When this job has a completed 3D surface model,
+      you can explore it there too. Your files can also be saved for later use.</p>
       <div class="plain-note">
         <span class="note-icon" aria-hidden="true">✓</span>
         <span><strong>You’ve reached the end of the guide.</strong><br>
@@ -21,8 +22,9 @@ export function renderVisualize() {
       <details class="technical-details">
         <summary>About the interactive view</summary>
         <div class="details-body">It opens in a new tab with this drawing already
-        loaded. Advanced users can also compare it with a second tracing or
-        load files from another job.</div>
+        loaded. A completed 3D model appears alongside the drawing when one
+        exists. Advanced users can also compare the drawing with a second
+        tracing or load files from another job.</div>
       </details>
     </div>
   `;

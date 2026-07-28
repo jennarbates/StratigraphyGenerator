@@ -5,9 +5,18 @@ import {
   hasExactCalibration,
 } from "./alignment-policy.mjs";
 import { createModel3dViewer } from "./model3d.js";
+import {
+  cameraControlModel,
+  extentSize,
+  model3dControlState,
+  modelLoadStatusSummary,
+  setAllSurfaceVisibility,
+} from "./model3d-core.mjs";
 import { buildSVG, faceExtent } from "./svg.js";
 import { state } from "./state.js";
 import { viewModeModel } from "./view-mode.mjs";
+
+let model3dControls = null;
 
 export function ready(){
   const primary = state.dataA || state.dataB;
@@ -96,36 +105,63 @@ function startModelViewer(){
     return;
   }
   const container=$("model3dCanvas");
-  const status=$("model3dStatus");
   const surfaces=state.model3d.surfaces.length;
-  $("model3dSummary").textContent=`${surfaces} surface${surfaces===1?"":"s"} · Z-up · ${state.model3d.coordinate_system.units}`;
-  status.textContent=`Loading 0 of ${surfaces} surfaces…`;
+  const units=state.model3d.coordinate_system.units;
+  const size=extentSize(state.model3d.extent);
+  $("model3dSummary").textContent=[
+    `${surfaces} surface${surfaces===1?"":"s"}`,
+    `${size.map(value=>Number(value.toFixed(2))).join(" × ")} ${units}`,
+    "Z-up",
+  ].join(" · ");
   container.replaceChildren();
+  model3dControls=model3dControlState(state.model3d,name=>colorFor(name));
+  setModelLoadUi({
+    phase:"loading",
+    loaded:0,
+    failed:0,
+    settled:0,
+    total:surfaces,
+  });
 
   let viewer;
   try{
     viewer=createModel3dViewer(container,state.model3d,{
+      opacity:model3dControls.opacity,
+      wireframe:model3dControls.wireframe,
+      helpersVisible:model3dControls.helpersVisible,
+      colorFor:surface=>colorFor(surface.name),
       onProgress:detail=>{
-        if(state.modelViewer!==viewer) return;
-        if(detail.phase==="loading"){
-          status.textContent=`Loading ${detail.settled||0} of ${detail.total} surfaces…`;
-        }else if(detail.phase==="complete"){
-          status.textContent=`Loaded ${detail.loaded} of ${detail.total} surfaces.`;
-        }else if(detail.phase==="error"){
-          status.textContent="The 3D model could not be displayed.";
-        }
+        if(viewer&&state.modelViewer!==viewer) return;
+        setModelLoadUi(detail);
       },
     });
   }catch(error){
-    status.textContent="The 3D model could not be displayed.";
+    setModelLoadUi({
+      phase:"error",
+      loaded:0,
+      failed:0,
+      total:surfaces,
+    });
     console.warn("3D model viewer initialization failed",error);
     return;
   }
 
   state.modelViewer=viewer;
+  viewer.canvas?.setAttribute(
+    "aria-describedby",
+    "model3dInstructions model3dStatus model3dWarning",
+  );
+  bindModel3dControls(viewer);
   viewer.load().catch(error=>{
     if(state.modelViewer!==viewer) return;
-    status.textContent="The 3D model could not be displayed.";
+    const summary=viewer.loadSummary();
+    setModelLoadUi({
+      phase:"error",
+      loaded:summary.loaded.length,
+      failed:summary.failed.length,
+      total:summary.total,
+      failures:summary.failed,
+    });
     console.warn("3D model viewer load failed",error);
   });
 }
@@ -134,7 +170,160 @@ function disposeModelViewer(){
   if(!state.modelViewer) return;
   const viewer=state.modelViewer;
   state.modelViewer=null;
+  model3dControls=null;
   viewer.dispose();
+}
+
+function bindModel3dControls(viewer){
+  renderSurfaceControls(viewer);
+
+  $("model3dShowAll").onclick=()=>setEverySurfaceVisible(viewer,true);
+  $("model3dHideAll").onclick=()=>setEverySurfaceVisible(viewer,false);
+
+  const opacity=$("model3dOpacity");
+  opacity.value=String(model3dControls.opacity);
+  updateOpacityOutput(model3dControls.opacity);
+  opacity.oninput=event=>{
+    const value=Number(event.target.value);
+    model3dControls.opacity=value;
+    updateOpacityOutput(value);
+    viewer.setOpacity(value);
+  };
+
+  const wireframe=$("model3dWireframe");
+  wireframe.checked=model3dControls.wireframe;
+  wireframe.onchange=event=>{
+    model3dControls.wireframe=event.target.checked;
+    viewer.setWireframe(event.target.checked);
+  };
+
+  const helpers=$("model3dHelpers");
+  helpers.checked=model3dControls.helpersVisible;
+  helpers.onchange=event=>{
+    model3dControls.helpersVisible=event.target.checked;
+    viewer.setHelpersVisible(event.target.checked);
+  };
+
+  cameraControlModel().forEach(control=>{
+    const button=$(cameraButtonId(control.id));
+    if(control.command==="reset"){
+      button.onclick=()=>{
+        if(viewer.resetCamera()) updateCameraControls("isometric");
+      };
+      return;
+    }
+    button.onclick=()=>{
+      if(viewer.setCameraView(control.view)) updateCameraControls(control.view);
+    };
+  });
+  updateCameraControls(model3dControls.cameraView);
+  setCameraControlsEnabled(false);
+
+  $("model3dUse2d").onclick=()=>selectViewMode("2d");
+  configureModelRecovery(false);
+}
+
+function renderSurfaceControls(viewer){
+  const root=$("model3dSurfaces");
+  root.replaceChildren();
+  model3dControls.surfaces.forEach((surface,index)=>{
+    const label=document.createElement("label");
+    label.className="model3d-surface";
+
+    const input=document.createElement("input");
+    input.type="checkbox";
+    input.checked=surface.visible;
+    input.id=`model3dSurface${index}`;
+    input.onchange=event=>{
+      model3dControls.surfaces[index]={
+        ...model3dControls.surfaces[index],
+        visible:event.target.checked,
+      };
+      viewer.setSurfaceVisible(surface.name,event.target.checked);
+    };
+
+    const swatch=document.createElement("span");
+    swatch.className="model3d-swatch";
+    swatch.style.backgroundColor=surface.color;
+    swatch.setAttribute("aria-hidden","true");
+
+    const name=document.createElement("span");
+    name.className="model3d-surface-name";
+    name.textContent=surface.name;
+
+    label.append(input,swatch,name);
+    root.appendChild(label);
+  });
+}
+
+function setEverySurfaceVisible(viewer,visible){
+  model3dControls.surfaces=setAllSurfaceVisibility(
+    model3dControls.surfaces,
+    visible,
+  );
+  model3dControls.surfaces.forEach((surface,index)=>{
+    const checkbox=$(`model3dSurface${index}`);
+    if(checkbox) checkbox.checked=visible;
+    viewer.setSurfaceVisible(surface.name,visible);
+  });
+}
+
+function updateOpacityOutput(value){
+  $("model3dOpacityValue").textContent=`${Math.round(value*100)}%`;
+}
+
+function cameraButtonId(id){
+  const suffix=id.charAt(0).toUpperCase()+id.slice(1);
+  return `model3dCamera${suffix}`;
+}
+
+function updateCameraControls(activeView){
+  if(model3dControls) model3dControls.cameraView=activeView;
+  cameraControlModel(activeView).forEach(control=>{
+    if(control.pressed===null) return;
+    $(cameraButtonId(control.id)).setAttribute(
+      "aria-pressed",
+      String(control.pressed),
+    );
+  });
+}
+
+function setCameraControlsEnabled(enabled){
+  cameraControlModel().forEach(control=>{
+    $(cameraButtonId(control.id)).disabled=!enabled;
+  });
+}
+
+function setModelLoadUi(detail){
+  const summary=modelLoadStatusSummary(detail);
+  $("model3dStatus").textContent=summary.status;
+
+  const warning=$("model3dWarning");
+  const messages=[];
+  if(summary.warning) messages.push(summary.warning);
+  (state.model3d?.warnings||[]).forEach(message=>messages.push(message));
+  warning.textContent=messages.join(" ");
+  warning.hidden=messages.length===0;
+
+  if(detail.phase==="complete"){
+    setCameraControlsEnabled(detail.loaded>0);
+  }else if(detail.phase==="error"){
+    setCameraControlsEnabled(false);
+  }
+  configureModelRecovery(summary.recoverable);
+}
+
+function configureModelRecovery(visible){
+  const recovery=$("model3dRecovery");
+  recovery.hidden=!visible;
+
+  const use2d=$("model3dUse2d");
+  use2d.hidden=!(state.dataA||state.dataB);
+
+  const downloads=$("model3dDownloads");
+  const job=new URLSearchParams(location.search).get("job");
+  downloads.hidden=!job;
+  if(job) downloads.href=`/jobs/${encodeURIComponent(job)}`;
 }
 
 function drawablePoints(face){

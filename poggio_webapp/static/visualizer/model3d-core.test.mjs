@@ -3,10 +3,14 @@ import test from "node:test";
 
 import {
   cameraPreset,
+  cameraControlModel,
   clampOpacity,
   deterministicSurfaceColor,
   extentCenter,
   extentSize,
+  model3dControlState,
+  modelLoadStatusSummary,
+  setAllSurfaceVisibility,
   surfaceControlModel,
   validateModel3d,
 } from "./model3d-core.mjs";
@@ -251,4 +255,110 @@ test("deterministicSurfaceColor is stable without renderer or DOM state", () => 
     name: "TypeError",
     message: /surface name must be a non-empty string/,
   });
+});
+
+test("model3dControlState uses accessible control defaults in manifest order", () => {
+  const controls = model3dControlState(
+    validModel(),
+    (name, index) => `${index}:${name}`,
+  );
+
+  assert.equal(controls.opacity, 0.72);
+  assert.equal(controls.wireframe, false);
+  assert.equal(controls.helpersVisible, true);
+  assert.equal(controls.cameraView, "isometric");
+  assert.deepEqual(
+    controls.surfaces.map(({ name, visible, color }) => ({ name, visible, color })),
+    [
+      { name: "Topsoil", visible: true, color: "0:Topsoil" },
+      { name: "Fill", visible: true, color: "1:Fill" },
+    ],
+  );
+});
+
+test("setAllSurfaceVisibility creates show-all and hide-all state", () => {
+  const initial = model3dControlState(validModel()).surfaces;
+  const hidden = setAllSurfaceVisibility(initial, false);
+  const shown = setAllSurfaceVisibility(hidden, true);
+
+  assert.deepEqual(hidden.map((surface) => surface.visible), [false, false]);
+  assert.deepEqual(shown.map((surface) => surface.visible), [true, true]);
+  assert.deepEqual(shown.map((surface) => surface.name), ["Topsoil", "Fill"]);
+  assert.notStrictEqual(hidden, initial);
+  assert.notStrictEqual(hidden[0], initial[0]);
+  assert.equal(initial[0].visible, true, "the input state is not mutated");
+  assert.throws(() => setAllSurfaceVisibility(initial, "yes"), {
+    name: "TypeError",
+    message: /visible must be a boolean/,
+  });
+});
+
+test("cameraControlModel exposes the required camera control names", () => {
+  const controls = cameraControlModel("front");
+
+  assert.deepEqual(
+    controls.map((control) => control.label),
+    ["Reset", "Top", "Front", "Side", "3D"],
+  );
+  assert.equal(controls.find((control) => control.label === "Reset").pressed, null);
+  assert.equal(controls.find((control) => control.label === "Front").pressed, true);
+  assert.equal(controls.find((control) => control.label === "3D").pressed, false);
+  assert.throws(() => cameraControlModel("back"), {
+    name: "TypeError",
+    message: /active camera view/,
+  });
+});
+
+test("modelLoadStatusSummary reports deterministic partial failures", () => {
+  const summary = modelLoadStatusSummary({
+    phase: "complete",
+    loaded: 1,
+    failed: 2,
+    total: 3,
+    failures: [
+      { name: "Fill (late?)", message: "404" },
+      { name: "Topsoil & stones", message: "invalid OBJ" },
+    ],
+  });
+
+  assert.deepEqual(summary, {
+    status: "Loaded 1 of 3 surfaces.",
+    warning: "Could not load 2 surfaces: Fill (late?), Topsoil & stones.",
+    failedNames: ["Fill (late?)", "Topsoil & stones"],
+    recoverable: false,
+  });
+});
+
+test("modelLoadStatusSummary covers loading and all-failed recovery", () => {
+  assert.deepEqual(
+    modelLoadStatusSummary({
+      phase: "loading",
+      loaded: 1,
+      failed: 0,
+      settled: 1,
+      total: 2,
+    }),
+    {
+      status: "Loading 1 of 2 surfaces…",
+      warning: "",
+      failedNames: [],
+      recoverable: false,
+    },
+  );
+
+  assert.deepEqual(
+    modelLoadStatusSummary({
+      phase: "error",
+      loaded: 0,
+      failed: 2,
+      total: 2,
+      failures: [{ name: "Topsoil" }, { name: "Fill" }],
+    }),
+    {
+      status: "No 3D surfaces could be displayed.",
+      warning: "Could not load 2 surfaces: Topsoil, Fill.",
+      failedNames: ["Topsoil", "Fill"],
+      recoverable: true,
+    },
+  );
 });

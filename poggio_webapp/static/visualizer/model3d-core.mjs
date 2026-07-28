@@ -2,6 +2,13 @@ const MODEL_KIND = "gempy-surface-model";
 const SUPPORTED_SCHEMA_VERSION = 1;
 const MIN_OPACITY = 0.1;
 const MAX_OPACITY = 1;
+const DEFAULT_OPACITY = 0.72;
+const CAMERA_VIEW_NAMES = Object.freeze([
+  "isometric",
+  "top",
+  "front",
+  "side",
+]);
 
 // A fixed palette keeps the fallback independent of CSS, Three.js, and the DOM.
 const SURFACE_COLORS = Object.freeze([
@@ -297,4 +304,174 @@ export function clampOpacity(value) {
     throw new TypeError("opacity must be a finite number");
   }
   return Math.min(MAX_OPACITY, Math.max(MIN_OPACITY, value));
+}
+
+/**
+ * Return the complete initial state for visualizer-owned 3D controls.
+ */
+export function model3dControlState(
+  model3d,
+  colorFor = deterministicSurfaceColor,
+) {
+  return {
+    surfaces: surfaceControlModel(model3d, colorFor),
+    opacity: DEFAULT_OPACITY,
+    wireframe: false,
+    helpersVisible: true,
+    cameraView: "isometric",
+  };
+}
+
+/**
+ * Create a detached visibility state without reordering model surfaces.
+ */
+export function setAllSurfaceVisibility(surfaces, visible) {
+  if (!Array.isArray(surfaces)) {
+    throw new TypeError("surfaces must be an array");
+  }
+  if (typeof visible !== "boolean") {
+    throw new TypeError("visible must be a boolean");
+  }
+
+  return surfaces.map((surface, index) => {
+    if (!isObject(surface) || typeof surface.name !== "string") {
+      throw new TypeError(`surfaces[${index}] must be a surface control`);
+    }
+    return {
+      ...surface,
+      visible,
+    };
+  });
+}
+
+/**
+ * Return renderer-neutral camera button state in visible control order.
+ *
+ * Reset is an action, so it does not expose a pressed state. The four view
+ * choices form the persistent camera selection.
+ */
+export function cameraControlModel(activeView = "isometric") {
+  if (!CAMERA_VIEW_NAMES.includes(activeView)) {
+    throw new TypeError(
+      'active camera view must be "isometric", "top", "front", or "side"',
+    );
+  }
+
+  return [
+    {
+      id: "reset",
+      label: "Reset",
+      command: "reset",
+      view: "isometric",
+      pressed: null,
+    },
+    {
+      id: "top",
+      label: "Top",
+      command: "view",
+      view: "top",
+      pressed: activeView === "top",
+    },
+    {
+      id: "front",
+      label: "Front",
+      command: "view",
+      view: "front",
+      pressed: activeView === "front",
+    },
+    {
+      id: "side",
+      label: "Side",
+      command: "view",
+      view: "side",
+      pressed: activeView === "side",
+    },
+    {
+      id: "isometric",
+      label: "3D",
+      command: "view",
+      view: "isometric",
+      pressed: activeView === "isometric",
+    },
+  ];
+}
+
+function normalizedCount(value, name, fallback = 0) {
+  const count = value ?? fallback;
+  if (!Number.isInteger(count) || count < 0) {
+    throw new TypeError(`${name} must be a non-negative integer`);
+  }
+  return count;
+}
+
+function failureNames(failures) {
+  if (failures === undefined) return [];
+  if (!Array.isArray(failures)) {
+    throw new TypeError("failures must be an array");
+  }
+  return failures.map((failure, index) => {
+    if (!isObject(failure)) {
+      throw new TypeError(`failures[${index}] must be an object`);
+    }
+    return validatedNonEmptyString(failure.name, `failures[${index}].name`);
+  });
+}
+
+function failureWarning(names) {
+  if (!names.length) return "";
+  const noun = names.length === 1 ? "surface" : "surfaces";
+  const list = names.join(", ");
+  const ending = /[.!?]$/u.test(list) ? "" : ".";
+  return `Could not load ${names.length} ${noun}: ${list}${ending}`;
+}
+
+/**
+ * Convert renderer progress into concise text for the two aria-live regions.
+ */
+export function modelLoadStatusSummary(detail) {
+  if (!isObject(detail)) {
+    throw new TypeError("load detail must be an object");
+  }
+
+  const total = normalizedCount(detail.total, "total");
+  const loaded = normalizedCount(detail.loaded, "loaded");
+  const failed = normalizedCount(detail.failed, "failed");
+  const names = failureNames(detail.failures);
+
+  if (detail.phase === "loading") {
+    const settled = normalizedCount(
+      detail.settled,
+      "settled",
+      loaded + failed,
+    );
+    return {
+      status: `Loading ${Math.min(settled, total)} of ${total} surfaces…`,
+      warning: "",
+      failedNames: [],
+      recoverable: false,
+    };
+  }
+
+  if (detail.phase === "complete") {
+    return {
+      status: `Loaded ${loaded} of ${total} surfaces.`,
+      warning: failureWarning(names),
+      failedNames: names,
+      recoverable: loaded === 0,
+    };
+  }
+
+  if (detail.phase === "error") {
+    return {
+      status: loaded > 0
+        ? `Loaded ${loaded} of ${total} surfaces.`
+        : "No 3D surfaces could be displayed.",
+      warning: failureWarning(names)
+        || "The 3D viewer could not start. Your 2D data and job downloads remain available.",
+      failedNames: names,
+      recoverable: true,
+    };
+  }
+
+  throw new TypeError('load detail phase must be "loading", "complete", or "error"');
 }

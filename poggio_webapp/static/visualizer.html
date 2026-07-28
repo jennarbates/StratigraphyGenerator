@@ -64,10 +64,73 @@
       </div>
     </div>
 
-    <section class="model3d-sidebar" id="controls3d" hidden>
-      <h2 class="section">3D model</h2>
+    <section class="model3d-sidebar" id="controls3d"
+      aria-labelledby="model3dHeading" hidden>
+      <h2 class="section" id="model3dHeading">3D model</h2>
       <p class="hint" id="model3dSummary"></p>
-      <p class="hint" id="model3dStatus">Preparing 3D model…</p>
+
+      <div class="model3d-control-block">
+        <div class="model3d-control-heading">
+          <h3>Surfaces</h3>
+          <div class="model3d-compact-actions">
+            <button type="button" id="model3dShowAll"
+              aria-controls="model3dSurfaces">Show all</button>
+            <button type="button" id="model3dHideAll"
+              aria-controls="model3dSurfaces">Hide all</button>
+          </div>
+        </div>
+        <div class="model3d-surface-list" id="model3dSurfaces"
+          role="group" aria-label="Surface visibility"></div>
+      </div>
+
+      <div class="model3d-control-block">
+        <div class="model3d-range-label">
+          <label for="model3dOpacity">Surface opacity</label>
+          <output id="model3dOpacityValue" for="model3dOpacity">72%</output>
+        </div>
+        <input class="model3d-range" id="model3dOpacity" type="range"
+          min="0.1" max="1" step="0.01" value="0.72">
+        <label class="toggle">
+          <input type="checkbox" id="model3dWireframe"> Wireframe
+        </label>
+        <label class="toggle">
+          <input type="checkbox" id="model3dHelpers" checked>
+          Bounding box and axes
+        </label>
+      </div>
+
+      <div class="model3d-control-block">
+        <h3>Camera</h3>
+        <div class="model3d-camera-buttons" role="group"
+          aria-label="Camera view">
+          <button type="button" id="model3dCameraReset">Reset</button>
+          <button type="button" id="model3dCameraTop"
+            aria-pressed="false">Top</button>
+          <button type="button" id="model3dCameraFront"
+            aria-pressed="false">Front</button>
+          <button type="button" id="model3dCameraSide"
+            aria-pressed="false">Side</button>
+          <button type="button" id="model3dCameraIsometric"
+            aria-pressed="true">3D</button>
+        </div>
+      </div>
+
+      <p class="hint model3d-instructions" id="model3dInstructions">
+        Drag to rotate, scroll or pinch to zoom, and right-drag or two-finger
+        drag to pan.
+      </p>
+      <p class="model3d-status" id="model3dStatus" role="status"
+        aria-live="polite" aria-atomic="true">Preparing 3D model…</p>
+      <p class="model3d-warning" id="model3dWarning" role="status"
+        aria-live="polite" aria-atomic="true" hidden></p>
+      <div class="model3d-recovery" id="model3dRecovery" hidden>
+        <p>The page is still usable. Try the 2D drawing or return to the
+          completed job to download its files.</p>
+        <div class="model3d-recovery-actions">
+          <button type="button" id="model3dUse2d">Use 2D drawing</button>
+          <a id="model3dDownloads" hidden>Open job downloads</a>
+        </div>
+      </div>
     </section>
   </aside>
 
@@ -90,8 +153,10 @@
       </div>
     </section>
 
-    <section class="model3d-view-3d" id="view3d" hidden>
-      <div class="model3d-canvas" id="model3dCanvas"></div>
+    <section class="model3d-view-3d" id="view3d"
+      aria-labelledby="mode3d" hidden>
+      <div class="model3d-canvas" id="model3dCanvas"
+        aria-describedby="model3dInstructions model3dStatus model3dWarning"></div>
     </section>
   </main>
 </div>
