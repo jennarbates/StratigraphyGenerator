@@ -241,7 +241,12 @@ def export_meshes(geo_model, solution, surf_order, outdir):
 
 def run_build(points_csv, orientations_csv, out_prefix,
               project_name="trench_model",
-              resolution=(50, 50, 30),
+              # Higher voxel count = smoother lith-block/mesh surfaces at the
+              # cost of longer compute + bigger .bin/.npz files. GemPy's own
+              # docs recommend staying under ~1,000,000 cells total; this is
+              # 700,000. Drop back toward (50, 50, 30) only if compute time
+              # becomes a problem on a given machine.
+              resolution=(100, 100, 70),
               extent=None,
               padding_xy=2.0,
               padding_z=1.0,
