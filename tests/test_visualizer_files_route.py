@@ -84,6 +84,30 @@ def _viewer_manifest(*, surfaces=None, schema_version=1):
     }
 
 
+def _volume_manifest(**overrides):
+    volume = {
+        "schema_version": 1,
+        "format": "raw",
+        "dtype": "uint16-le",
+        "layout": "C",
+        "axes": ["x", "y", "z"],
+        "shape": [50, 50, 30],
+        "path": "trench_model_lith_block.bin",
+        "lithologies": [
+            {
+                "id": 1,
+                "name": "Lithology 1",
+            },
+            {
+                "id": 2,
+                "name": "Lithology 2",
+            },
+        ],
+    }
+    volume.update(overrides)
+    return volume
+
+
 def _write_manifest(job_dir, payload, relative_path=None):
     relative_path = (
         relative_path
@@ -434,6 +458,146 @@ def test_missing_lith_block_keeps_surface_without_lith_url(client):
     assert len(model["surfaces"]) == 1
     assert "lith_block_url" not in model
     assert any("lithology" in warning.lower() for warning in model["warnings"])
+
+
+def test_valid_volume_replaces_manifest_path_with_job_file_url(client):
+    job_id = "model-with-volume"
+    job_dir = jobs.JOBS_DIR / job_id
+    job_dir.mkdir()
+    manifest = _viewer_manifest()
+    manifest["volume"] = _volume_manifest()
+    _write_manifest(job_dir, manifest)
+    _write_model_file(
+        job_dir,
+        "06_gempy_model/trench_model_meshes/Topsoil.obj",
+    )
+    _write_model_file(
+        job_dir,
+        "06_gempy_model/trench_model_lith_block.bin",
+    )
+    _write_meta(job_dir, {})
+
+    response = client.get(f"/api/jobs/{job_id}/visualizer-files")
+
+    assert response.status_code == 200
+    model = response.get_json()["model3d"]
+    assert model["volume"] == {
+        "schema_version": 1,
+        "format": "raw",
+        "dtype": "uint16-le",
+        "layout": "C",
+        "axes": ["x", "y", "z"],
+        "shape": [50, 50, 30],
+        "url": (
+            f"/api/jobs/{job_id}/file?"
+            "path=06_gempy_model/trench_model_lith_block.bin"
+        ),
+        "lithologies": [
+            {
+                "id": 1,
+                "name": "Lithology 1",
+            },
+            {
+                "id": 2,
+                "name": "Lithology 2",
+            },
+        ],
+    }
+    assert "\"path\"" not in json.dumps(model["volume"])
+    assert str(job_dir) not in response.get_data(as_text=True)
+
+
+def test_missing_volume_binary_omits_volume_but_preserves_surfaces(client):
+    job_id = "model-with-missing-volume"
+    job_dir = jobs.JOBS_DIR / job_id
+    job_dir.mkdir()
+    manifest = _viewer_manifest()
+    manifest["volume"] = _volume_manifest()
+    _write_manifest(job_dir, manifest)
+    _write_model_file(
+        job_dir,
+        "06_gempy_model/trench_model_meshes/Topsoil.obj",
+    )
+    _write_meta(job_dir, {})
+
+    response = client.get(f"/api/jobs/{job_id}/visualizer-files")
+
+    assert response.status_code == 200
+    model = response.get_json()["model3d"]
+    assert [surface["name"] for surface in model["surfaces"]] == ["Topsoil"]
+    assert "volume" not in model
+
+
+@pytest.mark.parametrize(
+    ("field", "invalid_value"),
+    [
+        ("schema_version", 2),
+        ("format", "npz"),
+        ("dtype", "float32-le"),
+        ("layout", "F"),
+        ("axes", ["z", "y", "x"]),
+        ("shape", [50, 50]),
+        ("lithologies", [{"id": 1, "name": ""}]),
+    ],
+)
+def test_malformed_or_unsupported_volume_is_omitted_safely(
+    client,
+    field,
+    invalid_value,
+):
+    job_id = f"model-with-invalid-volume-{field}"
+    job_dir = jobs.JOBS_DIR / job_id
+    job_dir.mkdir()
+    manifest = _viewer_manifest()
+    manifest["volume"] = _volume_manifest(**{field: invalid_value})
+    _write_manifest(job_dir, manifest)
+    _write_model_file(
+        job_dir,
+        "06_gempy_model/trench_model_meshes/Topsoil.obj",
+    )
+    _write_model_file(
+        job_dir,
+        "06_gempy_model/trench_model_lith_block.bin",
+    )
+    _write_meta(job_dir, {})
+
+    response = client.get(f"/api/jobs/{job_id}/visualizer-files")
+
+    assert response.status_code == 200
+    model = response.get_json()["model3d"]
+    assert [surface["name"] for surface in model["surfaces"]] == ["Topsoil"]
+    assert "volume" not in model
+
+
+def test_volume_path_traversal_is_rejected_without_exposing_a_path(
+    client,
+    tmp_path,
+):
+    job_id = "model-with-traversal-volume"
+    job_dir = jobs.JOBS_DIR / job_id
+    job_dir.mkdir()
+    outside_volume = tmp_path / "outside-volume.bin"
+    outside_volume.write_bytes(b"\x01\x00")
+    manifest = _viewer_manifest()
+    manifest["volume"] = _volume_manifest(
+        path="../../../outside-volume.bin",
+    )
+    _write_manifest(job_dir, manifest)
+    _write_model_file(
+        job_dir,
+        "06_gempy_model/trench_model_meshes/Topsoil.obj",
+    )
+    _write_meta(job_dir, {})
+
+    response = client.get(f"/api/jobs/{job_id}/visualizer-files")
+    body = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    model = response.get_json()["model3d"]
+    assert [surface["name"] for surface in model["surfaces"]] == ["Topsoil"]
+    assert "volume" not in model
+    assert str(outside_volume) not in body
+    assert "outside-volume.bin" not in body
 
 
 def test_malformed_manifest_does_not_break_two_dimensional_payload(client):

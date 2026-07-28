@@ -110,6 +110,63 @@ def _resolve_manifest_artifact(manifest_directory, job_directory, path_str):
     return candidate
 
 
+def _validated_volume_metadata(volume, resolution):
+    if not isinstance(volume, dict):
+        return None
+
+    shape = volume.get("shape")
+    axes = volume.get("axes")
+    lithologies = volume.get("lithologies")
+    if not (
+        type(volume.get("schema_version")) is int
+        and volume["schema_version"] == 1
+        and volume.get("format") == "raw"
+        and volume.get("dtype") == "uint16-le"
+        and volume.get("layout") == "C"
+        and axes == ["x", "y", "z"]
+        and isinstance(shape, list)
+        and len(shape) == 3
+        and all(type(value) is int and value > 0 for value in shape)
+        and shape == resolution
+        and isinstance(volume.get("path"), str)
+        and bool(volume["path"])
+        and isinstance(lithologies, list)
+    ):
+        return None
+
+    normalized_lithologies = []
+    seen_ids = set()
+    for lithology in lithologies:
+        if not isinstance(lithology, dict):
+            return None
+        lithology_id = lithology.get("id")
+        name = lithology.get("name")
+        if not (
+            type(lithology_id) is int
+            and 0 <= lithology_id <= 65535
+            and lithology_id not in seen_ids
+            and isinstance(name, str)
+            and bool(name)
+        ):
+            return None
+        seen_ids.add(lithology_id)
+        normalized_lithologies.append({
+            "id": lithology_id,
+            "name": name,
+        })
+
+    return {
+        "schema_version": volume["schema_version"],
+        "format": volume["format"],
+        "dtype": volume["dtype"],
+        "layout": volume["layout"],
+        "axes": list(axes),
+        "shape": list(shape),
+        "path": volume["path"],
+        "lithologies": normalized_lithologies,
+    }
+
+
 def _model3d_from_manifest(job_id, job_directory, manifest_path):
     try:
         manifest = json.loads(manifest_path.read_text())
@@ -181,6 +238,26 @@ def _model3d_from_manifest(job_id, job_directory, manifest_path):
         warnings.append("Lithology block is unavailable.")
     else:
         model3d["lith_block_url"] = rel_url(job_id, lith_block_path)
+
+    raw_volume = manifest.get("volume")
+    if raw_volume is not None:
+        volume = _validated_volume_metadata(
+            raw_volume,
+            manifest["resolution"],
+        )
+        if volume is None:
+            warnings.append("Lithology volume metadata is unsupported or malformed.")
+        else:
+            volume_path = _resolve_manifest_artifact(
+                manifest_directory,
+                job_directory,
+                volume.pop("path"),
+            )
+            if volume_path is None:
+                warnings.append("Lithology volume is unavailable.")
+            else:
+                volume["url"] = rel_url(job_id, volume_path)
+                model3d["volume"] = volume
 
     return model3d
 

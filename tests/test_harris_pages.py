@@ -15,6 +15,9 @@ from backend import config, create_app
 class _PageParser(HTMLParser):
     def __init__(self):
         super().__init__()
+        self.buttons = []
+        self.captions = []
+        self.controls = []
         self.headings = []
         self.labels = []
         self.regions = []
@@ -25,12 +28,14 @@ class _PageParser(HTMLParser):
 
     def handle_starttag(self, tag, attrs):
         attributes = dict(attrs)
-        if tag in {"h1", "h2"}:
+        if tag in {"button", "caption", "h1", "h2"}:
             self._capture = (tag, attributes)
             self._text = []
         elif tag == "label":
             self._capture = (tag, attributes)
             self._text = []
+        if tag in {"input", "select", "textarea"}:
+            self.controls.append(attributes)
         if tag == "section" and "data-harris-region" in attributes:
             self.regions.append(attributes["data-harris-region"])
         if tag == "script":
@@ -44,8 +49,12 @@ class _PageParser(HTMLParser):
         text = " ".join("".join(self._text).split())
         if tag in {"h1", "h2"}:
             self.headings.append(text)
+        elif tag == "button":
+            self.buttons.append(text)
+        elif tag == "caption":
+            self.captions.append(text)
         else:
-            self.labels.append(text)
+            self.labels.append((self._capture[1], text))
         self._capture = None
         self._text = []
 
@@ -96,7 +105,9 @@ def test_dashboard_get_is_reachable_and_creates_nothing(page_context):
     assert response.status_code == 200
     assert list(matrices_dir.iterdir()) == []
     assert "Harris matrices" in page.headings
-    assert {"Title", "Site", "Trench"} <= set(page.labels)
+    assert {"Title", "Site", "Trench"} <= {
+        text for _attributes, text in page.labels
+    }
     normalized_html = " ".join(
         response.get_data(as_text=True).split()
     )
@@ -112,14 +123,44 @@ def test_dashboard_get_is_reachable_and_creates_nothing(page_context):
 def test_editor_shell_loads_without_embedding_matrix_metadata(page_context):
     client, matrices_dir = page_context
     hostile_title = '</script><script data-injected="yes">alert(1)</script>'
+    hostile_unit = '<img src=x onerror="alert(2)">'
     matrix = _create_matrix(client, hostile_title)
+    matrix["units"] = [{
+        "id": "unit-000000000001",
+        "label": hostile_unit,
+        "unit_type": "unknown",
+        "description": hostile_unit,
+        "source_refs": [],
+    }]
+    saved = client.put(
+        f"/api/harris-matrices/{matrix['matrix_id']}",
+        json=matrix,
+    )
+    assert saved.status_code == 200
 
     response = client.get(f"/harris/{matrix['matrix_id']}")
     page = _parse(response)
 
     assert response.status_code == 200
     assert "Harris matrix editor" in page.headings
-    assert {"Title", "Site", "Trench", "Notes"} <= set(page.labels)
+    label_text = {text for _attributes, text in page.labels}
+    assert {
+        "Title",
+        "Site",
+        "Trench",
+        "Notes",
+        "Search units",
+        "Manual unit label",
+        "Manual unit type",
+        "Manual unit description",
+        "Younger unit",
+        "Older unit",
+        "Relationship kind",
+        "Relationship evidence",
+        "Relationship notes",
+        "Units to correlate",
+        "Correlation notes",
+    } <= label_text
     assert set(page.regions) == {
         "sources",
         "units",
@@ -138,8 +179,29 @@ def test_editor_shell_loads_without_embedding_matrix_metadata(page_context):
         for region in page.live_regions
     )
     assert hostile_title.encode() not in response.data
+    assert hostile_unit.encode() not in response.data
     assert b'data-injected="yes"' not in response.data
     assert str(matrices_dir).encode() not in response.data
+    assert {"Imported units", "Saved relationships"} <= set(page.captions)
+
+    labelled_ids = {
+        attributes["for"]
+        for attributes, _text in page.labels
+        if "for" in attributes
+    }
+    for control in page.controls:
+        if control.get("type") == "hidden":
+            continue
+        assert (
+            control.get("id") in labelled_ids
+            or "aria-label" in control
+            or "aria-labelledby" in control
+        ), control
+
+    assert all("all" not in text.casefold() for text in page.buttons)
+    normalized_html = " ".join(response.get_data(as_text=True).split())
+    assert "bulk-accept" not in normalized_html.casefold()
+    assert "<script>" not in normalized_html
 
 
 def test_editor_shell_rejects_invalid_and_missing_ids(page_context):

@@ -20,12 +20,14 @@ def write_test_manifest(
     series_order=None,
     single_face_note=None,
     mesh_filenames=None,
+    volume=False,
 ):
     model_dir = tmp_path / "06_gempy_model"
     mesh_dir = model_dir / "trench_model_meshes"
     mesh_dir.mkdir(parents=True)
     manifest_path = model_dir / "trench_model_viewer.json"
     lith_block_path = model_dir / "trench_model_lith_block.npz"
+    volume_path = model_dir / "trench_model_lith_block.bin"
     names = series_order or ["Topsoil", "Fill"]
     filenames = (
         mesh_filenames
@@ -42,6 +44,15 @@ def write_test_manifest(
         single_face_note=single_face_note,
         mesh_paths=mesh_paths,
         lith_block_path=lith_block_path,
+        volume_path=volume_path if volume else None,
+        volume_lithologies=(
+            [
+                {"id": 1, "name": "Topsoil"},
+                {"id": 2, "name": "Basement"},
+            ]
+            if volume
+            else None
+        ),
     )
 
     assert Path(returned_path) == manifest_path
@@ -154,13 +165,40 @@ def test_manifest_with_no_meshes_has_empty_surfaces(tmp_path):
     assert manifest["surfaces"] == []
 
 
+def test_manifest_volume_metadata_matches_binary(tmp_path):
+    _, manifest = write_test_manifest(tmp_path, volume=True)
+
+    assert manifest["volume"] == {
+        "schema_version": 1,
+        "format": "raw",
+        "dtype": "uint16-le",
+        "layout": "C",
+        "axes": ["x", "y", "z"],
+        "shape": [50, 50, 30],
+        "path": "trench_model_lith_block.bin",
+        "lithologies": [
+            {"id": 1, "name": "Topsoil"},
+            {"id": 2, "name": "Basement"},
+        ],
+    }
+    assert not Path(manifest["volume"]["path"]).is_absolute()
+    assert "\\" not in manifest["volume"]["path"]
+    assert str(tmp_path) not in json.dumps(manifest)
+
+
 class IdentityTransform:
     def apply_inverse(self, vertices):
         return np.asarray(vertices)
 
 
 def fake_gempy():
-    geo_model = SimpleNamespace(input_transform=IdentityTransform())
+    geo_model = SimpleNamespace(
+        input_transform=IdentityTransform(),
+        structural_frame=SimpleNamespace(
+            volume_elements_enumerator=np.asarray([1, 2]),
+            volume_elements_names=["Layer / A? (north)", "basement"],
+        ),
+    )
     solution = SimpleNamespace(
         raw_arrays=SimpleNamespace(
             vertices=[
@@ -222,6 +260,18 @@ def test_builder_writes_absolute_manifest_output_with_known_artifacts(
     assert manifest_path.is_absolute()
     assert manifest_path == model_dir / "trench_model_viewer.json"
     assert manifest["lith_block_path"] == "trench_model_lith_block.npz"
+    assert manifest["volume"] == {
+        "schema_version": 1,
+        "format": "raw",
+        "dtype": "uint16-le",
+        "layout": "C",
+        "axes": ["x", "y", "z"],
+        "shape": [2, 2, 1],
+        "path": "trench_model_lith_block.bin",
+        "lithologies": [
+            {"id": 1, "name": surface_name},
+        ],
+    }
     assert manifest["surfaces"] == (
         [
             {
@@ -234,7 +284,11 @@ def test_builder_writes_absolute_manifest_output_with_known_artifacts(
         if make_meshes
         else []
     )
-    expected_output_keys = {"lith_block", "viewer_manifest"}
+    expected_output_keys = {
+        "lith_block",
+        "lith_block_binary",
+        "viewer_manifest",
+    }
     if make_meshes:
         expected_output_keys.add("meshes")
     assert set(result["outputs"]) == expected_output_keys

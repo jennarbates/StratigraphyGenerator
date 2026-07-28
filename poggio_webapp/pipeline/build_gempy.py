@@ -10,6 +10,7 @@ running this web app.
 import json
 import os
 import re
+from collections.abc import Mapping
 
 import numpy as np
 import pandas as pd
@@ -68,6 +69,8 @@ def write_viewer_manifest(
     single_face_note,
     mesh_paths,
     lith_block_path,
+    volume_path=None,
+    volume_lithologies=None,
 ):
     manifest_path = os.path.abspath(os.fspath(manifest_path))
     manifest_dir = os.path.dirname(manifest_path)
@@ -104,11 +107,88 @@ def write_viewer_manifest(
         ],
         "lith_block_path": relative_path(lith_block_path),
     }
+    if volume_path is not None:
+        manifest["volume"] = {
+            "schema_version": 1,
+            "format": "raw",
+            "dtype": "uint16-le",
+            "layout": "C",
+            "axes": ["x", "y", "z"],
+            "shape": [int(value) for value in resolution],
+            "path": relative_path(volume_path),
+            "lithologies": [
+                {
+                    "id": int(lithology["id"]),
+                    "name": str(lithology["name"]),
+                }
+                for lithology in (volume_lithologies or [])
+            ],
+        }
 
     with open(manifest_path, "w", encoding="utf-8") as manifest_file:
         json.dump(manifest, manifest_file, indent=2)
         manifest_file.write("\n")
     return manifest_path
+
+
+def write_lithology_binary(
+    lith_block,
+    resolution,
+    output_path,
+    lithology_names=None,
+):
+    resolution_array = np.asarray(resolution)
+    if (
+        resolution_array.shape != (3,)
+        or resolution_array.dtype.kind not in "iu"
+        or np.any(resolution_array <= 0)
+    ):
+        raise ValueError("resolution must contain three positive integers")
+    shape = tuple(int(value) for value in resolution_array)
+    expected_count = int(np.prod(resolution_array, dtype=np.int64))
+
+    values = np.asarray(lith_block)
+    if values.size != expected_count:
+        raise ValueError(
+            "lithology block element count "
+            f"{values.size} does not match resolution product {expected_count}"
+        )
+    if values.dtype.kind not in "iuf":
+        raise ValueError("lithology block values must be numeric")
+    if not np.isfinite(values).all():
+        raise ValueError("lithology block values must be finite")
+    if np.any(values < 0):
+        raise ValueError("lithology block values must be non-negative")
+    if np.any(values != np.floor(values)):
+        raise ValueError("lithology block values must be integers")
+    if np.any(values > 65535):
+        raise ValueError("lithology block values must not exceed 65535")
+
+    flattened = values.reshape(shape, order="C").ravel(order="C")
+    encoded = np.asarray(flattened, dtype="<u2")
+    with open(output_path, "wb") as binary_file:
+        binary_file.write(encoded.tobytes(order="C"))
+
+    if lithology_names is None:
+        names_by_id = {}
+    elif isinstance(lithology_names, Mapping):
+        names_by_id = dict(lithology_names)
+    elif isinstance(lithology_names, (str, bytes)):
+        raise TypeError("lithology_names must be a mapping or sequence")
+    else:
+        names_by_id = {
+            index: name
+            for index, name in enumerate(lithology_names, start=1)
+        }
+
+    lithologies = []
+    for raw_id in np.unique(encoded):
+        lithology_id = int(raw_id)
+        name = names_by_id.get(lithology_id)
+        if not isinstance(name, str) or not name.strip():
+            name = f"Lithology {lithology_id}"
+        lithologies.append({"id": lithology_id, "name": name})
+    return lithologies
 
 
 def validate_mesh_arrays(vertices, faces):
@@ -241,6 +321,27 @@ def run_build(points_csv, orientations_csv, out_prefix,
         result["outputs"]["model"] = model_path
         log(f"wrote {model_path}")
 
+    volume_ids = geo_model.structural_frame.volume_elements_enumerator
+    volume_names = geo_model.structural_frame.volume_elements_names
+    if len(volume_ids) != len(volume_names):
+        raise ValueError(
+            "GemPy volume element IDs and names must have equal lengths"
+        )
+    lithology_names = {
+        int(lithology_id): str(name)
+        for lithology_id, name in zip(volume_ids, volume_names)
+    }
+
+    lith_binary_path = f"{out_prefix}_lith_block.bin"
+    volume_lithologies = write_lithology_binary(
+        solution.raw_arrays.lith_block,
+        resolution,
+        lith_binary_path,
+        lithology_names=lithology_names,
+    )
+    result["outputs"]["lith_block_binary"] = lith_binary_path
+    log(f"wrote {lith_binary_path}")
+
     lith_path = f"{out_prefix}_lith_block.npz"
     np.savez(lith_path,
              lith_block=solution.raw_arrays.lith_block,
@@ -264,6 +365,8 @@ def run_build(points_csv, orientations_csv, out_prefix,
         single_face_note=single_face_note,
         mesh_paths=written,
         lith_block_path=lith_path,
+        volume_path=lith_binary_path,
+        volume_lithologies=volume_lithologies,
     )
     result["outputs"]["viewer_manifest"] = manifest_path
     log(f"wrote {manifest_path}")
