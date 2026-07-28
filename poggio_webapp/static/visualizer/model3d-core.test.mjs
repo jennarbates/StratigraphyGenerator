@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   cameraPreset,
   clampOpacity,
+  deterministicSurfaceColor,
   extentCenter,
   extentSize,
   surfaceControlModel,
@@ -238,4 +239,16 @@ test("surfaceControlModel fallback colors are deterministic", () => {
   assert.deepEqual(first, second);
   assert.match(first[0].color, /^#[0-9a-f]{6}$/);
   assert.notEqual(first[0].color, first[1].color);
+});
+
+test("deterministicSurfaceColor is stable without renderer or DOM state", () => {
+  assert.equal(
+    deterministicSurfaceColor("Topsoil"),
+    deterministicSurfaceColor("Topsoil"),
+  );
+  assert.match(deterministicSurfaceColor("Fill"), /^#[0-9a-f]{6}$/);
+  assert.throws(() => deterministicSurfaceColor(""), {
+    name: "TypeError",
+    message: /surface name must be a non-empty string/,
+  });
 });

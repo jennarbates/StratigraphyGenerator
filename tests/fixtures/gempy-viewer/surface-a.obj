@@ -1,0 +1,8 @@
+# Surface A: 6 m by 3 m at Z = 0
+o Surface_A
+v 0 0 0
+v 6 0 0
+v 6 3 0
+v 0 3 0
+f 1 2 3
+f 1 3 4

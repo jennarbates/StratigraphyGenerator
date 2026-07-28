@@ -1,0 +1,116 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>GemPy surface renderer smoke test</title>
+<style>
+  html, body { height: 100%; margin: 0; background: #eef0e8; }
+  #controls { box-sizing: border-box; min-height: 34px; padding: 4px 8px; }
+  #controls button { margin-right: 4px; }
+  #status { margin-left: 8px; }
+  #viewer { width: 100%; height: calc(100% - 38px); }
+  #viewer canvas { display: block; width: 100%; height: 100%; }
+</style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "/poggio_webapp/static/vendor/three/three.module.min.js",
+    "three/addons/": "/poggio_webapp/static/vendor/three/addons/"
+  }
+}
+</script>
+<div id="controls">
+  <button id="reset" type="button">Reset</button>
+  <button id="top" type="button">Top</button>
+  <button id="hide-a" type="button">Hide surface A</button>
+  <button id="recreate" type="button">Recreate</button>
+  <button id="dispose" type="button">Dispose</button>
+  <button id="missing" type="button">Load missing surface</button>
+  <span id="status">Loading fixture…</span>
+</div>
+<div id="viewer"></div>
+<script type="module">
+  import { createModel3dViewer } from "/poggio_webapp/static/visualizer/model3d.js";
+
+  const container = document.getElementById("viewer");
+  const status = document.getElementById("status");
+  const model = await fetch("./model.json").then((response) => response.json());
+  let viewer = null;
+  let summary = null;
+  const events = [];
+
+  async function create(nextModel = model) {
+    viewer?.dispose();
+    viewer = createModel3dViewer(container, nextModel, {
+      background: "#f8f6ef",
+      onProgress(event) {
+        events.push(event);
+        status.textContent = `${event.phase}: ${event.loaded}/${event.total} loaded, `
+          + `${event.failed} failed; canvases: `
+          + container.querySelectorAll("canvas").length;
+      },
+    });
+    summary = await viewer.load();
+    status.textContent += `; visible: ${summary.loaded.map((surface) => surface.name).join(", ")}`;
+    return summary;
+  }
+
+  window.smoke = {
+    events,
+    get viewer() { return viewer; },
+    get summary() { return summary; },
+    get canvasCount() { return container.querySelectorAll("canvas").length; },
+    recreate: () => create(),
+    dispose() {
+      viewer?.dispose();
+      viewer = null;
+    },
+    loadWithMissingSurface() {
+      const missingModel = {
+        ...model,
+        surfaces: model.surfaces.map((surface, index) => (
+          index === 1
+            ? { ...surface, url: "/api/jobs/smoke-fixture/file?path=missing.obj" }
+            : surface
+        )),
+      };
+      return create(missingModel);
+    },
+  };
+
+  document.getElementById("reset").addEventListener("click", () => {
+    viewer?.resetCamera();
+    status.textContent = "Camera reset";
+  });
+  document.getElementById("top").addEventListener("click", () => {
+    viewer?.setCameraView("top");
+    status.textContent = "Top camera";
+  });
+  document.getElementById("hide-a").addEventListener("click", () => {
+    viewer?.setSurfaceVisible("Surface A", false);
+    status.textContent = "Surface A hidden";
+  });
+  document.getElementById("recreate").addEventListener("click", () => {
+    create().catch((error) => {
+      status.textContent = error.message;
+    });
+  });
+  document.getElementById("dispose").addEventListener("click", () => {
+    window.smoke.dispose();
+    status.textContent = `Disposed; canvases: ${container.querySelectorAll("canvas").length}`;
+  });
+  document.getElementById("missing").addEventListener("click", () => {
+    window.smoke.loadWithMissingSurface().then((result) => {
+      status.textContent = `Partial load: ${result.loaded.length}/${result.total}; `
+        + `failed: ${result.failed.map((surface) => surface.name).join(", ")}; `
+        + `canvases: ${container.querySelectorAll("canvas").length}`;
+    }).catch((error) => {
+      status.textContent = error.message;
+    });
+  });
+
+  try {
+    await create();
+  } catch (error) {
+    status.textContent = error.message;
+    window.smoke.error = error;
+  }
+</script>

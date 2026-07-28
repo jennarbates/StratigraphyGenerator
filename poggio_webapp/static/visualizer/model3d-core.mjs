@@ -260,7 +260,8 @@ export function cameraPreset(extent, viewName) {
   };
 }
 
-function fallbackColorFor(name) {
+export function deterministicSurfaceColor(name) {
+  validatedNonEmptyString(name, "surface name");
   let hash = 5381;
   for (const character of name) {
     hash = ((hash * 33) ^ character.codePointAt(0)) >>> 0;
@@ -274,7 +275,10 @@ function fallbackColorFor(name) {
  * Callers may pass `colorFor(name, index)`; otherwise a stable hash selects
  * from the module's fixed color-blind-friendly palette.
  */
-export function surfaceControlModel(model3d, colorFor = fallbackColorFor) {
+export function surfaceControlModel(
+  model3d,
+  colorFor = deterministicSurfaceColor,
+) {
   const normalized = validateModel3d(model3d);
   if (typeof colorFor !== "function") {
     throw new TypeError("colorFor must be a function");

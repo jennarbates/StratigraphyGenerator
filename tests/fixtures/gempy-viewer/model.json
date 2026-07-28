@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "kind": "gempy-surface-model",
+  "coordinate_system": {
+    "units": "m",
+    "up_axis": "Z"
+  },
+  "extent": [0, 6, 0, 3, 0, 3],
+  "resolution": [6, 3, 3],
+  "series_order": ["Surface A", "Surface B"],
+  "single_face_note": null,
+  "surfaces": [
+    {
+      "name": "Surface A",
+      "url": "/api/jobs/smoke-fixture/file?path=surface-a.obj"
+    },
+    {
+      "name": "Surface B",
+      "url": "/api/jobs/smoke-fixture/file?path=surface-b.obj"
+    }
+  ],
+  "warnings": []
+}
