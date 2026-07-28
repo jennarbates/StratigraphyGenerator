@@ -7,6 +7,7 @@ Logic unchanged; requires `pip install gempy gempy_viewer` in the environment
 running this web app.
 """
 
+import json
 import os
 import re
 
@@ -58,6 +59,82 @@ def safe_filename(name):
     return re.sub(r"[^A-Za-z0-9_.-]+", "_", name).strip("_") or "surface"
 
 
+def write_viewer_manifest(
+    manifest_path,
+    *,
+    extent,
+    resolution,
+    series_order,
+    single_face_note,
+    mesh_paths,
+    lith_block_path,
+):
+    manifest_path = os.path.abspath(os.fspath(manifest_path))
+    manifest_dir = os.path.dirname(manifest_path)
+
+    def plain_number(value):
+        return value.item() if isinstance(value, np.generic) else value
+
+    def relative_path(path):
+        relative = os.path.relpath(
+            os.path.abspath(os.fspath(path)),
+            manifest_dir,
+        )
+        return relative.replace(os.sep, "/")
+
+    manifest = {
+        "schema_version": 1,
+        "kind": "gempy-surface-model",
+        "coordinate_system": {
+            "units": "m",
+            "up_axis": "Z",
+        },
+        "extent": [plain_number(value) for value in extent],
+        "resolution": [int(value) for value in resolution],
+        "series_order": [str(name) for name in series_order],
+        "single_face_note": (
+            None if single_face_note is None else str(single_face_note)
+        ),
+        "surfaces": [
+            {
+                "name": str(name),
+                "mesh_path": relative_path(mesh_path),
+            }
+            for name, mesh_path in zip(series_order, mesh_paths)
+        ],
+        "lith_block_path": relative_path(lith_block_path),
+    }
+
+    with open(manifest_path, "w", encoding="utf-8") as manifest_file:
+        json.dump(manifest, manifest_file, indent=2)
+        manifest_file.write("\n")
+    return manifest_path
+
+
+def validate_mesh_arrays(vertices, faces):
+    try:
+        vertex_array = np.array(vertices, dtype=float, copy=True)
+    except (TypeError, ValueError) as error:
+        raise ValueError("mesh vertices must be a numeric N x 3 array") from error
+    if vertex_array.ndim != 2 or vertex_array.shape[1] != 3:
+        raise ValueError("mesh vertices must be shaped N x 3")
+    if not np.isfinite(vertex_array).all():
+        raise ValueError("mesh vertices must contain only finite values")
+
+    face_array = np.asarray(faces)
+    if face_array.size == 0:
+        face_array = np.empty((0, 3), dtype=int)
+    if face_array.ndim != 2 or face_array.shape[1] != 3:
+        raise ValueError("mesh faces must be shaped N x 3")
+    if not np.issubdtype(face_array.dtype, np.integer):
+        raise ValueError("mesh face indices must be integers")
+    face_array = np.array(face_array, dtype=int, copy=True)
+    if np.any(face_array < 0) or np.any(face_array >= len(vertex_array)):
+        raise ValueError("mesh face index is outside the vertex array")
+
+    return vertex_array, face_array
+
+
 def export_meshes(geo_model, solution, surf_order, outdir):
     os.makedirs(outdir, exist_ok=True)
     vertices = solution.raw_arrays.vertices
@@ -65,12 +142,18 @@ def export_meshes(geo_model, solution, surf_order, outdir):
     n = min(len(vertices), len(surf_order))
     written = []
     for surf_name, verts, faces in zip(surf_order, vertices[:n], edges[:n]):
+        _, validated_faces = validate_mesh_arrays(verts, faces)
+        transformed = geo_model.input_transform.apply_inverse(verts)
+        transformed_verts, validated_faces = validate_mesh_arrays(
+            transformed,
+            validated_faces,
+        )
         path = os.path.join(outdir, f"{safe_filename(surf_name)}.obj")
         with open(path, "w") as f:
             f.write(f"# {surf_name}\n")
-            for v in verts:
+            for v in transformed_verts:
                 f.write(f"v {v[0]:.6f} {v[1]:.6f} {v[2]:.6f}\n")
-            for face in faces:
+            for face in validated_faces:
                 f.write(f"f {face[0]+1} {face[1]+1} {face[2]+1}\n")
         written.append(path)
     return written
@@ -166,11 +249,24 @@ def run_build(points_csv, orientations_csv, out_prefix,
     result["outputs"]["lith_block"] = lith_path
     log(f"wrote {lith_path}")
 
+    written = []
     if make_meshes:
         meshdir = f"{out_prefix}_meshes"
         written = export_meshes(geo_model, solution, surf_order, meshdir)
         result["outputs"]["meshes"] = written
         log(f"wrote {len(written)} mesh(es) -> {meshdir}/")
+
+    manifest_path = write_viewer_manifest(
+        f"{out_prefix}_viewer.json",
+        extent=resolved_extent,
+        resolution=resolution,
+        series_order=surf_order,
+        single_face_note=single_face_note,
+        mesh_paths=written,
+        lith_block_path=lith_path,
+    )
+    result["outputs"]["viewer_manifest"] = manifest_path
+    log(f"wrote {manifest_path}")
 
     if make_plot:
         try:

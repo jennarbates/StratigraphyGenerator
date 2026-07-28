@@ -365,6 +365,23 @@ def test_complete_results_page_uses_mesh_viewer_with_section_fallback(
     assert response.status_code == 200
     assert 'id="viewer3d"' in html
     assert "/static/viewer3d.js" in page.scripts
+    expected_import_map = """<script type="importmap">
+{
+  "imports": {
+    "three": "/static/vendor/three/three.module.min.js",
+    "three/addons/": "/static/vendor/three/addons/"
+  }
+}
+</script>"""
+    viewer_script = (
+        '<script type="module" src="/static/viewer3d.js"></script>'
+    )
+    assert expected_import_map in html
+    assert html.index(expected_import_map) < html.index(viewer_script)
+    assert "unpkg" not in html
+    assert "jsdelivr" not in html
+    assert "esm.sh" not in html
+    assert "threejs.org/build" not in html
     assert "Layer 1" in html
     assert "View the flat cross-section instead" in html
     assert (
