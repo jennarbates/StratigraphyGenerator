@@ -219,6 +219,15 @@ button:disabled {
   background: rgb(122 52 40 / 4%);
 }
 
+.matrix-list-item {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.matrix-source-action {
+  justify-self: start;
+}
+
 .matrix-list strong {
   font-size: 1.05rem;
 }

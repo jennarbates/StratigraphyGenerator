@@ -42,6 +42,24 @@
             <span>Trench</span>
             <input id="matrix-trench" name="trench" type="text">
           </label>
+          <fieldset class="source-picker">
+            <legend>Optional source drawings</legend>
+            <p class="section-help">
+              Select drawing jobs to import when you create the matrix.
+              Existing source files will not be changed.
+            </p>
+            <div
+              id="dashboard-source-job-list"
+              class="source-job-list"
+            >
+              <p class="harris-empty">Loading source jobs…</p>
+            </div>
+            <span
+              id="dashboard-source-status"
+              class="harris-status"
+              aria-live="polite"
+            ></span>
+          </fieldset>
           <div class="harris-actions">
             <button type="submit">Create matrix</button>
             <span

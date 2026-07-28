@@ -7,7 +7,8 @@ source_files:
   - poggio_webapp/pipeline/extract_illustrator.py
   - poggio_webapp/pipeline/assign_markers.py
   - poggio_webapp/backend/routes/manual.py
-verified_against: a8b58f1
+  - poggio_webapp/pipeline/harris_matrix.py
+verified_against: 2267711
 ---
 
 # Data Schemas
@@ -295,6 +296,124 @@ When AI extractions are involved, confidence fields may contain:
 ### Null Strings
 
 The validator scans all fields for literal strings like `"null"`, `"None"`, or `"n/a"`. These are reported as warnings because they typically indicate data trapped in text rather than proper JSON nulls.
+
+---
+
+## Harris Matrix schema version 1
+
+A persisted matrix is independent of drawing-job JSON. Unknown fields are
+rejected. All timestamps are timezone-aware ISO 8601 values.
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `schema_version` | literal `1` | yes | Current persisted and export version |
+| `matrix_id` | string | yes | Exactly 12 lowercase hexadecimal characters |
+| `revision` | non-negative integer | yes | Incremented by each successful save |
+| `title` | string | yes | Editable matrix title |
+| `site` | string | yes | May be empty |
+| `trench` | string | yes | May be empty |
+| `notes` | string | yes | Matrix-level notes |
+| `source_job_ids` | array[string] | yes | Imported 12-hex job IDs |
+| `units` | array[HarrisUnit] | yes | Imported or manual units |
+| `relations` | array[HarrisRelation] | yes | Saved younger-to-older assertions |
+| `correlations` | array[HarrisCorrelation] | yes | Same-unit interpretations |
+| `suggestions` | array[HarrisSuggestion] | yes | Pending, accepted, and rejected proposals |
+| `created_at` | datetime | yes | Preserved after creation |
+| `updated_at` | datetime | yes | Advanced on save |
+
+Object IDs use exactly 12 lowercase hexadecimal characters after their
+prefix: `unit-`, `rel-`, `corr-`, or `suggestion-`. Imported unit IDs are
+deterministically derived from `job_id | schema_type | face | layer_index`;
+renaming an imported unit does not change its ID.
+
+### HarrisUnit and SourceRef
+
+| HarrisUnit field | Type | Notes |
+|---|---|---|
+| `id` | unit ID | Required |
+| `label` | non-empty string | Editable matrix label |
+| `unit_type` | enum | `deposit`, `cut`, `structure`, `interface`, `natural`, or `unknown` |
+| `description` | string or null | Editable description |
+| `source_refs` | array[SourceRef] | Empty for a manual unit |
+
+| SourceRef field | Type | Notes |
+|---|---|---|
+| `job_id` | 12-hex string | Source job identifier |
+| `schema_type` | enum | Exactly `FieldWallProfile` or `ArchaeologicalDiagram` |
+| `face` | string | Empty only when no face was recorded |
+| `layer_index` | non-negative integer | Zero-based source index |
+| `source_label` | string or null | Original label, preserved unchanged |
+
+Source references never contain an absolute path.
+
+### HarrisRelation
+
+Every relation stores `younger_id -> older_id`; the kind does not reverse the
+edge.
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | relation ID | Required |
+| `younger_id` | unit ID | Chronologically younger endpoint |
+| `older_id` | unit ID | Chronologically older endpoint |
+| `kind` | enum | `above`, `cuts`, `fills`, `precedes`, or `other` |
+| `evidence` | string | Human-entered or proposal reason |
+| `source` | enum | `manual` or `suggestion` |
+| `notes` | string or null | Optional interpretation note |
+
+### HarrisCorrelation
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | correlation ID | Stable once stored |
+| `unit_ids` | array[unit ID] | At least two distinct units |
+| `notes` | string or null | Optional interpretation note |
+
+A unit may belong to at most one stored correlation group. Overlapping edit
+operations merge into one normalized group. A chronological relationship
+within a correlation is invalid.
+
+### HarrisSuggestion
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | suggestion ID | Deterministic proposal identifier |
+| `suggestion_type` | enum | `ordering` or `correlation` |
+| `status` | enum | `pending`, `accepted`, or `rejected` |
+| `younger_id` | unit ID or null | Required only for ordering |
+| `older_id` | unit ID or null | Required only for ordering |
+| `relation_kind` | relation kind or null | Required only for ordering |
+| `correlation_unit_ids` | array[unit ID] | At least two for correlation; empty for ordering |
+| `reason` | string | Human-readable proposal basis |
+| `source_refs` | array[SourceRef] | Provenance for the proposal |
+
+Suggestions do not affect the graph while pending or rejected. Equal labels
+may generate a correlation proposal across jobs or faces, but are never
+merged automatically.
+
+### Minimal version 1 example
+
+```json
+{
+  "schema_version": 1,
+  "matrix_id": "a1b2c3d4e5f6",
+  "revision": 0,
+  "title": "T123 Harris Matrix",
+  "site": "Poggio Civitate",
+  "trench": "T123",
+  "notes": "",
+  "source_job_ids": [],
+  "units": [],
+  "relations": [],
+  "correlations": [],
+  "suggestions": [],
+  "created_at": "2026-07-28T08:00:00+00:00",
+  "updated_at": "2026-07-28T08:00:00+00:00"
+}
+```
+
+See [Build and review a Harris Matrix](../workflows/harris-matrix.md) for
+validation codes, review rules, provenance, and export behavior.
 
 ---
 

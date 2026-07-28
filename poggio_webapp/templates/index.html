@@ -32,6 +32,8 @@
       </div>
     </div>
 
+    <a class="quiet-link" href="/harris">Harris matrices</a>
+
     {% if result_job %}
       <div class="result-sidebar-card">
         <span>Viewing saved drawing</span>
@@ -167,6 +169,12 @@
           {% if result_job.model_url %}
             <a class="button-link secondary" href="{{ result_job.model_url }}" download>Download the model file</a>
           {% endif %}
+          <a
+            class="button-link secondary"
+            data-harris-source-action="{{ result_job.job_id }}"
+            href="/harris?source_job={{ result_job.job_id }}"
+            hidden
+          >Create or add to a Harris Matrix</a>
         </div>
       {% endif %}
       {% if result_job.source == "manual_editor" and (poll_results or result_job.status == "error") %}
@@ -197,6 +205,26 @@
 <script src="/static/results.js"></script>
 {% elif not result_job %}
 <script src="/static/app.js"></script>
+{% endif %}
+{% if result_job %}
+<script type="module">
+  const harrisAction = document.querySelector(
+    "[data-harris-source-action]",
+  );
+  if (harrisAction) {
+    try {
+      const response = await fetch("/api/harris-source-jobs", {
+        headers: { Accept: "application/json" },
+      });
+      const sources = response.ok ? await response.json() : [];
+      harrisAction.hidden = !Array.isArray(sources) || !sources.some(
+        source => source.job_id === harrisAction.dataset.harrisSourceAction,
+      );
+    } catch (_error) {
+      harrisAction.hidden = true;
+    }
+  }
+</script>
 {% endif %}
 {% if result_job and result_job.status == "complete" and result_job.mesh_urls %}
 <script type="importmap">

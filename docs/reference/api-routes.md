@@ -14,7 +14,8 @@ source_files:
   - poggio_webapp/backend/routes/gempy.py
   - poggio_webapp/backend/routes/task_status.py
   - poggio_webapp/backend/routes/pages.py
-verified_against: 09ad663
+  - poggio_webapp/backend/routes/harris.py
+verified_against: 2267711
 ---
 
 # API Routes
@@ -47,8 +48,19 @@ This reference documents all HTTP endpoints available in the Flask backend. All 
 | `/api/jobs/<job_id>/gempy/result/<task_id>` | GET | none | `{status, result, error}` | No | supported | Poll for GemPy build results |
 | `/api/tasks/<task_id>` | GET | none | `{status, result, error, progress}` | No | supported | Get status of any asynchronous task |
 | `/api/jobs/<job_id>/visualizer-files` | GET | none | `{...file_urls, model3d?}` | No | supported | List 2D assets and, when valid surfaces exist, safe 3D model data |
-| `/` | GET | none | HTML | No | supported | Render React web UI |
+| `/api/harris-matrices` | GET | none | matrix summary array | No | supported | List valid matrices newest first |
+| `/api/harris-matrices` | POST | JSON: `title`, `site`, `trench` | version 1 matrix | No | supported | Create an empty trench-level workspace |
+| `/api/harris-source-jobs` | GET | none | safe source summary array | No | supported | Discover jobs with a supported usable extraction artifact |
+| `/api/harris-matrices/<matrix_id>` | GET | none | version 1 matrix | No | supported | Load one matrix |
+| `/api/harris-matrices/<matrix_id>` | PUT | complete version 1 matrix with current `revision` | saved matrix | No | supported | Validate, atomically save, and increment revision |
+| `/api/harris-matrices/<matrix_id>/sources` | POST | `{job_ids: [str], revision: int}` | saved matrix plus `import_warnings` | No | supported | Idempotently import units and regenerate proposals |
+| `/api/harris-matrices/<matrix_id>/suggestions/<suggestion_id>` | POST | `{action: "accept" \| "reject", revision: int}` | saved matrix | No | supported | Review one proposal and increment revision |
+| `/api/harris-matrices/<matrix_id>/export.json` | GET | none | JSON attachment | No | supported | Download the saved version 1 record |
+| `/api/harris-matrices/<matrix_id>/export.svg` | GET | optional `inline=1` | SVG attachment or inline image | No | supported | Render the deterministic reduced display graph |
+| `/` | GET | none | HTML | No | supported | Render the vanilla JavaScript drawing workflow |
 | `/visualizer` | GET | query `job=<job_id>` (optional) | HTML | No | supported | Interactive 2D extraction and 3D surface viewer |
+| `/harris` | GET | optional `source_job=<job_id>` | HTML | No | supported | Matrix dashboard; a usable source can be preselected without mutation |
+| `/harris/<matrix_id>` | GET | none | HTML | No | supported | Matrix editor shell |
 
 ---
 
@@ -219,6 +231,49 @@ Common errors:
 
 ---
 
+### Harris Matrix errors and warnings
+
+Harris error responses add a stable `code` and may include `details`:
+
+```json
+{
+  "error": "Matrix graph is invalid: cycle.",
+  "code": "invalid_matrix",
+  "details": {
+    "error_codes": ["cycle"]
+  }
+}
+```
+
+Route-level codes are:
+
+| HTTP | Code | Meaning |
+|---|---|---|
+| 400 | `invalid_request` | The JSON body or typed fields are invalid. |
+| 400 | `invalid_matrix_id` | Matrix ID is not exactly 12 lowercase hexadecimal characters. |
+| 400 | `matrix_id_mismatch` | Body and URL identify different matrices. |
+| 400 | `invalid_matrix` | Persisted schema or graph validation failed; `details.error_codes` may name graph errors. |
+| 400 | `source_import_error` | A requested job is missing, unsafe, malformed, or unsupported. |
+| 400 | `suggestion_generation_error` | Conservative proposal generation could not complete. |
+| 400 | `suggestion_review_error` | The requested review would create an invalid interpretation. |
+| 400 | `matrix_render_error` | A matrix cannot be rendered, including the 250-unit limit. |
+| 404 | `matrix_not_found` | No stored matrix has the valid ID. |
+| 404 | `suggestion_not_found` | The suggestion ID is absent from the matrix. |
+| 409 | `revision_conflict` | Another save advanced the revision; expected and actual revisions are returned. |
+
+Graph error codes are `missing-unit`, `self-relation`,
+`duplicate-relation`, `overlapping-correlation`,
+`relation-within-correlation`, and `cycle`. Validation warnings are
+`redundant-relation`, `isolated-unit`, and `generic-label`. A redundant
+relationship remains in saved JSON but is omitted from SVG display edges by
+transitive reduction.
+
+Suggestions are proposals requiring individual review. The API never accepts
+them automatically and never treats the resulting matrix as scientifically
+verified.
+
+---
+
 ## File URLs
 
 Routes returning file URLs include a `_url` suffix (e.g., `file_url`, `points_csv_url`). These URLs are relative paths that can be fetched with:
@@ -254,6 +309,21 @@ the response additionally contains:
       }
     ],
     "lith_block_url": "/api/jobs/abc123def456/file?path=06_gempy_model/trench_model_lith_block.npz",
+    "volume": {
+      "schema_version": 1,
+      "format": "raw",
+      "dtype": "uint16-le",
+      "layout": "C",
+      "axes": ["x", "y", "z"],
+      "shape": [50, 50, 30],
+      "url": "/api/jobs/abc123def456/file?path=06_gempy_model/trench_model_lith_block.bin",
+      "lithologies": [
+        {
+          "id": 1,
+          "name": "Topsoil"
+        }
+      ]
+    },
     "warnings": []
   }
 }
@@ -268,13 +338,16 @@ so a server restart does not depend on the in-memory GemPy task record.
 A missing OBJ is omitted and named in `model3d.warnings`; other readable
 surfaces remain available. If no surface exists, the route omits `model3d`.
 A missing lithology archive omits `lith_block_url` without affecting surfaces.
-Malformed JSON, unsupported schemas, absolute paths outside the job, and
-relative traversal are ignored safely without breaking the existing 2D
-payload. Surface names are returned only as JSON data.
+A supported `volume` replaces its manifest `path` with a validated job-file
+`url`. A missing binary or unsupported dtype, layout, axes, shape, or path
+omits `volume`, adds a warning, and preserves surface viewing. Malformed JSON,
+unsupported top-level schemas, absolute paths outside the job, and relative
+traversal are ignored safely without breaking the existing 2D payload.
+Surface and lithology names are returned only as JSON data.
 
-The Phase A browser does not fetch `lith_block_url`; the URL keeps the
-scientific artifact discoverable for download while the 3D view renders
-boundary surfaces rather than a solid volume.
+The browser keeps `lith_block_url` as the discoverable NumPy
+scientific/download artifact. It fetches `volume.url` for the separate raw
+little-endian `uint16` transport used by the classified-cell renderer.
 
 ---
 
@@ -288,7 +361,8 @@ Task execution uses a thread pool. Task IDs are UUIDs. Long-running Gemini calls
 
 ## Frontend Integration
 
-The React UI in `poggio_webapp/static/app/` calls these endpoints from stages:
+The vanilla JavaScript UI in `poggio_webapp/static/app/` calls these
+endpoints from stages:
 
 - **Scan stage** — `/api/jobs`, `/scan`, `/preprocess`
 - **Extract stage** — `/extract` or `/extract/upload`
@@ -296,3 +370,6 @@ The React UI in `poggio_webapp/static/app/` calls these endpoints from stages:
 - **Processing stage** — `/normalize`, `/validate`, `/convert`
 - **Visualize stage** — `/gempy`, `/visualizer-files`
 - **Marker workflows** — `/markers/*` (experimental)
+- **Harris Matrix dashboard and editor** — `/api/harris-matrices`,
+  `/api/harris-source-jobs`, source import, individual suggestion review, and
+  JSON/SVG exports

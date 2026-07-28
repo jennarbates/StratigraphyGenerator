@@ -13,9 +13,14 @@
     - poggio_webapp/app.py
     - poggio_webapp/pipeline/build_gempy.py
     - poggio_webapp/backend/routes/pages.py
+    - poggio_webapp/backend/routes/harris.py
+    - poggio_webapp/backend/harris_store.py
+    - poggio_webapp/static/harris/editor.js
     - poggio_webapp/static/model3d-viewer.js
     - poggio_webapp/static/visualizer/model3d.js
-  purpose: Current user-facing and backend capability matrix, including 3D surfaces
+    - poggio_webapp/static/visualizer/volume3d.js
+    - poggio_webapp/static/visualizer/volume3d-core.mjs
+  purpose: Current user-facing and backend capability matrix, including 3D surfaces and volume cells
 
 - page: reference/drawing-guidelines.md
   sources:
@@ -156,8 +161,22 @@
     - poggio_webapp/static/visualizer/index.js
     - poggio_webapp/static/visualizer/view.js
     - poggio_webapp/static/visualizer/model3d.js
+    - poggio_webapp/static/visualizer/volume3d.js
+    - poggio_webapp/static/visualizer/volume3d-core.mjs
     - poggio_webapp/static/model3d-viewer.js
-  purpose: Visualizer use, 2D comparison and overlays, 3D surfaces, and downloads
+  purpose: Visualizer use, 2D comparison and overlays, 3D surfaces and volume cells, and downloads
+
+- page: workflows/harris-matrix.md
+  sources:
+    - poggio_webapp/backend/routes/harris.py
+    - poggio_webapp/backend/harris_store.py
+    - poggio_webapp/pipeline/harris_matrix.py
+    - poggio_webapp/pipeline/harris_import.py
+    - poggio_webapp/pipeline/harris_suggestions.py
+    - poggio_webapp/pipeline/harris_render.py
+    - poggio_webapp/static/harris/dashboard.js
+    - poggio_webapp/static/harris/editor.js
+  purpose: Human-reviewed trench matrix workflow, validation, and exports
 
 - page: workflows/logging-finds.md
   sources:
@@ -216,6 +235,9 @@
     - poggio_webapp/app.py
     - poggio_webapp/backend/__init__.py
     - poggio_webapp/backend/routes/__init__.py
+    - poggio_webapp/backend/routes/harris.py
+    - poggio_webapp/backend/harris_store.py
+    - poggio_webapp/pipeline/harris_matrix.py
     - poggio_webapp/static/app/index.js
   purpose: Browser, Flask, pipeline, and storage component map
 
@@ -264,14 +286,17 @@
     - poggio_webapp/backend/routes/jobs.py
     - poggio_webapp/app.py
     - poggio_webapp/pipeline/build_gempy.py
-  purpose: Job directories and numbered stage artifacts
+    - poggio_webapp/backend/harris_store.py
+    - poggio_webapp/pipeline/harris_import.py
+  purpose: Job directories, numbered stage artifacts, and matrix storage
 
 - page: reference/data-schemas.md
   sources:
     - poggio_webapp/pipeline/extract_fieldwall.py
     - poggio_webapp/pipeline/extract_illustrator.py
     - poggio_webapp/static/canvas/grid.mjs
-  purpose: FieldWallProfile and ArchaeologicalDiagram schema reference
+    - poggio_webapp/pipeline/harris_matrix.py
+  purpose: Drawing and version 1 Harris Matrix schema reference
 
 - page: reference/api-routes.md
   sources:
@@ -281,6 +306,7 @@
     - poggio_webapp/backend/routes/processing.py
     - poggio_webapp/backend/routes/pages.py
     - poggio_webapp/app.py
+    - poggio_webapp/backend/routes/harris.py
   purpose: HTTP route, request, response, and UI-status reference
 
 - page: reference/configuration.md
@@ -304,7 +330,11 @@
     - poggio_webapp/backend/routes/gempy.py
     - poggio_webapp/backend/routes/pages.py
     - poggio_webapp/pipeline/build_gempy.py
-  purpose: Output artifact names, browser manifest, formats, and producing stages
+    - poggio_webapp/backend/harris_store.py
+    - poggio_webapp/backend/routes/harris.py
+    - poggio_webapp/pipeline/harris_render.py
+    - poggio_webapp/static/visualizer/volume3d-core.mjs
+  purpose: Output artifacts, matrix storage, surface and volume formats, exports, and producers
 
 - page: reference/troubleshooting.md
   sources:

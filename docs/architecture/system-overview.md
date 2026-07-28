@@ -6,8 +6,11 @@ source_files:
   - poggio_webapp/app.py
   - poggio_webapp/backend/__init__.py
   - poggio_webapp/backend/routes/__init__.py
+  - poggio_webapp/backend/routes/harris.py
+  - poggio_webapp/backend/harris_store.py
+  - poggio_webapp/pipeline/harris_matrix.py
   - poggio_webapp/static/app/index.js
-verified_against: a8b58f1
+verified_against: 2267711
 ---
 
 # System overview
@@ -19,6 +22,9 @@ This page maps the current runtime from the browser to the Flask backend, the pi
 - Provide the browser entry point for the main trench-workflow experience.
 - Route requests between the user-facing UI and the backend modules that read or write job data.
 - Keep job folders as the shared place where extracted data, normalized data, converted coordinates, and model artifacts are stored.
+- Keep trench-level Harris Matrix interpretations in a separate durable
+  workspace so they can reference multiple jobs without becoming a numbered
+  drawing-to-3D stage.
 
 ## Inputs
 
@@ -31,12 +37,16 @@ This page maps the current runtime from the browser to the Flask backend, the pi
 - HTML pages and JSON responses for the browser.
 - File URLs for images, JSON exports, CSV conversions, and generated model artifacts.
 - Updated metadata in each job's meta.json and, for the editor flow, editor_meta.json.
+- Versioned matrix JSON and deterministic SVG exports.
 
 ## Main source files
 
 - `poggio_webapp/app.py`
 - `poggio_webapp/backend/__init__.py`
 - `poggio_webapp/backend/routes/__init__.py`
+- `poggio_webapp/backend/routes/harris.py`
+- `poggio_webapp/backend/harris_store.py`
+- `poggio_webapp/pipeline/harris_matrix.py`
 - `poggio_webapp/static/app/index.js`
 
 ## Failure boundaries
@@ -45,18 +55,23 @@ This page maps the current runtime from the browser to the Flask backend, the pi
 - Optional AI or GemPy steps can fail when the required dependency or credentials are missing.
 - The backend can still serve the earlier workflow steps even when later stages have not run yet.
 - The editor workflow and the older upload-based workflow share the same overall job workspace, but they are handled by different entry points and should not be treated as identical features.
+- Matrix storage is local and single-user. Optimistic revisions reject stale
+  saves, but there is no database, authentication, or collaborative merge.
 
 ## Related tests
 
 - `tests/test_editor_routes.py`
 - `tests/test_editor_status.py`
 - `tests/test_finds_routes.py`
+- `tests/test_harris_routes.py`
+- `tests/test_harris_store.py`
 
 ## Related workflow pages
 
 - [Add a drawing](../workflows/01-add-drawing.md)
 - [Create the model](../workflows/07-create-model.md)
 - [View and download](../workflows/08-view-and-download.md)
+- [Build and review a Harris Matrix](../workflows/harris-matrix.md)
 
 ## Under the hood
 
@@ -71,6 +86,16 @@ flowchart LR
   Routes --> Pipeline[Pipeline modules]
   Routes --> Jobs[Job folders under poggio_webapp/jobs]
   Pipeline --> Jobs
+  Browser --> HarrisUI[Harris dashboard and editor]
+  HarrisUI --> HarrisRoutes[Harris blueprint]
+  HarrisRoutes --> Jobs
+  HarrisRoutes --> Matrices[Matrix folders under poggio_webapp/matrices]
 ```
 
 User-facing availability and backend capability are distinct here. The UI currently exposes manual tracing and the blank-canvas editor as visible starting points, while the backend also supports additional route-driven operations such as feature detection, marker detection, and model build steps.
+
+Harris Matrix import is read-only with respect to source jobs. The separate
+matrix store keeps editable labels, chronological interpretations,
+correlations, suggestion review state, and provenance references. It does not
+place server paths in matrix JSON or change extraction, normalization,
+coordinate, or model artifacts.

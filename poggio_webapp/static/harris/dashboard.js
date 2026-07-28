@@ -1,6 +1,14 @@
 const form = document.querySelector("#create-matrix-form");
 const list = document.querySelector("#matrix-list");
 const status = document.querySelector("#dashboard-status");
+const sourceList = document.querySelector("#dashboard-source-job-list");
+const sourceStatus = document.querySelector("#dashboard-source-status");
+const requestedSourceJobId = new URLSearchParams(
+  window.location.search,
+).get("source_job");
+const validRequestedSourceJobId = /^[0-9a-f]{12}$/.test(
+  requestedSourceJobId || "",
+) ? requestedSourceJobId : null;
 
 function setStatus(message, state = "") {
   status.textContent = message;
@@ -32,6 +40,125 @@ function updatedLabel(value) {
   }).format(date);
 }
 
+function selectedSourceIds() {
+  return Array.from(
+    sourceList.querySelectorAll('input[type="checkbox"]:checked'),
+    checkbox => checkbox.value,
+  );
+}
+
+function updateMatrixImportButtons() {
+  const count = selectedSourceIds().length;
+  for (const button of list.querySelectorAll(
+    "[data-add-sources-to-matrix]",
+  )) {
+    button.disabled = count === 0;
+    button.textContent = count === 1
+      ? "Add selected source to this matrix"
+      : `Add ${count} selected sources to this matrix`;
+  }
+}
+
+function sourceContext(source) {
+  const details = [
+    source.schema_type === "FieldWallProfile"
+      ? "Field wall"
+      : "Archaeological diagram",
+  ];
+  if (source.trench) details.push(`Trench ${source.trench}`);
+  if (Array.isArray(source.faces) && source.faces.length > 0) {
+    details.push(source.faces.join(", "));
+  }
+  details.push(countLabel(source.unit_count, "unit"));
+  return details.join(" · ");
+}
+
+function renderSources(sources) {
+  sourceList.replaceChildren();
+  if (sources.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "harris-empty";
+    empty.textContent = "No usable source drawing jobs were found.";
+    sourceList.append(empty);
+    sourceStatus.textContent = validRequestedSourceJobId
+      ? "The linked drawing is not available for matrix import."
+      : "";
+    sourceStatus.dataset.state = validRequestedSourceJobId ? "error" : "";
+    updateMatrixImportButtons();
+    return;
+  }
+
+  let matchedRequestedSource = false;
+  for (const source of sources) {
+    const item = document.createElement("div");
+    const checkbox = document.createElement("input");
+    const label = document.createElement("label");
+    const title = document.createElement("strong");
+    const context = document.createElement("span");
+
+    item.className = "source-job";
+    checkbox.id = `dashboard-source-${source.job_id}`;
+    checkbox.type = "checkbox";
+    checkbox.value = source.job_id;
+    checkbox.checked = source.job_id === validRequestedSourceJobId;
+    checkbox.addEventListener("change", updateMatrixImportButtons);
+    matchedRequestedSource ||= checkbox.checked;
+
+    label.className = "source-job-label";
+    label.htmlFor = checkbox.id;
+    title.textContent = `Job ${source.job_id}`;
+    context.textContent = sourceContext(source);
+    label.append(title, context);
+    item.append(checkbox, label);
+    sourceList.append(item);
+  }
+
+  if (validRequestedSourceJobId) {
+    sourceStatus.textContent = matchedRequestedSource
+      ? "Linked drawing selected. Choose an explicit action to continue."
+      : "The linked drawing is not available for matrix import.";
+    sourceStatus.dataset.state = matchedRequestedSource ? "" : "error";
+  } else {
+    sourceStatus.textContent = "";
+    sourceStatus.dataset.state = "";
+  }
+  updateMatrixImportButtons();
+}
+
+async function addSourcesToMatrix(matrix, button) {
+  const jobIds = selectedSourceIds();
+  if (jobIds.length === 0) return;
+
+  button.disabled = true;
+  setStatus("Adding selected sources…", "saving");
+  try {
+    const response = await fetch(
+      `/api/harris-matrices/${encodeURIComponent(matrix.matrix_id)}/sources`,
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          job_ids: jobIds,
+          revision: matrix.revision,
+        }),
+      },
+    );
+    await responseJson(response);
+    window.location.assign(
+      `/harris/${encodeURIComponent(matrix.matrix_id)}`,
+    );
+  } catch (error) {
+    setStatus(
+      error.message || "Could not add the selected sources.",
+      "error",
+    );
+    button.disabled = false;
+  }
+}
+
 function renderMatrices(matrices) {
   list.replaceChildren();
   if (matrices.length === 0) {
@@ -49,7 +176,9 @@ function renderMatrices(matrices) {
     const trench = document.createElement("span");
     const counts = document.createElement("span");
     const updated = document.createElement("time");
+    const addSourcesButton = document.createElement("button");
 
+    item.className = "matrix-list-item";
     link.href = `/harris/${encodeURIComponent(matrix.matrix_id)}`;
     title.textContent = matrix.title || "Untitled Harris Matrix";
     trench.textContent = matrix.trench
@@ -63,9 +192,18 @@ function renderMatrices(matrices) {
     updated.textContent = `Updated ${updatedLabel(matrix.updated_at)}`;
 
     link.append(title, trench, counts, updated);
-    item.append(link);
+    addSourcesButton.type = "button";
+    addSourcesButton.className = "secondary-button matrix-source-action";
+    addSourcesButton.dataset.addSourcesToMatrix = matrix.matrix_id;
+    addSourcesButton.disabled = true;
+    addSourcesButton.textContent = "Select a source drawing to add";
+    addSourcesButton.addEventListener("click", () => {
+      void addSourcesToMatrix(matrix, addSourcesButton);
+    });
+    item.append(link, addSourcesButton);
     list.append(item);
   }
+  updateMatrixImportButtons();
 }
 
 async function loadMatrices() {
@@ -83,6 +221,17 @@ async function loadMatrices() {
   }
 }
 
+async function loadSources() {
+  try {
+    const response = await fetch("/api/harris-source-jobs", {
+      headers: { Accept: "application/json" },
+    });
+    renderSources(await responseJson(response));
+  } catch (_error) {
+    renderSources([]);
+  }
+}
+
 form.addEventListener("submit", async event => {
   event.preventDefault();
   const submitButton = form.querySelector('button[type="submit"]');
@@ -91,6 +240,7 @@ form.addEventListener("submit", async event => {
   setStatus("Creating…", "saving");
 
   try {
+    const selectedJobIds = selectedSourceIds();
     const response = await fetch("/api/harris-matrices", {
       method: "POST",
       headers: {
@@ -103,7 +253,28 @@ form.addEventListener("submit", async event => {
         trench: data.get("trench"),
       }),
     });
-    const matrix = await responseJson(response);
+    let matrix = await responseJson(response);
+    if (selectedJobIds.length > 0) {
+      setStatus("Importing selected sources…", "saving");
+      const importResponse = await fetch(
+        (
+          `/api/harris-matrices/`
+          + `${encodeURIComponent(matrix.matrix_id)}/sources`
+        ),
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            job_ids: selectedJobIds,
+            revision: matrix.revision,
+          }),
+        },
+      );
+      matrix = await responseJson(importResponse);
+    }
     window.location.assign(
       `/harris/${encodeURIComponent(matrix.matrix_id)}`,
     );
@@ -114,3 +285,4 @@ form.addEventListener("submit", async event => {
 });
 
 loadMatrices();
+loadSources();
