@@ -11,6 +11,7 @@ sys.path.insert(0, str(REPO_ROOT / "poggio_webapp"))
 
 import app as app_module
 from app import app
+from backend import config
 from pipeline import editor
 
 
@@ -40,6 +41,7 @@ def client(tmp_path, monkeypatch):
     jobs_dir = tmp_path / "jobs"
     jobs_dir.mkdir()
     monkeypatch.setattr(editor, "JOBS_DIR", jobs_dir)
+    monkeypatch.setattr(config, "JOBS_DIR", jobs_dir)
     app.config.update(TESTING=True)
     return app.test_client()
 
@@ -326,6 +328,77 @@ def test_complete_results_page_keeps_visualization_and_download_links(
     assert f"/visualizer?job={job_id}" in links_by_href
     assert model_url in links_by_href
     assert "download" in links_by_href[model_url]
+
+
+def test_results_page_defers_harris_action_to_source_discovery(
+    client,
+    tmp_path,
+):
+    job_id = "0123456789ab"
+    job_directory = _write_job_meta(
+        tmp_path,
+        job_id,
+        status="complete",
+        source="manual_editor",
+    )
+    (job_directory / "extraction_output.json").write_text(json.dumps({
+        "trenchLabel": "T123",
+        "faceLabel": "North baulk",
+        "gridSquareCm": 25,
+        "loci": [],
+        "layers": [{
+            "locusNumber": "7",
+            "topBoundary": [],
+            "bottomBoundary": [],
+            "featuresInLayer": [],
+        }],
+    }))
+
+    response = client.get(f"/jobs/{job_id}")
+    page = _parse_results_page(response)
+    harris_links = [
+        attributes
+        for attributes in page.links
+        if attributes.get("data-harris-source-action") == job_id
+    ]
+    discovered = client.get("/api/harris-source-jobs").get_json()
+
+    assert response.status_code == 200
+    assert harris_links == [{
+        "class": "button-link secondary",
+        "data-harris-source-action": job_id,
+        "href": f"/harris?source_job={job_id}",
+        "hidden": None,
+    }]
+    assert [source["job_id"] for source in discovered] == [job_id]
+    normalized_html = " ".join(response.get_data(as_text=True).split())
+    assert "Create or add to a Harris Matrix" in normalized_html
+    assert "/api/harris-source-jobs" in normalized_html
+
+
+def test_results_page_keeps_unusable_harris_candidate_hidden(
+    client,
+    tmp_path,
+):
+    job_id = "abcdef123456"
+    _write_job_meta(
+        tmp_path,
+        job_id,
+        status="complete",
+        source="manual_editor",
+    )
+
+    response = client.get(f"/jobs/{job_id}")
+    page = _parse_results_page(response)
+    harris_link = next(
+        attributes
+        for attributes in page.links
+        if attributes.get("data-harris-source-action") == job_id
+    )
+
+    assert response.status_code == 200
+    assert "hidden" in harris_link
+    assert client.get("/api/harris-source-jobs").get_json() == []
 
 
 def test_complete_results_page_uses_mesh_viewer_with_section_fallback(

@@ -122,6 +122,62 @@ def test_dashboard_get_is_reachable_and_creates_nothing(page_context):
     assert str(matrices_dir).encode() not in response.data
 
 
+def test_main_application_links_to_harris_dashboard(page_context):
+    client, _matrices_dir = page_context
+
+    response = client.get("/")
+    normalized_html = " ".join(response.get_data(as_text=True).split())
+
+    assert response.status_code == 200
+    assert 'href="/harris"' in normalized_html
+    assert "Harris matrices" in normalized_html
+
+
+def test_dashboard_source_query_only_preselects_for_explicit_action(
+    page_context,
+):
+    client, matrices_dir = page_context
+    source_job_id = "0123456789ab"
+
+    response = client.get(f"/harris?source_job={source_job_id}")
+    page = _parse(response)
+    by_id = {
+        attributes["id"]: (tag, attributes)
+        for tag, attributes in page.elements
+        if "id" in attributes
+    }
+    dashboard_script = client.get(
+        "/static/harris/dashboard.js"
+    ).get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert list(matrices_dir.iterdir()) == []
+    assert {
+        "dashboard-source-job-list",
+        "dashboard-source-status",
+    } <= set(by_id)
+    assert "URLSearchParams" in dashboard_script
+    assert "source_job" in dashboard_script
+    assert "/api/harris-source-jobs" in dashboard_script
+    assert "checkbox.checked" in dashboard_script
+    assert "/sources" in dashboard_script
+
+
+def test_final_wizard_stage_offers_only_discovered_jobs_to_harris(
+    page_context,
+):
+    client, _matrices_dir = page_context
+
+    visualize_script = client.get(
+        "/static/app/stages/visualize.js"
+    ).get_data(as_text=True)
+
+    assert "/api/harris-source-jobs" in visualize_script
+    assert "Create or add to a Harris Matrix" in visualize_script
+    assert "/harris?source_job=" in visualize_script
+    assert "encodeURIComponent(state.jobId)" in visualize_script
+
+
 def test_editor_shell_loads_without_embedding_matrix_metadata(page_context):
     client, matrices_dir = page_context
     hostile_title = '</script><script data-injected="yes">alert(1)</script>'

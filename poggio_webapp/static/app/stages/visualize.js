@@ -2,6 +2,36 @@ import { state } from "../core/state.js";
 import { refreshChrome } from "../core/navigation.js";
 import { $content } from "../core/ui.js";
 
+async function addHarrisAction() {
+  if (!state.jobId) return;
+
+  try {
+    const response = await fetch("/api/harris-source-jobs", {
+      headers: { Accept: "application/json" },
+    });
+    if (!response.ok) return;
+    const sources = await response.json();
+    if (
+      !Array.isArray(sources)
+      || !sources.some(source => source.job_id === state.jobId)
+    ) {
+      return;
+    }
+
+    const actions = document.querySelector("#visualize-actions");
+    if (!actions) return;
+    const link = document.createElement("a");
+    link.className = "button-link secondary";
+    link.href = (
+      `/harris?source_job=${encodeURIComponent(state.jobId)}`
+    );
+    link.textContent = "Create or add to a Harris Matrix";
+    actions.append(link);
+  } catch (_error) {
+    // Source discovery is optional; leave the action absent when unavailable.
+  }
+}
+
 export function renderVisualize() {
   $content.innerHTML = `
     <div class="panel">
@@ -15,7 +45,7 @@ export function renderVisualize() {
         <span><strong>You’ve reached the end of the guide.</strong><br>
         Opening the interactive view will not change your saved work.</span>
       </div>
-      <div class="btn-row">
+      <div class="btn-row" id="visualize-actions">
         <button id="openViz">Open the interactive view</button>
         ${state.extract.rawJson ? `<button class="secondary" id="dlJson">Download the traced data</button>` : ""}
       </div>
@@ -41,4 +71,5 @@ export function renderVisualize() {
     a.download = "traced-drawing-data.json";
     a.click();
   });
+  void addHarrisAction();
 }

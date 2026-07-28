@@ -13,6 +13,7 @@ poggio_webapp/
                         convert_coords, build_gempy)
   templates/index.html the wizard shell
   static/app/           modular frontend logic (vanilla JS, no build step)
+  static/harris/        Harris Matrix dashboard/editor logic and styles
   static/model3d-viewer.js  shared OBJ surface renderer
   static/style.css      styling
   static/visualizer.html  2D extraction + 3D surface visualizer shell
@@ -22,6 +23,7 @@ poggio_webapp/
                         wired in)
   jobs/                 created at runtime — one folder per session,
                         mirroring 01_scan .. 06_gempy_model
+  matrices/             versioned trench-level Harris Matrix workspaces
 ```
 
 `pipeline/` keeps the original scripts' schemas, prompts and defaults; they
@@ -76,6 +78,26 @@ before supplying or drawing the geometry:
   graph-paper wall record whose layers are identified by locus numbers and
   Munsell soil colours.
 
+### Harris Matrix workspace
+
+**Harris matrices** opens a separate, optional trench-level workspace outside
+the nine numbered drawing-to-3D steps. Create a blank matrix, import one or
+more usable drawing jobs, review source provenance and generic labels, and
+record explicit younger-to-older relationships or correlations.
+
+Correlation is not chronology: it is a human interpretation that multiple
+observations represent the same stratigraphic unit. Matching labels and
+shared boundaries can generate proposals, but nothing is accepted
+automatically. Rejected proposals remain rejected. Matrix operations never
+modify source jobs, and exported JSON contains no server paths.
+
+The saved record is
+`matrices/<matrix_id>/matrix.json`. JSON and deterministic SVG downloads
+survive Flask restarts; **Print / Save as PDF** uses browser printing. The
+first release has no AI chronology, phases, database, collaboration, or
+server-side PDF generation. Full instructions and validation codes are in
+[`../docs/workflows/harris-matrix.md`](../docs/workflows/harris-matrix.md).
+
 ### Upload an existing drawing
 
 1. Select **Use an existing drawing**, then choose the illustrated or
@@ -103,16 +125,20 @@ that model is present, and can always return to 2D when extraction data exists.
 The saved-job results page and this interactive visualizer share
 `static/model3d-viewer.js`; there is only one OBJ loading/rendering engine.
 
-In 3D, use the surface checkboxes or **Show all**/**Hide all**, opacity,
-wireframe, axes/bounds, and Reset/Top/Front/Side/3D camera controls. Mouse and
-touch support orbit, zoom, and pan. A failed OBJ is listed without hiding
-successfully loaded surfaces. An all-failed or WebGL-unavailable model shows a
-recoverable message, and the 2D mode continues to work.
+In 3D, choose **Surfaces** for the interpolated boundary meshes or
+**Lithology volume** for the classified GemPy grid cells. Surface controls
+provide per-layer visibility, **Show all**/**Hide all**, opacity, and
+wireframe. Volume controls provide per-ID visibility and inclusive X/Y/Z
+maximum slices; **Reset slices** restores the complete grid. Both
+representations provide axes/bounds and Reset/Top/Front/Side/3D cameras.
+Mouse and touch support orbit, zoom, and pan.
 
-The scene displays boundary surfaces in site coordinates with Z up and units
-in metres. It does not render the solid `lith_block` volume. Model validity
-still depends on surveyed registration, trustworthy extraction, validation
-review, and the single-face interpolation warning.
+The scene uses site coordinates in metres with Z up. Boundary surfaces are
+continuous interpolated triangles, while volume cells are
+resolution-dependent classifications and are intentionally blocky rather
+than smooth closed solids. Model validity still depends on surveyed
+registration, trustworthy extraction, validation review, and the single-face
+interpolation warning.
 
 An upload creates a normal pipeline job when the file is selected. It does
 not call `/editor/new` or create a blank-editor draft.
@@ -240,6 +266,7 @@ if [ ! -x "$PYTHON" ]; then
 fi
 
 "$PYTHON" -m pytest -q
+node poggio_webapp/static/harris/core.test.mjs
 node poggio_webapp/static/canvas/grid.test.mjs
 node poggio_webapp/static/app/stages/start-options.test.mjs
 node poggio_webapp/static/app/text-metadata.test.mjs
@@ -250,8 +277,19 @@ node poggio_webapp/static/visualizer/schema-core.test.mjs
 node poggio_webapp/static/visualizer/coordinates.test.mjs
 node poggio_webapp/static/visualizer/model3d-core.test.mjs
 node poggio_webapp/static/visualizer/view-mode.test.mjs
+node poggio_webapp/static/visualizer/volume3d-core.test.mjs
+"$PYTHON" -m pytest -q \
+  tests/test_harris_schema.py \
+  tests/test_harris_graph.py \
+  tests/test_harris_store.py \
+  tests/test_harris_import.py \
+  tests/test_harris_suggestions.py \
+  tests/test_harris_routes.py \
+  tests/test_harris_pages.py \
+  tests/test_harris_render.py
 "$PYTHON" -m pytest -q \
   tests/test_gempy_mesh_export.py \
+  tests/test_gempy_volume_export.py \
   tests/test_gempy_viewer_manifest.py \
   tests/test_visualizer_files_route.py \
   tests/test_visualizer_static_dependencies.py
@@ -294,6 +332,9 @@ verification/autofill rules and skip/navigation behavior.
   are not implemented.
 - Completed models support viewing and downloading, not arbitrary reopening
   for edits. Failed model processing does retain an editor recovery path.
-- The interactive 3D view renders GemPy boundary surfaces only. The saved
-  NumPy lithology block remains a download/scientific artifact and is not
-  shown as a solid voxel volume in Phase A.
+- Volume appearance is tied to the chosen GemPy resolution. The default
+  `50 × 50 × 30` grid is 75,000 instances; larger grids increase binary size,
+  GPU data, slice-rebuild work, and visible blockiness/precision tradeoffs.
+- A volume cell is a classified regular-grid sample, not a smooth closed
+  geological solid. Use **Surfaces** when the interpolated boundary geometry
+  is the relevant representation.

@@ -69,30 +69,92 @@
       <h2 class="section" id="model3dHeading">3D model</h2>
       <p class="hint" id="model3dSummary"></p>
 
-      <div class="model3d-control-block">
-        <div class="model3d-control-heading">
-          <h3>Surfaces</h3>
-          <div class="model3d-compact-actions">
-            <button type="button" id="model3dShowAll"
-              aria-controls="model3dSurfaces">Show all</button>
-            <button type="button" id="model3dHideAll"
-              aria-controls="model3dSurfaces">Hide all</button>
+      <div class="model3d-renderer-buttons" role="group"
+        aria-label="3D model representation">
+        <button type="button" id="model3dRendererSurfaces"
+          aria-controls="model3dSurfaceControls"
+          aria-pressed="true">Surfaces</button>
+        <button type="button" id="model3dRendererVolume"
+          aria-controls="model3dVolumeControls"
+          aria-pressed="false" hidden>Lithology volume</button>
+      </div>
+
+      <div id="model3dSurfaceControls">
+        <div class="model3d-control-block">
+          <div class="model3d-control-heading">
+            <h3>Surfaces</h3>
+            <div class="model3d-compact-actions">
+              <button type="button" id="model3dShowAll"
+                aria-controls="model3dSurfaces">Show all</button>
+              <button type="button" id="model3dHideAll"
+                aria-controls="model3dSurfaces">Hide all</button>
+            </div>
+          </div>
+          <div class="model3d-surface-list" id="model3dSurfaces"
+            role="group" aria-label="Surface visibility"></div>
+        </div>
+
+        <div class="model3d-control-block">
+          <div class="model3d-range-label">
+            <label for="model3dOpacity">Surface opacity</label>
+            <output id="model3dOpacityValue" for="model3dOpacity">72%</output>
+          </div>
+          <input class="model3d-range" id="model3dOpacity" type="range"
+            min="0.1" max="1" step="0.01" value="0.72">
+          <label class="toggle">
+            <input type="checkbox" id="model3dWireframe"> Wireframe
+          </label>
+        </div>
+      </div>
+
+      <div id="model3dVolumeControls" hidden>
+        <p class="hint model3d-volume-explanation"
+          id="model3dVolumeResolution"></p>
+
+        <div class="model3d-control-block">
+          <h3>Lithologies</h3>
+          <div class="model3d-lithology-list" id="model3dLithologies"
+            role="group" aria-label="Lithology visibility"></div>
+        </div>
+
+        <div class="model3d-control-block">
+          <div class="model3d-control-heading">
+            <h3>Maximum slices</h3>
+            <div class="model3d-compact-actions">
+              <button type="button" id="model3dResetSlices"
+                aria-controls="model3dSliceX model3dSliceY model3dSliceZ">
+                Reset slices
+              </button>
+            </div>
+          </div>
+          <div class="model3d-slice-control">
+            <div class="model3d-range-label">
+              <label for="model3dSliceX">X maximum</label>
+              <output id="model3dSliceXValue" for="model3dSliceX"></output>
+            </div>
+            <input class="model3d-range" id="model3dSliceX" type="range"
+              min="0" max="0" step="1" value="0">
+          </div>
+          <div class="model3d-slice-control">
+            <div class="model3d-range-label">
+              <label for="model3dSliceY">Y maximum</label>
+              <output id="model3dSliceYValue" for="model3dSliceY"></output>
+            </div>
+            <input class="model3d-range" id="model3dSliceY" type="range"
+              min="0" max="0" step="1" value="0">
+          </div>
+          <div class="model3d-slice-control">
+            <div class="model3d-range-label">
+              <label for="model3dSliceZ">Z maximum</label>
+              <output id="model3dSliceZValue" for="model3dSliceZ"></output>
+            </div>
+            <input class="model3d-range" id="model3dSliceZ" type="range"
+              min="0" max="0" step="1" value="0">
           </div>
         </div>
-        <div class="model3d-surface-list" id="model3dSurfaces"
-          role="group" aria-label="Surface visibility"></div>
       </div>
 
       <div class="model3d-control-block">
-        <div class="model3d-range-label">
-          <label for="model3dOpacity">Surface opacity</label>
-          <output id="model3dOpacityValue" for="model3dOpacity">72%</output>
-        </div>
-        <input class="model3d-range" id="model3dOpacity" type="range"
-          min="0.1" max="1" step="0.01" value="0.72">
-        <label class="toggle">
-          <input type="checkbox" id="model3dWireframe"> Wireframe
-        </label>
         <label class="toggle">
           <input type="checkbox" id="model3dHelpers" checked>
           Bounding box and axes

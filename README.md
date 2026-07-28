@@ -22,7 +22,7 @@ poggio_webapp/           the pipeline + browser GUI  <- start here
   tools/                 standalone helpers not wired into the GUI
                          (pixel_picker.html; detectFieldWallMarkers.py is now
                          superseded by pipeline/detect_markers.py)
-  static/, templates/    frontend (2D extraction review + 3D surface viewer)
+  static/, templates/    frontend (2D extraction review + 3D surface/volume viewer)
   jobs/                  created at runtime, one folder per session
 ```
 
@@ -45,6 +45,29 @@ feed the same coordinate conversion and model build.
 
 Open `http://localhost:5000` after starting the web app. The first screen
 supports two independent ways to begin.
+
+### Build a Harris Matrix
+
+Open **Harris matrices** from the main application to create a separate,
+trench-level chronology without creating a drawing job. A matrix can import
+units from multiple usable `FieldWallProfile` and `ArchaeologicalDiagram`
+jobs while leaving every source artifact unchanged.
+
+Relationships always run from a younger unit to an older unit, so the
+deterministic SVG places youngest units at the top. Correlation is a
+separate, human-confirmed same-unit interpretation; equal labels are not
+merged automatically. Boundary and label matches produce proposals only,
+and every proposal must be individually accepted or rejected. The matrix is
+an archaeological interpretation, not an automatically true or
+scientifically verified result.
+
+Matrices persist under `poggio_webapp/matrices/<matrix_id>/matrix.json`.
+The editor downloads versioned JSON and scalable SVG; browser printing
+provides PDF output. There is no AI chronology, phase grouping,
+collaboration, database, or server-generated PDF. See
+[`docs/workflows/harris-matrix.md`](docs/workflows/harris-matrix.md) for the
+workflow, schema, validation codes, provenance rules, exports, limitations,
+and release commands.
 
 ### Upload an existing drawing
 
@@ -116,21 +139,28 @@ fallback are documented in `poggio_webapp/README.md`.
 
 Open **View and download** for the interactive visualizer. Its **2D drawing**
 mode reviews extracted face geometry, source-image overlays, and A/B
-comparisons. For a completed job with a viewer manifest, **3D model** loads
-all available GemPy boundary-surface OBJ files in one Z-up scene. The saved-job
-results page and the interactive visualizer use the same OBJ renderer.
+comparisons. For a completed job with a viewer manifest, **3D model** offers
+two representations:
 
-The 3D controls provide per-surface visibility, show/hide all, opacity,
-wireframe, axes/bounds, reset, and top/front/side/3D camera views. Orbit, zoom,
-and pan work with mouse or touch. If one OBJ fails, the other surfaces remain
-usable and the viewer names the failed surface; if WebGL is unavailable, the
-page reports a recoverable error and 2D review remains available.
+- **Surfaces** loads every readable GemPy boundary-surface OBJ in one Z-up
+  scene. The saved-job results page and interactive visualizer share this OBJ
+  renderer.
+- **Lithology volume** loads the classified GemPy regular grid as colored
+  cells. Per-lithology visibility and inclusive X/Y/Z maximum-slice controls
+  expose cross-sections; **Reset slices** restores the complete grid.
 
-This Phase A view shows interpolated boundary **surfaces**, not the solid
-lithology volume stored in the NumPy output. It is a review aid, not a
-scientifically authoritative reconstruction. Check registration provenance,
-validation warnings, and the single-face interpolation warning before
-interpreting any geometry.
+Both representations have axes/bounds and reset/top/front/side/3D camera
+controls, plus mouse and touch orbit, zoom, and pan. Surface mode also provides
+show/hide all, opacity, and wireframe controls. A failed artifact or unavailable
+WebGL context produces a recoverable message, and 2D review remains available.
+
+Boundary surfaces and volume cells answer different questions. Surfaces are
+continuous interpolated triangles at geological boundaries. Volume cells are
+classified samples of the regular grid and therefore look blockier at lower
+GemPy resolutions; they are not smooth closed geological solids. Both are
+review aids, not scientifically authoritative reconstructions. Check
+registration provenance, validation warnings, and the single-face
+interpolation warning before interpreting either representation.
 
 ### Workflow limitations
 
@@ -153,6 +183,7 @@ if [ ! -x "$PYTHON" ]; then
 fi
 
 "$PYTHON" -m pytest -q
+node poggio_webapp/static/harris/core.test.mjs
 node poggio_webapp/static/canvas/grid.test.mjs
 node poggio_webapp/static/app/stages/start-options.test.mjs
 node poggio_webapp/static/app/text-metadata.test.mjs
@@ -163,8 +194,19 @@ node poggio_webapp/static/visualizer/schema-core.test.mjs
 node poggio_webapp/static/visualizer/coordinates.test.mjs
 node poggio_webapp/static/visualizer/model3d-core.test.mjs
 node poggio_webapp/static/visualizer/view-mode.test.mjs
+node poggio_webapp/static/visualizer/volume3d-core.test.mjs
+"$PYTHON" -m pytest -q \
+  tests/test_harris_schema.py \
+  tests/test_harris_graph.py \
+  tests/test_harris_store.py \
+  tests/test_harris_import.py \
+  tests/test_harris_suggestions.py \
+  tests/test_harris_routes.py \
+  tests/test_harris_pages.py \
+  tests/test_harris_render.py
 "$PYTHON" -m pytest -q \
   tests/test_gempy_mesh_export.py \
+  tests/test_gempy_volume_export.py \
   tests/test_gempy_viewer_manifest.py \
   tests/test_visualizer_files_route.py \
   tests/test_visualizer_static_dependencies.py
@@ -620,13 +662,18 @@ lazily so the rest of the app works without it. Given the two CSVs:
   `"Strat_Series"` stack — i.e. this assumes one continuous conformable
   sequence, not multiple unconformity-bounded series) + `gp.compute_model`.
 - **Outputs**: the `.gempy` project file (`save_model=True` by default);
-  a `.npz` of the raw lithology block array plus its resolution/extent (so
-  the voxel grid can be reloaded without recomputing); one `.obj` mesh per
-  surface (`export_meshes`, vertex/face arrays from `solution.raw_arrays`);
-  and `trench_model_viewer.json`, a durable versioned manifest for the browser
-  viewer. Before export, every OBJ vertex array is restored from GemPy's
-  internal transform with `input_transform.apply_inverse`, so its coordinates
-  are site coordinates in metres. OBJ filenames are sanitized via
+  a `.npz` of the raw lithology block array plus its resolution/extent for
+  scientific use; a headerless `trench_model_lith_block.bin` browser copy
+  encoded as little-endian unsigned 16-bit values in C order; one `.obj` mesh
+  per surface (`export_meshes`, vertex/face arrays from
+  `solution.raw_arrays`); and `trench_model_viewer.json`, a durable versioned
+  manifest for the browser viewer. The volume shape is `[nx, ny, nz]`, and
+  cell `(x, y, z)` is stored at `(x * ny + y) * nz + z`. The builder maps IDs
+  with GemPy's volume-element enumerator and names; it never infers names from
+  surface order, and an unverified or unknown ID is labeled
+  `Lithology <id>`. Before OBJ export, every vertex array is restored from
+  GemPy's internal transform with `input_transform.apply_inverse`, so its
+  coordinates are site coordinates in metres. OBJ filenames are sanitized via
   `safe_filename` — any character outside `[A-Za-z0-9_.-]` becomes `_` — while
   the original surface name remains in the OBJ comment and manifest. The
   manifest stores only paths relative to `06_gempy_model/`, never job
@@ -646,6 +693,13 @@ lazily so the rest of the app works without it. Given the two CSVs:
 The browser uses locally vendored Three.js `0.185.1` core, OrbitControls, and
 OBJLoader modules. Neither the saved-job result viewer nor the interactive
 visualizer requires a JavaScript CDN at runtime.
+
+The default `50 × 50 × 30` volume contains 75,000 cells and is rendered with
+one instanced mesh per lithology rather than one mesh per cell. Slice rebuilds
+target less than 200 ms on the review machine. Cell count, binary size
+(`2 × nx × ny × nz` bytes), rebuild work, GPU instance data, and blockiness all
+increase directly with the chosen resolution; larger grids are not covered by
+the default performance gate.
 
 ## Known open items
 
