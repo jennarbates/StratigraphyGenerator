@@ -10,7 +10,6 @@ from .harris_matrix import (
     validate_matrix_graph,
 )
 
-
 _SVG_NAMESPACE = "http://www.w3.org/2000/svg"
 _MAX_UNITS = 250
 _MINIMUM_WIDTH = 720

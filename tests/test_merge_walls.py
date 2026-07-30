@@ -1,7 +1,13 @@
 import copy
 
 import pytest
-
+from fixtures_merge import (
+    EAST_WALL,
+    GRID_T900,
+    NORTH_WALL,
+    SURFACE_L1,
+    SURFACE_L2,
+)
 
 from pipeline.merge_walls import (
     check_trench_grid_config,
@@ -9,14 +15,6 @@ from pipeline.merge_walls import (
     make_trench_starter_config,
     merge_extractions,
     merged_series_order,
-)
-
-from fixtures_merge import (
-    EAST_WALL,
-    GRID_T900,
-    NORTH_WALL,
-    SURFACE_L1,
-    SURFACE_L2,
 )
 
 

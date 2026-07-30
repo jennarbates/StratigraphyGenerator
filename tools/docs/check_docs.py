@@ -4,13 +4,13 @@ from __future__ import annotations
 
 import argparse
 import re
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Sequence
+from typing import Any
 from urllib.parse import unquote, urlsplit
 
 import yaml
-
 
 REQUIRED_FRONT_MATTER_KEYS = (
     "title",

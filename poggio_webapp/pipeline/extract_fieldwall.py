@@ -8,11 +8,10 @@ JSON / parse warnings instead of only printing.
 """
 
 import os
-import time
 from typing import Literal
 
 from google import genai
-from google.genai import errors, types
+from google.genai import types
 from PIL import Image
 from pydantic import BaseModel, Field
 from pydantic.json_schema import SkipJsonSchema

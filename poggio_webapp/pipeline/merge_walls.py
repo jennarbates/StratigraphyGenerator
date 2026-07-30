@@ -38,8 +38,9 @@ def _validate_sheets(sheets):
     for i, item in enumerate(sheets):
         try:
             label, data = item
-        except (TypeError, ValueError):
-            raise ValueError(f"sheets[{i}] is not a (wall_label, data) pair")
+        except (TypeError, ValueError) as error:
+            raise ValueError(
+                f"sheets[{i}] is not a (wall_label, data) pair") from error
         if not isinstance(label, str) or not label.strip():
             raise ValueError(f"sheets[{i}] has an empty wall_label")
         if not isinstance(data, dict):

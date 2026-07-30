@@ -2,21 +2,18 @@ import json
 
 import pytest
 
-
 import storage
-import backend.jobs as jobs
 from app import app
 from pipeline.manual_extraction import (
     Calibration,
+    _converted_points,
     build_fieldwall,
     build_illustrator,
-    _converted_points,
 )
 
 
 @pytest.fixture
 def client(tmp_path, monkeypatch):
-    jobs_dir = storage.JOBS_DIR
     app.config.update(TESTING=True)
     return app.test_client()
 

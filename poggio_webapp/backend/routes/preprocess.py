@@ -1,10 +1,10 @@
 """Routes for preprocess."""
 
 from flask import Blueprint, abort, jsonify, request
+
 from pipeline import preprocess as p_preprocess
 
 from ..jobs import job_dir, load_meta, rel_url, save_meta
-
 
 bp = Blueprint("preprocess", __name__)
 

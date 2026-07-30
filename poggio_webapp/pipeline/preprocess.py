@@ -9,6 +9,7 @@ inputs.
 """
 
 import os
+
 import cv2
 import numpy as np
 
@@ -59,12 +60,12 @@ def load_image(path, pdf_dpi=300, pdf_page=1):
     if path.lower().endswith(".pdf"):
         try:
             from pdf2image import convert_from_path
-        except ImportError:
+        except ImportError as error:
             raise RuntimeError(
                 "PDF input requires pdf2image (`pip install pdf2image "
                 "--break-system-packages`) and poppler "
                 "(`apt install poppler-utils`)."
-            )
+            ) from error
         pages = convert_from_path(path, dpi=pdf_dpi)
         if pdf_page < 1 or pdf_page > len(pages):
             raise RuntimeError(

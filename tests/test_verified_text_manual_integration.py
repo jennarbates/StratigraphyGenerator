@@ -1,13 +1,10 @@
 import json
-from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
 
-
 import storage
 from backend import create_app
-from backend import jobs as backend_jobs
 from pipeline.extract_fieldwall import FieldWallProfile
 
 

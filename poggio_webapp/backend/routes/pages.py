@@ -8,12 +8,12 @@ from pathlib import Path
 from flask import (
     Blueprint,
     abort,
+    current_app,
+    jsonify,
     redirect,
     render_template,
     send_from_directory,
     url_for,
-    current_app,
-    jsonify,
 )
 
 import storage

@@ -1,11 +1,10 @@
 import json
 import math
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
 import storage
-
 from poggio_webapp.pipeline.harris_import import import_source_jobs
 from poggio_webapp.pipeline.harris_matrix import (
     HarrisCorrelation,
@@ -19,13 +18,12 @@ from poggio_webapp.pipeline.harris_suggestions import (
     review_suggestion,
 )
 
-
 FIELD_JOB = "111111111111"
 SECOND_JOB = "222222222222"
 
 
 def empty_matrix():
-    timestamp = datetime(2026, 7, 28, 8, 0, tzinfo=timezone.utc)
+    timestamp = datetime(2026, 7, 28, 8, 0, tzinfo=UTC)
     return HarrisMatrix(
         schema_version=1,
         matrix_id="aaaaaaaaaaaa",

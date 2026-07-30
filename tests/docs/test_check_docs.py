@@ -16,7 +16,6 @@ from tools.docs.check_docs import (
     validate_front_matter,
 )
 
-
 COMPLETE_FRONT_MATTER = """\
 ---
 title: Test page

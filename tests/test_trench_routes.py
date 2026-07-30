@@ -10,15 +10,12 @@ import csv
 import json
 
 import pytest
-
+from fixtures_merge import EAST_WALL, GRID_T900, NORTH_WALL
 
 import storage
 from backend import create_app
-from backend.routes import trenches as trenches_routes
 from pipeline import build_gempy
 from pipeline.merge_walls import merge_extractions, merged_series_order
-
-from fixtures_merge import EAST_WALL, GRID_T900, NORTH_WALL
 
 
 @pytest.fixture

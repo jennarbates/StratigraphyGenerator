@@ -10,14 +10,11 @@ import csv
 import math
 
 import pytest
-
+from fixtures_merge import EAST_WALL, GRID_T900, NORTH_WALL
 
 from pipeline import convert_coords
 from pipeline.merge_walls import merge_extractions
 from pipeline.true_dip import apply_true_dip, true_orientations
-
-from fixtures_merge import EAST_WALL, GRID_T900, NORTH_WALL
-
 
 SURFACE = "Locus 1"
 NORTH_XS = (0.0, 0.9, 2.1, 3.2, 4.0)

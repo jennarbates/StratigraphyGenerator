@@ -7,7 +7,6 @@ from google import genai
 from google.genai import _transformers
 from pydantic import ValidationError
 
-
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 from pipeline.extract_fieldwall import FieldWallProfile

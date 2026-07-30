@@ -4,7 +4,7 @@ import os
 import re
 import secrets
 import tempfile
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from pydantic import ValidationError
@@ -57,7 +57,7 @@ class InvalidMatrixError(HarrisStoreError, ValueError):
 
 
 def _utc_now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def _validate_matrix_id(matrix_id: str) -> str:

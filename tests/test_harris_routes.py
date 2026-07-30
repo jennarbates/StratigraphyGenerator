@@ -1,15 +1,13 @@
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from types import SimpleNamespace
 from xml.etree import ElementTree
 
 import pytest
 
-
 import storage
-from backend import config, create_app, harris_store
+from backend import create_app, harris_store
 from pipeline.harris_matrix import HarrisMatrix
-
 
 UNIT_A = "unit-00000000000a"
 UNIT_B = "unit-00000000000b"
@@ -236,8 +234,8 @@ def test_list_returns_safe_summaries_newest_first(
     ids = iter(["aaaaaaaaaaaa", "bbbbbbbbbbbb"])
     times = iter(
         [
-            datetime(2026, 7, 28, 8, 0, tzinfo=timezone.utc),
-            datetime(2026, 7, 28, 9, 0, tzinfo=timezone.utc),
+            datetime(2026, 7, 28, 8, 0, tzinfo=UTC),
+            datetime(2026, 7, 28, 9, 0, tzinfo=UTC),
         ]
     )
     monkeypatch.setattr(

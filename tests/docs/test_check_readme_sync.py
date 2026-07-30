@@ -14,7 +14,6 @@ from tools.docs.check_readme_sync import (
     run_checks,
 )
 
-
 NAV = {
     "nav": [
         {"Home": "index.md"},

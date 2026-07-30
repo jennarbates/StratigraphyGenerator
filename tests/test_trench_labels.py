@@ -6,12 +6,8 @@ import json
 import pytest
 from PIL import Image
 
-
 import storage
 from backend import create_app
-from backend import config
-from backend import jobs as backend_jobs
-from backend.routes import jobs as jobs_routes
 from pipeline import editor
 
 

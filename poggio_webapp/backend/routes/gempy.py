@@ -5,7 +5,6 @@ from flask import Blueprint, abort, jsonify, request
 from ..jobs import job_dir, load_meta, rel_url
 from ..tasks import TASKS, start_task
 
-
 bp = Blueprint("gempy", __name__)
 
 

@@ -1,15 +1,12 @@
 import importlib
 import json
-from datetime import datetime, timezone
-from pathlib import Path
+from datetime import UTC, datetime
 
 import pytest
 
-
 import storage
-from backend import config, harris_store
+from backend import harris_store
 from pipeline.harris_matrix import HarrisMatrix
-
 
 UNIT_A = "unit-00000000000a"
 UNIT_B = "unit-00000000000b"
@@ -319,9 +316,9 @@ def test_list_is_newest_first_with_lexical_id_tie_breaking(
     ids = iter(["bbbbbbbbbbbb", "aaaaaaaaaaaa", "cccccccccccc"])
     times = iter(
         [
-            datetime(2026, 7, 28, 8, 0, tzinfo=timezone.utc),
-            datetime(2026, 7, 28, 8, 0, tzinfo=timezone.utc),
-            datetime(2026, 7, 28, 9, 0, tzinfo=timezone.utc),
+            datetime(2026, 7, 28, 8, 0, tzinfo=UTC),
+            datetime(2026, 7, 28, 8, 0, tzinfo=UTC),
+            datetime(2026, 7, 28, 9, 0, tzinfo=UTC),
         ]
     )
     monkeypatch.setattr(

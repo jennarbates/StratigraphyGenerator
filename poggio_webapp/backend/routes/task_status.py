@@ -6,7 +6,6 @@ from flask import Blueprint, abort, jsonify
 
 from ..tasks import TASKS
 
-
 bp = Blueprint("task_status", __name__)
 
 

@@ -11,8 +11,8 @@ from flask import (
 )
 
 import storage
-from ..jobs import safe_job_path, save_meta
 
+from ..jobs import safe_job_path, save_meta
 
 bp = Blueprint("jobs", __name__)
 

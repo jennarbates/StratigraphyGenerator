@@ -19,7 +19,6 @@ from tools.docs.validate_visual_manifest import (
     validate_manifest_entries,
 )
 
-
 COMPLIANT_SVG = (
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 50">'
     "<title>Example</title><desc>An example diagram.</desc></svg>"

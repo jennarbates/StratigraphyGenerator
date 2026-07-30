@@ -1,11 +1,9 @@
 import json
-from datetime import datetime, timezone
-from pathlib import Path
+from datetime import UTC, datetime
 
 import pytest
 
 import storage
-
 from poggio_webapp.pipeline.harris_import import (
     HarrisImportError,
     discover_source_jobs,
@@ -15,13 +13,12 @@ from poggio_webapp.pipeline.harris_import import (
 )
 from poggio_webapp.pipeline.harris_matrix import HarrisMatrix
 
-
 FIELD_JOB = "111111111111"
 ILLUSTRATOR_JOB = "222222222222"
 
 
 def empty_matrix():
-    timestamp = datetime(2026, 7, 28, 8, 0, tzinfo=timezone.utc)
+    timestamp = datetime(2026, 7, 28, 8, 0, tzinfo=UTC)
     return HarrisMatrix.model_validate(
         {
             "schema_version": 1,

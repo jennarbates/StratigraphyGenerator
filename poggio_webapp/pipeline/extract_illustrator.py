@@ -9,13 +9,11 @@ Same schema and prompt as the original single-agent script. Adapted to:
   - return (parsed_dict, raw_json_text) instead of only printing.
 """
 
-import time
 from typing import Literal
 
 from google import genai
-from google.genai import errors
-from PIL import Image
 from google.genai import types
+from PIL import Image
 from pydantic import BaseModel
 
 from pipeline._extract_common import generate_with_retry

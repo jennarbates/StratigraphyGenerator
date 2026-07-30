@@ -10,7 +10,6 @@ from poggio_webapp.pipeline.harris_matrix import (
     validate_matrix_graph,
 )
 
-
 A = "unit-00000000000a"
 B = "unit-00000000000b"
 C = "unit-00000000000c"

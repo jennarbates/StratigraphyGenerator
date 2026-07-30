@@ -13,10 +13,8 @@ from pathlib import Path
 
 import pytest
 
-
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
-import storage
 from app import app
 
 
@@ -38,7 +36,6 @@ class _PageParser(HTMLParser):
 
 @pytest.fixture
 def client(tmp_path, monkeypatch):
-    jobs_dir = storage.JOBS_DIR
     app.config.update(TESTING=True)
     return app.test_client()
 

@@ -5,14 +5,14 @@ import os
 from pathlib import Path
 
 from flask import Blueprint, abort, jsonify, request
+from pydantic import ValidationError
+
 from pipeline import extract_fieldwall as p_extract_fieldwall
 from pipeline import extract_text as p_extract_text
-from pydantic import ValidationError
 
 from ..errors import _friendly_error
 from ..jobs import job_dir, load_meta, save_meta
 from ..tasks import start_task
-
 
 bp = Blueprint("text_metadata", __name__)
 

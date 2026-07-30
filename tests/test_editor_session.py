@@ -5,13 +5,7 @@ from datetime import datetime, timedelta
 import pytest
 
 import storage
-
 from poggio_webapp.pipeline import editor
-
-
-@pytest.fixture(autouse=True)
-def isolate_jobs_dir(tmp_path, monkeypatch):
-    jobs_dir = storage.JOBS_DIR
 
 
 def test_create_editor_session_writes_metadata():

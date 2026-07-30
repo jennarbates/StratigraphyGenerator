@@ -18,7 +18,6 @@ from .harris_matrix import (
     validate_matrix_graph,
 )
 
-
 _GENERIC_LABEL = re.compile(
     r"(?:Polygon|Unlabeled layer)\s+\d+",
     re.IGNORECASE,

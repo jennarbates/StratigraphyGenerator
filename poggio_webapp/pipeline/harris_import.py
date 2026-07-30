@@ -7,7 +7,6 @@ from pathlib import Path
 
 from .harris_matrix import HarrisMatrix, HarrisUnit, SourceRef
 
-
 _JOB_ID = re.compile(r"[0-9a-f]{12}")
 _GENERIC_LABEL = re.compile(r"Polygon\s+\d+", re.IGNORECASE)
 _FIELD_WALL_FIELDS = frozenset(

@@ -1,6 +1,9 @@
 # Modularization & DRY Plan
 
-**Status:** Phases 0 and 1 complete. Phases 2–5 not started.
+**Status:** Phases 0–3 and 5 complete. Phase 4 partly done (steps 22–24, 28); steps 25–26 blocked on a
+prerequisite, step 27 was a misreading — both explained below.
+
+**Remaining work:** Phase 4 steps 25–26 only. Everything else in this plan is done.
 **Scope:** `poggio_webapp/` (Flask backend, `pipeline/`, `static/` frontend), `tests/`, repo root hygiene
 **Goal:** one architecture instead of two, one source of truth for shared concerns, and a test suite that actually covers what ships.
 
@@ -266,7 +269,9 @@ Phase 2 removes that import.
 
 ---
 
-### Phase 2 — One source of truth
+### Phase 2 — One source of truth — ✅ DONE
+
+**677 passed, 1 skipped** (641 from Phase 1 + 14 docs tests added separately + 22 new here).
 
 14. **Path constants.** Every reference to a jobs/trenches/matrices directory imports from
     `backend/config.py`. Change `pipeline/editor.py` to take its jobs directory as a parameter
@@ -287,9 +292,56 @@ Phase 2 removes that import.
 **Verify:** `grep -rn "JOBS_DIR = " poggio_webapp --include="*.py"` returns exactly one hit
 outside legacy files; `grep -rn "meta.json"` shows reads/writes only in `backend/jobs.py`.
 
+#### What was actually built
+
+- **`poggio_webapp/storage.py`** (new) — the single definition of `JOBS_DIR`, `TRENCHES_DIR`,
+  `MATRICES_DIR`, `STATIC_DIR`, `TEMPLATES_DIR`. A leaf module importing nothing from `backend`
+  or `pipeline`, so both layers depend on it without inverting anything. Everything reads
+  `storage.X` at call time; nobody uses `from storage import X`, which would rebind and
+  recreate the stale-copy problem.
+- **`poggio_webapp/naming.py`** (new) — `safe_filename` and `clean_label`. `routes/trenches.py`
+  had kept its own copy of the slug regex *specifically* to avoid importing the gempy stack for
+  it; a dependency-free module removes that reason.
+- **`backend/config.py`** — reduced to `ALLOWED_SCAN_EXT`. The path constants are gone rather
+  than re-exported, so any missed reference is an `AttributeError` instead of a silent write to
+  the developer's real jobs directory. Three such references surfaced immediately.
+- **`backend/jobs.py`** — one `read_meta` and one `write_meta`, accepting a job_id or a resolved
+  directory. `load_meta`/`save_meta` are one-line job_id-shaped aliases. No longer imports
+  `pipeline`; the layering inversion Phase 1 introduced is gone.
+- **`pipeline/editor.py`** — its private `JOBS_DIR` derived from `__file__` is gone.
+- **`backend/harris_store.py`** — the hand-rolled `_DEFAULT_MATRICES_DIR` / `_matrices_root()`
+  override, which existed solely to work around the import-time binding, is deleted.
+
+#### The fixture, before and after
+
+`conftest.storage_dirs` went from **eight** monkeypatches across five modules to **one**, in a
+loop over the three roots. It is now `autouse`: no test can write to the real
+`poggio_webapp/jobs`, because a test that patched the wrong target used to pass while quietly
+writing into the working tree. Twenty-one test modules dropped their bespoke setup.
+
+#### Behaviour changes, both deliberate
+
+1. **`save_meta` now stamps `updated_at`.** Previously only the editor flow stamped it, so
+   extraction-flow jobs always sorted on `created_at` in `job_list`. Pinned in
+   `tests/test_job_meta.py`, including `write_meta(..., stamp=False)` for callers that must not.
+
+2. **`safe_filename` rejects a component that is only dots.** This fixed a live path-traversal
+   read. Dot is a legal filename character, so the old regex passed `".."` through untouched and
+   the caller joined it onto a storage root: a trench labelled `".."` resolved to
+   `poggio_webapp/`, and `/api/trenches/<label>/file`'s containment check then compared against
+   that escaped directory, making every file under it readable. Confirmed exploitable via both
+   `..` and `%2e%2e` before the fix. `"T104.2"` and other legitimate names are unaffected.
+   Regression test in `tests/test_naming.py`.
+
 ---
 
-### Phase 3 — Fix the layering
+### Phase 3 — Fix the layering — ✅ DONE
+
+**679 passed, 1 skipped.** The four route modules holding domain logic shed it. Three others
+(`harris.py` 393, `markers.py` 214, `text_metadata.py` 210) are above the ~150-line target but
+are genuinely request/response code, not misplaced domain logic — see the note on `harris.py`
+below. The stated goal of "no file in backend/routes/ exceeds ~150 lines" was not met and should
+not be forced; the layering goal was.
 
 17. **Extract `pipeline/manual_extraction.py`** from `routes/manual.py` — the `Calibration`
     dataclass and everything from `_point` (`:44`) through `_build_illustrator` (`:477`).
@@ -320,9 +372,52 @@ outside legacy files; `grep -rn "meta.json"` shows reads/writes only in `backend
 **Verify:** no file in `backend/routes/` exceeds ~150 lines; `pipeline/` imports nothing from
 `backend/`.
 
+#### What was actually built
+
+| Module | Before | After | Extracted to |
+| --- | ---: | ---: | --- |
+| `routes/manual.py` | 593 | **78** | `pipeline/manual_extraction.py` (533) |
+| `routes/trenches.py` | 338 | **54** | `services/trench_builder.py` (239) |
+| `routes/pages.py` | 422 | **112** | `services/viewer_files.py` (330) |
+| `routes/harris.py` | 434 | **393** | `services/harris_workspace.py` (66) |
+| `pipeline/editor.py` | 660 | — | a 7-module package (max file 328) |
+
+`pipeline/editor/` is now `schema`, `errors`, `geometry`, `validation`, `session`, `finds`,
+`finalize`, with `__init__` re-exporting all 24 previously public names — no caller changed.
+This absorbed step 21: `_direction`, `_point_on_segment`, `_segments_intersect` and
+`_polygon_self_intersects` were already a self-contained plane-geometry unit and became
+`editor/geometry.py`. They were *not* merged with `merge_walls`'s endpoint helpers, which do a
+different job; forcing those together would have been shape-matching, not deduplication.
+
+`harris.py` shrank least because it was already correctly layered — its bulk is pydantic request
+models and response builders, which are genuinely HTTP concerns. The only real seam was the
+two read-modify-write store transactions, now in `harris_workspace`.
+
+#### Layering, verified
+
+- `pipeline/` imports from `backend/`: **0**
+- `backend/services/` imports Flask: **0**
+- `backend/services/` imports from `backend/routes/`: **0**
+
+`viewer_files.py` used `current_app.logger`; it now uses a module-level `logging.getLogger`,
+since a service must work without an application context.
+
+#### Incidental fixes
+
+- **`read_meta` now tolerates a corrupt meta.json when given a default.** `routes/trenches.py`
+  had a third private meta reader that swallowed `JSONDecodeError`, which Phase 2 had missed
+  because it only looked at missing files. A test that writes a damaged meta.json and expects the
+  listing to skip it caught this. Without a default the corruption still raises — a caller acting
+  on one known job wants to know. Pinned in `tests/test_job_meta.py`.
+- **`merge_walls._face_names` / `._is_placeholder` promoted to public.** They were being called
+  from another module through their underscore names.
+
 ---
 
-### Phase 4 — Frontend
+### Phase 4 — Frontend — ◐ PARTLY DONE
+
+Steps 22–24 and 28 are done. Steps 25–26 are **blocked** on a prerequisite refactor and step 27
+was based on a misreading; both are explained below.
 
 22. **Promote the API wrapper.** Move `static/app/core/api.js` → `static/shared/api.js` and route
     all ~25 raw `fetch()` calls through `api()`/`apiJson()`. `pollTask` and `ensureJob` come
@@ -351,9 +446,66 @@ outside legacy files; `grep -rn "meta.json"` shows reads/writes only in `backend
 **Verify:** `grep -rn "fetch(" poggio_webapp/static --include="*.js" | grep -v vendor` returns
 one hit, in `shared/api.js`. `tests/test_visualizer_static_dependencies.py` still passes.
 
+#### Done: steps 22–24, 28
+
+`static/shared/` now holds `http.js`, `dom.js`, plus the three genuinely-shared scripts moved in
+step 28 (`munsell-color.js`, `boundary-label.js`, `model3d-viewer.js` — each imported by two to
+four modules across different bundles).
+
+- **`responseJson`: 4 copies → 1.** They had drifted in ways that mattered: two parsed the body
+  tolerantly and two threw a raw `SyntaxError` when the server answered a 500 with HTML; one
+  attached the error payload and three did not; the messages differed. `shared/http.js` is the
+  union — the most forgiving of the four — so adopting it everywhere only widens what callers
+  handle. Pinned by executing it under node.
+- **Escapers: 3 → 1.** `app/core/ui.js` escaped `& < > " '`; `visualizer/dom.js` and
+  `app/stages/scan.js` escaped the same set *without* the apostrophe. Consolidated on the
+  five-character version, so two call sites now escape `'` as well — strictly more escaping.
+  `String(value)` was deliberately kept over `String(value ?? "")`: `esc(undefined)` still yields
+  the literal `"undefined"`, matching all three originals. That is arguably a defect, but fixing
+  it is a behaviour change and does not belong in a deduplication commit.
+- **`app/core/api.js`** now re-exports transport from `shared/http.js` and keeps only `ensureJob`
+  and `extractWaitStatus`, the two things that depend on the wizard's own state.
+- **Raw `fetch` calls: 21 → 7.** The seven that remain are deliberate and documented in place:
+  `results.js` (a classic non-module script with `cache: "no-store"`), `canvas/index.js` ×3 (an
+  unload beacon using `keepalive`, and two paths that build richer errors than `responseJson`
+  can), and `visualizer/files.js` ×3 (an autoload whose `!r.ok` path deliberately falls back to
+  the manual pickers, plus two fetches of arbitrary artifact URLs rather than the JSON API).
+
+Verification for this phase was necessarily different — there is no JS test runner. Three checks
+were built and used: every module parses as ESM (`node --input-type=module --check`, via stdin —
+`node --check file.js` silently exits 0 on broken input and is useless here), every relative
+import resolves across the 47-module graph, and every named import is actually exported by its
+target. `shared/http.js` and `shared/dom.js` were additionally executed under node with
+assertions covering the error-shape differences listed above.
+
+#### Not done: steps 25–26, and why
+
+Splitting `canvas/index.js` (1423 lines) and `harris/editor.js` (1085) requires a prerequisite
+that is not a split at all. Both keep their state in module-level `let` bindings that are
+reassigned throughout: canvas has **17 such bindings reassigned 36 times**, harris has **4
+reassigned 17 times**. ES modules export *live bindings that importers cannot assign to*, so the
+moment either file is split, every one of those 53 assignment sites has to become a property on a
+shared state object.
+
+That is a mechanical-looking change that is easy to get subtly wrong, across 2500 lines of
+browser code with no behavioural test coverage — the static checks above would not catch a
+mis-scoped assignment, and neither would the Python suite. The order should be: build a JS test
+harness first (`tests/test_editor_finalize.py` already runs `canvas/grid.mjs` under node from
+Python, so the precedent exists), then convert state to an object, then split. Doing the split
+blind would risk breaking the drawing editor in ways nothing in this repo would detect.
+
+#### Step 27 was based on a misreading
+
+The plan claimed the `visualizer/` split was "started and left unfinished" because several files
+are one or two lines. They are not stubs: `index.js` is the bundle entry point, `schema.js`
+re-exports `schema-core.mjs` so the node-based tests can import it, and `dom.js`/`colors.js` are
+small because they are complete. Nothing to do.
+
 ---
 
-### Phase 5 — Hygiene
+### Phase 5 — Hygiene — ✅ DONE
+
+**684 passed, 1 skipped. `ruff check .` clean.**
 
 29. **Untrack the two tracked legacy files:**
     ```bash
@@ -377,7 +529,52 @@ one hit, in `shared/api.js`. `tests/test_visualizer_static_dependencies.py` stil
 33. **Add a `Makefile` or `justfile`** with `test`, `lint`, `format`, `run`, `docs` targets so
     there's one documented way to do each thing.
 
-34. **Optional:** a pre-commit hook running `ruff` and `pytest -x` on changed files.
+34. **Optional:** a pre-commit hook running `ruff` and `pytest -x` on changed files. *(Not done —
+    `make check` covers it without imposing a hook on the repo.)*
+
+#### What was actually done
+
+**Legacy files (steps 29–30).** 13 files, 185 KB. Eleven of them had **zero commits** — they
+existed only on disk, so deleting them would have been irreversible. They were archived to
+`.archive/pre-modularization-legacy.tar.gz` (64 KB, gitignored) before removal, rather than
+deleted outright. The two that *were* tracked despite being gitignored
+(`modularize_visualizer.py`, `visualizer.legacy.html`) were `git rm --cached`ed; those remain
+recoverable from history. `tools/docs/check_coverage.py` had an `EXEMPT_STEMS` entry for
+`modularize_backend`, now removed with the file it exempted.
+
+**`.gitignore` (step 30).** Rewritten. It had `poggio_webapp/jobs/` twice, a malformed line where
+two paths were concatenated with no newline between them (so the second was never applied), and
+16 entries for files that no longer exist. `.venv/` and `.pytest_cache/` were neither tracked nor
+ignored and are now ignored.
+
+**Ruff (step 32).** Configured in `pyproject.toml` with `E, F, W, I, UP, B`. It found **259
+issues**; 200 were autofixable, and the rest were triaged individually rather than bulk-suppressed:
+
+- 11 `F841` dead `jobs_dir = storage.JOBS_DIR` lines left in test fixtures by the Phase 2
+  migration. Three fixtures turned out to consist of *only* that line — they had been dead since
+  conftest's `storage_dirs` became autouse — and were deleted entirely.
+- 5 `B023` closure-over-loop-variable in `convert_coords.to_site`. A false positive in practice
+  (it is called synchronously within the iteration), but the values are now bound as defaults so
+  the intent is explicit.
+- 3 `E741` (`l` as a name) and 2 `B904` (unchained re-raise) fixed.
+- Four rules are ignored **with the reason recorded in `pyproject.toml`**, because the honest fix
+  for each is a behaviour change that deserves its own commit: `B905` (`zip(strict=)` — 22 sites,
+  where `strict=True` turns silent truncation into an exception), `E402` (the deliberate
+  below-module-level imports that keep gempy optional), `UP042` (`str+Enum` → `StrEnum` changes
+  what `str(member)` returns, and these values are serialised), and `E501`.
+
+The rename in the `E741` fix introduced two `F821` undefined-name errors — it changed `for l in`
+but not the `l.get(...)` half of the same comprehension. **Ruff caught both; the test suite did
+not**, because those lines have no coverage. That is the clearest argument for having added it.
+
+**`Makefile` (step 33).** `test`, `lint`, `format`, `check`, `run`, `docs`, `docs-serve`, `clean`,
+with a self-documenting `help` default.
+
+#### Not done: step 31 (repo root)
+
+The six root planning documents, `00_docs/` and `01_scans/` were left alone. Several of them are
+open working files with uncommitted edits, and moving a document someone is actively editing is
+not a cleanup. Worth doing once they settle.
 
 ---
 

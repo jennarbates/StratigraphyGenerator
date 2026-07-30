@@ -14,7 +14,7 @@ they already validated (or one that may legitimately not exist yet) keep plain
 
 import json
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from flask import abort
@@ -86,7 +86,7 @@ def write_meta(job, meta, *, stamp=True):
     therefore always sorted on ``created_at``.
     """
     if stamp:
-        meta["updated_at"] = datetime.now(timezone.utc).isoformat()
+        meta["updated_at"] = datetime.now(UTC).isoformat()
     meta_path(job).write_text(json.dumps(meta, indent=2))
 
 
@@ -261,7 +261,7 @@ def _timestamp_sort_value(value):
     try:
         parsed = datetime.fromisoformat(value)
         if parsed.tzinfo is None:
-            parsed = parsed.replace(tzinfo=timezone.utc)
+            parsed = parsed.replace(tzinfo=UTC)
         return parsed.timestamp()
     except (OverflowError, ValueError):
         return float("-inf")

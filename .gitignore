@@ -1,24 +1,24 @@
-poggio_webapp/jobs/
-poggio_webapp/jobs/
+# Python
 __pycache__/
 *.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# macOS
 .DS_Store
-poggio_webapp/static/modularize_app.py
-poggio_webapp/static/app.legacy.js
-poggio_webapp/app.legacy.js
-poggio_webapp/static/visualizer.legacy.html
-poggio_webapp/static/modularize_visualizer.py
-00_docs/CLAUDE.md
-poggio_webapp/app.legacy.py
-poggio_webapp/modularize_backend.py
-poggio_webapp/backend/__init__.py.before_manual_first
-poggio_webapp/backend/routes/__init__.py.before_manual_firstpoggio_webapp/backend/routes/pages.py.before_manual_first
-poggio_webapp/backend/routes/pages.py.before_manual_first
-poggio_webapp/static/app/core/state.js.before_manual_first
-poggio_webapp/static/app/index.js.before_manual_first
-poggio_webapp/static/app/stages/draw.js.before_manual_first
-poggio_webapp/static/app/stages/extract.js.before_manual_first
-poggio_webapp/backend/routes/__init__.py.before_manual_first
+
+# Generated docs site (built by `mkdocs build`)
 site/
+
+# Runtime data: job working directories
+poggio_webapp/jobs/
+
+# Pre-modularization legacy sources. Archived rather than deleted because
+# none of them were ever committed. See MODULARIZATION_PLAN.md, phase 5.
+.archive/
+
+# Agent scratch docs
+00_docs/CLAUDE.md
 DOCUMENTATION_AGENT_PROMPTS.md
 DOCUMENTATION_AGENT_WORKPLAN.md

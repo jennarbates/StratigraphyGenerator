@@ -23,9 +23,13 @@ from google.genai import types
 from PIL import Image
 from pydantic import BaseModel
 
-from pipeline._extract_common import generate_with_retry, check_response
+from pipeline._extract_common import check_response, generate_with_retry
 from pipeline.extract_fieldwall import (
-    FieldWallProfile, Locus, GridTiePoint, _cap_for_sending)
+    FieldWallProfile,
+    GridTiePoint,
+    Locus,
+    _cap_for_sending,
+)
 
 Image.MAX_IMAGE_PIXELS = None
 
@@ -247,8 +251,8 @@ def _assemble(markers, result_dict):
                 "convention; re-run marker assignment to use named locus tops"
             )
 
-    listed = [str(l.get("locusNumber") or "").strip()
-              for l in (result_dict.get("loci") or [])]
+    listed = [str(locus.get("locusNumber") or "").strip()
+              for locus in (result_dict.get("loci") or [])]
     for num in dict.fromkeys(n for n in listed if n):
         assigned_loci = tops if using_locus_tops else legacy_bottoms
         if num not in assigned_loci:

@@ -20,10 +20,9 @@ function.
 import json
 from pathlib import Path
 
-from pipeline import convert_coords, merge_walls, true_dip
-
 import storage
 from naming import safe_filename
+from pipeline import convert_coords, merge_walls, true_dip
 
 from ..jobs import read_meta
 from ..tasks import start_task

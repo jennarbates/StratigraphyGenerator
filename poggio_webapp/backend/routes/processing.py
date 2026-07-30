@@ -4,13 +4,13 @@ import json
 from pathlib import Path
 
 from flask import Blueprint, abort, jsonify, request
+
 from pipeline import convert_coords as p_convert_coords
 from pipeline import normalizer as p_normalizer
 from pipeline import validator as p_validator
 
 from ..errors import _friendly_error
 from ..jobs import job_dir, load_meta, rel_url, save_meta
-
 
 bp = Blueprint("processing", __name__)
 

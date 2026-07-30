@@ -4,10 +4,8 @@ from types import SimpleNamespace
 
 import pytest
 
-
 import storage
 from backend import create_app
-from backend import jobs as backend_jobs
 from backend.routes import text_metadata
 
 

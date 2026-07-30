@@ -15,11 +15,6 @@ import csv
 import json
 
 import pytest
-
-
-from pipeline import convert_coords, validator
-from pipeline.merge_walls import merge_extractions, merged_series_order
-
 from fixtures_merge import (
     EAST_WALL,
     GRID_T900,
@@ -28,6 +23,8 @@ from fixtures_merge import (
     SURFACE_L2,
 )
 
+from pipeline import convert_coords, validator
+from pipeline.merge_walls import merge_extractions, merged_series_order
 
 # GRID_T900 is keyed by the full wall names, so merge under those labels.
 WALL_LABELS = ("north wall", "east wall")

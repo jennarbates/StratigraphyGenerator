@@ -2,17 +2,14 @@ import json
 
 import pytest
 
-
 import storage
 from app import app
 from backend.services import editor_pipeline as editor_pipeline_service
 from backend.tasks import TASKS
-from pipeline import editor
 
 
 @pytest.fixture
 def client(tmp_path, monkeypatch):
-    jobs_dir = storage.JOBS_DIR
     TASKS.clear()
     app.config.update(TESTING=True)
     yield app.test_client()

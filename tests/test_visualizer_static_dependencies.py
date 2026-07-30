@@ -1,8 +1,6 @@
 import pytest
 
-
 from app import app
-
 
 THREE_IMPORT_MAP = """<script type="importmap">
 {

@@ -23,10 +23,9 @@ Regenerate with:
 from __future__ import annotations
 
 import argparse
+from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import Callable, Sequence
 from xml.sax.saxutils import escape
-
 
 # One light palette, and each diagram paints its own background.
 #
@@ -181,7 +180,7 @@ def glossary_anatomy() -> str:
         path(wavy(60, 540, 120), "edge"),
         path(wavy(60, 540, 190), "edge"),
         path(wavy(60, 540, 270), "edge"),
-        f'  <ellipse cx="300" cy="225" rx="46" ry="26" class="fill"/>',
+        '  <ellipse cx="300" cy="225" rx="46" ry="26" class="fill"/>',
         txt(300, 230, "feature", "sm", "middle"),
         arrow(600, 90, 548, 90),
         txt(608, 95, "layer — one deposit"),
@@ -191,7 +190,7 @@ def glossary_anatomy() -> str:
         txt(608, 230, "feature — inclusion inside a layer"),
         arrow(600, 300, 548, 300),
         txt(608, 305, "locus — the excavator's number"),
-        f'  <line x1="60" y1="345" x2="540" y2="345" class="thin"/>',
+        '  <line x1="60" y1="345" x2="540" y2="345" class="thin"/>',
         txt(300, 368, "face — one wall of the trench, drawn on one sheet",
             "sm muted", "middle"),
         txt(24, 400, "The trench is the whole excavated hole; this is one of its faces.",
@@ -218,18 +217,18 @@ def three_coordinate_spaces() -> str:
               txt(x + 14, 96, sub, "sm muted")]
     # pixel panel. The axes are labelled at the end each one grows toward:
     # x to the right, y downward.
-    b += [f'  <rect x="80" y="132" width="210" height="132" class="fill"/>',
+    b += ['  <rect x="80" y="132" width="210" height="132" class="fill"/>',
           dot(180, 200), txt(190, 195, "(1240, 860)", "mono"),
           arrow(72, 124, 72, 276), arrow(72, 124, 296, 124),
           txt(292, 116, "x px", "sm muted", "end"),
           txt(80, 292, "y px", "sm muted")]
     # local panel
-    b += [f'  <rect x="380" y="132" width="210" height="132" class="fill"/>',
+    b += ['  <rect x="380" y="132" width="210" height="132" class="fill"/>',
           dot(452, 200), txt(462, 195, "(2.10, 0.85) m", "mono"),
           txt(386, 292, "x metres along the face", "sm muted"),
           txt(386, 152, "depth below surface", "sm muted")]
     # site panel
-    b += [f'  <rect x="690" y="132" width="210" height="132" class="fill"/>',
+    b += ['  <rect x="690" y="132" width="210" height="132" class="fill"/>',
           dot(762, 200), txt(772, 195, "(X, Y, Z)", "mono"),
           txt(696, 292, "north-oriented site grid", "sm muted")]
     b += [arrow(325, 175, 348, 175, "accent", "arrow-a"),
@@ -262,7 +261,7 @@ def calibration_clicks() -> str:
         dot(110, 100, 7), txt(110, 84, "1", "bold accent-f", "middle"),
         dot(470, 100, 7), txt(470, 84, "2", "bold accent-f", "middle"),
         dot(300, 330, 7), txt(300, 352, "3", "bold accent-f", "middle"),
-        f'  <line x1="110" y1="100" x2="470" y2="100" class="accent dash"/>',
+        '  <line x1="110" y1="100" x2="470" y2="100" class="accent dash"/>',
         txt(290, 118, "a distance you measured on the sheet",
             "sm accent-f", "middle"),
         heading(600, 80, "Click 1 and 2"),
@@ -302,9 +301,9 @@ def boundary_anatomy() -> str:
         txt(570, 145, "boundary you trace", "accent-f"),
         arrow(560, 232, 470, 232, "accent", "arrow-a"),
         txt(570, 237, "the next boundary down", "accent-f"),
-        f'  <line x1="500" y1="150" x2="500" y2="222" class="edge"/>',
-        f'  <line x1="492" y1="150" x2="508" y2="150" class="edge"/>',
-        f'  <line x1="492" y1="222" x2="508" y2="222" class="edge"/>',
+        '  <line x1="500" y1="150" x2="500" y2="222" class="edge"/>',
+        '  <line x1="492" y1="150" x2="508" y2="150" class="edge"/>',
+        '  <line x1="492" y1="222" x2="508" y2="222" class="edge"/>',
         txt(516, 190, "the layer between them"),
         txt(24, 340,
             "A layer is never traced directly. It is defined by the boundary above it",
@@ -332,13 +331,13 @@ def marker_anatomy() -> str:
         path(wavy(60, 440, 160), "edge"),
         path(wavy(60, 440, 250), "edge"),
         # marker: a scale/grid reference on the sheet
-        f'  <rect x="80" y="96" width="26" height="26" class="panel"/>',
+        '  <rect x="80" y="96" width="26" height="26" class="panel"/>',
         txt(93, 114, "20", "sm", "middle"),
         # feature: an inclusion inside a layer
-        f'  <ellipse cx="250" cy="200" rx="44" ry="24" class="panel"/>',
+        '  <ellipse cx="250" cy="200" rx="44" ry="24" class="panel"/>',
         txt(250, 205, "stone", "sm", "middle"),
         # find: a recovered object
-        f'  <path d="M340,290 l16,-10 l14,12 l-10,16 z" class="fill"/>',
+        '  <path d="M340,290 l16,-10 l14,12 l-10,16 z" class="fill"/>',
         arrow(520, 110, 112, 110),
         heading(530, 100, "Marker"),
         txt(530, 122, "A reference printed or drawn on the", "sm"),
@@ -369,26 +368,26 @@ def registration_fields() -> str:
         heading(24, 30, "Four numbers place one face on the site"),
         # plan view
         txt(60, 70, "Plan view, looking down", "bold"),
-        f'  <line x1="60" y1="100" x2="60" y2="300" class="thin"/>',
-        f'  <line x1="60" y1="300" x2="330" y2="300" class="thin"/>',
+        '  <line x1="60" y1="100" x2="60" y2="300" class="thin"/>',
+        '  <line x1="60" y1="300" x2="330" y2="300" class="thin"/>',
         txt(46, 96, "Y", "sm muted", "end"), txt(338, 304, "X", "sm muted"),
-        f'  <line x1="120" y1="250" x2="290" y2="160" class="accent"/>',
+        '  <line x1="120" y1="250" x2="290" y2="160" class="accent"/>',
         dot(120, 250, 6),
         txt(112, 272, "originX, originY", "sm accent-f", "middle"),
         txt(258, 172, "the face", "sm", "middle"),
-        f'  <line x1="120" y1="250" x2="120" y2="150" class="thin dot"/>',
+        '  <line x1="120" y1="250" x2="120" y2="150" class="thin dot"/>',
         txt(126, 146, "north", "sm muted"),
         path("M120,196 A54,54 0 0,1 166,222", "warn"),
         txt(176, 214, "bearing_deg", "sm warn-f"),
         # section view
         txt(430, 70, "Section view, looking at the face", "bold"),
-        f'  <line x1="430" y1="120" x2="760" y2="120" class="edge"/>',
+        '  <line x1="430" y1="120" x2="760" y2="120" class="edge"/>',
         txt(430, 110, "ground surface  =  surfaceZ", "sm"),
         band(430, 122, 330, 60, "band-a"),
         band(430, 182, 330, 80, "band-b"),
         path(wavy(430, 760, 182), "edge"),
-        f'  <line x1="800" y1="120" x2="800" y2="262" class="edge"/>',
-        f'  <line x1="792" y1="120" x2="808" y2="120" class="edge"/>',
+        '  <line x1="800" y1="120" x2="800" y2="262" class="edge"/>',
+        '  <line x1="792" y1="120" x2="808" y2="120" class="edge"/>',
         txt(812, 124, "Z = surfaceZ", "sm"),
         txt(812, 196, "Z = surfaceZ − depth", "sm"),
         txt(430, 292, "x runs along the face from originX, originY", "sm muted"),
@@ -492,7 +491,7 @@ def walls_to_pit() -> str:
         b.append(arrow(x + 46, 152, x + 46, 176))
     b += [
         txt(40, 200, "one shared trench label", "sm accent-f"),
-        f'  <line x1="40" y1="208" x2="460" y2="208" class="accent"/>',
+        '  <line x1="40" y1="208" x2="460" y2="208" class="accent"/>',
         arrow(250, 214, 250, 250, "accent", "arrow-a"),
         txt(262, 240, "merge, then register each face", "sm accent-f"),
     ]
@@ -583,8 +582,8 @@ def reading_a_matrix() -> str:
                            (420, 252, 420, 288)]:
         b.append(arrow(x1, y1, x2, y2))
     b += [
-        f'  <line x1="150" y1="70" x2="150" y2="320" class="accent" '
-        f'marker-end="url(#arrow-a)"/>',
+        '  <line x1="150" y1="70" x2="150" y2="320" class="accent" '
+        'marker-end="url(#arrow-a)"/>',
         txt(140, 70, "younger", "sm accent-f", "end"),
         txt(140, 320, "older", "sm accent-f", "end"),
         txt(660, 120, "Every arrow runs from a younger", "sm"),
@@ -614,10 +613,10 @@ def correlation_not_merge() -> str:
         txt(60, 80, "Two walls each record a unit numbered 4", "sm muted"),
         box(60, 100, 150, 50, "panel"), txt(135, 130, "North · 4", "sm bold", "middle"),
         box(320, 100, 150, 50, "panel"), txt(395, 130, "South · 4", "sm bold", "middle"),
-        f'  <line x1="212" y1="125" x2="318" y2="125" class="accent dash"/>',
+        '  <line x1="212" y1="125" x2="318" y2="125" class="accent dash"/>',
         txt(265, 116, "correlation", "sm accent-f", "middle"),
         txt(265, 168, "proposed, then accepted by a person", "sm muted", "middle"),
-        f'  <line x1="540" y1="70" x2="540" y2="300" class="thin"/>',
+        '  <line x1="540" y1="70" x2="540" y2="300" class="thin"/>',
         txt(590, 100, "They stay two nodes.", "bold"),
         txt(590, 126, "Equal labels never merge on their own —", "sm"),
         txt(590, 146, "two excavators can reuse a number for", "sm"),
@@ -628,7 +627,7 @@ def correlation_not_merge() -> str:
         txt(60, 230, "Not this:", "bold warn-f"),
         box(60, 248, 150, 50, "panel"),
         txt(135, 278, "unit 4", "sm bold", "middle"),
-        f'  <line x1="66" y1="294" x2="204" y2="252" class="warn"/>',
+        '  <line x1="66" y1="294" x2="204" y2="252" class="warn"/>',
     ]
     return document(
         1000, 330,
@@ -681,19 +680,19 @@ def normalization_steps() -> str:
         heading(24, 30, "Normalization repairs the sheet, never the geometry"),
         box(40, 60, 260, 230, "panel"),
         txt(56, 86, "As scanned", "bold"),
-        f'  <g transform="rotate(-7 170 190)">'
-        f'<rect x="70" y="110" width="200" height="150" class="fill"/></g>',
+        '  <g transform="rotate(-7 170 190)">'
+        '<rect x="70" y="110" width="200" height="150" class="fill"/></g>',
         txt(56, 278, "skewed on the platen", "sm muted"),
         arrow(312, 175, 344, 175, "accent", "arrow-a"),
         box(356, 60, 260, 230, "panel"),
         txt(372, 86, "Deskewed", "bold"),
-        f'  <rect x="386" y="110" width="200" height="150" class="fill"/>',
+        '  <rect x="386" y="110" width="200" height="150" class="fill"/>',
         txt(372, 278, "rotated to the detected horizontal", "sm muted"),
         arrow(628, 175, 660, 175, "accent", "arrow-a"),
         box(672, 60, 260, 230, "panel"),
         txt(688, 86, "Scaled", "bold"),
-        f'  <rect x="702" y="110" width="200" height="150" class="fill"/>',
-        f'  <line x1="702" y1="276" x2="902" y2="276" class="accent"/>',
+        '  <rect x="702" y="110" width="200" height="150" class="fill"/>',
+        '  <line x1="702" y1="276" x2="902" y2="276" class="accent"/>',
         txt(802, 268, "known width", "sm accent-f", "middle"),
         txt(24, 330,
             "Every step here changes how the sheet sits, not what it records. "
@@ -726,7 +725,7 @@ def archaeology_to_3d() -> str:
         band(56, 174, 168, 28, "band-c"),
         path(wavy(296, 464, 130, 4, 4), "edge"),
         path(wavy(296, 464, 172, 4, 4), "edge"),
-        f'  <rect x="296" y="106" width="168" height="96" class="thin"/>',
+        '  <rect x="296" y="106" width="168" height="96" class="thin"/>',
     ]
     b += [dot(540 + i * 24, 126 + (i % 3) * 20, 3) for i in range(7)]
     b += [
@@ -804,9 +803,9 @@ def good_vs_bad_drawing() -> str:
         txt(56, 82, "Works well", "bold good-f"),
         band(60, 100, 400, 56, "band-a"), band(60, 156, 400, 62, "band-b"),
         path(wavy(60, 460, 156), "edge"),
-        f'  <line x1="60" y1="240" x2="160" y2="240" class="good"/>',
-        f'  <line x1="60" y1="234" x2="60" y2="246" class="good"/>',
-        f'  <line x1="160" y1="234" x2="160" y2="246" class="good"/>',
+        '  <line x1="60" y1="240" x2="160" y2="240" class="good"/>',
+        '  <line x1="60" y1="234" x2="60" y2="246" class="good"/>',
+        '  <line x1="160" y1="234" x2="160" y2="246" class="good"/>',
         txt(168, 245, "scale bar", "sm good-f"),
         txt(60, 274, "L1 · 10YR 5/4", "mono"),
         txt(60, 296, "boundaries closed and continuous", "sm muted"),
@@ -855,8 +854,8 @@ def status_labels() -> str:
         box(540, 220, 280, 100, "panel"),
         txt(680, 258, "historical", "bold muted", "middle"),
         txt(680, 282, "kept only as reference", "sm muted", "middle"),
-        f'  <line x1="230" y1="210" x2="820" y2="210" class="thin"/>',
-        f'  <line x1="530" y1="100" x2="530" y2="320" class="thin"/>',
+        '  <line x1="230" y1="210" x2="820" y2="210" class="thin"/>',
+        '  <line x1="530" y1="100" x2="530" y2="320" class="thin"/>',
         txt(24, 366,
             "experimental cuts across the grid: user-facing, but dependent on an "
             "optional package,",
@@ -930,7 +929,7 @@ def _sheet(rotate: float, label: str, note: str) -> str:
             f'  <g transform="translate(130 90) rotate({rotate} 230 115)">',
             inner,
             "  </g>",
-            f'  <line x1="130" y1="360" x2="590" y2="360" class="thin"/>',
+            '  <line x1="130" y1="360" x2="590" y2="360" class="thin"/>',
             txt(360, 386, note, "sm muted", "middle"),
         ]),
     )

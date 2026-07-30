@@ -2,23 +2,22 @@
 
 from flask import Flask
 
-from .pages import bp as pages_bp
-from .jobs import bp as jobs_bp
 from .editor import bp as editor_bp
-from .finds import bp as finds_bp
-from .scans import bp as scans_bp
-from .preprocess import bp as preprocess_bp
 from .extraction import bp as extraction_bp
 from .features import bp as features_bp
-from .markers import bp as markers_bp
-from .manual import bp as manual_bp
-from .task_status import bp as task_status_bp
-from .text_metadata import bp as text_metadata_bp
-from .processing import bp as processing_bp
+from .finds import bp as finds_bp
 from .gempy import bp as gempy_bp
 from .harris import bp as harris_bp
+from .jobs import bp as jobs_bp
+from .manual import bp as manual_bp
+from .markers import bp as markers_bp
+from .pages import bp as pages_bp
+from .preprocess import bp as preprocess_bp
+from .processing import bp as processing_bp
+from .scans import bp as scans_bp
+from .task_status import bp as task_status_bp
+from .text_metadata import bp as text_metadata_bp
 from .trenches import bp as trenches_bp
-
 
 BLUEPRINTS = (
     pages_bp,

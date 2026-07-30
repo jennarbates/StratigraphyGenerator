@@ -15,13 +15,6 @@ from pathlib import Path
 
 import pandas as pd
 import pytest
-
-
-import storage
-from pipeline import convert_coords
-from pipeline.build_gempy import run_build, wall_traces
-from pipeline.merge_walls import merge_extractions
-
 from fixtures_merge import (
     EAST_WALL,
     GRID_T900,
@@ -29,8 +22,12 @@ from fixtures_merge import (
     SURFACE_L1,
     SURFACE_L2,
 )
-
 from test_gempy_viewer_manifest import fake_gempy
+
+import storage
+from pipeline import convert_coords
+from pipeline.build_gempy import run_build, wall_traces
+from pipeline.merge_walls import merge_extractions
 
 
 @pytest.fixture
@@ -155,7 +152,6 @@ TRACE = {
 
 @pytest.fixture
 def client(tmp_path, monkeypatch):
-    import backend.jobs as jobs
     from app import app
 
     jobs_dir = storage.JOBS_DIR

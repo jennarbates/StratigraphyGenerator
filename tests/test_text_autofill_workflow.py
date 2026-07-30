@@ -5,11 +5,8 @@ from pathlib import Path
 import pytest
 from PIL import Image
 
-
 import storage
 from backend import create_app
-from backend import jobs as backend_jobs
-from backend.routes import jobs as jobs_routes
 from backend.routes import text_metadata
 
 

@@ -36,6 +36,7 @@ docs = [
 ]
 dev = [
     "pytest",
+    "ruff",
 ]
 
 [tool.setuptools]
@@ -54,3 +55,37 @@ testpaths = ["tests"]
 #   "tests"         -> fixtures_merge (shared test data)
 #   "."             -> tools.docs (exercised by tests/docs/)
 pythonpath = ["poggio_webapp", "tests", "."]
+
+[tool.ruff]
+line-length = 88
+extend-exclude = [".archive", "poggio_webapp/static/vendor", "site"]
+
+[tool.ruff.lint]
+# Deliberately close to ruff's defaults plus import hygiene. F401/F811 are the
+# ones that matter most here: the Phase 1-3 moves shifted a lot of imports
+# around, and an unused or shadowed import is the first sign one was missed.
+select = ["E", "F", "W", "I", "UP", "B"]
+ignore = [
+    "E501",   # line length: the existing code wraps by judgement, not column
+    "B008",   # function call in default arg — Flask/pydantic idiom
+    # zip(..., strict=): a good rule for new code, but the honest fix at each
+    # of the 22 existing sites is strict=True, and turning a silent truncation
+    # into an exception is a behaviour change that needs its own commit and its
+    # own tests. Left on so it is a deliberate decision, not an oversight.
+    "B905",
+    # Imports below module level are deliberate here: gempy is an optional
+    # extra that must not be imported to save a session, and the pydantic
+    # schema modules are loaded only when finalizing.
+    "E402",
+    # str+Enum -> StrEnum changes what str(Member) returns ("Class.MEMBER" vs
+    # "MEMBER"), which these values are serialised with. Not a safe autofix.
+    "UP042",
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["backend", "pipeline", "storage", "naming", "app"]
+
+[tool.ruff.lint.per-file-ignores]
+# Re-export surfaces: these exist precisely to expose names they do not use.
+"poggio_webapp/pipeline/editor/__init__.py" = ["F401"]
+"poggio_webapp/backend/services/__init__.py" = ["F401"]

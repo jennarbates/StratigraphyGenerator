@@ -36,12 +36,11 @@ Coordinate convention (matches extract_fieldwall.py / convert_coords.py):
 import csv
 import math
 import os
+from collections.abc import Sequence
+from dataclasses import dataclass
 
 import cv2
 import numpy as np
-
-from dataclasses import dataclass
-from typing import Sequence
 
 
 @dataclass(frozen=True)

@@ -3,13 +3,10 @@ from html.parser import HTMLParser
 
 import pytest
 
-
 import storage
 from app import app
-from backend import config
 from backend import jobs as backend_jobs
 from backend.routes import editor as editor_routes
-from pipeline import editor
 
 
 class _ResultsPageParser(HTMLParser):
@@ -35,7 +32,6 @@ class _ResultsPageParser(HTMLParser):
 
 @pytest.fixture
 def client(tmp_path, monkeypatch):
-    jobs_dir = storage.JOBS_DIR
     app.config.update(TESTING=True)
     return app.test_client()
 

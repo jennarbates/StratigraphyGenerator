@@ -12,6 +12,7 @@ site-coordinate math below stays a single code path.
 import csv
 import math
 
+
 def slope_to_orientation(
     slope: float,
     face_bearing: float,
@@ -229,7 +230,10 @@ def convert(data, grid, out_csv):
         th = math.radians(cfg["bearing_deg"])
         sin_t, cos_t = math.sin(th), math.cos(th)
 
-        def to_site(x, depth):
+        # The registration values are bound as defaults rather than closed
+        # over: to_site is only ever called inside this iteration, but binding
+        # makes that explicit and keeps the closure from tracking the loop.
+        def to_site(x, depth, X0=X0, Y0=Y0, Z0=Z0, sin_t=sin_t, cos_t=cos_t):
             X = X0 + x * sin_t
             Y = Y0 + x * cos_t
             Z = Z0 - depth
@@ -269,8 +273,8 @@ def convert(data, grid, out_csv):
                     "dip": round(dip, 2),
                     "azimuth": round(azimuth, 2),
                     "polarity": 1,
-                }) 
-            
+                })
+
     with open(out_csv, "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=["X", "Y", "Z", "surface", "face"])
         w.writeheader()

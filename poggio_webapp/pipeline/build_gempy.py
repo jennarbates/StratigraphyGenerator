@@ -9,13 +9,12 @@ running this web app.
 
 import json
 import os
-import re
-
-from naming import safe_filename
 from collections.abc import Mapping
 
 import numpy as np
 import pandas as pd
+
+from naming import safe_filename
 
 
 def infer_extent(points, pad_xy, pad_z):

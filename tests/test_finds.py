@@ -3,16 +3,10 @@ import re
 
 import pytest
 
-
 import storage
 from pipeline import editor
 from pipeline.extract_fieldwall import FieldWallProfile
 from pipeline.extract_illustrator import ArchaeologicalDiagram
-
-
-@pytest.fixture(autouse=True)
-def isolate_jobs_dir(tmp_path, monkeypatch):
-    jobs_dir = storage.JOBS_DIR
 
 
 @pytest.fixture

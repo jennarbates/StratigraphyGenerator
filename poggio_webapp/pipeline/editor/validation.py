@@ -9,9 +9,9 @@ import math
 
 from .errors import (
     DuplicateFaceNameError,
-    EmptyEditorError,
     EditorSchemaMismatchError,
     EditorStateStructureError,
+    EmptyEditorError,
     FaceNameError,
     FacePolygonError,
     FieldWallFaceCountError,

@@ -4,11 +4,10 @@ from __future__ import annotations
 
 import argparse
 import json
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Sequence
 
 from PIL import Image, ImageDraw, ImageFont
-
 
 SYNTHETIC_LABEL = "Synthetic documentation example"
 IMAGE_SIZE = (960, 640)

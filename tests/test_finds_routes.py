@@ -2,16 +2,13 @@ import json
 
 import pytest
 
-
 import storage
 from app import app
 from backend.routes import editor as editor_routes
-from pipeline import editor
 
 
 @pytest.fixture
 def client(tmp_path, monkeypatch):
-    jobs_dir = storage.JOBS_DIR
     app.config.update(TESTING=True)
     return app.test_client()
 

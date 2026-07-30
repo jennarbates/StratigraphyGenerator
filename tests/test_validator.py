@@ -2,7 +2,6 @@ import copy
 
 import pytest
 
-
 from pipeline.validator import validate
 
 

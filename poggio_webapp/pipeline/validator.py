@@ -257,9 +257,9 @@ def _check_field_wall_extras(data, report):
     where = data.get("faceLabel") or "field wall"
 
     loci = data.get("loci") or []
-    layer_nums = {str(l.get("locusNumber", "")).strip()
-                  for l in (data.get("layers") or [])}
-    locus_nums = [str(l.get("locusNumber", "")).strip() for l in loci]
+    layer_nums = {str(layer.get("locusNumber", "")).strip()
+                  for layer in (data.get("layers") or [])}
+    locus_nums = [str(locus.get("locusNumber", "")).strip() for locus in loci]
 
     for num in sorted(layer_nums - set(locus_nums)):
         if num:

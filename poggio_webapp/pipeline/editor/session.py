@@ -2,7 +2,7 @@
 
 import json
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import storage
 from naming import clean_label
@@ -31,7 +31,7 @@ def create_editor_session(
     session_dir = storage.JOBS_DIR / job_id
     session_dir.mkdir(parents=True, exist_ok=True)
 
-    created_at = datetime.now(timezone.utc).isoformat()
+    created_at = datetime.now(UTC).isoformat()
     metadata = {
         "schema_type": schema_type,
         "created_at": created_at,

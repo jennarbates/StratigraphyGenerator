@@ -9,10 +9,10 @@ HTTP request.
 """
 
 import storage
-
-from .. import harris_store
 from pipeline.harris_import import import_source_jobs
 from pipeline.harris_suggestions import generate_suggestions, review_suggestion
+
+from .. import harris_store
 
 
 class SuggestionNotFoundError(LookupError):

@@ -10,7 +10,8 @@ import json
 import threading
 
 import storage
-from pipeline import convert_coords, editor as editor_pipeline, normalizer, validator
+from pipeline import convert_coords, normalizer, validator
+from pipeline import editor as editor_pipeline
 
 from ..jobs import STATUS_MESSAGES, read_meta, write_meta
 from ..tasks import start_task

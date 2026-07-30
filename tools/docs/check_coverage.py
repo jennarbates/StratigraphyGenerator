@@ -17,10 +17,9 @@ not that it was explained.
 from __future__ import annotations
 
 import argparse
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Sequence
-
 
 WATCHED_PACKAGES = (
     "poggio_webapp/pipeline",
@@ -36,7 +35,7 @@ WATCHED_MODULES = (
 )
 
 # Modules that exist for reasons no reader needs documented.
-EXEMPT_STEMS = frozenset({"__init__", "modularize_backend"})
+EXEMPT_STEMS = frozenset({"__init__"})
 
 
 @dataclass(frozen=True)

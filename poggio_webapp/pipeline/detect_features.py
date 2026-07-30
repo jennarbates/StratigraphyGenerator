@@ -17,7 +17,6 @@ from typing import Any
 import cv2
 import numpy as np
 
-
 MAX_ANALYSIS_DIM = 2200
 MAX_CANDIDATES = 250
 

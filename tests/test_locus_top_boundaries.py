@@ -1,9 +1,8 @@
 import pytest
 
-
-from pipeline.manual_extraction import Calibration, build_fieldwall
 from pipeline.assign_markers import _assemble
 from pipeline.convert_coords import fieldwall_to_profiles
+from pipeline.manual_extraction import Calibration, build_fieldwall
 
 
 @pytest.fixture

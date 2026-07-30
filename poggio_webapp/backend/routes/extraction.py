@@ -2,14 +2,13 @@
 
 import json
 import os
-from pathlib import Path
 
 from flask import Blueprint, abort, jsonify, request
+
 from pipeline import convert_coords as p_convert_coords
 
 from ..jobs import job_dir, load_meta, rel_url, save_meta
 from ..tasks import start_task
-
 
 bp = Blueprint("extraction", __name__)
 

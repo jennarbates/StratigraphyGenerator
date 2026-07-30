@@ -10,7 +10,6 @@ from ..errors import _friendly_error
 from ..jobs import job_dir, load_meta, rel_url, save_meta
 from ..tasks import start_task
 
-
 bp = Blueprint("markers", __name__)
 
 

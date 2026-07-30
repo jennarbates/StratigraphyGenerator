@@ -14,7 +14,6 @@ from flask import Blueprint, abort, jsonify, request
 
 from ..jobs import job_dir, load_meta, rel_url, save_meta
 
-
 bp = Blueprint("features", __name__)
 
 
