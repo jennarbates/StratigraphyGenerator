@@ -167,6 +167,60 @@ def _validated_volume_metadata(volume, resolution):
     }
 
 
+def _validated_wall_traces(raw):
+    """The traced wall boundaries, one polyline per (face, surface).
+
+    Returns (traces, dropped). Malformed entries are dropped instead of
+    failing the manifest: the traces are an overlay showing which parts of the
+    model came from a drawing, and a model without them is still correct. A
+    polyline needs two points to be drawable, so a shorter one is dropped too.
+    """
+    if raw is None:
+        return [], 0
+    if not isinstance(raw, list):
+        return [], 1
+
+    traces = []
+    dropped = 0
+    for entry in raw:
+        if not isinstance(entry, dict):
+            dropped += 1
+            continue
+        face = entry.get("face")
+        surface = entry.get("surface")
+        raw_points = entry.get("points")
+        if not (
+            isinstance(face, str)
+            and face
+            and isinstance(surface, str)
+            and surface
+            and isinstance(raw_points, list)
+        ):
+            dropped += 1
+            continue
+
+        points = []
+        for point in raw_points:
+            if (
+                not isinstance(point, list)
+                or len(point) != 3
+                or not all(_valid_number(value) for value in point)
+            ):
+                points = None
+                break
+            points.append([float(value) for value in point])
+
+        if points is None or len(points) < 2:
+            dropped += 1
+            continue
+        traces.append({
+            "face": face,
+            "surface": surface,
+            "points": points,
+        })
+    return traces, dropped
+
+
 def _model3d_from_manifest(job_id, job_directory, manifest_path):
     try:
         manifest = json.loads(manifest_path.read_text())
@@ -214,6 +268,14 @@ def _model3d_from_manifest(job_id, job_directory, manifest_path):
         )
         return None
 
+    wall_traces, dropped_traces = _validated_wall_traces(
+        manifest.get("wallTraces")
+    )
+    if dropped_traces:
+        warnings.append(
+            f"{dropped_traces} wall trace(s) were malformed and were omitted."
+        )
+
     model3d = {
         "schema_version": manifest["schema_version"],
         "kind": manifest["kind"],
@@ -228,6 +290,8 @@ def _model3d_from_manifest(job_id, job_directory, manifest_path):
         "surfaces": surfaces,
         "warnings": warnings,
     }
+    if wall_traces:
+        model3d["wall_traces"] = wall_traces
 
     lith_block_path = _resolve_manifest_artifact(
         manifest_directory,

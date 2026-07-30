@@ -60,6 +60,37 @@ def safe_filename(name):
     return re.sub(r"[^A-Za-z0-9_.-]+", "_", name).strip("_") or "surface"
 
 
+def wall_traces(points):
+    """One polyline per (face, surface): the points actually traced on that
+    wall, in along-wall order.
+
+    A viewer can draw these over the interpolated surfaces so a reader can
+    tell data from interpolation -- everything away from a trace is the
+    interpolator's guess. The points are ordered along the wall rather than by
+    X and then Y: a wall running north-south has one X for every point, so
+    sorting by X first would leave the group in whatever order the file
+    happened to carry. Whichever horizontal axis the group spreads along is
+    the axis that orders it.
+    """
+    if "face" not in points.columns:
+        return []
+    traces = []
+    for (face, surface), group in points.groupby(["face", "surface"], sort=True):
+        x_span = group["X"].max() - group["X"].min()
+        y_span = group["Y"].max() - group["Y"].min()
+        ordered = group.sort_values("X" if x_span > y_span else "Y",
+                                     kind="stable")
+        traces.append({
+            "face": str(face),
+            "surface": str(surface),
+            "points": [
+                [float(x), float(y), float(z)]
+                for x, y, z in zip(ordered["X"], ordered["Y"], ordered["Z"])
+            ],
+        })
+    return traces
+
+
 def write_viewer_manifest(
     manifest_path,
     *,
@@ -71,6 +102,7 @@ def write_viewer_manifest(
     lith_block_path,
     volume_path=None,
     volume_lithologies=None,
+    traces=None,
 ):
     manifest_path = os.path.abspath(os.fspath(manifest_path))
     manifest_dir = os.path.dirname(manifest_path)
@@ -106,6 +138,17 @@ def write_viewer_manifest(
             for name, mesh_path in zip(series_order, mesh_paths)
         ],
         "lith_block_path": relative_path(lith_block_path),
+        "wallTraces": [
+            {
+                "face": str(trace["face"]),
+                "surface": str(trace["surface"]),
+                "points": [
+                    [plain_number(value) for value in point]
+                    for point in trace["points"]
+                ],
+            }
+            for trace in (traces or [])
+        ],
     }
     if volume_path is not None:
         manifest["volume"] = {
@@ -372,6 +415,7 @@ def run_build(points_csv, orientations_csv, out_prefix,
         lith_block_path=lith_path,
         volume_path=lith_binary_path,
         volume_lithologies=volume_lithologies,
+        traces=wall_traces(points),
     )
     result["outputs"]["viewer_manifest"] = manifest_path
     log(f"wrote {manifest_path}")

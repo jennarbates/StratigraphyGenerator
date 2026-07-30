@@ -41,6 +41,30 @@ function normalizedSurfaces(model3d) {
   });
 }
 
+/**
+ * Wall traces are optional and never fatal: a model whose traces are missing
+ * or malformed still renders its surfaces, it just has no overlay showing
+ * where the drawings actually recorded data.
+ */
+function normalizedWallTraces(model3d) {
+  if (Array.isArray(model3d) || !Array.isArray(model3d?.wall_traces)) return [];
+
+  return model3d.wall_traces.filter(
+    (trace) => trace
+      && typeof trace.face === "string"
+      && typeof trace.surface === "string"
+      && Array.isArray(trace.points)
+      && trace.points.length >= 2
+      && trace.points.every(
+        (point) => Array.isArray(point)
+          && point.length === 3
+          && point.every(
+            (value) => typeof value === "number" && Number.isFinite(value),
+          ),
+      ),
+  );
+}
+
 function extentBox(model3d) {
   if (Array.isArray(model3d) || !Array.isArray(model3d?.extent)) return null;
   const extent = model3d.extent;
@@ -91,6 +115,9 @@ export class SurfaceModelViewer {
     this.container = container;
     this.options = options;
     this.surfaceEntries = normalizedSurfaces(model3d);
+    this.wallTraceEntries = normalizedWallTraces(model3d);
+    this.wallTracesVisible = options.wallTracesVisible !== false;
+    this.wallTraceGroup = null;
     this.modelExtentBox = extentBox(model3d);
     this.baseBox = this.modelExtentBox?.clone() ?? null;
     this.modelCenter = this.baseBox?.getCenter(new THREE.Vector3()) ?? null;
@@ -169,6 +196,12 @@ export class SurfaceModelViewer {
 
     this.modelGroup = new THREE.Group();
     this.scene.add(this.modelGroup);
+    // Inside the model group so the traces follow the vertical exaggeration
+    // the surfaces get; a trace drawn at true scale over a stretched model
+    // would point at the wrong layer.
+    this.wallTraceGroup = new THREE.Group();
+    this.wallTraceGroup.visible = this.wallTracesVisible;
+    this.modelGroup.add(this.wallTraceGroup);
     this.loader = new OBJLoader();
 
     const ResizeObserverClass = view?.ResizeObserver;
@@ -257,6 +290,8 @@ export class SurfaceModelViewer {
       throw error;
     }
 
+    this.buildWallTraces();
+
     if (!this.modelExtentBox) {
       this.baseBox = new THREE.Box3().setFromObject(this.modelGroup);
       if (this.baseBox.isEmpty()) {
@@ -328,9 +363,72 @@ export class SurfaceModelViewer {
     this.modelGroup.add(object3d);
   }
 
+  surfaceColorFor(surfaceName) {
+    const entry = this.surfaceEntries.find(
+      (surface) => surface.name === surfaceName,
+    );
+    if (entry?.color) return entry.color;
+    if (typeof this.options.colorFor === "function") {
+      return this.options.colorFor(
+        { name: surfaceName, url: entry?.url ?? null },
+        entry?.index ?? 0,
+      );
+    }
+    return deterministicSurfaceColor(surfaceName);
+  }
+
+  clearWallTraces() {
+    if (!this.wallTraceGroup) return;
+    const lines = [...this.wallTraceGroup.children];
+    lines.forEach((line) => {
+      this.wallTraceGroup.remove(line);
+      disposeObject(line);
+    });
+  }
+
+  /**
+   * Draw one polyline per traced wall boundary, in its surface's color.
+   */
+  buildWallTraces() {
+    if (!this.wallTraceGroup) return 0;
+    this.clearWallTraces();
+
+    this.wallTraceEntries.forEach((trace) => {
+      const positions = new Float32Array(trace.points.length * 3);
+      trace.points.forEach((point, index) => {
+        positions.set(point, index * 3);
+      });
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute(
+        "position",
+        new THREE.BufferAttribute(positions, 3),
+      );
+      const line = new THREE.Line(
+        geometry,
+        new THREE.LineBasicMaterial({
+          color: this.surfaceColorFor(trace.surface),
+        }),
+      );
+      line.name = `${trace.face}: ${trace.surface}`;
+      this.wallTraceGroup.add(line);
+    });
+
+    this.wallTraceGroup.visible = this.wallTracesVisible;
+    return this.wallTraceGroup.children.length;
+  }
+
+  setWallTracesVisible(visible) {
+    this.wallTracesVisible = Boolean(visible);
+    if (this.wallTraceGroup) {
+      this.wallTraceGroup.visible = this.wallTracesVisible;
+    }
+    return this.wallTraceEntries.length > 0;
+  }
+
   loadSummary() {
     return {
       total: this.surfaceEntries.length,
+      wallTraces: this.wallTraceEntries.length,
       loaded: this.surfaceEntries
         .filter((surface) => surface.object3d)
         .map((surface) => ({
@@ -523,6 +621,7 @@ export class SurfaceModelViewer {
         surface.materials = [];
       }
     });
+    this.clearWallTraces();
     if (this.boundsHelper) disposeObject(this.boundsHelper);
     if (this.axesHelper) disposeObject(this.axesHelper);
     this.boundsHelper = null;

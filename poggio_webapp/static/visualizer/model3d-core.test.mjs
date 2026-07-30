@@ -167,6 +167,80 @@ test("validateModel3d preserves safe optional lith-block metadata", () => {
   assert.equal(validateModel3d(raw).lith_block_url, raw.lith_block_url);
 });
 
+test("validateModel3d preserves detached wall traces", () => {
+  const wall_traces = [
+    {
+      face: "north wall",
+      surface: "Topsoil",
+      points: [[0, 3, 99.9], [2, 3, 99.8], [4, 3, 99.85]],
+    },
+    {
+      face: "east wall",
+      surface: "Topsoil",
+      points: [[4, 3, 99.85], [4, 0, 99.7]],
+    },
+  ];
+  const normalized = validateModel3d(validModel({ wall_traces }));
+
+  assert.deepEqual(normalized.wall_traces, wall_traces);
+  assert.notStrictEqual(normalized.wall_traces, wall_traces);
+  assert.notStrictEqual(normalized.wall_traces[0], wall_traces[0]);
+  assert.notStrictEqual(normalized.wall_traces[0].points[0], wall_traces[0].points[0]);
+});
+
+test("validateModel3d treats absent wall traces as no overlay", () => {
+  assert.equal("wall_traces" in validateModel3d(validModel()), false);
+  assert.equal(
+    "wall_traces" in validateModel3d(validModel({ wall_traces: null })),
+    false,
+  );
+  assert.deepEqual(
+    validateModel3d(validModel({ wall_traces: [] })).wall_traces,
+    [],
+  );
+});
+
+test("validateModel3d rejects unusable wall traces", () => {
+  const points = [[0, 3, 99.9], [4, 3, 99.85]];
+
+  expectTypeError(
+    validModel({ wall_traces: "north wall" }),
+    /wall_traces must be an array/,
+  );
+  expectTypeError(
+    validModel({ wall_traces: ["north wall"] }),
+    /wall_traces\[0\] must be an object/,
+  );
+  expectTypeError(
+    validModel({ wall_traces: [{ face: "", surface: "Topsoil", points }] }),
+    /wall_traces\[0\]\.face must be a non-empty string/,
+  );
+  expectTypeError(
+    validModel({ wall_traces: [{ face: "north wall", points }] }),
+    /wall_traces\[0\]\.surface must be a non-empty string/,
+  );
+  expectTypeError(
+    validModel({
+      wall_traces: [{ face: "north wall", surface: "Topsoil", points: [points[0]] }],
+    }),
+    /wall_traces\[0\]\.points must contain at least two points/,
+  );
+  expectTypeError(
+    validModel({
+      wall_traces: [{
+        face: "north wall",
+        surface: "Topsoil",
+        points: [points[0], [4, 3, Number.NaN]],
+      }],
+    }),
+    /wall_traces\[0\]\.points\[1\] must contain three finite numbers/,
+  );
+});
+
+test("model3dControlState shows wall traces by default", () => {
+  assert.equal(model3dControlState(validModel()).wallTracesVisible, true);
+});
+
 test("validateModel3d preserves validated volume metadata", () => {
   const volume = {
     schema_version: 1,

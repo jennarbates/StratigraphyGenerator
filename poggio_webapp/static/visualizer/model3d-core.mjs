@@ -158,6 +158,42 @@ function validatedSurfaces(value) {
   });
 }
 
+function validatedWallTraces(value) {
+  if (!Array.isArray(value)) {
+    throw new TypeError("model3d.wall_traces must be an array");
+  }
+
+  return value.map((trace, index) => {
+    const path = `model3d.wall_traces[${index}]`;
+    if (!isObject(trace)) {
+      throw new TypeError(`${path} must be an object`);
+    }
+
+    const face = validatedNonEmptyString(trace.face, `${path}.face`);
+    const surface = validatedNonEmptyString(trace.surface, `${path}.surface`);
+    if (!Array.isArray(trace.points) || trace.points.length < 2) {
+      throw new TypeError(`${path}.points must contain at least two points`);
+    }
+
+    const points = trace.points.map((point, pointIndex) => {
+      if (
+        !Array.isArray(point)
+        || point.length !== 3
+        || !point.every(
+          (value) => typeof value === "number" && Number.isFinite(value),
+        )
+      ) {
+        throw new TypeError(
+          `${path}.points[${pointIndex}] must contain three finite numbers`,
+        );
+      }
+      return point.slice();
+    });
+
+    return { face, surface, points };
+  });
+}
+
 /**
  * Validate an API model3d payload and return a detached, normalized copy.
  *
@@ -205,6 +241,12 @@ export function validateModel3d(raw) {
       raw.lith_block_url,
       "model3d.lith_block_url",
     );
+  }
+
+  // Optional like volume: a model built before wall traces existed, or one
+  // whose traces were all unusable, simply has no overlay to draw.
+  if (raw.wall_traces !== undefined && raw.wall_traces !== null) {
+    normalized.wall_traces = validatedWallTraces(raw.wall_traces);
   }
 
   if (raw.volume !== undefined && raw.volume !== null) {
@@ -333,6 +375,7 @@ export function model3dControlState(
     opacity: DEFAULT_OPACITY,
     wireframe: false,
     helpersVisible: true,
+    wallTracesVisible: true,
     cameraView: "isometric",
   };
 }

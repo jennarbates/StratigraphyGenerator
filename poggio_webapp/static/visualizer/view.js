@@ -367,6 +367,20 @@ function bindSurfaceModelControls(viewer){
     viewer.setWireframe(event.target.checked);
   };
 
+  // Models built before wall traces existed have none; the toggle stays
+  // visible but inert rather than implying the overlay is merely switched off.
+  const traceCount=(state.model3d.wall_traces||[]).length;
+  const wallTraces=$("model3dWallTraces");
+  wallTraces.checked=traceCount>0&&model3dControls.wallTracesVisible;
+  wallTraces.disabled=traceCount===0;
+  wallTraces.onchange=event=>{
+    model3dControls.wallTracesVisible=event.target.checked;
+    viewer.setWallTracesVisible(event.target.checked);
+  };
+  $("model3dWallTracesHint").textContent=traceCount>0
+    ?"The lines drawn on each wall. Everything away from them is interpolated."
+    :"This model has no traced wall lines.";
+
   bindCommonModelControls(viewer,model3dControls);
 }
 

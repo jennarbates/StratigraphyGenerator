@@ -1,0 +1,268 @@
+{
+  "schema_version": 1,
+  "matrix_id": "c891fea0ad60",
+  "revision": 6,
+  "title": "Untitled Harris Matrix",
+  "site": "",
+  "trench": "",
+  "notes": "",
+  "source_job_ids": [
+    "4398233d26ea"
+  ],
+  "units": [
+    {
+      "id": "unit-5d493538284a",
+      "label": "1",
+      "unit_type": "deposit",
+      "description": "5yr 4/2 dark reddish gray",
+      "source_refs": [
+        {
+          "job_id": "4398233d26ea",
+          "schema_type": "FieldWallProfile",
+          "face": "Stratigraphy - southern baulk wall",
+          "layer_index": 0,
+          "source_label": "1"
+        }
+      ]
+    },
+    {
+      "id": "unit-960ee5376ec8",
+      "label": "2",
+      "unit_type": "deposit",
+      "description": "10yr 3/1 dark reddish gray",
+      "source_refs": [
+        {
+          "job_id": "4398233d26ea",
+          "schema_type": "FieldWallProfile",
+          "face": "Stratigraphy - southern baulk wall",
+          "layer_index": 1,
+          "source_label": "2"
+        }
+      ]
+    },
+    {
+      "id": "unit-55ea51e85a47",
+      "label": "3",
+      "unit_type": "deposit",
+      "description": "10yr 5/3 brown",
+      "source_refs": [
+        {
+          "job_id": "4398233d26ea",
+          "schema_type": "FieldWallProfile",
+          "face": "Stratigraphy - southern baulk wall",
+          "layer_index": 2,
+          "source_label": "3"
+        }
+      ]
+    },
+    {
+      "id": "unit-b4fc440b38ad",
+      "label": "4",
+      "unit_type": "deposit",
+      "description": "2.5yr 5/4 reddish brown",
+      "source_refs": [
+        {
+          "job_id": "4398233d26ea",
+          "schema_type": "FieldWallProfile",
+          "face": "Stratigraphy - southern baulk wall",
+          "layer_index": 3,
+          "source_label": "4"
+        }
+      ]
+    },
+    {
+      "id": "unit-7b4a0bc4ab13",
+      "label": "5",
+      "unit_type": "deposit",
+      "description": "7.5yr 4/4 brown",
+      "source_refs": [
+        {
+          "job_id": "4398233d26ea",
+          "schema_type": "FieldWallProfile",
+          "face": "Stratigraphy - southern baulk wall",
+          "layer_index": 4,
+          "source_label": "5"
+        }
+      ]
+    },
+    {
+      "id": "unit-2e51255c1aff",
+      "label": "6",
+      "unit_type": "deposit",
+      "description": "10yr 3/3 very dark gray brown",
+      "source_refs": [
+        {
+          "job_id": "4398233d26ea",
+          "schema_type": "FieldWallProfile",
+          "face": "Stratigraphy - southern baulk wall",
+          "layer_index": 5,
+          "source_label": "6"
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "id": "rel-ec84e5c60405",
+      "younger_id": "unit-5d493538284a",
+      "older_id": "unit-2e51255c1aff",
+      "kind": "above",
+      "evidence": "",
+      "source": "manual",
+      "notes": null
+    },
+    {
+      "id": "rel-3529fc17a86b",
+      "younger_id": "unit-55ea51e85a47",
+      "older_id": "unit-b4fc440b38ad",
+      "kind": "above",
+      "evidence": "Consecutive source layers share a recorded boundary.",
+      "source": "suggestion",
+      "notes": null
+    }
+  ],
+  "correlations": [
+    {
+      "id": "corr-7b42e0b2f6f4",
+      "unit_ids": [
+        "unit-5d493538284a",
+        "unit-960ee5376ec8"
+      ],
+      "notes": null
+    }
+  ],
+  "suggestions": [
+    {
+      "id": "suggestion-2ffd0472f551",
+      "suggestion_type": "ordering",
+      "status": "accepted",
+      "younger_id": "unit-55ea51e85a47",
+      "older_id": "unit-b4fc440b38ad",
+      "relation_kind": "above",
+      "correlation_unit_ids": [],
+      "reason": "Consecutive source layers share a recorded boundary.",
+      "source_refs": [
+        {
+          "job_id": "4398233d26ea",
+          "schema_type": "FieldWallProfile",
+          "face": "Stratigraphy - southern baulk wall",
+          "layer_index": 2,
+          "source_label": "3"
+        },
+        {
+          "job_id": "4398233d26ea",
+          "schema_type": "FieldWallProfile",
+          "face": "Stratigraphy - southern baulk wall",
+          "layer_index": 3,
+          "source_label": "4"
+        }
+      ]
+    },
+    {
+      "id": "suggestion-50806aeb0edc",
+      "suggestion_type": "ordering",
+      "status": "accepted",
+      "younger_id": "unit-5d493538284a",
+      "older_id": "unit-960ee5376ec8",
+      "relation_kind": "above",
+      "correlation_unit_ids": [],
+      "reason": "Consecutive source layers share a recorded boundary.",
+      "source_refs": [
+        {
+          "job_id": "4398233d26ea",
+          "schema_type": "FieldWallProfile",
+          "face": "Stratigraphy - southern baulk wall",
+          "layer_index": 0,
+          "source_label": "1"
+        },
+        {
+          "job_id": "4398233d26ea",
+          "schema_type": "FieldWallProfile",
+          "face": "Stratigraphy - southern baulk wall",
+          "layer_index": 1,
+          "source_label": "2"
+        }
+      ]
+    },
+    {
+      "id": "suggestion-7a71d696376f",
+      "suggestion_type": "ordering",
+      "status": "pending",
+      "younger_id": "unit-7b4a0bc4ab13",
+      "older_id": "unit-2e51255c1aff",
+      "relation_kind": "above",
+      "correlation_unit_ids": [],
+      "reason": "Consecutive source layers share a recorded boundary.",
+      "source_refs": [
+        {
+          "job_id": "4398233d26ea",
+          "schema_type": "FieldWallProfile",
+          "face": "Stratigraphy - southern baulk wall",
+          "layer_index": 4,
+          "source_label": "5"
+        },
+        {
+          "job_id": "4398233d26ea",
+          "schema_type": "FieldWallProfile",
+          "face": "Stratigraphy - southern baulk wall",
+          "layer_index": 5,
+          "source_label": "6"
+        }
+      ]
+    },
+    {
+      "id": "suggestion-d864311d6eb7",
+      "suggestion_type": "ordering",
+      "status": "pending",
+      "younger_id": "unit-b4fc440b38ad",
+      "older_id": "unit-7b4a0bc4ab13",
+      "relation_kind": "above",
+      "correlation_unit_ids": [],
+      "reason": "Consecutive source layers share a recorded boundary.",
+      "source_refs": [
+        {
+          "job_id": "4398233d26ea",
+          "schema_type": "FieldWallProfile",
+          "face": "Stratigraphy - southern baulk wall",
+          "layer_index": 3,
+          "source_label": "4"
+        },
+        {
+          "job_id": "4398233d26ea",
+          "schema_type": "FieldWallProfile",
+          "face": "Stratigraphy - southern baulk wall",
+          "layer_index": 4,
+          "source_label": "5"
+        }
+      ]
+    },
+    {
+      "id": "suggestion-e1bcb7687ff5",
+      "suggestion_type": "ordering",
+      "status": "pending",
+      "younger_id": "unit-960ee5376ec8",
+      "older_id": "unit-55ea51e85a47",
+      "relation_kind": "above",
+      "correlation_unit_ids": [],
+      "reason": "Consecutive source layers share a recorded boundary.",
+      "source_refs": [
+        {
+          "job_id": "4398233d26ea",
+          "schema_type": "FieldWallProfile",
+          "face": "Stratigraphy - southern baulk wall",
+          "layer_index": 1,
+          "source_label": "2"
+        },
+        {
+          "job_id": "4398233d26ea",
+          "schema_type": "FieldWallProfile",
+          "face": "Stratigraphy - southern baulk wall",
+          "layer_index": 2,
+          "source_label": "3"
+        }
+      ]
+    }
+  ],
+  "created_at": "2026-07-30T10:38:24.041014Z",
+  "updated_at": "2026-07-30T10:43:05.565403Z"
+}
