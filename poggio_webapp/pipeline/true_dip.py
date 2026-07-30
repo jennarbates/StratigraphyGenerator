@@ -20,6 +20,7 @@ plausible-looking invented orientation would be worse than the apparent dips
 already in the CSV, because it would look like an improvement.
 """
 
+import csv
 import math
 
 
@@ -243,3 +244,73 @@ def true_orientations(points_rows, grid, min_separation_deg=10.0):
         })
 
     return orientations, notes
+
+
+def apply_true_dip(points_csv, orientations_csv, grid, min_separation_deg=10.0):
+    """Give every seed of a solved surface that surface's true orientation.
+
+    Rewrites `orientations_csv` in place: each seed keeps its own position on
+    its own wall -- `convert()` already placed those on real traced points --
+    and only its dip and azimuth change, to the one plane solved from two
+    walls. Surfaces that could not be solved are left exactly as they were,
+    still carrying the apparent dip of the wall they were measured on, which
+    is the best available answer for them.
+
+    Returns notes: the solver's own, plus one line per corrected surface
+    recording what was replaced, so a reader can see the change rather than
+    discovering the numbers moved.
+    """
+    try:
+        with open(points_csv, newline="") as handle:
+            points_rows = list(csv.DictReader(handle))
+    except OSError as error:
+        return [f"could not read {points_csv} to solve true dips: {error}"]
+
+    orientations, notes = true_orientations(
+        points_rows, grid, min_separation_deg)
+    if not orientations:
+        return notes
+
+    try:
+        with open(orientations_csv, newline="") as handle:
+            reader = csv.DictReader(handle)
+            fieldnames = reader.fieldnames
+            seed_rows = list(reader)
+    except OSError as error:
+        notes.append(
+            f"solved true dips but could not read {orientations_csv} to "
+            f"apply them: {error}")
+        return notes
+
+    by_surface = {
+        orientation["surface"]: orientation for orientation in orientations
+    }
+    replaced = {surface: [] for surface in by_surface}
+    for row in seed_rows:
+        solved = by_surface.get(row.get("surface"))
+        if solved is None:
+            continue
+        replaced[solved["surface"]].append(
+            f"{row.get('face')} {row.get('dip')} toward {row.get('azimuth')}")
+        row["dip"] = round(solved["dip"], 2)
+        row["azimuth"] = round(solved["azimuth"], 2)
+
+    for surface, before in replaced.items():
+        solved = by_surface[surface]
+        if not before:
+            notes.append(
+                f"surface {surface!r}: solved a true dip from "
+                f"{' and '.join(solved['faces'])} but the orientations file "
+                "has no seed for it, so nothing was changed")
+            continue
+        notes.append(
+            f"surface {surface!r}: replaced the per-wall apparent dips "
+            f"({'; '.join(before)}) with one true dip of "
+            f"{round(solved['dip'], 2)} toward {round(solved['azimuth'], 2)}, "
+            f"solved from {' and '.join(solved['faces'])}")
+
+    with open(orientations_csv, "w", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(seed_rows)
+    return notes

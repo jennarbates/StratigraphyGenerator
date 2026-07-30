@@ -18,7 +18,7 @@ import re
 from pathlib import Path
 
 from flask import Blueprint, abort, jsonify, request, send_file
-from pipeline import convert_coords, merge_walls
+from pipeline import convert_coords, merge_walls, true_dip
 
 from ..config import JOBS_DIR, TRENCHES_DIR
 from ..tasks import start_task
@@ -201,6 +201,14 @@ def build_trench(label):
         abort(400, description=(
             "conversion produced no interface points; check that the walls' "
             "layers have boundary points"))
+
+    # Only merged trenches can do this: one wall alone can measure the dip in
+    # its own plane and nothing more, and an apparent dip is always shallower
+    # than the true one. With two walls the plane is determined, so every seed
+    # for a surface can carry the same real orientation instead of two
+    # disagreeing shadows of it. Single-sheet builds never come through here.
+    notes.extend(true_dip.apply_true_dip(
+        conversion["points_csv"], conversion["orientations_csv"], grid))
 
     series_order = body.get("series_order")
     if not series_order:
