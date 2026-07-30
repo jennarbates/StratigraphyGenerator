@@ -92,9 +92,24 @@ class ZeroUsableLayersError(EditorStructuralValidationError):
     """Raised when an assembled model contains no usable layers."""
 
 
-def create_editor_session(schema_type: str) -> str:
+def clean_label(value) -> str:
+    """Strip a trench/wall label; non-strings and blanks become ''."""
+    if not isinstance(value, str):
+        return ""
+    return value.strip()
+
+
+def create_editor_session(
+    schema_type: str,
+    *,
+    trench_label=None,
+    wall_label=None,
+) -> str:
     """
     Create an editor job directory and store its session metadata.
+
+    trench_label and wall_label are optional; when non-empty after stripping
+    they are recorded in the draft meta so the job can be grouped by trench.
 
     Raises ValueError when schema_type is not supported.
     """
@@ -122,6 +137,10 @@ def create_editor_session(schema_type: str) -> str:
         "created_at": created_at,
         "updated_at": created_at,
     }
+    if clean_label(trench_label):
+        draft_metadata["trench_label"] = clean_label(trench_label)
+    if clean_label(wall_label):
+        draft_metadata["wall_label"] = clean_label(wall_label)
     (session_dir / "meta.json").write_text(
         json.dumps(draft_metadata, indent=2)
     )

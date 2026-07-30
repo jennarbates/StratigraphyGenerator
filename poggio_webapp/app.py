@@ -11,6 +11,7 @@ from backend.tasks import TASKS, start_task
 from flask import abort, jsonify, redirect, render_template, request, url_for
 from pipeline import convert_coords, editor as editor_pipeline, normalizer, validator
 from pipeline.editor import (
+    clean_label,
     create_editor_session,
     finalize_editor_session,
     load_editor_state,
@@ -413,16 +414,28 @@ def remove_find(job_id, find_id):
 def create_editor():
     body = request.get_json(force=True, silent=True) or {}
     schema_type = body.get("schema_type")
+    trench_label = clean_label(body.get("trench_label"))
+    wall_label = clean_label(body.get("wall_label"))
     try:
-        job_id = create_editor_session(schema_type)
+        job_id = create_editor_session(
+            schema_type,
+            trench_label=trench_label,
+            wall_label=wall_label,
+        )
     except ValueError as error:
         return jsonify({"error": str(error)}), 400
-    return jsonify({
+
+    payload = {
         "job_id": job_id,
         "schema_type": schema_type,
         "status": "editing",
         "editor_url": url_for("editor_page", job_id=job_id),
-    })
+    }
+    if trench_label:
+        payload["trench_label"] = trench_label
+    if wall_label:
+        payload["wall_label"] = wall_label
+    return jsonify(payload)
 
 
 @app.route("/editor/<job_id>", methods=["GET"])

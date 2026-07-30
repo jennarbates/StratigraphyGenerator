@@ -4,6 +4,7 @@ import os
 
 from flask import Blueprint, abort, jsonify, request
 from pipeline import preprocess as p_preprocess
+from pipeline.editor import clean_label
 
 from ..config import ALLOWED_SCAN_EXT
 from ..jobs import job_dir, load_meta, rel_url, save_meta
@@ -39,16 +40,28 @@ def upload_scan(job_id):
         except Exception:
             pass  # non-fatal: recommendation is a nicety, not required to proceed
 
+    trench_label = clean_label(request.form.get("trench_label"))
+    wall_label = clean_label(request.form.get("wall_label"))
+
     meta = load_meta(job_id)
     meta["sheet_type"] = sheet_type
+    if trench_label:
+        meta["trench_label"] = trench_label
+    if wall_label:
+        meta["wall_label"] = wall_label
     meta["scan_path"] = str(scan_path)
     meta["scan_filename"] = file.filename
     save_meta(job_id, meta)
 
-    return jsonify({
+    payload = {
         "scan_url": rel_url(job_id, scan_path),
         "sheet_type": sheet_type,
         "is_pdf": ext == ".pdf",
         "dimensions": dims,
         "recommended_upscale": recommendation,
-    })
+    }
+    if trench_label:
+        payload["trench_label"] = trench_label
+    if wall_label:
+        payload["wall_label"] = wall_label
+    return jsonify(payload)
