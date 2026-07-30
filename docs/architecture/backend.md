@@ -58,6 +58,25 @@ flowchart LR
 - `poggio_webapp/backend/routes/pages.py`
 - `poggio_webapp/backend/routes/jobs.py`
 
+## Route and service layers
+
+Routes are being progressively extracted out of `poggio_webapp/app.py` into the
+blueprint package. Two blueprints and one service module are the newest part of
+that move:
+
+- `poggio_webapp/backend/routes/editor.py` — the manual drawing editor and its
+  model-build lifecycle.
+- `poggio_webapp/backend/routes/finds.py` — finds logged against a job.
+- `poggio_webapp/backend/services/editor_pipeline.py` — drives a finalized
+  editor session through normalize → validate → convert → build. The build is
+  asynchronous, and `meta.json` is updated at each step, so a browser polling
+  the job's status sees progress even across a server restart.
+
+`services/` is a layer the earlier structure did not have. It sits between the
+route layer, which owns request handling and persistence, and the pipeline
+modules, which stay focused on transformation. Work that chains several
+pipeline stages together belongs here rather than in a route.
+
 ## Failure boundaries
 
 - Missing or invalid paths in a request lead to 400 or 404 responses rather than a silent fallback.

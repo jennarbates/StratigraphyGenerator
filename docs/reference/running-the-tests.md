@@ -42,8 +42,13 @@ JavaScript, using Node's built-in runner — **the glob must be quoted**, since
 passing the directory alone fails to discover the files:
 
 ```bash
-node --test "poggio_webapp/static/**/*.test.mjs"
+node --test "poggio_webapp/static/**/*.test.mjs" "docs/javascripts/**/*.test.mjs"
 ```
+
+The second glob covers the documentation's interactive components. It matters
+most for the coordinate converter, which re-implements in JavaScript arithmetic
+that already exists in Python — its tests pin the two together using values
+produced by running the Python.
 
 Documentation:
 
@@ -93,6 +98,16 @@ image must resolve to an `approved` entry.
 The densest coverage is the merge layer — 55 tests across its four modules —
 because it is the part of the pipeline where a silent error produces a
 plausible-looking wrong model rather than a crash.
+
+### JavaScript — the documentation components
+
+`docs/javascripts/` holds three progressive-enhancement modules: the coordinate
+converter, the before/after comparison slider, and the pipeline stage explorer.
+Each enhances markup that already stands on its own, so a reader with
+JavaScript disabled loses the interaction, not the content.
+
+Only the converter is tested, because only the converter duplicates logic that
+exists elsewhere.
 
 ### JavaScript — `poggio_webapp/static/`
 

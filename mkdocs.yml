@@ -30,6 +30,13 @@ markdown_extensions:
 extra_css:
   - assets/stylesheets/extra.css
 
+# Each of these enhances static markup that already stands on its own, so a
+# reader with JavaScript disabled loses the interaction, not the content.
+extra_javascript:
+  - javascripts/coordinate-converter.mjs
+  - javascripts/image-compare.mjs
+  - javascripts/pipeline-explorer.mjs
+
 exclude_docs: |
   _meta/
 

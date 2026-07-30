@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420" role="img" aria-labelledby="t d">
+  <title id="t">Trench sheet after</title>
+  <desc id="d">Deskewed: rotated to the detected horizontal.</desc>
+  <style>
+:root {
+  --bg: #ffffff; --ink: #1b1b1b; --muted: #5c5c5c; --line: #6b6b6b;
+  --panel: #f7f9fb; --fill: #e8edf2; --edge: #b3bcc5;
+  --accent: #1f6feb; --warn: #a8481a; --good: #266048;
+  --band-a: #ddcdb2; --band-b: #c8ae80; --band-c: #ac8f63; --band-d: #8f7248;
+}
+text { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+       fill: var(--ink); font-size: 15px; }
+.sm { font-size: 13px; }
+.muted { fill: var(--muted); }
+.bold { font-weight: 650; }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
+.panel { fill: var(--panel); stroke: var(--edge); stroke-width: 1.5; }
+.fill { fill: var(--fill); stroke: var(--edge); stroke-width: 1.5; }
+.edge { fill: none; stroke: var(--line); stroke-width: 2; }
+.thin { fill: none; stroke: var(--edge); stroke-width: 1; }
+.accent { stroke: var(--accent); fill: none; stroke-width: 2.5; }
+.accent-f { fill: var(--accent); }
+.warn { stroke: var(--warn); fill: none; stroke-width: 2.5; }
+.warn-f { fill: var(--warn); }
+.good { stroke: var(--good); fill: none; stroke-width: 2.5; }
+.good-f { fill: var(--good); }
+.dash { stroke-dasharray: 6 4; }
+.dot { stroke-dasharray: 2 3; }
+</style>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--line)"/>
+    </marker>
+    <marker id="arrow-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/>
+    </marker>
+  </defs>
+  <rect width="720" height="420" fill="var(--bg)"/>
+  <text x="24" y="34" text-anchor="start" class="bold">After</text>
+  <g transform="translate(130 90) rotate(0 230 115)">
+  <rect x="0" y="0" width="460" height="70" fill="var(--band-a)" stroke="var(--edge)" stroke-width="1.5"/>
+  <rect x="0" y="70" width="460" height="84" fill="var(--band-b)" stroke="var(--edge)" stroke-width="1.5"/>
+  <rect x="0" y="154" width="460" height="76" fill="var(--band-c)" stroke="var(--edge)" stroke-width="1.5"/>
+  <path d="M0,70 Q38.333333333333336,76 76.66666666666667,70 Q115.0,64 153.33333333333334,70 Q191.66666666666669,76 230.0,70 Q268.33333333333337,64 306.6666666666667,70 Q345.0,76 383.33333333333337,70 Q421.6666666666667,64 460.0,70" class="edge"/>
+  <path d="M0,154 Q38.333333333333336,160 76.66666666666667,154 Q115.0,148 153.33333333333334,154 Q191.66666666666669,160 230.0,154 Q268.33333333333337,148 306.6666666666667,154 Q345.0,160 383.33333333333337,154 Q421.6666666666667,148 460.0,154" class="edge"/>
+  </g>
+  <line x1="130" y1="360" x2="590" y2="360" class="thin"/>
+  <text x="360" y="386" text-anchor="middle" class="sm muted">Deskewed: rotated to the detected horizontal.</text>
+</svg>

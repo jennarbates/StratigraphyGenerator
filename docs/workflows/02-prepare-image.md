@@ -53,6 +53,26 @@ Callouts: upscale, deskew, high-contrast, preview
 - The drawing is still too small after preprocessing, so the lines are hard to follow.
 - The deskew option is turned on for a drawing that is already straight, which can distort the image.
 
+## Before and after
+
+<div class="pc-interactive" data-pc-compare markdown="1">
+
+<figure markdown="1">
+![A trench sheet sitting crooked, as scanned](../assets/diagrams/normalization-before.svg)
+<figcaption>Before</figcaption>
+</figure>
+
+<figure markdown="1">
+![The same trench sheet rotated to the detected horizontal](../assets/diagrams/normalization-after.svg)
+<figcaption>After</figcaption>
+</figure>
+
+</div>
+
+A few degrees of skew is nearly invisible in two separate stills. With
+JavaScript enabled these stack into a slider you can drag; drag it, or focus
+the divider and use the arrow keys.
+
 ## Under the hood
 
 The user controls in `poggio_webapp/static/app/stages/preprocess.js` send the requested settings to the server route in `poggio_webapp/backend/routes/preprocess.py`. The preprocessing pipeline uses the uploaded file and writes the outputs into the job's preprocess directory.

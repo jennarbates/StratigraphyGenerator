@@ -18,6 +18,26 @@ rotation and corrects it before a scanned drawing is traced or extracted.
 
 *Normalization repairs how the sheet sits, not what it records.*
 
+## Before and after
+
+<div class="pc-interactive" data-pc-compare markdown="1">
+
+<figure markdown="1">
+![A trench sheet sitting crooked, as scanned](../assets/diagrams/normalization-before.svg)
+<figcaption>Before</figcaption>
+</figure>
+
+<figure markdown="1">
+![The same trench sheet rotated to the detected horizontal](../assets/diagrams/normalization-after.svg)
+<figcaption>After</figcaption>
+</figure>
+
+</div>
+
+A few degrees of skew is nearly invisible in two separate stills. With
+JavaScript enabled these stack into a slider you can drag; drag it, or focus
+the divider and use the arrow keys.
+
 ## Why it matters here
 
 The correction helps horizontal stratigraphic layers and drawn grid lines

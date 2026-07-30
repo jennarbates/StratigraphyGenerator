@@ -3,15 +3,16 @@
 from flask import Flask, jsonify
 from werkzeug.exceptions import HTTPException
 
-from .config import STATIC_DIR, TEMPLATES_DIR
+import storage
+
 from .routes import register_blueprints
 
 
 def create_app() -> Flask:
     app = Flask(
         __name__,
-        static_folder=str(STATIC_DIR),
-        template_folder=str(TEMPLATES_DIR),
+        static_folder=str(storage.STATIC_DIR),
+        template_folder=str(storage.TEMPLATES_DIR),
         static_url_path="/static",
     )
     register_blueprints(app)

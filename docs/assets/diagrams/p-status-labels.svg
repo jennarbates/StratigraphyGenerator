@@ -49,7 +49,7 @@ text { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-se
   <text x="370" y="282" text-anchor="middle" class="sm muted">routes exist, nothing reaches them</text>
   <rect x="540" y="100" width="280" height="100" rx="6" class="panel"/>
   <text x="680" y="138" text-anchor="middle" class="bold warn-f">blocked</text>
-  <text x="680" y="162" text-anchor="middle" class="sm muted">the interface promises what it cannot do</text>
+  <text x="680" y="162" text-anchor="middle" class="sm muted">advertised, but cannot complete</text>
   <rect x="540" y="220" width="280" height="100" rx="6" class="panel"/>
   <text x="680" y="258" text-anchor="middle" class="bold muted">historical</text>
   <text x="680" y="282" text-anchor="middle" class="sm muted">kept only as reference</text>

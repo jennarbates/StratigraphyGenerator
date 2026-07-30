@@ -18,3 +18,158 @@ input {
 .md-typeset h3 {
   font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
 }
+
+/* ---------------------------------------------------------------------------
+   Interactive documentation components.
+
+   Each component is progressive enhancement over static markup, so these rules
+   only style what JavaScript builds. With JavaScript off the underlying
+   figures, lists, and tables render with the theme's own styles.
+   --------------------------------------------------------------------------- */
+
+.pc-form {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0 0 1rem;
+}
+.pc-form fieldset {
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 4px;
+  padding: 0.6rem 0.8rem 0.8rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 0.5rem 1rem;
+}
+.pc-form legend {
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.pc-form label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.72rem;
+  gap: 0.2rem;
+}
+.pc-form input {
+  font: inherit;
+  font-size: 0.78rem;
+  padding: 0.25rem 0.4rem;
+  border: 1px solid var(--md-default-fg-color--lighter);
+  border-radius: 3px;
+  background: var(--md-default-bg-color);
+  color: var(--md-default-fg-color);
+}
+.pc-output {
+  border-left: 3px solid var(--md-accent-fg-color, #1f6feb);
+  padding: 0.4rem 0 0.4rem 0.9rem;
+  margin-bottom: 1rem;
+}
+.pc-result {
+  margin: 0;
+  display: grid;
+  gap: 0.3rem;
+}
+.pc-result div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.pc-result dt {
+  font-weight: 700;
+  min-width: 11rem;
+  margin: 0;
+}
+.pc-result dd {
+  margin: 0;
+  font-family: var(--md-code-font-family, monospace);
+}
+.pc-note { font-size: 0.72rem; opacity: 0.75; margin: 0.4rem 0 0; }
+.pc-error { color: #b3541e; margin: 0; font-weight: 600; }
+
+/* Before/after comparison ------------------------------------------------- */
+
+.pc-compare-stage {
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+  touch-action: pan-y;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 4px;
+  cursor: ew-resize;
+}
+.pc-compare-stage img { display: block; width: 100%; }
+.pc-compare-overlay {
+  /* Full width and clipped, rather than narrowed: the two images must stay in
+     exact register as the divider moves, and a narrowing box would rescale. */
+  position: absolute;
+  inset: 0;
+  clip-path: inset(0 50% 0 0);
+}
+.pc-compare-divider {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  margin-left: -1.5px;
+  background: var(--md-accent-fg-color, #1f6feb);
+  cursor: ew-resize;
+}
+.pc-compare-divider::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1.6rem;
+  height: 1.6rem;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: var(--md-accent-fg-color, #1f6feb);
+}
+.pc-compare-divider:focus-visible { outline: 3px solid currentColor; outline-offset: 2px; }
+.pc-compare-legend {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  opacity: 0.8;
+  margin: 0.4rem 0 0;
+}
+
+/* Pipeline explorer -------------------------------------------------------- */
+
+.pc-explorer-shell {
+  display: grid;
+  grid-template-columns: minmax(9rem, 14rem) 1fr;
+  gap: 1rem;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 4px;
+  padding: 0.8rem;
+}
+@media (max-width: 44rem) {
+  .pc-explorer-shell { grid-template-columns: 1fr; }
+}
+.pc-explorer-tabs { display: flex; flex-direction: column; gap: 0.2rem; }
+.pc-explorer-tab {
+  font: inherit;
+  font-size: 0.76rem;
+  text-align: left;
+  padding: 0.35rem 0.55rem;
+  border: 0;
+  border-left: 3px solid transparent;
+  border-radius: 0 3px 3px 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.pc-explorer-tab:hover { background: var(--md-default-fg-color--lightest); }
+.pc-explorer-tab[aria-selected="true"] {
+  border-left-color: var(--md-accent-fg-color, #1f6feb);
+  background: var(--md-default-fg-color--lightest);
+  font-weight: 700;
+}
+.pc-explorer-tab:focus-visible { outline: 2px solid currentColor; outline-offset: -2px; }
+.pc-explorer-panel:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+.pc-explorer-panel dl { display: grid; gap: 0.3rem; margin: 0; }
+.pc-explorer-panel dt { font-weight: 700; font-size: 0.72rem; text-transform: uppercase; }
+.pc-explorer-panel dd { margin: 0 0 0.5rem; }

@@ -570,3 +570,23 @@
     them.
   status: approved
   regenerate: python tools/docs/generate_diagrams.py
+- id: normalization-before
+  type: generated
+  path: docs/assets/diagrams/normalization-before.svg
+  pages:
+  - docs/workflows/02-prepare-image.md
+  - docs/concepts/geometric-normalization.md
+  regenerate: python tools/docs/generate_diagrams.py
+  alt: A trench sheet sitting crooked, as scanned
+  caption: 'Before: the sheet sits crooked on the platen.'
+  status: approved
+- id: normalization-after
+  type: generated
+  path: docs/assets/diagrams/normalization-after.svg
+  pages:
+  - docs/workflows/02-prepare-image.md
+  - docs/concepts/geometric-normalization.md
+  regenerate: python tools/docs/generate_diagrams.py
+  alt: The same trench sheet rotated to the detected horizontal
+  caption: 'After: rotated to the detected horizontal.'
+  status: approved

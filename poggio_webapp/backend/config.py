@@ -1,13 +1,9 @@
-"""Shared filesystem configuration."""
+"""Web-layer configuration.
 
-from pathlib import Path
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-JOBS_DIR = BASE_DIR / "jobs"
-TRENCHES_DIR = BASE_DIR / "trenches"
-MATRICES_DIR = BASE_DIR / "matrices"
-STATIC_DIR = BASE_DIR / "static"
-TEMPLATES_DIR = BASE_DIR / "templates"
+Filesystem roots live in the top-level ``storage`` module, which ``pipeline``
+also depends on. Import that directly rather than re-exporting the paths here —
+a re-export would rebind them and reintroduce the stale-copy problem.
+"""
 
 ALLOWED_SCAN_EXT = {
     ".png",
@@ -17,7 +13,3 @@ ALLOWED_SCAN_EXT = {
     ".tif",
     ".tiff",
 }
-
-JOBS_DIR.mkdir(exist_ok=True)
-TRENCHES_DIR.mkdir(exist_ok=True)
-MATRICES_DIR.mkdir(exist_ok=True)

@@ -33,6 +33,120 @@ flowchart LR
 
 *Where each module runs, including the merge step that only multi-wall trenches use.*
 
+## Stage explorer
+
+Each stage, with the module that implements it, what it consumes, what it
+writes, and the route that triggers it. With JavaScript enabled these
+become a navigable list; without it, every stage is listed below in order.
+
+<div class="pc-interactive" data-pc-explorer markdown="1">
+
+<div data-stage="preprocess" markdown="1">
+
+#### Preprocess
+
+<dl>
+<dt>Module</dt><dd><code>pipeline/preprocess.py</code></dd>
+<dt>Input</dt><dd>The uploaded scan or PDF</dd>
+<dt>Output</dt><dd>A clean working image, and optionally a high-contrast copy</dd>
+<dt>Route</dt><dd><code>POST /api/jobs/&lt;job_id&gt;/preprocess</code></dd>
+</dl>
+
+</div>
+
+<div data-stage="extract" markdown="1">
+
+#### Extract
+
+<dl>
+<dt>Module</dt><dd><code>pipeline/extract_illustrator.py, pipeline/extract_fieldwall.py</code></dd>
+<dt>Input</dt><dd>The prepared image</dd>
+<dt>Output</dt><dd>extraction.json, in one of the two schemas</dd>
+<dt>Route</dt><dd><code>POST /api/jobs/&lt;job_id&gt;/extract, or the manual tracing route</code></dd>
+</dl>
+
+</div>
+
+<div data-stage="normalize" markdown="1">
+
+#### Normalize
+
+<dl>
+<dt>Module</dt><dd><code>pipeline/normalizer.py</code></dd>
+<dt>Input</dt><dd>extraction.json</dd>
+<dt>Output</dt><dd>The same document with null-like strings and padding cleaned</dd>
+<dt>Route</dt><dd><code>POST /api/jobs/&lt;job_id&gt;/normalize</code></dd>
+</dl>
+
+</div>
+
+<div data-stage="validate" markdown="1">
+
+#### Validate
+
+<dl>
+<dt>Module</dt><dd><code>pipeline/validator.py</code></dd>
+<dt>Input</dt><dd>The normalized extraction</dd>
+<dt>Output</dt><dd>A report of errors and warnings; errors block the next step</dd>
+<dt>Route</dt><dd><code>POST /api/jobs/&lt;job_id&gt;/validate</code></dd>
+</dl>
+
+</div>
+
+<div data-stage="merge" markdown="1">
+
+#### Merge walls
+
+<dl>
+<dt>Module</dt><dd><code>pipeline/merge_walls.py</code></dd>
+<dt>Input</dt><dd>One normalized extraction per wall of a trench</dd>
+<dt>Output</dt><dd>merged.json — one multi-face document, plus notes</dd>
+<dt>Route</dt><dd><code>POST /api/trenches/&lt;label&gt;/build (no browser control)</code></dd>
+</dl>
+
+</div>
+
+<div data-stage="convert" markdown="1">
+
+#### Convert coordinates
+
+<dl>
+<dt>Module</dt><dd><code>pipeline/convert_coords.py</code></dd>
+<dt>Input</dt><dd>The normalized or merged document, plus a grid config</dd>
+<dt>Output</dt><dd>points.csv and points_orientations.csv in site coordinates</dd>
+<dt>Route</dt><dd><code>POST /api/jobs/&lt;job_id&gt;/convert</code></dd>
+</dl>
+
+</div>
+
+<div data-stage="truedip" markdown="1">
+
+#### Solve true dip
+
+<dl>
+<dt>Module</dt><dd><code>pipeline/true_dip.py</code></dd>
+<dt>Input</dt><dd>Interface points and each face's bearing</dd>
+<dt>Output</dt><dd>One true dip and azimuth per surface, where two walls allow it</dd>
+<dt>Route</dt><dd><code>none — implemented and tested, but called by nothing</code></dd>
+</dl>
+
+</div>
+
+<div data-stage="build" markdown="1">
+
+#### Build the model
+
+<dl>
+<dt>Module</dt><dd><code>pipeline/build_gempy.py</code></dd>
+<dt>Input</dt><dd>The converted point and orientation CSVs</dd>
+<dt>Output</dt><dd>The model, its meshes, and section images</dd>
+<dt>Route</dt><dd><code>POST /api/jobs/&lt;job_id&gt;/gempy</code></dd>
+</dl>
+
+</div>
+
+</div>
+
 ## Responsibilities
 
 - Preprocess the source image or PDF into a working copy for later stages.

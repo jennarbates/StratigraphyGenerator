@@ -28,6 +28,26 @@ This concept matters because beginners often assume that a point in the drawing 
 
 *Three clicks plus one real measurement convert pixels into metres.*
 
+## Try it
+
+<div class="pc-interactive" data-pc-converter markdown="1">
+
+A worked example, using the synthetic fixture. With JavaScript enabled, a
+converter appears above this table and these values become editable.
+
+| Space | Value |
+|---|---|
+| Pixel | `(760, 520)` |
+| Calibration | clicks at `(220, 180)` and `(1180, 196)`, 4 m apart; lowest click `(700, 900)` |
+| Face-local metres | `x = 2.273 m`, `depth = 1.3788 m` |
+| Registration | `originX 0`, `originY 0`, `surfaceZ 100`, `bearing_deg 90` |
+| Site coordinates | `X = 2.273`, `Y = 0.0`, `Z = 98.6212` |
+
+At `bearing_deg 90` the face runs due east, so all displacement lands in `X`
+and `Y` stays at the origin. The scale here is 240.0333 pixels per metre.
+
+</div>
+
 ## Example
 
 Synthetic documentation example: a boundary point is first clicked in the image, then converted from pixels into local metres during tracing, and finally turned into a site-wide coordinate after registration. Each conversion changes the meaning of the measurement, but the point still refers to the same feature in the real world.

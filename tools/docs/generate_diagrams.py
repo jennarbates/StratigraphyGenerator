@@ -911,7 +911,46 @@ def normalization_diff() -> str:
     )
 
 
+def _sheet(rotate: float, label: str, note: str) -> str:
+    """One trench sheet, optionally skewed. Both variants share a viewBox so the
+    before/after comparison slider can overlay them exactly."""
+    inner = "\n".join([
+        band(0, 0, 460, 70, "band-a"),
+        band(0, 70, 460, 84, "band-b"),
+        band(0, 154, 460, 76, "band-c"),
+        path(wavy(0, 460, 70), "edge"),
+        path(wavy(0, 460, 154), "edge"),
+    ])
+    return document(
+        720, 420,
+        f"Trench sheet {label.lower()}",
+        note,
+        "\n".join([
+            heading(24, 34, label),
+            f'  <g transform="translate(130 90) rotate({rotate} 230 115)">',
+            inner,
+            "  </g>",
+            f'  <line x1="130" y1="360" x2="590" y2="360" class="thin"/>',
+            txt(360, 386, note, "sm muted", "middle"),
+        ]),
+    )
+
+
+def normalization_before() -> str:
+    return _sheet(
+        -6.5, "Before", "As scanned: the sheet sits crooked on the platen."
+    )
+
+
+def normalization_after() -> str:
+    return _sheet(
+        0, "After", "Deskewed: rotated to the detected horizontal."
+    )
+
+
 DIAGRAMS: dict[str, Callable[[], str]] = {
+    "normalization-before": normalization_before,
+    "normalization-after": normalization_after,
     "glossary-anatomy": glossary_anatomy,
     "three-coordinate-spaces": three_coordinate_spaces,
     "w03-calibration-clicks": calibration_clicks,
