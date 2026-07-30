@@ -1,0 +1,109 @@
+name: Checks and documentation
+
+# Every documentation guarantee in this repository is mechanical: pages name the
+# source files they describe, no module goes unmentioned, no unreviewed image
+# reaches a page, and the README stays in step with the navigation. None of that
+# holds unless something runs it, which is what this workflow is for.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Matches the version the project is developed against closely enough to
+  # avoid surprises, while staying on a version the runners ship reliably.
+  PYTHON_VERSION: "3.13"
+
+jobs:
+  checks:
+    name: Checks, tests, and site build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: |
+            requirements-docs.txt
+            poggio_webapp/requirements.txt
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-docs.txt
+          python -m pip install -r poggio_webapp/requirements.txt
+          python -m pip install pytest
+
+      # Each check is its own step so a failure names itself in the UI rather
+      # than hiding inside a chained command.
+      - name: Links, front matter, and orphan pages
+        run: python tools/docs/check_docs.py .
+
+      - name: Module documentation coverage
+        run: python tools/docs/check_coverage.py .
+
+      - name: Visual manifest
+        run: python tools/docs/validate_visual_manifest.py .
+
+      - name: README synchronisation
+        run: python tools/docs/check_readme_sync.py .
+
+      - name: Python tests
+        run: python -m pytest tests/ -q
+
+      - name: JavaScript tests
+        run: >
+          node --test
+          "poggio_webapp/static/**/*.test.mjs"
+          "docs/javascripts/**/*.test.mjs"
+
+      - name: Build the site
+        run: mkdocs build --strict
+
+      - name: Confirm generated diagrams are up to date
+        # The diagrams are generated, so a hand-edited SVG or a stale commit
+        # would otherwise ship silently.
+        run: |
+          python tools/docs/generate_diagrams.py .
+          if ! git diff --quiet -- docs/assets/diagrams; then
+            echo "::error::Generated diagrams differ from the committed files."
+            echo "Run: python tools/docs/generate_diagrams.py ."
+            git diff --stat -- docs/assets/diagrams
+            exit 1
+          fi
+
+      - name: Upload the site for deployment
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    name: Deploy to GitHub Pages
+    # Only from main, and only after every check above has passed.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: checks
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
