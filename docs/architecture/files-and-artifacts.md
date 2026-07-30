@@ -19,6 +19,19 @@ verified_against: 2267711
 
 The repository stores job artifacts in numbered subfolders so each stage leaves a visible trail of intermediate files.
 
+```mermaid
+flowchart TD
+  Job[jobs/&lt;job_id&gt;/] --> Meta[meta.json]
+  Job --> S[01_scan/ - the untouched upload]
+  Job --> P[02_preprocess/ - prepared images]
+  Job --> E[03_extraction/ - extraction.json]
+  Job --> N[04_normalize/ - normalized.json]
+  Job --> C[05_convert/ - points.csv, orientations]
+  Job --> G[06_gempy_model/ - model and exports]
+```
+
+*Each stage writes into its own subfolder, so one failure cannot erase earlier output.*
+
 ## Responsibilities
 
 - Keep uploaded and generated files inside the job directory instead of in an unrelated temporary location.

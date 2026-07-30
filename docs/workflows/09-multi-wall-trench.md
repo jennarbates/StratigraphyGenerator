@@ -16,12 +16,13 @@ verified_against: d23b842
 Merge several single-wall drawings into one document and build a single 3D
 model of the whole trench.
 
-> [!warning]
-> There is no browser control for this workflow. The routes are registered and
-> well covered by tests, but no page in the application calls them, so every
-> step below is an HTTP request you make yourself. See
-> [capability status](../project/capability-status.md) for what that label
-> means.
+!!! warning
+
+    There is no browser control for this workflow. The routes are registered and well covered by tests, but no page in the application calls them, so every step below is an HTTP request you make yourself. See [capability status](../project/capability-status.md) for what that label means.
+
+![Four separately drawn walls positioned by their registration to enclose one rectangular pit](../assets/diagrams/w09-walls-to-pit.svg)
+
+*Correct registration is what turns four independent drawings into one trench.*
 
 ## Before you start
 
@@ -43,6 +44,22 @@ silently — most jobs are single sheets that were never assigned to a trench.
 You also need real surveyed registration for every wall. This workflow will
 refuse to build without it, and that refusal is deliberate: see
 [Why placeholders are fatal here](#why-placeholders-are-fatal-here).
+
+```mermaid
+flowchart TD
+  A[North wall job] --> An[normalized extraction]
+  B[East wall job] --> Bn[normalized extraction]
+  C[South wall job] --> Cn[normalized extraction]
+  An --> M[merge_walls.merge_extractions]
+  Bn --> M
+  Cn --> M
+  M --> D[merged.json, one multi-face document]
+  D --> V[convert_coords.run_convert]
+  V --> G[build_gempy.run_build]
+  M -.->|canonicalizes Munsell per locus| D
+```
+
+*The merge runs before coordinate conversion, because everything after extraction is already multi-face.*
 
 ## Do this
 
@@ -163,6 +180,10 @@ bearing, producing a row of parallel walls roughly 10 m apart rather than four
 walls around a pit. The result looks like a confident model and is a model of
 nothing, so the build refuses rather than producing it.
 
+![The same four walls laid out in a parallel row because every face shares the placeholder bearing](../assets/diagrams/w09-placeholder-failure.svg)
+
+*Why placeholder registration is fatal for a merged build: a confident-looking model of nothing.*
+
 ## Under the hood
 
 `pipeline/merge_walls.py` exists because everything downstream of extraction —
@@ -189,6 +210,24 @@ Series order is derived rather than assumed. Each face's layers are already
 top-to-bottom, so every adjacent pair is an ordering constraint; the
 constraints from all faces are merged and topologically sorted, with ties
 broken by first-seen order so the result is deterministic.
+
+### A known limitation of merged orientations
+
+Coordinate conversion gives every orientation seed the azimuth of the wall it
+was measured on, and the dip measured *along* that wall. On one wall that is
+all anyone can know. On a merged trench it is wrong in a systematic way: one
+surface arrives with a seed dipping toward the north wall's bearing and another
+toward the east wall's, and an apparent dip is always shallower than the true
+dip — so the model fits a compromise plane matching neither drawing.
+
+`poggio_webapp/pipeline/true_dip.py` solves the real problem: two walls that
+are not parallel pin a plane down exactly, giving one true dip and dip azimuth
+per surface. It is covered by `tests/test_true_dip.py` but **wired into no
+pipeline**, so nothing in this workflow calls it yet.
+
+Where a solve is not available — a surface drawn on only one wall, or two walls
+too nearly parallel — it emits nothing and says why, rather than inventing an
+orientation that would look like an improvement.
 
 ## Next
 

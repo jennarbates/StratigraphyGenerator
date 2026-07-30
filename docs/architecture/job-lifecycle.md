@@ -14,6 +14,21 @@ verified_against: a8b58f1
 
 The repository stores each attempt as a job directory with metadata that evolves as the workflow progresses.
 
+```mermaid
+stateDiagram-v2
+  [*] --> Created
+  Created --> Uploaded: POST scan
+  Uploaded --> Prepared: POST preprocess
+  Prepared --> Extracted: trace, import, or AI
+  Extracted --> Normalized: POST normalize
+  Normalized --> Validated: POST validate
+  Validated --> Converted: grid config, POST convert
+  Converted --> Modelled: POST gempy
+  Modelled --> [*]
+```
+
+*What exists on disk at each point in a job's life.*
+
 ## Responsibilities
 
 - Create a job folder and initial metadata for a new attempt.

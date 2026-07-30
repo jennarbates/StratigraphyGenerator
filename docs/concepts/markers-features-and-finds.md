@@ -34,6 +34,10 @@ feature tracing in **Trace the layers** is `supported`. Find logging is
 `experimental` at the direct `/finds` page and has no link from the main
 application or editor.
 
+![One drawing showing a marker, a feature, and a find, each labelled with what it records](../assets/diagrams/w03b-marker-anatomy.svg)
+
+*Three record types that are easy to confuse: a scale reference, a physical inclusion, and a recovered object.*
+
 ## Example
 
 On a field sheet, a filled dot marking a surveyed boundary vertex is a marker.

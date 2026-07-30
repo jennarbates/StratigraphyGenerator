@@ -50,6 +50,33 @@ _JOB_ID_RE = re.compile(r"[0-9a-f]{8,}")
 
 _IMAGE_RE = re.compile(r"!\[(?P<alt>[^\]]*)]\(\s*(?P<target>[^)\s]+)")
 
+# The SVG contract from the documentation plan. A diagram that fails any of
+# these is either unreadable at the published width or invisible to a screen
+# reader, so it is checked rather than trusted.
+_RASTER_RE = re.compile(r"data:image/(png|jpe?g|gif|webp)", re.IGNORECASE)
+
+
+def check_svg_contract(path: Path) -> list[str]:
+    """Return contract violations for one SVG file."""
+
+    try:
+        text = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeError) as error:
+        return [f"could not read SVG: {error}"]
+
+    problems: list[str] = []
+    if "viewBox" not in text:
+        problems.append("SVG has no viewBox, so it cannot scale")
+    if "<title" not in text:
+        problems.append("SVG has no <title>")
+    if "<desc" not in text:
+        problems.append("SVG has no <desc>")
+    if re.search(r"<svg[^>]*\swidth=", text):
+        problems.append("SVG sets a fixed width; use the viewBox alone")
+    if _RASTER_RE.search(text):
+        problems.append("SVG embeds raster image data")
+    return problems
+
 
 @dataclass(frozen=True)
 class Issue:
@@ -155,6 +182,11 @@ def _validate_path(
     if status in PRODUCED_STATUSES and not (repo_root / path).is_file():
         issues.append(
             Issue(where, f"status is {status!r} but the file is missing: {raw_path}")
+        )
+    elif path.suffix.lower() == ".svg" and (repo_root / path).is_file():
+        issues.extend(
+            Issue(where, problem)
+            for problem in check_svg_contract(repo_root / path)
         )
     return issues
 

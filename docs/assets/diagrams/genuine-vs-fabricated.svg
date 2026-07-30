@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 362" role="img" aria-labelledby="t d">
+  <title id="t">A genuine trace compared with a fabricated boundary</title>
+  <desc id="d">On the left a boundary following the drawn ink; on the right a smooth evenly spaced curve lying away from the ink entirely.</desc>
+  <style>
+:root {
+  --bg: #ffffff; --ink: #1b1b1b; --muted: #5c5c5c; --line: #6b6b6b;
+  --panel: #f7f9fb; --fill: #e8edf2; --edge: #b3bcc5;
+  --accent: #1f6feb; --warn: #a8481a; --good: #266048;
+  --band-a: #ddcdb2; --band-b: #c8ae80; --band-c: #ac8f63; --band-d: #8f7248;
+}
+text { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+       fill: var(--ink); font-size: 15px; }
+.sm { font-size: 13px; }
+.muted { fill: var(--muted); }
+.bold { font-weight: 650; }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
+.panel { fill: var(--panel); stroke: var(--edge); stroke-width: 1.5; }
+.fill { fill: var(--fill); stroke: var(--edge); stroke-width: 1.5; }
+.edge { fill: none; stroke: var(--line); stroke-width: 2; }
+.thin { fill: none; stroke: var(--edge); stroke-width: 1; }
+.accent { stroke: var(--accent); fill: none; stroke-width: 2.5; }
+.accent-f { fill: var(--accent); }
+.warn { stroke: var(--warn); fill: none; stroke-width: 2.5; }
+.warn-f { fill: var(--warn); }
+.good { stroke: var(--good); fill: none; stroke-width: 2.5; }
+.good-f { fill: var(--good); }
+.dash { stroke-dasharray: 6 4; }
+.dot { stroke-dasharray: 2 3; }
+</style>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--line)"/>
+    </marker>
+    <marker id="arrow-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/>
+    </marker>
+  </defs>
+  <rect width="1000" height="362" fill="var(--bg)"/>
+  <text x="24" y="30" text-anchor="start" class="bold">A boundary that does not lie on ink is fabricated</text>
+  <rect x="40" y="56" width="440" height="230" rx="6" class="panel"/>
+  <text x="56" y="82" text-anchor="start" class="bold good-f">Genuine trace</text>
+  <circle cx="70" cy="190" r="5" fill="var(--muted)" opacity="0.55"/>
+  <circle cx="130" cy="182" r="5" fill="var(--muted)" opacity="0.55"/>
+  <circle cx="190" cy="198" r="5" fill="var(--muted)" opacity="0.55"/>
+  <circle cx="250" cy="188" r="5" fill="var(--muted)" opacity="0.55"/>
+  <circle cx="310" cy="204" r="5" fill="var(--muted)" opacity="0.55"/>
+  <circle cx="370" cy="196" r="5" fill="var(--muted)" opacity="0.55"/>
+  <circle cx="430" cy="210" r="5" fill="var(--muted)" opacity="0.55"/>
+  <polyline points="70,190 130,182 190,198 250,188 310,204 370,196 430,210" class="good"/>
+  <text x="56" y="272" text-anchor="start" class="sm muted">follows the drawn line, wobble and all</text>
+  <rect x="530" y="56" width="440" height="230" rx="6" class="panel"/>
+  <text x="546" y="82" text-anchor="start" class="bold warn-f">Fabricated</text>
+  <circle cx="560" cy="190" r="5" fill="var(--muted)" opacity="0.55"/>
+  <circle cx="620" cy="182" r="5" fill="var(--muted)" opacity="0.55"/>
+  <circle cx="680" cy="198" r="5" fill="var(--muted)" opacity="0.55"/>
+  <circle cx="740" cy="188" r="5" fill="var(--muted)" opacity="0.55"/>
+  <circle cx="800" cy="204" r="5" fill="var(--muted)" opacity="0.55"/>
+  <circle cx="860" cy="196" r="5" fill="var(--muted)" opacity="0.55"/>
+  <circle cx="920" cy="210" r="5" fill="var(--muted)" opacity="0.55"/>
+  <path d="M560,205 C660,196 800,196 920,205" class="warn"/>
+  <text x="546" y="272" text-anchor="start" class="sm muted">smooth, evenly spaced, and off the ink</text>
+  <text x="24" y="322" text-anchor="start" class="sm muted">Statistical signatures — suspiciously even spacing, implausible smoothness — are hints.</text>
+  <text x="24" y="342" text-anchor="start" class="sm muted">Overlap with actual ink pixels is direct evidence, and is the check worth automating.</text>
+</svg>

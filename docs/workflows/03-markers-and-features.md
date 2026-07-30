@@ -14,6 +14,10 @@ verified_against: a8b58f1
 
 This page explains the current status of marker and feature handling so you can tell the difference between what the app can do today and what remains experimental or backend-only.
 
+![One drawing showing a marker, a feature, and a find, each labelled with what it records](../assets/diagrams/w03b-marker-anatomy.svg)
+
+*Three record types that are easy to confuse: a scale reference, a physical inclusion, and a recovered object.*
+
 ## Before you start
 
 The current workflow is built around manual tracing first. The marker and feature modules below are secondary and should not be treated as the default operator path.

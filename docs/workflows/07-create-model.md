@@ -12,8 +12,9 @@ verified_against: a8b58f1
 
 Build a GemPy model from the converted point and orientation exports, while keeping the output clearly marked as a placeholder example when you use synthetic values.
 
-> [!warning]
-> Synthetic documentation example only. The generated model is a smoke-test output and is not a scientific model.
+!!! warning
+
+    Synthetic documentation example only. The generated model is a smoke-test output and is not a scientific model.
 
 ## Before you start
 
@@ -56,6 +57,10 @@ For a documentation walkthrough, use a simple synthetic surface order such as `L
 - `gempy` or `gempy_viewer` is not installed, so the model step cannot render the section image.
 - The supplied series order does not match the surface names in the CSV, so the build stops with an error.
 - The build produces a section image but you assume the plot proves the geology; the plot is only a visualization aid.
+
+![Scattered interface points on the left, the interpolated surface built from them on the right](../assets/diagrams/w07-points-to-surface.svg)
+
+*The model interpolates between points. A single face is extrapolated across the whole extent.*
 
 ## Under the hood
 

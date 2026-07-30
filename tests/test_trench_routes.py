@@ -221,6 +221,36 @@ def test_build_with_real_grid_starts_task_and_writes_outputs(
     assert calls[0]["kwargs"]["series_order"] == _expected_series_order()
 
 
+def test_build_hands_gempy_true_dips_solved_from_both_walls(client, monkeypatch):
+    """The payoff of merging: the orientations the model is built from describe
+    one plane per surface, not each wall's shallower apparent dip."""
+    http, jobs_dir, trenches_dir = client
+    _t900(jobs_dir)
+    monkeypatch.setattr(build_gempy, "run_build", lambda *a, **k: {})
+
+    response = http.post("/api/trenches/T900/build", json={"grid": GRID_T900})
+
+    assert response.status_code == 200
+    with (trenches_dir / "T900" / "points_orientations.csv").open() as handle:
+        rows = list(csv.DictReader(handle))
+
+    by_surface = {}
+    for row in rows:
+        by_surface.setdefault(row["surface"], set()).add(
+            (row["dip"], row["azimuth"]))
+    assert len(by_surface) == 2
+    # Both walls' seeds for a surface now agree, and neither still carries the
+    # wall-locked azimuth convert() gave it.
+    for values in by_surface.values():
+        assert len(values) == 1
+        (_dip, azimuth), = values
+        assert azimuth not in {"90.0", "180.0"}
+    assert any(
+        "replaced the per-wall apparent dips" in note
+        for note in response.get_json()["notes"]
+    )
+
+
 def test_build_carries_merge_notes_for_munsell_disagreement(client, monkeypatch):
     http, jobs_dir, _trenches_dir = client
     _t900(jobs_dir)

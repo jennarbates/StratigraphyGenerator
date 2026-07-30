@@ -12,6 +12,10 @@ verified_against: 077f108
 
 This page covers the manual tracing path from a prepared image to a saved extraction JSON.
 
+![A drawing with three numbered calibration points and the real-world distance between the first two](../assets/diagrams/w03-calibration-clicks.svg)
+
+*Three clicks plus one real measurement convert pixels into metres.*
+
 ## Before you start
 
 Use the prepared image from the previous step. You should also know whether you are working from an illustrated trench sheet or a hand-drawn field sheet, because the tracing instructions differ slightly.
@@ -57,6 +61,10 @@ Callouts: top-left, top-right, lowest point, real width
 - The surface or lower boundary line is not long enough, so the save step reports an error.
 - A field-wall drawing is missing the final bottom line below the deepest locus.
 - A feature shape has fewer than three points, so the app asks you to finish or delete it.
+
+![A layer shown as the region between its top boundary and the boundary below it](../assets/diagrams/w03-boundary-anatomy.svg)
+
+*You trace boundaries, not layers. A layer is the space between two of them.*
 
 ## Under the hood
 

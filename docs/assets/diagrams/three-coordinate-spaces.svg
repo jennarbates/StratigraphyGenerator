@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 405" role="img" aria-labelledby="t d">
+  <title id="t">The three coordinate spaces</title>
+  <desc id="d">One point shown in pixel coordinates, in face-local metres, and in surveyed site coordinates, with the conversion required between each pair.</desc>
+  <style>
+:root {
+  --bg: #ffffff; --ink: #1b1b1b; --muted: #5c5c5c; --line: #6b6b6b;
+  --panel: #f7f9fb; --fill: #e8edf2; --edge: #b3bcc5;
+  --accent: #1f6feb; --warn: #a8481a; --good: #266048;
+  --band-a: #ddcdb2; --band-b: #c8ae80; --band-c: #ac8f63; --band-d: #8f7248;
+}
+text { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+       fill: var(--ink); font-size: 15px; }
+.sm { font-size: 13px; }
+.muted { fill: var(--muted); }
+.bold { font-weight: 650; }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
+.panel { fill: var(--panel); stroke: var(--edge); stroke-width: 1.5; }
+.fill { fill: var(--fill); stroke: var(--edge); stroke-width: 1.5; }
+.edge { fill: none; stroke: var(--line); stroke-width: 2; }
+.thin { fill: none; stroke: var(--edge); stroke-width: 1; }
+.accent { stroke: var(--accent); fill: none; stroke-width: 2.5; }
+.accent-f { fill: var(--accent); }
+.warn { stroke: var(--warn); fill: none; stroke-width: 2.5; }
+.warn-f { fill: var(--warn); }
+.good { stroke: var(--good); fill: none; stroke-width: 2.5; }
+.good-f { fill: var(--good); }
+.dash { stroke-dasharray: 6 4; }
+.dot { stroke-dasharray: 2 3; }
+</style>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--line)"/>
+    </marker>
+    <marker id="arrow-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/>
+    </marker>
+  </defs>
+  <rect width="960" height="405" fill="var(--bg)"/>
+  <text x="24" y="30" text-anchor="start" class="bold">The same point, in all three spaces</text>
+  <rect x="40" y="50" width="280" height="250" rx="6" class="panel"/>
+  <text x="54" y="76" text-anchor="start" class="bold">Pixel space</text>
+  <text x="54" y="96" text-anchor="start" class="sm muted">origin top-left, y grows down</text>
+  <rect x="350" y="50" width="280" height="250" rx="6" class="panel"/>
+  <text x="364" y="76" text-anchor="start" class="bold">Face-local metres</text>
+  <text x="364" y="96" text-anchor="start" class="sm muted">origin at the face's x=0, depth grows down</text>
+  <rect x="660" y="50" width="280" height="250" rx="6" class="panel"/>
+  <text x="674" y="76" text-anchor="start" class="bold">Site coordinates</text>
+  <text x="674" y="96" text-anchor="start" class="sm muted">surveyed X, Y, Z across the whole site</text>
+  <rect x="80" y="132" width="210" height="132" class="fill"/>
+  <circle cx="180" cy="200" r="4" class="accent-f"/>
+  <text x="190" y="195" text-anchor="start" class="mono">(1240, 860)</text>
+  <line x1="72" y1="124" x2="72" y2="276" class="edge" marker-end="url(#arrow)"/>
+  <line x1="72" y1="124" x2="296" y2="124" class="edge" marker-end="url(#arrow)"/>
+  <text x="292" y="116" text-anchor="end" class="sm muted">x px</text>
+  <text x="80" y="292" text-anchor="start" class="sm muted">y px</text>
+  <rect x="380" y="132" width="210" height="132" class="fill"/>
+  <circle cx="452" cy="200" r="4" class="accent-f"/>
+  <text x="462" y="195" text-anchor="start" class="mono">(2.10, 0.85) m</text>
+  <text x="386" y="292" text-anchor="start" class="sm muted">x metres along the face</text>
+  <text x="386" y="152" text-anchor="start" class="sm muted">depth below surface</text>
+  <rect x="690" y="132" width="210" height="132" class="fill"/>
+  <circle cx="762" cy="200" r="4" class="accent-f"/>
+  <text x="772" y="195" text-anchor="start" class="mono">(X, Y, Z)</text>
+  <text x="696" y="292" text-anchor="start" class="sm muted">north-oriented site grid</text>
+  <line x1="325" y1="175" x2="348" y2="175" class="accent" marker-end="url(#arrow-a)"/>
+  <line x1="635" y1="175" x2="658" y2="175" class="accent" marker-end="url(#arrow-a)"/>
+  <text x="180" y="330" text-anchor="middle" class="sm accent-f">three calibration clicks</text>
+  <text x="180" y="348" text-anchor="middle" class="sm accent-f">+ one real measurement</text>
+  <text x="490" y="330" text-anchor="middle" class="sm accent-f">registration per face</text>
+  <text x="490" y="348" text-anchor="middle" class="sm accent-f">originX, originY, surfaceZ, bearing</text>
+  <text x="24" y="386" text-anchor="start" class="sm muted">Most confusion in this project is a mix-up between two of these.</text>
+</svg>

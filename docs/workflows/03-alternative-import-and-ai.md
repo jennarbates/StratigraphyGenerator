@@ -14,6 +14,20 @@ verified_against: a8b58f1
 
 This page covers the optional routes that can supply drawing data when you already have a file or when a person asks for automatic reading.
 
+```mermaid
+flowchart LR
+  P[Prepared drawing] --> M[Trace by hand]
+  P --> I[Import an extraction file]
+  P --> G[Read automatically with Gemini]
+  M --> E[extraction.json]
+  I --> E
+  G --> E
+  E --> N[Normalize]
+  M -.->|no API key needed| E
+```
+
+*All three produce the same artifact. Only the manual route needs no key.*
+
 ## Before you start
 
 Manual tracing remains the main path. Use these alternatives only when you already have a data file, have been told to test AI output, or need to skip the manual drawing step for a specific reason.

@@ -15,6 +15,26 @@ verified_against: a8b58f1
 
 Some steps are run in a background thread so the browser can continue working while the server processes data.
 
+```mermaid
+sequenceDiagram
+  participant B as Browser
+  participant R as Route
+  participant T as Task runner
+  participant P as Pipeline module
+  B->>R: POST a long-running step
+  R->>T: start_task(...)
+  T-->>R: task_id
+  R-->>B: {task_id}
+  T->>P: run in a background thread
+  loop until done
+    B->>R: GET /api/tasks/<task_id>
+    R-->>B: status, result, error
+  end
+  Note over T: state is in process memory only<br/>a restart loses it
+```
+
+*Task state lives in process memory, so a restart loses it.*
+
 ## Responsibilities
 
 - Create a task record with status, log, and timing information for each background job.

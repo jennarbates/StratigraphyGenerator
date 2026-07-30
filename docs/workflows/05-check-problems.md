@@ -94,6 +94,19 @@ Synthetic documentation example: the simplified JSON below is invented for docum
 - An error is left in place because the user believes the step can continue anyway.
 - A passing report with zero errors but one or more warnings still needs a person to inspect the geometry.
 
+```mermaid
+flowchart TD
+  R[Validation report] --> E{Any errors?}
+  E -->|Yes| B[Next required step is blocked]
+  E -->|No| W{Any warnings?}
+  W -->|Yes| K["ok: true, and still worth reviewing"]
+  W -->|No| K2["ok: true"]
+  K --> N[Continue at your judgement]
+  K2 --> N
+```
+
+*A report can carry warnings and still report ok. Clean is not the same as correct.*
+
 ## Under the hood
 
 The UI in `poggio_webapp/static/app/stages/validate.js` calls the validation route in `poggio_webapp/backend/routes/processing.py`, which runs `poggio_webapp/pipeline/validator.py`. The validator logic is covered by `tests/test_validator.py`, but the documentation should still treat warnings as review cues rather than proof of correctness.

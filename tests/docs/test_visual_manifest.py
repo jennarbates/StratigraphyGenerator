@@ -10,12 +10,19 @@ from tools.docs.validate_visual_manifest import (
     ASSET_TYPES,
     REQUIRED_KEYS,
     STATUSES,
+    check_svg_contract,
     find_unmanifested_images,
     load_manifest,
     main,
     run_checks,
     summarize,
     validate_manifest_entries,
+)
+
+
+COMPLIANT_SVG = (
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 50">'
+    "<title>Example</title><desc>An example diagram.</desc></svg>"
 )
 
 
@@ -45,7 +52,7 @@ def make_repository(
     if create_asset:
         asset = tmp_path / VALID_ENTRY["path"]
         asset.parent.mkdir(parents=True, exist_ok=True)
-        asset.write_text("<svg></svg>", encoding="utf-8")
+        asset.write_text(COMPLIANT_SVG, encoding="utf-8")
 
     if entries is not None:
         manifest = docs / "assets" / "visual-manifest.yml"
@@ -319,6 +326,62 @@ def test_main_returns_zero_on_a_good_manifest(tmp_path: Path, capsys) -> None:
 
     assert main([str(repo)]) == 0
     assert "Visual manifest passed" in capsys.readouterr().out
+
+
+# ---------------------------------------------------------- the SVG contract
+
+
+def write_svg(tmp_path: Path, markup: str) -> Path:
+    path = tmp_path / "diagram.svg"
+    path.write_text(markup, encoding="utf-8")
+    return path
+
+
+def test_compliant_svg_has_no_contract_problems(tmp_path: Path) -> None:
+    assert check_svg_contract(write_svg(tmp_path, COMPLIANT_SVG)) == []
+
+
+def test_svg_without_viewbox_fails(tmp_path: Path) -> None:
+    markup = COMPLIANT_SVG.replace('viewBox="0 0 100 50"', "")
+
+    assert "no viewBox" in " ".join(check_svg_contract(write_svg(tmp_path, markup)))
+
+
+def test_svg_without_title_fails(tmp_path: Path) -> None:
+    markup = COMPLIANT_SVG.replace("<title>Example</title>", "")
+
+    assert "no <title>" in " ".join(check_svg_contract(write_svg(tmp_path, markup)))
+
+
+def test_svg_without_desc_fails(tmp_path: Path) -> None:
+    markup = COMPLIANT_SVG.replace("<desc>An example diagram.</desc>", "")
+
+    assert "no <desc>" in " ".join(check_svg_contract(write_svg(tmp_path, markup)))
+
+
+def test_svg_with_fixed_width_fails(tmp_path: Path) -> None:
+    markup = COMPLIANT_SVG.replace("<svg ", '<svg width="800" ')
+
+    assert "fixed width" in " ".join(check_svg_contract(write_svg(tmp_path, markup)))
+
+
+def test_svg_embedding_raster_data_fails(tmp_path: Path) -> None:
+    markup = COMPLIANT_SVG.replace(
+        "</svg>", '<image href="data:image/png;base64,AAAA"/></svg>'
+    )
+
+    assert "raster" in " ".join(check_svg_contract(write_svg(tmp_path, markup)))
+
+
+def test_generated_diagrams_satisfy_the_contract() -> None:
+    """Every SVG this repository ships must satisfy the contract."""
+
+    root = Path(__file__).resolve().parents[2]
+    svgs = sorted((root / "docs" / "assets" / "diagrams").glob("*.svg"))
+
+    assert svgs, "expected generated diagrams to exist"
+    for svg in svgs:
+        assert check_svg_contract(svg) == [], svg.name
 
 
 def test_statuses_and_types_are_the_documented_sets() -> None:

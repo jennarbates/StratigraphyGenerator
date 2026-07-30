@@ -15,6 +15,10 @@ Poggio Civitate turns a drawing of a vertical trench wall into structured
 information that can be checked, placed in a site coordinate system, and
 optionally used to build a 3D geological model.
 
+![Excavated trench wall, its measured drawing, the structured data, and the resulting model, in sequence](../assets/diagrams/archaeology-to-3d.svg)
+
+*Four representations of one trench. Each step loses something and records what it lost.*
+
 ## Why it matters here
 
 An archaeological drawing contains several kinds of information at once:

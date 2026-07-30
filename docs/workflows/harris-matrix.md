@@ -28,6 +28,10 @@ trench. A saved drawing with usable extraction data offers **Create or add to
 a Harris Matrix**, which opens the dashboard with that source preselected.
 Opening this link does not create, import, or modify anything.
 
+![A small Harris matrix with the youngest units at the top and arrows running downward to older units](../assets/diagrams/wh-reading-a-matrix.svg)
+
+*Relationships run from younger to older, so the youngest units sit at the top.*
+
 ## Direction and relationship meaning
 
 Every chronological edge is stored as:
@@ -101,6 +105,10 @@ Use **Correlations** only when there is archaeological support for treating
 the selected observations as the same stratigraphic unit. Equal labels are
 never merged automatically. Overlapping correlation edits are normalized
 into one group.
+
+![Two identically labelled units shown as separate nodes joined by a correlation, not combined into one node](../assets/diagrams/wh-correlation-not-merge.svg)
+
+*Correlation is a human interpretation that two units are the same. Equal labels never merge on their own.*
 
 ## Review suggestions
 

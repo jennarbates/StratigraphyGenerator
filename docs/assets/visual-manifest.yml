@@ -24,741 +24,549 @@
 # real survey coordinates, no unstable job ids, no real scans without explicit
 # per-image approval, no filesystem paths containing a username.
 
-# ---------------------------------------------------------------- already live
-
 - id: deskew-visualization
   type: diagram
   path: docs/assets/diagrams/deskew-visualization.png
   pages:
-    - docs/concepts/geometric-normalization.md
-  alt: >-
-    Three panels showing a skewed trench drawing, its Canny edges, and the
-    near-horizontal Hough lines selected for deskewing
-  caption: >-
-    Deskewing finds near-horizontal lines and rotates the sheet to match them.
+  - docs/concepts/geometric-normalization.md
+  alt: Three panels showing a skewed trench drawing, its Canny edges, and the near-horizontal
+    Hough lines selected for deskewing
+  caption: Deskewing finds near-horizontal lines and rotates the sheet to match them.
   status: approved
-  # Predates this manifest and has no regeneration script. If it ever needs
-  # changing, it must be redrawn by hand or promoted to a generated asset.
-
 - id: demo-fieldwall
   type: generated
   path: docs/assets/source/demo-fieldwall.png
   pages:
-    - docs/fixtures/README.md
+  - docs/fixtures/README.md
   regenerate: python tools/docs/generate_demo_assets.py
-  alt: >-
-    Synthetic field-wall drawing with two labeled layers and one internal
-    feature
-  caption: >-
-    The synthetic field sheet. Every locus number and Munsell value is invented.
+  alt: Synthetic field-wall drawing with two labeled layers and one internal feature
+  caption: The synthetic field sheet. Every locus number and Munsell value is invented.
   status: approved
-
 - id: demo-illustrator
   type: generated
   path: docs/assets/source/demo-illustrator.png
   pages:
-    - docs/fixtures/README.md
+  - docs/fixtures/README.md
   regenerate: python tools/docs/generate_demo_assets.py
-  alt: >-
-    Synthetic illustrator drawing with two labeled layers and one outlined
-    internal feature
-  caption: >-
-    The synthetic illustrator sheet, identified by pattern rather than by locus
-    number.
+  alt: Synthetic illustrator drawing with two labeled layers and one outlined internal feature
+  caption: The synthetic illustrator sheet, identified by pattern rather than by locus number.
   status: approved
-
-# ------------------------------------------------------------------ start here
-
 - id: pipeline-at-a-glance
   type: mermaid
   pages:
-    - docs/index.md
-    - README.md
-  alt: >-
-    Flow from scan through extraction, normalization, validation, coordinate
-    conversion, and model build
+  - docs/index.md
+  - README.md
+  alt: Flow from scan through extraction, normalization, validation, coordinate conversion,
+    and model build
   caption: The whole pipeline in one diagram. Every later page expands one box.
-  status: planned
-
-- id: drawing-to-model
-  type: generated
-  path: docs/assets/diagrams/drawing-to-model.png
-  pages:
-    - docs/start-here/what-this-project-does.md
-    - README.md
-  regenerate: python tools/docs/generate_demo_assets.py
-  alt: >-
-    The synthetic field sheet beside the structured data and the 3D surface
-    built from it
-  caption: >-
-    What the project actually does: one drawing becomes reviewable data, then
-    geometry.
-  status: planned
-
+  status: approved
 - id: choose-your-path-tree
   type: mermaid
   pages:
-    - docs/start-here/choose-your-path.md
-  alt: >-
-    Decision tree branching on sheet type and on whether an API key is
-    available
-  caption: >-
-    Which route suits your drawing. The manual path needs no API key.
-  status: planned
-
+  - docs/start-here/choose-your-path.md
+  alt: Decision tree branching on sheet type and on whether an API key is available
+  caption: Which route suits your drawing. The manual path needs no API key.
+  status: approved
 - id: quickstart-first-screen
   type: screenshot
   path: docs/assets/screenshots/quickstart-first-screen.png
   pages:
-    - docs/start-here/quickstart.md
-    - README.md
+  - docs/start-here/quickstart.md
+  - README.md
   fixture: none
   ui_state: The application's first screen immediately after `python app.py`
   callouts:
-    - Use an existing drawing
-    - Create a diagram from scratch
-    - Harris matrices
+  - Use an existing drawing
+  - Create a diagram from scratch
+  - Harris matrices
   alt: The application start screen showing the three ways to begin
   caption: Three independent entry points. Most readers want the first.
   status: planned
-
 - id: first-model-result
   type: screenshot
   path: docs/assets/screenshots/first-model-result.png
   pages:
-    - docs/start-here/first-model.md
-    - README.md
+  - docs/start-here/first-model.md
+  - README.md
   fixture: demo-fieldwall
   ui_state: Step 9 with the finished synthetic model open in the 3D viewer
   alt: The finished synthetic model displayed as coloured surfaces in the viewer
   caption: The end state of the tutorial, built entirely from synthetic data.
   status: planned
-
 - id: glossary-anatomy
-  type: diagram
+  type: generated
   path: docs/assets/diagrams/glossary-anatomy.svg
   pages:
-    - docs/start-here/glossary.md
-  alt: >-
-    A labelled trench section naming the trench, wall, face, locus, layer,
-    boundary, and feature
-  caption: >-
-    Most glossary terms are visible on one section. This is that section.
-  status: planned
-
+  - docs/start-here/glossary.md
+  alt: A labelled trench section naming the trench, wall, face, locus, layer, boundary, and
+    feature
+  caption: Most glossary terms are visible on one section. This is that section.
+  status: approved
+  regenerate: python tools/docs/generate_diagrams.py
 - id: four-reading-paths
-  type: diagram
-  path: docs/assets/diagrams/four-reading-paths.svg
+  type: mermaid
   pages:
-    - docs/start-here/how-to-read-these-docs.md
-  alt: >-
-    Four routes through the documentation sections, from understanding through
-    doing to changing the code
+  - docs/start-here/how-to-read-these-docs.md
+  alt: Four routes through the documentation sections, from understanding through doing to
+    changing the code
   caption: Four ways through the same pages. Pick the one matching your goal.
-  status: planned
-
-# -------------------------------------------------------------------- workflows
-
+  status: approved
 - id: workflow-stage-map
-  type: diagram
-  path: docs/assets/diagrams/workflow-stage-map.svg
+  type: mermaid
   pages:
-    - docs/workflows/overview.md
-  alt: >-
-    The nine numbered workflow steps in order, with the multi-wall and Harris
-    matrix branches leaving the main line
-  caption: >-
-    The numbered path covers one sheet. Two branches leave it.
-  status: planned
-
+  - docs/workflows/overview.md
+  alt: The nine numbered workflow steps in order, with the multi-wall and Harris matrix branches
+    leaving the main line
+  caption: The numbered path covers one sheet. Two branches leave it.
+  status: approved
 - id: w01-start-screen
   type: screenshot
   path: docs/assets/screenshots/w01-start-screen.png
   pages:
-    - docs/workflows/01-add-drawing.md
+  - docs/workflows/01-add-drawing.md
   fixture: none
   ui_state: Step 1 with the sheet-type choice visible and no file selected yet
   callouts:
-    - Illustrated trench sheet
-    - Hand-drawn field sheet
+  - Illustrated trench sheet
+  - Hand-drawn field sheet
   alt: Step 1 showing the two sheet types before any file is chosen
-  caption: >-
-    The sheet type decides the extraction schema, so it cannot be changed later.
+  caption: The sheet type decides the extraction schema, so it cannot be changed later.
   status: planned
-
 - id: w01-upload-preview
   type: screenshot
   path: docs/assets/screenshots/w01-upload-preview.png
   pages:
-    - docs/workflows/01-add-drawing.md
+  - docs/workflows/01-add-drawing.md
   fixture: demo-fieldwall
   ui_state: Step 1 after uploading the synthetic field sheet, preview shown
   alt: Step 1 after upload, showing the drawing preview and its dimensions
   caption: The original file is never modified; this is a preview of it.
   status: planned
-
 - id: w02-preprocess-controls
   type: screenshot
   path: docs/assets/screenshots/w02-preprocess-controls.png
   pages:
-    - docs/workflows/02-prepare-image.md
+  - docs/workflows/02-prepare-image.md
   fixture: demo-fieldwall
   ui_state: Step 2 with the upscale, deskew, and high-contrast controls visible
   alt: The preprocessing controls for upscaling, deskewing, and contrast
-  caption: >-
-    The high-contrast copy is a viewing aid; the clean image is what later
-    stages use.
+  caption: The high-contrast copy is a viewing aid; the clean image is what later stages use.
   status: planned
-
 - id: w02-before-after
   type: screenshot
   path: docs/assets/screenshots/w02-before-after.png
   pages:
-    - docs/workflows/02-prepare-image.md
+  - docs/workflows/02-prepare-image.md
   fixture: demo-fieldwall
   ui_state: Step 2 after preprocessing, showing the prepared image beside the original
   alt: The original drawing beside its prepared, deskewed copy
   caption: Preprocessing rotates and cleans; it never changes the geometry.
   status: planned
-
 - id: w03-calibration-clicks
-  type: diagram
+  type: generated
   path: docs/assets/diagrams/w03-calibration-clicks.svg
   pages:
-    - docs/workflows/03-trace-layers.md
-    - docs/concepts/coordinate-spaces.md
-  alt: >-
-    A drawing with three numbered calibration points and the real-world
-    distance between the first two
-  caption: >-
-    Three clicks plus one real measurement convert pixels into metres.
-  status: planned
-
+  - docs/workflows/03-trace-layers.md
+  - docs/concepts/coordinate-spaces.md
+  alt: A drawing with three numbered calibration points and the real-world distance between
+    the first two
+  caption: Three clicks plus one real measurement convert pixels into metres.
+  status: approved
+  regenerate: python tools/docs/generate_diagrams.py
 - id: w03-tracing-in-progress
   type: screenshot
   path: docs/assets/screenshots/w03-tracing-in-progress.png
   pages:
-    - docs/workflows/03-trace-layers.md
+  - docs/workflows/03-trace-layers.md
   fixture: demo-fieldwall
   ui_state: Step 4 mid-trace, one boundary complete and a second in progress
   alt: The tracing step with one finished boundary and one being drawn
   caption: Boundaries are traced top to bottom, youngest first.
   status: planned
-
 - id: w03-boundary-anatomy
-  type: diagram
+  type: generated
   path: docs/assets/diagrams/w03-boundary-anatomy.svg
   pages:
-    - docs/workflows/03-trace-layers.md
-    - docs/concepts/layers-and-boundaries.md
-  alt: >-
-    A layer shown as the region between its top boundary and the boundary below
-    it
-  caption: >-
-    You trace boundaries, not layers. A layer is the space between two of them.
-  status: planned
-
+  - docs/workflows/03-trace-layers.md
+  - docs/concepts/layers-and-boundaries.md
+  alt: A layer shown as the region between its top boundary and the boundary below it
+  caption: You trace boundaries, not layers. A layer is the space between two of them.
+  status: approved
+  regenerate: python tools/docs/generate_diagrams.py
 - id: w03a-extraction-paths
   type: mermaid
   pages:
-    - docs/workflows/03-alternative-import-and-ai.md
-  alt: >-
-    Three routes to an extraction: manual tracing, JSON import, and AI
-    extraction
-  caption: >-
-    All three produce the same artifact. Only the manual route needs no key.
-  status: planned
-
+  - docs/workflows/03-alternative-import-and-ai.md
+  alt: 'Three routes to an extraction: manual tracing, JSON import, and AI extraction'
+  caption: All three produce the same artifact. Only the manual route needs no key.
+  status: approved
 - id: w03a-extract-panel
   type: screenshot
   path: docs/assets/screenshots/w03a-extract-panel.png
   pages:
-    - docs/workflows/03-alternative-import-and-ai.md
+  - docs/workflows/03-alternative-import-and-ai.md
   fixture: demo-fieldwall
   ui_state: The optional extraction step, with the API-key field empty
   alt: The alternative extraction panel offering file import or AI reading
-  caption: >-
-    Captured with an empty key field. Never screenshot a populated one.
+  caption: Captured with an empty key field. Never screenshot a populated one.
   status: planned
-
 - id: w03b-marker-anatomy
-  type: diagram
+  type: generated
   path: docs/assets/diagrams/w03b-marker-anatomy.svg
   pages:
-    - docs/workflows/03-markers-and-features.md
-    - docs/concepts/markers-features-and-finds.md
-  alt: >-
-    One drawing showing a marker, a feature, and a find, each labelled with
-    what it records
-  caption: >-
-    Three record types that are easy to confuse: a scale reference, a physical
-    inclusion, and a recovered object.
-  status: planned
-
+  - docs/workflows/03-markers-and-features.md
+  - docs/concepts/markers-features-and-finds.md
+  alt: One drawing showing a marker, a feature, and a find, each labelled with what it records
+  caption: 'Three record types that are easy to confuse: a scale reference, a physical inclusion,
+    and a recovered object.'
+  status: approved
+  regenerate: python tools/docs/generate_diagrams.py
 - id: w03b-marker-detection
   type: screenshot
   path: docs/assets/screenshots/w03b-marker-detection.png
   pages:
-    - docs/workflows/03-markers-and-features.md
+  - docs/workflows/03-markers-and-features.md
   fixture: demo-fieldwall
   ui_state: The marker review interface with detected markers listed
   alt: The marker review interface listing detected markers for confirmation
-  caption: >-
-    Reachable only by direct route; this stage is not in the live step list.
+  caption: Reachable only by direct route; this stage is not in the live step list.
   status: planned
-
 - id: w04-normalization-diff
-  type: diagram
+  type: generated
   path: docs/assets/diagrams/w04-normalization-diff.svg
   pages:
-    - docs/workflows/04-clean-data.md
-  alt: >-
-    Extraction JSON before and after normalization, with cleaned null-like
-    strings highlighted
-  caption: >-
-    Normalization repairs formatting. It never invents or moves geometry.
-  status: planned
-
+  - docs/workflows/04-clean-data.md
+  alt: Extraction JSON before and after normalization, with cleaned null-like strings highlighted
+  caption: Normalization repairs formatting. It never invents or moves geometry.
+  status: approved
+  regenerate: python tools/docs/generate_diagrams.py
 - id: w05-validation-report
   type: screenshot
   path: docs/assets/screenshots/w05-validation-report.png
   pages:
-    - docs/workflows/05-check-problems.md
+  - docs/workflows/05-check-problems.md
   fixture: demo-fieldwall
   ui_state: Step 6 showing a report with at least one warning and one error
   alt: A validation report listing one error and one warning
-  caption: >-
-    Errors block the next step. Warnings do not, and still deserve review.
+  caption: Errors block the next step. Warnings do not, and still deserve review.
   status: planned
-
 - id: w05-error-vs-warning
-  type: diagram
-  path: docs/assets/diagrams/w05-error-vs-warning.svg
+  type: mermaid
   pages:
-    - docs/workflows/05-check-problems.md
-    - docs/reference/validation-rules.md
-  alt: >-
-    Diagram contrasting a blocking error with a non-blocking warning and their
-    effect on the workflow
-  caption: >-
-    A report can carry warnings and still report ok. Clean is not the same as
-    correct.
-  status: planned
-
+  - docs/workflows/05-check-problems.md
+  - docs/reference/validation-rules.md
+  alt: Diagram contrasting a blocking error with a non-blocking warning and their effect on
+    the workflow
+  caption: A report can carry warnings and still report ok. Clean is not the same as correct.
+  status: approved
 - id: w06-registration-fields
-  type: diagram
+  type: generated
   path: docs/assets/diagrams/w06-registration-fields.svg
   pages:
-    - docs/workflows/06-place-on-site.md
-    - docs/concepts/coordinate-spaces.md
-  alt: >-
-    A trench face annotated with originX, originY, surfaceZ, and bearing
-    measured clockwise from north
-  caption: >-
-    Four numbers place a face on the site. Bearing is clockwise from north.
-  status: planned
-
+  - docs/workflows/06-place-on-site.md
+  - docs/concepts/coordinate-spaces.md
+  alt: A trench face annotated with originX, originY, surfaceZ, and bearing measured clockwise
+    from north
+  caption: Four numbers place a face on the site. Bearing is clockwise from north.
+  status: approved
+  regenerate: python tools/docs/generate_diagrams.py
 - id: w06-registration-form
   type: screenshot
   path: docs/assets/screenshots/w06-registration-form.png
   pages:
-    - docs/workflows/06-place-on-site.md
+  - docs/workflows/06-place-on-site.md
   fixture: demo-fieldwall
   ui_state: Step 7 with the per-face registration table showing starter values
   alt: The registration table with four coordinate fields for one face
-  caption: >-
-    Starter values are smoke-test placeholders, not a surveyed registration.
+  caption: Starter values are smoke-test placeholders, not a surveyed registration.
   status: planned
-
 - id: w07-points-to-surface
-  type: diagram
+  type: generated
   path: docs/assets/diagrams/w07-points-to-surface.svg
   pages:
-    - docs/workflows/07-create-model.md
-  alt: >-
-    Scattered interface points on the left, the interpolated surface built
-    from them on the right
-  caption: >-
-    The model interpolates between points. A single face is extrapolated across
-    the whole extent.
-  status: planned
-
+  - docs/workflows/07-create-model.md
+  alt: Scattered interface points on the left, the interpolated surface built from them on
+    the right
+  caption: The model interpolates between points. A single face is extrapolated across the
+    whole extent.
+  status: approved
+  regenerate: python tools/docs/generate_diagrams.py
 - id: w07-build-running
   type: screenshot
   path: docs/assets/screenshots/w07-build-running.png
   pages:
-    - docs/workflows/07-create-model.md
+  - docs/workflows/07-create-model.md
   fixture: demo-fieldwall
   ui_state: Step 8 with the build in progress and its task status polling
   alt: The model build step while its asynchronous task is running
-  caption: >-
-    The build is asynchronous. Task state is in memory only, so a restart loses
-    it.
+  caption: The build is asynchronous. Task state is in memory only, so a restart loses it.
   status: planned
-
 - id: w08-viewer-3d
   type: screenshot
   path: docs/assets/screenshots/w08-viewer-3d.png
   pages:
-    - docs/workflows/08-view-and-download.md
-    - README.md
+  - docs/workflows/08-view-and-download.md
+  - README.md
   fixture: demo-fieldwall
   ui_state: The visualizer in Z-up 3D surface mode with the synthetic model loaded
   alt: The synthetic model shown as interpolated coloured surfaces
   caption: Surface mode shows interpolated boundaries between loci.
   status: planned
-
 - id: w08-viewer-2d
   type: screenshot
   path: docs/assets/screenshots/w08-viewer-2d.png
   pages:
-    - docs/workflows/08-view-and-download.md
+  - docs/workflows/08-view-and-download.md
   fixture: demo-fieldwall
   ui_state: The visualizer in 2D mode with the extraction overlaid on the drawing
   alt: The extraction drawn over the source image for comparison
-  caption: >-
-    The 2D overlay is how you check an extraction against the drawing it came
-    from.
+  caption: The 2D overlay is how you check an extraction against the drawing it came from.
   status: planned
-
 - id: w08-surface-vs-volume
-  type: diagram
+  type: generated
   path: docs/assets/diagrams/w08-surface-vs-volume.svg
   pages:
-    - docs/workflows/08-view-and-download.md
-  alt: >-
-    The same model as smooth interpolated surfaces and as resolution-dependent
-    classified cells
-  caption: >-
-    Two views of one model. Volume cells depend on grid resolution; surfaces do
-    not.
-  status: planned
-
+  - docs/workflows/08-view-and-download.md
+  alt: The same model as smooth interpolated surfaces and as resolution-dependent classified
+    cells
+  caption: Two views of one model. Volume cells depend on grid resolution; surfaces do not.
+  status: approved
+  regenerate: python tools/docs/generate_diagrams.py
 - id: w09-merge-flow
   type: mermaid
   pages:
-    - docs/workflows/09-multi-wall-trench.md
-  alt: >-
-    Four wall jobs merging into one trench document, then converting and
-    building a single model
-  caption: >-
-    The merge runs before coordinate conversion, because everything after
-    extraction is already multi-face.
-  status: planned
-
+  - docs/workflows/09-multi-wall-trench.md
+  alt: Four wall jobs merging into one trench document, then converting and building a single
+    model
+  caption: The merge runs before coordinate conversion, because everything after extraction
+    is already multi-face.
+  status: approved
 - id: w09-walls-to-pit
-  type: diagram
+  type: generated
   path: docs/assets/diagrams/w09-walls-to-pit.svg
   pages:
-    - docs/workflows/09-multi-wall-trench.md
-    - docs/concepts/jobs-sheets-and-trenches.md
-  alt: >-
-    Four separately drawn walls positioned by their registration to enclose one
-    rectangular pit
-  caption: >-
-    Correct registration is what turns four independent drawings into one
-    trench.
-  status: planned
-
+  - docs/workflows/09-multi-wall-trench.md
+  - docs/concepts/jobs-sheets-and-trenches.md
+  alt: Four separately drawn walls positioned by their registration to enclose one rectangular
+    pit
+  caption: Correct registration is what turns four independent drawings into one trench.
+  status: approved
+  regenerate: python tools/docs/generate_diagrams.py
 - id: w09-placeholder-failure
-  type: diagram
+  type: generated
   path: docs/assets/diagrams/w09-placeholder-failure.svg
   pages:
-    - docs/workflows/09-multi-wall-trench.md
-    - README.md
-  alt: >-
-    The same four walls laid out in a parallel row because every face shares the
-    placeholder bearing
-  caption: >-
-    Why placeholder registration is fatal for a merged build: a confident-looking
-    model of nothing.
-  status: planned
-
+  - docs/workflows/09-multi-wall-trench.md
+  - README.md
+  alt: The same four walls laid out in a parallel row because every face shares the placeholder
+    bearing
+  caption: 'Why placeholder registration is fatal for a merged build: a confident-looking
+    model of nothing.'
+  status: approved
+  regenerate: python tools/docs/generate_diagrams.py
 - id: wh-matrix-editor
   type: screenshot
   path: docs/assets/screenshots/wh-matrix-editor.png
   pages:
-    - docs/workflows/harris-matrix.md
-    - README.md
+  - docs/workflows/harris-matrix.md
+  - README.md
   fixture: demo-fieldwall
   ui_state: The matrix editor with several units and at least one pending proposal
   alt: The Harris matrix editor showing units, relationships, and a proposal
-  caption: >-
-    Every proposal must be accepted or rejected individually. Nothing merges
-    automatically.
+  caption: Every proposal must be accepted or rejected individually. Nothing merges automatically.
   status: planned
-
 - id: wh-reading-a-matrix
-  type: diagram
+  type: generated
   path: docs/assets/diagrams/wh-reading-a-matrix.svg
   pages:
-    - docs/workflows/harris-matrix.md
-  alt: >-
-    A small Harris matrix with the youngest units at the top and arrows running
-    downward to older units
-  caption: >-
-    Relationships run from younger to older, so the youngest units sit at the
-    top.
-  status: planned
-
+  - docs/workflows/harris-matrix.md
+  alt: A small Harris matrix with the youngest units at the top and arrows running downward
+    to older units
+  caption: Relationships run from younger to older, so the youngest units sit at the top.
+  status: approved
+  regenerate: python tools/docs/generate_diagrams.py
 - id: wh-correlation-not-merge
-  type: diagram
+  type: generated
   path: docs/assets/diagrams/wh-correlation-not-merge.svg
   pages:
-    - docs/workflows/harris-matrix.md
-  alt: >-
-    Two identically labelled units shown as separate nodes joined by a
-    correlation, not combined into one node
-  caption: >-
-    Correlation is a human interpretation that two units are the same. Equal
-    labels never merge on their own.
-  status: planned
-
+  - docs/workflows/harris-matrix.md
+  alt: Two identically labelled units shown as separate nodes joined by a correlation, not
+    combined into one node
+  caption: Correlation is a human interpretation that two units are the same. Equal labels
+    never merge on their own.
+  status: approved
+  regenerate: python tools/docs/generate_diagrams.py
 - id: wf-finds-page
   type: screenshot
   path: docs/assets/screenshots/wf-finds-page.png
   pages:
-    - docs/workflows/logging-finds.md
+  - docs/workflows/logging-finds.md
   fixture: demo-fieldwall
   ui_state: The finds page with one synthetic find logged against a job
   alt: The finds page listing one recorded find for a job
-  caption: >-
-    Reachable only at its direct address; nothing in the main app links here.
+  caption: Reachable only at its direct address; nothing in the main app links here.
   status: planned
-
-# --------------------------------------------------------------------- concepts
-
 - id: archaeology-to-3d
-  type: diagram
+  type: generated
   path: docs/assets/diagrams/archaeology-to-3d.svg
   pages:
-    - docs/concepts/archaeology-to-3d.md
-  alt: >-
-    Excavated trench wall, its measured drawing, the structured data, and the
-    resulting model, in sequence
-  caption: >-
-    Four representations of one trench. Each step loses something and records
-    what it lost.
-  status: planned
-
+  - docs/concepts/archaeology-to-3d.md
+  - docs/start-here/what-this-project-does.md
+  - README.md
+  alt: Excavated trench wall, its measured drawing, the structured data, and the resulting
+    model, in sequence
+  caption: Four representations of one trench. Each step loses something and records what
+    it lost.
+  status: approved
+  regenerate: python tools/docs/generate_diagrams.py
 - id: two-sheet-types
-  type: diagram
+  type: generated
   path: docs/assets/diagrams/two-sheet-types.svg
   pages:
-    - docs/concepts/source-drawing-types.md
-  alt: >-
-    An illustrator sheet identified by hatch patterns beside a field sheet
-    identified by locus numbers and Munsell colours
-  caption: >-
-    The two sheets record material differently, which is why they use different
-    schemas.
-  status: planned
-
+  - docs/concepts/source-drawing-types.md
+  alt: An illustrator sheet identified by hatch patterns beside a field sheet identified by
+    locus numbers and Munsell colours
+  caption: The two sheets record material differently, which is why they use different schemas.
+  status: approved
+  regenerate: python tools/docs/generate_diagrams.py
 - id: job-sheet-trench
-  type: diagram
-  path: docs/assets/diagrams/job-sheet-trench.svg
+  type: mermaid
   pages:
-    - docs/concepts/jobs-sheets-and-trenches.md
-  alt: >-
-    Three job folders each holding one sheet, joined only by a shared trench
-    label
-  caption: >-
-    A trench is not a record. It is a label several independent jobs share.
-  status: planned
-
+  - docs/concepts/jobs-sheets-and-trenches.md
+  alt: Three job folders each holding one sheet, joined only by a shared trench label
+  caption: A trench is not a record. It is a label several independent jobs share.
+  status: approved
 - id: three-coordinate-spaces
-  type: diagram
+  type: generated
   path: docs/assets/diagrams/three-coordinate-spaces.svg
   pages:
-    - docs/concepts/coordinate-spaces.md
-    - README.md
-  alt: >-
-    One point plotted in pixel coordinates, in face-local metres, and in site
-    coordinates, with the conversion between each
-  caption: >-
-    The same point in all three spaces. Most confusion here is a space mix-up.
-  status: planned
-
+  - docs/concepts/coordinate-spaces.md
+  - README.md
+  alt: One point plotted in pixel coordinates, in face-local metres, and in site coordinates,
+    with the conversion between each
+  caption: The same point in all three spaces. Most confusion here is a space mix-up.
+  status: approved
+  regenerate: python tools/docs/generate_diagrams.py
 - id: normalization-steps
-  type: diagram
+  type: generated
   path: docs/assets/diagrams/normalization-steps.svg
   pages:
-    - docs/concepts/geometric-normalization.md
-  alt: >-
-    A skewed sheet corrected for rotation and scale, with the geometry left
-    unchanged
-  caption: >-
-    Normalization repairs how the sheet sits, not what it records.
-  status: planned
-
+  - docs/concepts/geometric-normalization.md
+  alt: A skewed sheet corrected for rotation and scale, with the geometry left unchanged
+  caption: Normalization repairs how the sheet sits, not what it records.
+  status: approved
+  regenerate: python tools/docs/generate_diagrams.py
 - id: genuine-vs-fabricated
-  type: diagram
+  type: generated
   path: docs/assets/diagrams/genuine-vs-fabricated.svg
   pages:
-    - docs/concepts/accuracy-and-provenance.md
-  alt: >-
-    A boundary following ink on the drawing beside a smooth boundary that lies
-    off the ink entirely
-  caption: >-
-    A boundary that does not lie on ink is fabricated by definition. This is the
-    check to automate.
-  status: planned
-
-- id: layer-boundary-feature
-  type: diagram
-  path: docs/assets/diagrams/layer-boundary-feature.svg
-  pages:
-    - docs/concepts/layers-and-boundaries.md
-  alt: >-
-    A section annotated to separate a layer, its bounding surfaces, and a
-    feature contained inside it
-  caption: >-
-    A feature sits inside a layer. It is not a layer of its own.
-  status: planned
-
-# ----------------------------------------------------------------- architecture
-
+  - docs/concepts/accuracy-and-provenance.md
+  alt: A boundary following ink on the drawing beside a smooth boundary that lies off the
+    ink entirely
+  caption: A boundary that does not lie on ink is fabricated by definition. This is the check
+    to automate.
+  status: approved
+  regenerate: python tools/docs/generate_diagrams.py
 - id: a-system-overview
   type: mermaid
   pages:
-    - docs/architecture/system-overview.md
+  - docs/architecture/system-overview.md
   alt: Browser, Flask routes, and pipeline modules with the calls between them
   caption: The three tiers and what crosses between them.
-  status: planned
-
+  status: approved
 - id: a-job-lifecycle
   type: mermaid
   pages:
-    - docs/architecture/job-lifecycle.md
-  alt: >-
-    A job's states from creation through upload, extraction, validation, and
-    model build
+  - docs/architecture/job-lifecycle.md
+  alt: A job's states from creation through upload, extraction, validation, and model build
   caption: What exists on disk at each point in a job's life.
-  status: planned
-
+  status: approved
 - id: a-frontend-modules
   type: mermaid
   pages:
-    - docs/architecture/frontend.md
-  alt: >-
-    The frontend entry point, its shared core, and the registered stage modules
-  caption: >-
-    Stages reach the user only when registered in the renderer map. Several are
-    not.
-  status: planned
-
+  - docs/architecture/frontend.md
+  alt: The frontend entry point, its shared core, and the registered stage modules
+  caption: Stages reach the user only when registered in the renderer map. Several are not.
+  status: approved
 - id: a-backend-blueprints
   type: mermaid
   pages:
-    - docs/architecture/backend.md
+  - docs/architecture/backend.md
   alt: The registered Flask blueprints and the pipeline modules each one calls
   caption: One blueprint per concern; the route layer owns persistence.
-  status: planned
-
+  status: approved
 - id: a-pipeline-flow
   type: mermaid
   pages:
-    - docs/architecture/pipeline.md
-  alt: >-
-    Pipeline modules in execution order, with the merge layer branching in
-    before coordinate conversion
-  caption: >-
-    Where each module runs, including the merge step that only multi-wall
-    trenches use.
-  status: planned
-
+  - docs/architecture/pipeline.md
+  alt: Pipeline modules in execution order, with the merge layer branching in before coordinate
+    conversion
+  caption: Where each module runs, including the merge step that only multi-wall trenches
+    use.
+  status: approved
 - id: a-task-sequence
   type: mermaid
   pages:
-    - docs/architecture/asynchronous-tasks.md
-  alt: >-
-    Sequence of a long-running task from request through polling to result
-  caption: >-
-    Task state lives in process memory, so a restart loses it.
-  status: planned
-
+  - docs/architecture/asynchronous-tasks.md
+  alt: Sequence of a long-running task from request through polling to result
+  caption: Task state lives in process memory, so a restart loses it.
+  status: approved
 - id: a-job-folder-tree
-  type: diagram
-  path: docs/assets/diagrams/a-job-folder-tree.svg
+  type: mermaid
   pages:
-    - docs/architecture/files-and-artifacts.md
-    - README.md
-  alt: >-
-    A job folder with each stage's subfolder and the artifact it writes
-  caption: >-
-    Each stage writes into its own subfolder, so one failure cannot erase
-    earlier output.
-  status: planned
-
-# --------------------------------------------------------------------- reference
-
+  - docs/architecture/files-and-artifacts.md
+  - README.md
+  alt: A job folder with each stage's subfolder and the artifact it writes
+  caption: Each stage writes into its own subfolder, so one failure cannot erase earlier output.
+  status: approved
 - id: r-route-map
   type: mermaid
   pages:
-    - docs/reference/api-routes.md
+  - docs/reference/api-routes.md
   alt: Routes grouped by blueprint, marked by their capability status
-  caption: >-
-    A registered route is not a user-facing feature. Several here have no
-    control.
-  status: planned
-
+  caption: A registered route is not a user-facing feature. Several here have no control.
+  status: approved
 - id: r-good-vs-bad-drawing
-  type: diagram
+  type: generated
   path: docs/assets/diagrams/r-good-vs-bad-drawing.svg
   pages:
-    - docs/reference/drawing-guidelines.md
-  alt: >-
-    A drawing with a clear scale, closed boundaries, and legible labels beside
-    one lacking each
-  caption: >-
-    What makes a sheet extractable. Most failures downstream start here.
-  status: planned
-
+  - docs/reference/drawing-guidelines.md
+  alt: A drawing with a clear scale, closed boundaries, and legible labels beside one lacking
+    each
+  caption: What makes a sheet extractable. Most failures downstream start here.
+  status: approved
+  regenerate: python tools/docs/generate_diagrams.py
 - id: r-schema-comparison
-  type: diagram
-  path: docs/assets/diagrams/r-schema-comparison.svg
+  type: mermaid
   pages:
-    - docs/reference/data-schemas.md
-  alt: >-
-    The ArchaeologicalDiagram and FieldWallProfile shapes side by side, with
-    their shared conversion target
-  caption: >-
-    Two schemas, one downstream form. The adapter is where they converge.
-  status: planned
-
+  - docs/reference/data-schemas.md
+  alt: The ArchaeologicalDiagram and FieldWallProfile shapes side by side, with their shared
+    conversion target
+  caption: Two schemas, one downstream form. The adapter is where they converge.
+  status: approved
 - id: r-output-tree
-  type: diagram
-  path: docs/assets/diagrams/r-output-tree.svg
+  type: mermaid
   pages:
-    - docs/reference/output-files.md
-  alt: >-
-    Every file the pipeline writes, grouped by the stage that produces it
+  - docs/reference/output-files.md
+  alt: Every file the pipeline writes, grouped by the stage that produces it
   caption: What lands on disk, and which stage is responsible for it.
-  status: planned
-
+  status: approved
 - id: r-test-suites
-  type: diagram
-  path: docs/assets/diagrams/r-test-suites.svg
+  type: mermaid
   pages:
-    - docs/reference/running-the-tests.md
-  alt: >-
-    The Python, JavaScript, and documentation suites with what each one covers
-    and the gaps between them
-  caption: >-
-    Three suites and the space they leave uncovered, including browser wiring.
-  status: planned
-
-# ----------------------------------------------------------------------- project
-
+  - docs/reference/running-the-tests.md
+  alt: The Python, JavaScript, and documentation suites with what each one covers and the
+    gaps between them
+  caption: Three suites and the space they leave uncovered, including browser wiring.
+  status: approved
 - id: p-status-labels
-  type: diagram
+  type: generated
   path: docs/assets/diagrams/p-status-labels.svg
   pages:
-    - docs/project/capability-status.md
-  alt: >-
-    The five capability labels arranged by whether a user interface and a
-    backend implementation exist
-  caption: >-
-    Supported, experimental, backend-only, blocked, and historical, and what
-    separates them.
-  status: planned
+  - docs/project/capability-status.md
+  alt: The five capability labels arranged by whether a user interface and a backend implementation
+    exist
+  caption: Supported, experimental, backend-only, blocked, and historical, and what separates
+    them.
+  status: approved
+  regenerate: python tools/docs/generate_diagrams.py

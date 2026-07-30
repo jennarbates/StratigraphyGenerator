@@ -15,6 +15,22 @@ verified_against: eac1f51
 Choose a current way to turn your drawing into structured data without
 assuming that every implemented backend feature is available in the browser.
 
+```mermaid
+flowchart TD
+  S{Which kind of sheet?}
+  S -->|Illustrated trench sheet| I[ArchaeologicalDiagram]
+  S -->|Hand-drawn field sheet| F[FieldWallProfile]
+  I --> K{Do you have a Gemini API key?}
+  F --> K
+  K -->|No, or you want the supported path| M[Trace the layers by hand]
+  K -->|Yes| A[AI extraction, experimental]
+  M --> V[Normalize, validate, convert]
+  A --> V
+  V --> B[Build the model]
+```
+
+*Which route suits your drawing. The manual path needs no API key.*
+
 ## Before you start
 
 Identify what you have:

@@ -14,6 +14,19 @@ verified_against: a8b58f1
 
 The frontend is a step-based browser application that drives the backend with a small state machine and a renderer-per-step architecture.
 
+```mermaid
+flowchart TD
+  Boot[static/app.js] --> Entry[static/app/index.js]
+  Entry --> State[core/state.js, the STEPS list]
+  Entry --> Api[core/api.js, job creation and polling]
+  Entry --> R[RENDERERS map]
+  R --> Reg[scan, preprocess, verifyText, draw, extract,<br/>normalize, validate, convert, gempy, visualize]
+  Mk[stages/markers.js] -.not registered.-> R
+  Ft[stages/features.js] -.not registered.-> R
+```
+
+*Stages reach the user only when registered in the renderer map. Several are not.*
+
 ## Responsibilities
 
 - Present the workflow stages for input, preprocessing, tracing, validation, conversion, and model building.

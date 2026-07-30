@@ -15,6 +15,20 @@ verified_against: 2267711
 
 This reference documents the Pydantic data models and dataclasses used throughout the application. All schemas validate incoming JSON and represent both user-edited data and extraction results.
 
+```mermaid
+flowchart TD
+  A[ArchaeologicalDiagram] --> A1[trenchProfiles - already multi-face]
+  A1 --> A2[layers identified by material or pattern]
+  F[FieldWallProfile] --> F1[one wall per document]
+  F1 --> F2[loci and layers, Munsell colour]
+  A2 --> Ad[convert_coords adapter]
+  F2 --> Ad
+  Ad --> Out[interface points with surface names]
+  Out --> B[build_gempy]
+```
+
+*Two schemas, one downstream form. The adapter is where they converge.*
+
 ## Archaeological Diagram Schemas
 
 These schemas represent a multi-face trench drawing created in Adobe Illustrator or similar tools.

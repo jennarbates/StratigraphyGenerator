@@ -13,6 +13,10 @@ verified_against: a8b58f1
 
 This page covers the cleanup step that standardizes extraction JSON before the validator checks it.
 
+![Extraction JSON before and after normalization, with cleaned null-like strings highlighted](../assets/diagrams/w04-normalization-diff.svg)
+
+*Normalization repairs formatting. It never invents or moves geometry.*
+
 ## Before you start
 
 Have a saved extraction from manual tracing, import, or AI extraction. Cleanup is a formatting pass, not a geometry rescue step. It can remove obvious duplicates and null-like strings, but it cannot remeasure a line or replace a missing boundary.

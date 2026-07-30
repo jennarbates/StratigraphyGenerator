@@ -19,6 +19,20 @@ verified_against: a8b58f1
 
 The pipeline modules turn a drawing into normalized geometry, converted coordinates, and optionally a 3D model. They are organized by family rather than by a single monolithic step.
 
+```mermaid
+flowchart LR
+  Pre[preprocess.py] --> Ext[extract_illustrator.py<br/>extract_fieldwall.py]
+  Ext --> Norm[normalizer.py]
+  Norm --> Val[validator.py]
+  Val --> Conv[convert_coords.py]
+  Conv --> Build[build_gempy.py]
+  Norm --> Merge[merge_walls.py]
+  Merge --> Conv
+  Merge -.multi-wall trenches only.-> Merge
+```
+
+*Where each module runs, including the merge step that only multi-wall trenches use.*
+
 ## Responsibilities
 
 - Preprocess the source image or PDF into a working copy for later stages.
@@ -72,6 +86,10 @@ rather than resolving to a guess.
 - `poggio_webapp/pipeline/validator.py`
 - `poggio_webapp/pipeline/convert_coords.py`
 - `poggio_webapp/pipeline/merge_walls.py`
+- `poggio_webapp/pipeline/true_dip.py` — solves one true dip per surface from
+  its traces on two non-parallel walls. Implemented and tested, but called by
+  nothing; see
+  [combine walls into one trench](../workflows/09-multi-wall-trench.md).
 - `poggio_webapp/pipeline/build_gempy.py`
 - `poggio_webapp/pipeline/editor.py`
 

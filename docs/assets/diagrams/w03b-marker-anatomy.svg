@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 380" role="img" aria-labelledby="t d">
+  <title id="t">Marker, feature, and find</title>
+  <desc id="d">One drawing showing a grid marker, a feature inside a layer, and a recovered find, each labelled with what it records.</desc>
+  <style>
+:root {
+  --bg: #ffffff; --ink: #1b1b1b; --muted: #5c5c5c; --line: #6b6b6b;
+  --panel: #f7f9fb; --fill: #e8edf2; --edge: #b3bcc5;
+  --accent: #1f6feb; --warn: #a8481a; --good: #266048;
+  --band-a: #ddcdb2; --band-b: #c8ae80; --band-c: #ac8f63; --band-d: #8f7248;
+}
+text { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+       fill: var(--ink); font-size: 15px; }
+.sm { font-size: 13px; }
+.muted { fill: var(--muted); }
+.bold { font-weight: 650; }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
+.panel { fill: var(--panel); stroke: var(--edge); stroke-width: 1.5; }
+.fill { fill: var(--fill); stroke: var(--edge); stroke-width: 1.5; }
+.edge { fill: none; stroke: var(--line); stroke-width: 2; }
+.thin { fill: none; stroke: var(--edge); stroke-width: 1; }
+.accent { stroke: var(--accent); fill: none; stroke-width: 2.5; }
+.accent-f { fill: var(--accent); }
+.warn { stroke: var(--warn); fill: none; stroke-width: 2.5; }
+.warn-f { fill: var(--warn); }
+.good { stroke: var(--good); fill: none; stroke-width: 2.5; }
+.good-f { fill: var(--good); }
+.dash { stroke-dasharray: 6 4; }
+.dot { stroke-dasharray: 2 3; }
+</style>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--line)"/>
+    </marker>
+    <marker id="arrow-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/>
+    </marker>
+  </defs>
+  <rect width="1000" height="380" fill="var(--bg)"/>
+  <text x="24" y="30" text-anchor="start" class="bold">Three records that are easy to confuse</text>
+  <rect x="40" y="50" width="420" height="300" rx="6" class="fill"/>
+  <rect x="60" y="80" width="380" height="80" fill="var(--band-a)" stroke="var(--edge)" stroke-width="1.5"/>
+  <rect x="60" y="160" width="380" height="90" fill="var(--band-b)" stroke="var(--edge)" stroke-width="1.5"/>
+  <rect x="60" y="250" width="380" height="80" fill="var(--band-c)" stroke="var(--edge)" stroke-width="1.5"/>
+  <path d="M60,160 Q91.66666666666667,166 123.33333333333334,160 Q155.0,154 186.66666666666669,160 Q218.33333333333334,166 250.0,160 Q281.6666666666667,154 313.33333333333337,160 Q345.0,166 376.6666666666667,160 Q408.33333333333337,154 440.0,160" class="edge"/>
+  <path d="M60,250 Q91.66666666666667,256 123.33333333333334,250 Q155.0,244 186.66666666666669,250 Q218.33333333333334,256 250.0,250 Q281.6666666666667,244 313.33333333333337,250 Q345.0,256 376.6666666666667,250 Q408.33333333333337,244 440.0,250" class="edge"/>
+  <rect x="80" y="96" width="26" height="26" class="panel"/>
+  <text x="93" y="114" text-anchor="middle" class="sm">20</text>
+  <ellipse cx="250" cy="200" rx="44" ry="24" class="panel"/>
+  <text x="250" y="205" text-anchor="middle" class="sm">stone</text>
+  <path d="M340,290 l16,-10 l14,12 l-10,16 z" class="fill"/>
+  <line x1="520" y1="110" x2="112" y2="110" class="edge" marker-end="url(#arrow)"/>
+  <text x="530" y="100" text-anchor="start" class="bold">Marker</text>
+  <text x="530" y="122" text-anchor="start" class="sm">A reference printed or drawn on the</text>
+  <text x="530" y="140" text-anchor="start" class="sm">sheet — grid square, scale bar. It</text>
+  <text x="530" y="158" text-anchor="start" class="sm">measures the drawing, not the soil.</text>
+  <line x1="520" y1="200" x2="298" y2="200" class="edge" marker-end="url(#arrow)"/>
+  <text x="530" y="190" text-anchor="start" class="bold">Feature</text>
+  <text x="530" y="212" text-anchor="start" class="sm">Something physically in the deposit —</text>
+  <text x="530" y="230" text-anchor="start" class="sm">a stone, a cut, a burnt patch. It sits</text>
+  <text x="530" y="248" text-anchor="start" class="sm">inside a layer, and is not a layer.</text>
+  <line x1="520" y1="300" x2="372" y2="296" class="edge" marker-end="url(#arrow)"/>
+  <text x="530" y="290" text-anchor="start" class="bold">Find</text>
+  <text x="530" y="312" text-anchor="start" class="sm">An object recovered and catalogued.</text>
+  <text x="530" y="330" text-anchor="start" class="sm">Logged against a job, with its own</text>
+  <text x="530" y="348" text-anchor="start" class="sm">record, separate from the geometry.</text>
+</svg>

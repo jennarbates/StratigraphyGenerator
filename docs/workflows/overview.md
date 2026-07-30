@@ -16,6 +16,24 @@ verified_against: 077f108
 
 This path takes a trench drawing from upload to a saved manual extraction.
 
+```mermaid
+flowchart TD
+  A[01 Add a drawing] --> B[02 Prepare the image]
+  B --> C[03 Trace the layers]
+  C --> D[04 Clean up the data]
+  D --> E[05 Check for problems]
+  E --> F[06 Place on site]
+  F --> G[07 Create the model]
+  G --> H[08 View and download]
+  C -.optional.-> X[Import or AI extraction]
+  X -.-> D
+  D --> M[09 Combine walls into one trench]
+  M --> F
+  D --> HM[Build a Harris Matrix]
+```
+
+*The numbered path covers one sheet. Two branches leave it.*
+
 ## Before you start
 
 Make sure the local app is running and that you have either a trench drawing or a synthetic example ready. The beginner path uses the manual tracing workflow, not an API key.

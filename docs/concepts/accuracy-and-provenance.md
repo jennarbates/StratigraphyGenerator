@@ -15,6 +15,10 @@ verified_against: a8b58f1
 
 Provenance is the story of where a value came from, and accuracy is how much confidence that value deserves. In this project, those two ideas are closely linked.
 
+![A boundary following ink on the drawing beside a smooth boundary that lies off the ink entirely](../assets/diagrams/genuine-vs-fabricated.svg)
+
+*A boundary that does not lie on ink is fabricated by definition. This is the check to automate.*
+
 ## Why it matters here
 
 A result can look polished and still be weak. A visually attractive model is not proof that the geometry is trustworthy, and a completed extraction is not automatically a scientifically verified one. The project uses provenance to keep that distinction clear.

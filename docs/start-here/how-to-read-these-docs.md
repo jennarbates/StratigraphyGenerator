@@ -14,6 +14,22 @@ verified_against: d23b842
 There are five sections and four sensible ways through them. You do not need to
 read everything, and reading in nav order is rarely the fastest route.
 
+```mermaid
+flowchart LR
+  U[Understand it] --> U1[What this project does]
+  U1 --> U2[From archaeology to 3D]
+  U2 --> U3[Glossary]
+  D[Use it] --> D1[Quickstart]
+  D1 --> D2[First model tutorial]
+  D2 --> D3[Workflows 01 to 09]
+  W[Understand why] --> W1[Concepts, reached from each workflow]
+  C[Change the code] --> C1[Capability status]
+  C1 --> C2[Architecture]
+  C2 --> C3[Reference]
+```
+
+*Four ways through the same pages. Pick the one matching your goal.*
+
 ## Four paths
 
 ### 1. I want to understand what this is

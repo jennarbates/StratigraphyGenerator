@@ -14,8 +14,9 @@ verified_against: a8b58f1
 
 Follow a complete synthetic example that moves from a cleaned tracing to a placeholder model, then review the outputs.
 
-> [!warning]
-> Synthetic documentation example only. This tutorial uses placeholder values for a smoke test. It does not produce or validate a real scientific model.
+!!! warning
+
+    Synthetic documentation example only. This tutorial uses placeholder values for a smoke test. It does not produce or validate a real scientific model.
 
 ## Before you start
 

@@ -19,6 +19,19 @@ manually. It does not require an API key. Start with the
 [quickstart](start-here/quickstart.md) to reach the runnable `python app.py`
 command, then use the chooser to confirm the right workflow.
 
+```mermaid
+flowchart LR
+  S[Drawing or scan] --> P[Prepare image]
+  P --> X[Trace, import, or extract]
+  X --> N[Normalize]
+  N --> V[Validate]
+  V --> C[Convert to site coordinates]
+  C --> B[Build model]
+  B --> W[View and download]
+```
+
+*The whole pipeline in one diagram. Every later page expands one box.*
+
 ## Use the app
 
 - [Launch the application](start-here/quickstart.md) with the core Python

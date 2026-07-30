@@ -11,6 +11,19 @@ verified_against: a8b58f1
 
 This reference documents all data-validation checks performed by the application. Validators run automatically after normalization or when explicitly requested via `/api/jobs/<job_id>/validate`.
 
+```mermaid
+flowchart TD
+  R[Validation report] --> E{Any errors?}
+  E -->|Yes| B[Next required step is blocked]
+  E -->|No| W{Any warnings?}
+  W -->|Yes| K["ok: true, and still worth reviewing"]
+  W -->|No| K2["ok: true"]
+  K --> N[Continue at your judgement]
+  K2 --> N
+```
+
+*A report can carry warnings and still report ok. Clean is not the same as correct.*
+
 ## Validation Defaults
 
 All thresholds can be overridden in validation requests; these are the application defaults:

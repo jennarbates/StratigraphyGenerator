@@ -18,6 +18,10 @@ and errors. Please follow the points below when producing new drawings.
 For the distinctions used below, see
 [markers, features, and finds](../concepts/markers-features-and-finds.md).
 
+![A drawing with a clear scale, closed boundaries, and legible labels beside one lacking each](../assets/diagrams/r-good-vs-bad-drawing.svg)
+
+*What makes a sheet extractable. Most failures downstream start here.*
+
 ## Scale & measurement
 - Use **one metric scale bar** (meters) per sheet. If an archival non-metric bar
   (e.g. PECK) must appear, place it separately and label it clearly

@@ -19,12 +19,9 @@ Review the traced 2D drawing, interpolated GemPy boundary surfaces, or
 classified GemPy volume cells, then save the extraction data for later
 review.
 
-> [!warning]
-> The visualizer is a review aid, not a scientifically authoritative
-> reconstruction. Retain the extraction provenance, replace placeholder
-> registration with surveyed coordinates, read validation warnings, and note
-> that a surface constrained by one face is interpolated across the entire
-> model extent.
+!!! warning
+
+    The visualizer is a review aid, not a scientifically authoritative reconstruction. Retain the extraction provenance, replace placeholder registration with surveyed coordinates, read validation warnings, and note that a surface constrained by one face is interpolated across the entire model extent.
 
 ## Before you start
 
@@ -105,6 +102,10 @@ local pinned files, so the viewer does not need a JavaScript CDN at runtime.
   error. Return to 2D or download the job files for inspection.
 - If **Lithology volume** is absent, the manifest has no supported readable
   volume binary; surface mode remains available.
+
+![The same model as smooth interpolated surfaces and as resolution-dependent classified cells](../assets/diagrams/w08-surface-vs-volume.svg)
+
+*Two views of one model. Volume cells depend on grid resolution; surfaces do not.*
 
 ## Under the hood
 

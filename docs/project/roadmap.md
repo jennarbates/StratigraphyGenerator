@@ -18,11 +18,9 @@ make it general.
 
 Nothing in phases 2–3 matters while the underlying geometry is still invalid.
 
-> [!note]
-> This roadmap was migrated from the root README and corrected against
-> `d23b842`. Items the README listed as outstanding but which have since
-> shipped are marked **done** rather than deleted, because the reasoning behind
-> them still explains the current design.
+!!! note
+
+    This roadmap was migrated from the root README and corrected against `d23b842`. Items the README listed as outstanding but which have since shipped are marked **done** rather than deleted, because the reasoning behind them still explains the current design.
 
 ## Phase 1 — unblock the science
 
@@ -75,10 +73,10 @@ guidelines](../reference/drawing-guidelines.md).
 
 ### 5. Tests
 
-**Largely done.** 547 Python tests and 74 JavaScript tests now run without a
-key or network access. The pure functions this item named — the coordinate
-transform, `fieldwall_to_profiles`, the fabrication heuristics — are covered,
-and the merge layer added 55 more.
+**Largely done.** Several hundred Python tests and 78 JavaScript tests now run
+without a key or network access. The pure functions this item named — the
+coordinate transform, `fieldwall_to_profiles`, the fabrication heuristics — are
+covered, and the merge layer added 55 more.
 
 Two gaps remain: **CI does not exist** (there is no `.github/` directory, so
 nothing runs automatically), and there is still no golden-file test running a

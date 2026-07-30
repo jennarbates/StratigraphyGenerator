@@ -14,6 +14,10 @@ verified_against: a8b58f1
 
 A source drawing type is the kind of input the project is working from, such as an illustrated trench sheet, a hand-drawn field sheet, or an imported data file.
 
+![An illustrator sheet identified by hatch patterns beside a field sheet identified by locus numbers and Munsell colours](../assets/diagrams/two-sheet-types.svg)
+
+*The two sheets record material differently, which is why they use different schemas.*
+
 ## Why it matters here
 
 The same excavation record can look very different depending on the source. An illustrated sheet often has clearer labels and more polished linework, while a field sheet may rely on hand-written locus numbers and more informal drawing style. The workflow uses this distinction to decide how to trace, name, and later validate the data.

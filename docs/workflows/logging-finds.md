@@ -12,8 +12,9 @@ verified_against: a8b58f1
 
 Record an artifact without changing the stratigraphic drawing, and later sync the find into the finalized output.
 
-> [!warning]
-> Synthetic documentation example only. A logged find is a record of an artifact observation, not a scientific claim about the site sequence.
+!!! warning
+
+    Synthetic documentation example only. A logged find is a record of an artifact observation, not a scientific claim about the site sequence.
 
 ## Before you start
 

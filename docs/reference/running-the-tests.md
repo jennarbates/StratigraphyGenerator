@@ -17,6 +17,19 @@ Three independent suites cover this repository: Python, JavaScript, and the
 documentation checks. None of them requires GemPy, a Gemini API key, or network
 access.
 
+```mermaid
+flowchart TD
+  Py[pytest tests/] --> Py1[routes, pipeline, schemas, merge layer]
+  Js[node --test static globs] --> Js1[pure functions behind the browser code]
+  Dc[documentation checks] --> Dc1[links, front matter, coverage, visuals]
+  Gap[Not covered]
+  Gap --> G1[end-to-end Gemini extraction]
+  Gap --> G2[upload, preprocess, normalizer]
+  Gap --> G3[browser wiring - a control that renders but calls nothing]
+```
+
+*Three suites and the space they leave uncovered, including browser wiring.*
+
 ## The three commands
 
 Python, from the repository root:
@@ -46,8 +59,8 @@ python tools/docs/check_coverage.py .
 python tools/docs/validate_visual_manifest.py .
 ```
 
-At `d23b842` these report 547 passed and 1 skipped, 74 passed, and three
-passing documentation checks.
+All three should pass with no failures. Exact totals move as tests are added,
+so treat a green run rather than a specific count as the signal.
 
 `check_coverage.py` reports any module under `poggio_webapp/pipeline/` or
 `poggio_webapp/backend/` that no documentation page names by full path. It is a

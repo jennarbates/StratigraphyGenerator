@@ -23,6 +23,19 @@ verified_against: 2267711
 
 This reference documents all HTTP endpoints available in the Flask backend. All routes are prefixed with `/api/` except where noted.
 
+```mermaid
+flowchart LR
+  U[User-facing] --> U1[jobs, scans, preprocess, manual]
+  U --> U2[processing, gempy, task_status]
+  U --> U3[harris]
+  E[Needs a key or optional package] --> E1[extraction, text_metadata]
+  B[Registered but unreachable] --> B1[markers]
+  B --> B2[features]
+  B --> B3[trenches]
+```
+
+*A registered route is not a user-facing feature. Several here have no control.*
+
 ## Route Reference
 
 | Endpoint | Method | Request | Response | Async | Status | Notes |

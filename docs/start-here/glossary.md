@@ -15,6 +15,10 @@ verified_against: eac1f51
 This glossary defines the archaeological, geometric, and application terms
 used in the guide without requiring knowledge of the source code.
 
+![A labelled trench section naming the trench, wall, face, locus, layer, boundary, and feature](../assets/diagrams/glossary-anatomy.svg)
+
+*Most glossary terms are visible on one section. This is that section.*
+
 ## Why it matters here
 
 The project translates a drawing made for archaeological recording into

@@ -6,6 +6,7 @@ test_apparent_dips_understate_the_true_dip is where it is pinned down.
 """
 
 import copy
+import csv
 import math
 import sys
 from pathlib import Path
@@ -17,7 +18,7 @@ sys.path.insert(0, str(REPO_ROOT / "poggio_webapp"))
 
 from pipeline import convert_coords
 from pipeline.merge_walls import merge_extractions
-from pipeline.true_dip import true_orientations
+from pipeline.true_dip import apply_true_dip, true_orientations
 
 from fixtures_merge import EAST_WALL, GRID_T900, NORTH_WALL
 
@@ -196,18 +197,24 @@ def test_inputs_are_not_mutated():
     assert GRID_T900 == original_grid
 
 
+def converted_fixture(tmp_path):
+    """The A6 trench merged and run through the real converter."""
+    merged, _notes = merge_extractions(
+        [("north wall", NORTH_WALL), ("east wall", EAST_WALL)])
+    return convert_coords.run_convert(
+        merged, GRID_T900, str(tmp_path / "points.csv"))
+
+
+def read_csv(path):
+    with open(path, newline="") as handle:
+        return list(csv.DictReader(handle))
+
+
 def test_the_merged_fixture_trench_solves_every_surface(tmp_path):
     """End to end on real plumbing: merge the A6 walls, convert them, and feed
     the CSV rows back in as strings the way a caller would."""
-    merged, _notes = merge_extractions(
-        [("north wall", NORTH_WALL), ("east wall", EAST_WALL)])
-    conversion = convert_coords.run_convert(
-        merged, GRID_T900, str(tmp_path / "points.csv"))
-
-    import csv
-
-    with open(conversion["points_csv"], newline="") as handle:
-        rows = list(csv.DictReader(handle))
+    conversion = converted_fixture(tmp_path)
+    rows = read_csv(conversion["points_csv"])
 
     solved, notes = true_orientations(rows, GRID_T900)
 
@@ -221,3 +228,51 @@ def test_the_merged_fixture_trench_solves_every_surface(tmp_path):
         assert 0.0 <= orientation["dip"] < 5.0
         assert 0.0 <= orientation["azimuth"] < 360.0
     assert notes == []
+
+
+def test_applying_true_dip_rewrites_every_seed_of_a_solved_surface(tmp_path):
+    """Each seed keeps its place on its own wall; only the orientation it
+    carries changes, and both walls' seeds now describe the same plane."""
+    conversion = converted_fixture(tmp_path)
+    before = read_csv(conversion["orientations_csv"])
+    solved, _notes = true_orientations(
+        read_csv(conversion["points_csv"]), GRID_T900)
+    expected = {
+        orientation["surface"]: orientation for orientation in solved
+    }
+
+    notes = apply_true_dip(
+        conversion["points_csv"], conversion["orientations_csv"], GRID_T900)
+    after = read_csv(conversion["orientations_csv"])
+
+    assert len(after) == len(before)
+    for old, new in zip(before, after):
+        assert (new["X"], new["Y"], new["Z"]) == (old["X"], old["Y"], old["Z"])
+        assert new["face"] == old["face"]
+        assert new["polarity"] == old["polarity"]
+        target = expected[new["surface"]]
+        assert float(new["dip"]) == pytest.approx(target["dip"], abs=0.005)
+        assert float(new["azimuth"]) == pytest.approx(
+            target["azimuth"], abs=0.005)
+
+    by_surface = {}
+    for row in after:
+        by_surface.setdefault(row["surface"], set()).add(
+            (row["dip"], row["azimuth"]))
+    assert all(len(values) == 1 for values in by_surface.values())
+    assert any("replaced the per-wall apparent dips" in note for note in notes)
+
+
+def test_applying_true_dip_leaves_unsolvable_surfaces_alone(tmp_path):
+    """A surface on one wall keeps the apparent dip measured there -- the best
+    answer available for it -- rather than being dropped or invented."""
+    merged, _notes = merge_extractions([("north wall", NORTH_WALL)])
+    conversion = convert_coords.run_convert(
+        merged, GRID_T900, str(tmp_path / "points.csv"))
+    before = read_csv(conversion["orientations_csv"])
+
+    notes = apply_true_dip(
+        conversion["points_csv"], conversion["orientations_csv"], GRID_T900)
+
+    assert read_csv(conversion["orientations_csv"]) == before
+    assert any("only on face" in note for note in notes)

@@ -15,6 +15,10 @@ verified_against: a8b58f1
 
 This concept is the big picture: a trench drawing becomes structured drawing data, then site coordinates, and finally a 3D model.
 
+![Excavated trench wall, its measured drawing, the structured data, and the resulting model, in sequence](../assets/diagrams/archaeology-to-3d.svg)
+
+*Four representations of one trench. Each step loses something and records what it lost.*
+
 ## Why it matters here
 
 The project is not only about drawing lines. It is about turning a paper record into information that can be checked, compared, and placed in a wider site context. Each step in the workflow adds a kind of certainty or uncertainty, so the later model should be read as a visualization of the available evidence, not as automatic proof of the archaeology.

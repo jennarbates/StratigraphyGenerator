@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 370" role="img" aria-labelledby="t d">
+  <title id="t">From interface points to an interpolated surface</title>
+  <desc id="d">Scattered recorded interface points on the left, and on the right the continuous surface interpolated between them and extrapolated to the model extent.</desc>
+  <style>
+:root {
+  --bg: #ffffff; --ink: #1b1b1b; --muted: #5c5c5c; --line: #6b6b6b;
+  --panel: #f7f9fb; --fill: #e8edf2; --edge: #b3bcc5;
+  --accent: #1f6feb; --warn: #a8481a; --good: #266048;
+  --band-a: #ddcdb2; --band-b: #c8ae80; --band-c: #ac8f63; --band-d: #8f7248;
+}
+text { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+       fill: var(--ink); font-size: 15px; }
+.sm { font-size: 13px; }
+.muted { fill: var(--muted); }
+.bold { font-weight: 650; }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
+.panel { fill: var(--panel); stroke: var(--edge); stroke-width: 1.5; }
+.fill { fill: var(--fill); stroke: var(--edge); stroke-width: 1.5; }
+.edge { fill: none; stroke: var(--line); stroke-width: 2; }
+.thin { fill: none; stroke: var(--edge); stroke-width: 1; }
+.accent { stroke: var(--accent); fill: none; stroke-width: 2.5; }
+.accent-f { fill: var(--accent); }
+.warn { stroke: var(--warn); fill: none; stroke-width: 2.5; }
+.warn-f { fill: var(--warn); }
+.good { stroke: var(--good); fill: none; stroke-width: 2.5; }
+.good-f { fill: var(--good); }
+.dash { stroke-dasharray: 6 4; }
+.dot { stroke-dasharray: 2 3; }
+</style>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--line)"/>
+    </marker>
+    <marker id="arrow-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/>
+    </marker>
+  </defs>
+  <rect width="1000" height="370" fill="var(--bg)"/>
+  <text x="24" y="30" text-anchor="start" class="bold">Interface points become an interpolated surface</text>
+  <rect x="40" y="50" width="440" height="240" rx="6" class="panel"/>
+  <text x="56" y="76" text-anchor="start" class="bold">What you recorded</text>
+  <circle cx="80" cy="180" r="4" class="accent-f"/>
+  <circle cx="150" cy="198" r="4" class="accent-f"/>
+  <circle cx="220" cy="186" r="4" class="accent-f"/>
+  <circle cx="290" cy="212" r="4" class="accent-f"/>
+  <circle cx="360" cy="204" r="4" class="accent-f"/>
+  <circle cx="430" cy="228" r="4" class="accent-f"/>
+  <text x="56" y="276" text-anchor="start" class="sm muted">one row per point in points.csv</text>
+  <rect x="530" y="50" width="440" height="240" rx="6" class="panel"/>
+  <text x="546" y="76" text-anchor="start" class="bold">What the model builds</text>
+  <circle cx="530" cy="180" r="3" class="muted"/>
+  <circle cx="600" cy="198" r="3" class="muted"/>
+  <circle cx="670" cy="186" r="3" class="muted"/>
+  <circle cx="740" cy="212" r="3" class="muted"/>
+  <circle cx="810" cy="204" r="3" class="muted"/>
+  <circle cx="880" cy="228" r="3" class="muted"/>
+  <polyline points="530,180 600,198 670,186 740,212 810,204 880,228" class="accent"/>
+  <path d="M530,180 L530,290 L930,290 L930,228" class="thin dash"/>
+  <text x="546" y="276" text-anchor="start" class="sm muted">a continuous surface, extrapolated to the extent</text>
+  <line x1="490" y1="170" x2="522" y2="170" class="accent" marker-end="url(#arrow-a)"/>
+  <text x="24" y="330" text-anchor="start" class="sm muted">The surface between points is interpolation, not evidence. A single face is stretched</text>
+  <text x="24" y="350" text-anchor="start" class="sm muted">across the whole model extent, so confidence falls off away from the recorded points.</text>
+</svg>

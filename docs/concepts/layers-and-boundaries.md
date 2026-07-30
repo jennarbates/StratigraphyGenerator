@@ -20,6 +20,10 @@ This distinction is central to the tracing workflow. A beginner may be tempted t
 
 In this project, a layer and a boundary belong together: the boundary often represents the top or bottom of a unit, and matching those lines carefully is an important part of making the extraction consistent.
 
+![A layer shown as the region between its top boundary and the boundary below it](../assets/diagrams/w03-boundary-anatomy.svg)
+
+*You trace boundaries, not layers. A layer is the space between two of them.*
+
 ## Example
 
 Synthetic documentation example: one layer sits above another, and the line between them is traced as the boundary between the units. If the boundary is missing or misplaced, the layer inventory becomes harder to understand even if the drawing still looks visually reasonable.

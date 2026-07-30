@@ -40,6 +40,10 @@ unchanged from the previous audit and have not been re-verified against
 Multi-wall trenches, Text verification, Marker detection, and Feature
 detection.
 
+![The five capability labels arranged by whether a user interface and a backend implementation exist](../assets/diagrams/p-status-labels.svg)
+
+*Supported, experimental, backend-only, blocked, and historical, and what separates them.*
+
 ## Status labels
 
 - `supported` — wired through a current user interface to its backend

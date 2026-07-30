@@ -14,6 +14,10 @@ verified_against: c702617
 Geometric normalization, or **deskewing**, estimates a small whole-image
 rotation and corrects it before a scanned drawing is traced or extracted.
 
+![A skewed sheet corrected for rotation and scale, with the geometry left unchanged](../assets/diagrams/normalization-steps.svg)
+
+*Normalization repairs how the sheet sits, not what it records.*
+
 ## Why it matters here
 
 The correction helps horizontal stratigraphic layers and drawn grid lines

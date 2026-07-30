@@ -14,15 +14,27 @@ verified_against: a8b58f1
 
 Coordinate spaces are the different ways the project describes where a point is: first in the drawing image, then in the face-local reference frame, and finally in the wider site coordinate system.
 
+![One point plotted in pixel coordinates, in face-local metres, and in site coordinates, with the conversion between each](../assets/diagrams/three-coordinate-spaces.svg)
+
+*The same point in all three spaces. Most confusion here is a space mix-up.*
+
 ## Why it matters here
 
 A point can be correct in one coordinate space and still be meaningless in another. The tracing step works in image pixels, the later registration step works in a local face frame, and the model step works in site-wide coordinates. Mixing these spaces would produce a model with the wrong geometry even if the drawing still looks sensible.
 
 This concept matters because beginners often assume that a point in the drawing image is already the same thing as a point in the site grid. It is not.
 
+![A drawing with three numbered calibration points and the real-world distance between the first two](../assets/diagrams/w03-calibration-clicks.svg)
+
+*Three clicks plus one real measurement convert pixels into metres.*
+
 ## Example
 
 Synthetic documentation example: a boundary point is first clicked in the image, then converted from pixels into local metres during tracing, and finally turned into a site-wide coordinate after registration. Each conversion changes the meaning of the measurement, but the point still refers to the same feature in the real world.
+
+![A trench face annotated with originX, originY, surfaceZ, and bearing measured clockwise from north](../assets/diagrams/w06-registration-fields.svg)
+
+*Four numbers place a face on the site. Bearing is clockwise from north.*
 
 ## How the repository represents it
 

@@ -19,6 +19,21 @@ to record.
 These three are easy to blur together, and blurring them is the single most
 common source of confusion about why the application is shaped the way it is.
 
+```mermaid
+flowchart TD
+  subgraph T[One trench, recorded across several jobs]
+    J1[job 1 - meta.json<br/>trench_label T104<br/>wall_label North]
+    J2[job 2 - meta.json<br/>trench_label T104<br/>wall_label South]
+    J3[job 3 - meta.json<br/>trench_label T104<br/>wall_label West]
+  end
+  J1 --> M[Merged only when a build runs]
+  J2 --> M
+  J3 --> M
+  J4[job 4 - no trench_label] -.skipped silently.-> M
+```
+
+*A trench is not a record. It is a label several independent jobs share.*
+
 ## Why it matters here
 
 The rule is: **one job holds one sheet.**
@@ -66,6 +81,10 @@ job's `meta.json` on demand.
 A fourth job uploaded without a trench label simply does not participate. It is
 not an error — most jobs are single sheets that were never assigned to a
 trench, so unlabelled jobs are skipped silently.
+
+![Four separately drawn walls positioned by their registration to enclose one rectangular pit](../assets/diagrams/w09-walls-to-pit.svg)
+
+*Correct registration is what turns four independent drawings into one trench.*
 
 ## How the repository represents it
 

@@ -12,8 +12,13 @@ verified_against: a8b58f1
 
 Turn the cleaned extraction into site-wide coordinates before you build a model.
 
-> [!warning]
-> Synthetic documentation example only. The values below are placeholder smoke-test values and are not a surveyed registration. Do not treat them as a scientific result.
+!!! warning
+
+    Synthetic documentation example only. The values below are placeholder smoke-test values and are not a surveyed registration. Do not treat them as a scientific result.
+
+![A trench face annotated with originX, originY, surfaceZ, and bearing measured clockwise from north](../assets/diagrams/w06-registration-fields.svg)
+
+*Four numbers place a face on the site. Bearing is clockwise from north.*
 
 ## Before you start
 

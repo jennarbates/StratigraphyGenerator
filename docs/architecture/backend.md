@@ -15,6 +15,22 @@ verified_against: a8b58f1
 
 The Flask backend is the runtime layer that serves pages, handles job storage, routes workflow requests, and coordinates the pipeline modules.
 
+```mermaid
+flowchart LR
+  App[app.py] --> Reg[backend/routes/__init__.py]
+  Reg --> J[jobs, scans, preprocess]
+  Reg --> X[extraction, manual, text_metadata]
+  Reg --> P[processing, gempy, task_status]
+  Reg --> M[markers, features]
+  Reg --> H[harris]
+  Reg --> T[trenches]
+  J --> Store[(job folders)]
+  H --> Mat[(matrix folders)]
+  T --> Tr[(trench folders)]
+```
+
+*One blueprint per concern; the route layer owns persistence.*
+
 ## Responsibilities
 
 - Create and configure the Flask application and attach the blueprint-based route registration.

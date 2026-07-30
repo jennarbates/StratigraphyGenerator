@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 330" role="img" aria-labelledby="t d">
+  <title id="t">Correlation compared with merging</title>
+  <desc id="d">Two identically numbered units on different walls shown as separate nodes joined by a correlation, beside a crossed-out single merged node.</desc>
+  <style>
+:root {
+  --bg: #ffffff; --ink: #1b1b1b; --muted: #5c5c5c; --line: #6b6b6b;
+  --panel: #f7f9fb; --fill: #e8edf2; --edge: #b3bcc5;
+  --accent: #1f6feb; --warn: #a8481a; --good: #266048;
+  --band-a: #ddcdb2; --band-b: #c8ae80; --band-c: #ac8f63; --band-d: #8f7248;
+}
+text { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+       fill: var(--ink); font-size: 15px; }
+.sm { font-size: 13px; }
+.muted { fill: var(--muted); }
+.bold { font-weight: 650; }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
+.panel { fill: var(--panel); stroke: var(--edge); stroke-width: 1.5; }
+.fill { fill: var(--fill); stroke: var(--edge); stroke-width: 1.5; }
+.edge { fill: none; stroke: var(--line); stroke-width: 2; }
+.thin { fill: none; stroke: var(--edge); stroke-width: 1; }
+.accent { stroke: var(--accent); fill: none; stroke-width: 2.5; }
+.accent-f { fill: var(--accent); }
+.warn { stroke: var(--warn); fill: none; stroke-width: 2.5; }
+.warn-f { fill: var(--warn); }
+.good { stroke: var(--good); fill: none; stroke-width: 2.5; }
+.good-f { fill: var(--good); }
+.dash { stroke-dasharray: 6 4; }
+.dot { stroke-dasharray: 2 3; }
+</style>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--line)"/>
+    </marker>
+    <marker id="arrow-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/>
+    </marker>
+  </defs>
+  <rect width="1000" height="330" fill="var(--bg)"/>
+  <text x="24" y="30" text-anchor="start" class="bold">Correlation is an interpretation, not an automatic merge</text>
+  <text x="60" y="80" text-anchor="start" class="sm muted">Two walls each record a unit numbered 4</text>
+  <rect x="60" y="100" width="150" height="50" rx="6" class="panel"/>
+  <text x="135" y="130" text-anchor="middle" class="sm bold">North · 4</text>
+  <rect x="320" y="100" width="150" height="50" rx="6" class="panel"/>
+  <text x="395" y="130" text-anchor="middle" class="sm bold">South · 4</text>
+  <line x1="212" y1="125" x2="318" y2="125" class="accent dash"/>
+  <text x="265" y="116" text-anchor="middle" class="sm accent-f">correlation</text>
+  <text x="265" y="168" text-anchor="middle" class="sm muted">proposed, then accepted by a person</text>
+  <line x1="540" y1="70" x2="540" y2="300" class="thin"/>
+  <text x="590" y="100" text-anchor="start" class="bold">They stay two nodes.</text>
+  <text x="590" y="126" text-anchor="start" class="sm">Equal labels never merge on their own —</text>
+  <text x="590" y="146" text-anchor="start" class="sm">two excavators can reuse a number for</text>
+  <text x="590" y="166" text-anchor="start" class="sm">genuinely different deposits.</text>
+  <text x="590" y="200" text-anchor="start" class="sm">Boundary and label matches produce</text>
+  <text x="590" y="220" text-anchor="start" class="sm">proposals only. Every proposal must be</text>
+  <text x="590" y="240" text-anchor="start" class="sm">individually accepted or rejected.</text>
+  <text x="60" y="230" text-anchor="start" class="bold warn-f">Not this:</text>
+  <rect x="60" y="248" width="150" height="50" rx="6" class="panel"/>
+  <text x="135" y="278" text-anchor="middle" class="sm bold">unit 4</text>
+  <line x1="66" y1="294" x2="204" y2="252" class="warn"/>
+</svg>
