@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 
+import storage
 from backend import config, harris_store
 from pipeline.harris_matrix import HarrisMatrix
 
@@ -15,19 +16,15 @@ UNIT_B = "unit-00000000000b"
 
 
 @pytest.fixture
-def storage(tmp_path, monkeypatch):
-    matrices_dir = tmp_path / "matrices"
-    matrices_dir.mkdir()
-    jobs_dir = tmp_path / "jobs"
+def matrix_storage(tmp_path, monkeypatch):
+    matrices_dir = storage.MATRICES_DIR
+    jobs_dir = storage.JOBS_DIR
     source_dir = jobs_dir / "111111111111"
     source_dir.mkdir(parents=True)
     (source_dir / "meta.json").write_bytes(b'{"title":"source"}\n')
     (source_dir / "extraction_output.json").write_bytes(
         b'{"schemaType":"FieldWallProfile"}\n'
     )
-
-    monkeypatch.setattr(config, "MATRICES_DIR", matrices_dir)
-    monkeypatch.setattr(config, "JOBS_DIR", jobs_dir)
     return {
         "matrices_dir": matrices_dir,
         "jobs_dir": jobs_dir,
@@ -68,7 +65,7 @@ def source_snapshot(jobs_dir):
     }
 
 
-def test_create_returns_valid_id_and_writes_version_one_json(storage):
+def test_create_returns_valid_id_and_writes_version_one_json(matrix_storage):
     matrix = harris_store.create_matrix()
 
     assert isinstance(matrix, HarrisMatrix)
@@ -80,7 +77,7 @@ def test_create_returns_valid_id_and_writes_version_one_json(storage):
     assert matrix.revision == 0
 
     matrix_path = (
-        storage["matrices_dir"] / matrix.matrix_id / "matrix.json"
+        matrix_storage["matrices_dir"] / matrix.matrix_id / "matrix.json"
     )
     assert matrix_path.is_file()
     persisted = HarrisMatrix.model_validate_json(matrix_path.read_text())
@@ -88,7 +85,7 @@ def test_create_returns_valid_id_and_writes_version_one_json(storage):
     assert json.loads(matrix_path.read_text())["schema_version"] == 1
 
 
-def test_create_honors_only_safe_initial_fields(storage, monkeypatch):
+def test_create_honors_only_safe_initial_fields(matrix_storage, monkeypatch):
     monkeypatch.setattr(
         harris_store.secrets,
         "token_hex",
@@ -113,14 +110,14 @@ def test_create_honors_only_safe_initial_fields(storage, monkeypatch):
 
 
 def test_load_rejects_invalid_id_before_joining_a_filesystem_path(
-    storage,
+    matrix_storage,
     monkeypatch,
 ):
     class FailOnJoin:
         def __truediv__(self, _other):
             raise AssertionError("filesystem path was joined")
 
-    monkeypatch.setattr(config, "MATRICES_DIR", FailOnJoin())
+    monkeypatch.setattr(storage, "MATRICES_DIR", FailOnJoin())
 
     with pytest.raises(
         harris_store.InvalidMatrixIdError,
@@ -129,7 +126,7 @@ def test_load_rejects_invalid_id_before_joining_a_filesystem_path(
         harris_store.load_matrix("../../jobs")
 
 
-def test_load_reports_not_found_distinctly_from_invalid_id(storage):
+def test_load_reports_not_found_distinctly_from_invalid_id(matrix_storage):
     with pytest.raises(harris_store.MatrixNotFoundError, match="aaaaaaaaaaaa"):
         harris_store.load_matrix("aaaaaaaaaaaa")
 
@@ -137,8 +134,8 @@ def test_load_reports_not_found_distinctly_from_invalid_id(storage):
         harris_store.load_matrix("not-an-id")
 
 
-def test_load_reports_malformed_persisted_matrix(storage):
-    matrix_dir = storage["matrices_dir"] / "aaaaaaaaaaaa"
+def test_load_reports_malformed_persisted_matrix(matrix_storage):
+    matrix_dir = matrix_storage["matrices_dir"] / "aaaaaaaaaaaa"
     matrix_dir.mkdir()
     (matrix_dir / "matrix.json").write_text("{not-json")
 
@@ -146,7 +143,7 @@ def test_load_reports_malformed_persisted_matrix(storage):
         harris_store.load_matrix("aaaaaaaaaaaa")
 
 
-def test_save_increments_revision_once_and_updates_timestamp(storage):
+def test_save_increments_revision_once_and_updates_timestamp(matrix_storage):
     created = harris_store.create_matrix()
     candidate = candidate_from(created)
     candidate["title"] = "Revised title"
@@ -163,7 +160,7 @@ def test_save_increments_revision_once_and_updates_timestamp(storage):
     assert harris_store.load_matrix(created.matrix_id) == saved
 
 
-def test_save_preserves_server_owned_identity_and_creation_fields(storage):
+def test_save_preserves_server_owned_identity_and_creation_fields(matrix_storage):
     created = harris_store.create_matrix()
     candidate = candidate_from(created)
     candidate.update(
@@ -187,7 +184,7 @@ def test_save_preserves_server_owned_identity_and_creation_fields(storage):
     assert saved.updated_at > created.updated_at
 
 
-def test_save_accepts_a_valid_model_candidate(storage):
+def test_save_accepts_a_valid_model_candidate(matrix_storage):
     created = harris_store.create_matrix()
 
     saved = harris_store.save_matrix(
@@ -199,7 +196,7 @@ def test_save_accepts_a_valid_model_candidate(storage):
     assert saved.revision == 1
 
 
-def test_stale_expected_revision_raises_dedicated_conflict(storage):
+def test_stale_expected_revision_raises_dedicated_conflict(matrix_storage):
     created = harris_store.create_matrix()
     harris_store.save_matrix(
         created.matrix_id,
@@ -225,10 +222,10 @@ def test_stale_expected_revision_raises_dedicated_conflict(storage):
         ("title", {"not": "text"}),
     ],
 )
-def test_invalid_schema_is_not_written(storage, field, value):
+def test_invalid_schema_is_not_written(matrix_storage, field, value):
     created = harris_store.create_matrix()
     matrix_path = (
-        storage["matrices_dir"] / created.matrix_id / "matrix.json"
+        matrix_storage["matrices_dir"] / created.matrix_id / "matrix.json"
     )
     before = matrix_path.read_bytes()
     candidate = candidate_from(created)
@@ -244,10 +241,10 @@ def test_invalid_schema_is_not_written(storage, field, value):
     assert matrix_path.read_bytes() == before
 
 
-def test_graph_errors_are_not_written(storage):
+def test_graph_errors_are_not_written(matrix_storage):
     created = harris_store.create_matrix()
     matrix_path = (
-        storage["matrices_dir"] / created.matrix_id / "matrix.json"
+        matrix_storage["matrices_dir"] / created.matrix_id / "matrix.json"
     )
     before = matrix_path.read_bytes()
     candidate = candidate_from(created)
@@ -267,7 +264,7 @@ def test_graph_errors_are_not_written(storage):
     assert matrix_path.read_bytes() == before
 
 
-def test_graph_warnings_are_allowed(storage):
+def test_graph_warnings_are_allowed(matrix_storage):
     created = harris_store.create_matrix()
     candidate = candidate_from(created)
     candidate["units"] = [unit(UNIT_A, "Polygon 1")]
@@ -283,12 +280,12 @@ def test_graph_warnings_are_allowed(storage):
 
 
 def test_save_atomically_replaces_from_same_matrix_directory(
-    storage,
+    matrix_storage,
     monkeypatch,
 ):
     created = harris_store.create_matrix()
     destination = (
-        storage["matrices_dir"] / created.matrix_id / "matrix.json"
+        matrix_storage["matrices_dir"] / created.matrix_id / "matrix.json"
     )
     real_replace = harris_store.os.replace
     replace_call = {}
@@ -316,7 +313,7 @@ def test_save_atomically_replaces_from_same_matrix_directory(
 
 
 def test_list_is_newest_first_with_lexical_id_tie_breaking(
-    storage,
+    matrix_storage,
     monkeypatch,
 ):
     ids = iter(["bbbbbbbbbbbb", "aaaaaaaaaaaa", "cccccccccccc"])
@@ -356,12 +353,12 @@ def test_list_is_newest_first_with_lexical_id_tie_breaking(
     }
 
 
-def test_list_skips_malformed_and_invalid_matrix_folders(storage):
+def test_list_skips_malformed_and_invalid_matrix_folders(matrix_storage):
     valid = harris_store.create_matrix({"title": "Valid"})
-    malformed_dir = storage["matrices_dir"] / "aaaaaaaaaaaa"
+    malformed_dir = matrix_storage["matrices_dir"] / "aaaaaaaaaaaa"
     malformed_dir.mkdir()
     (malformed_dir / "matrix.json").write_text("{}")
-    invalid_id_dir = storage["matrices_dir"] / "not-a-matrix"
+    invalid_id_dir = matrix_storage["matrices_dir"] / "not-a-matrix"
     invalid_id_dir.mkdir()
     (invalid_id_dir / "matrix.json").write_text("{}")
 
@@ -370,7 +367,7 @@ def test_list_skips_malformed_and_invalid_matrix_folders(storage):
     assert [item["matrix_id"] for item in summaries] == [valid.matrix_id]
 
 
-def test_summaries_and_persisted_json_contain_no_absolute_paths(storage):
+def test_summaries_and_persisted_json_contain_no_absolute_paths(matrix_storage):
     created = harris_store.create_matrix(
         {
             "title": "T123",
@@ -381,17 +378,17 @@ def test_summaries_and_persisted_json_contain_no_absolute_paths(storage):
 
     summaries = harris_store.list_matrices()
     persisted = (
-        storage["matrices_dir"] / created.matrix_id / "matrix.json"
+        matrix_storage["matrices_dir"] / created.matrix_id / "matrix.json"
     ).read_text()
 
-    assert str(storage["matrices_dir"]) not in json.dumps(summaries)
-    assert str(storage["jobs_dir"]) not in json.dumps(summaries)
-    assert str(storage["matrices_dir"]) not in persisted
-    assert str(storage["jobs_dir"]) not in persisted
+    assert str(matrix_storage["matrices_dir"]) not in json.dumps(summaries)
+    assert str(matrix_storage["jobs_dir"]) not in json.dumps(summaries)
+    assert str(matrix_storage["matrices_dir"]) not in persisted
+    assert str(matrix_storage["jobs_dir"]) not in persisted
 
 
-def test_store_operations_never_modify_source_job_directories(storage):
-    before = source_snapshot(storage["jobs_dir"])
+def test_store_operations_never_modify_source_job_directories(matrix_storage):
+    before = source_snapshot(matrix_storage["jobs_dir"])
 
     created = harris_store.create_matrix()
     saved = harris_store.save_matrix(
@@ -402,10 +399,10 @@ def test_store_operations_never_modify_source_job_directories(storage):
     harris_store.load_matrix(saved.matrix_id)
     harris_store.list_matrices()
 
-    assert source_snapshot(storage["jobs_dir"]) == before
+    assert source_snapshot(matrix_storage["jobs_dir"]) == before
 
 
-def test_saved_matrix_survives_a_fresh_store_module_import(storage):
+def test_saved_matrix_survives_a_fresh_store_module_import(matrix_storage):
     created = harris_store.create_matrix({"title": "Persistent"})
 
     reloaded_store = importlib.reload(harris_store)

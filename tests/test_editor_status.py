@@ -3,6 +3,7 @@ import json
 import pytest
 
 
+import storage
 from app import app
 from backend.services import editor_pipeline as editor_pipeline_service
 from backend.tasks import TASKS
@@ -11,9 +12,7 @@ from pipeline import editor
 
 @pytest.fixture
 def client(tmp_path, monkeypatch):
-    jobs_dir = tmp_path / "jobs"
-    jobs_dir.mkdir()
-    monkeypatch.setattr(editor, "JOBS_DIR", jobs_dir)
+    jobs_dir = storage.JOBS_DIR
     TASKS.clear()
     app.config.update(TESTING=True)
     yield app.test_client()
@@ -68,7 +67,7 @@ def test_job_status_reads_lifecycle_from_meta(
     message,
 ):
     job_id = f"{status}-job"
-    job_directory = editor.JOBS_DIR / job_id
+    job_directory = storage.JOBS_DIR / job_id
     _write_meta(
         job_directory,
         job_id=job_id,
@@ -98,7 +97,7 @@ def test_unknown_job_status_returns_404(client):
 def test_job_status_does_not_require_live_task(client):
     job_id = "durable-building-job"
     _write_meta(
-        editor.JOBS_DIR / job_id,
+        storage.JOBS_DIR / job_id,
         job_id=job_id,
         status="building",
         task_id="lost-task",
@@ -115,7 +114,7 @@ def test_job_status_does_not_require_live_task(client):
 def test_complete_status_provides_results_url(client):
     job_id = "complete-results-job"
     _write_meta(
-        editor.JOBS_DIR / job_id,
+        storage.JOBS_DIR / job_id,
         job_id=job_id,
         status="complete",
     )

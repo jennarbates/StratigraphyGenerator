@@ -1,3 +1,5 @@
+import { api, apiJson, responseJson } from "../shared/http.js";
+
 const form = document.querySelector("#create-matrix-form");
 const list = document.querySelector("#matrix-list");
 const status = document.querySelector("#dashboard-status");
@@ -15,15 +17,6 @@ function setStatus(message, state = "") {
   status.dataset.state = state;
 }
 
-async function responseJson(response) {
-  const payload = await response.json();
-  if (!response.ok) {
-    const error = new Error(payload.error || "The request failed.");
-    error.status = response.status;
-    throw error;
-  }
-  return payload;
-}
 
 function countLabel(count, singular) {
   return `${count} ${singular}${count === 1 ? "" : "s"}`;
@@ -132,21 +125,10 @@ async function addSourcesToMatrix(matrix, button) {
   button.disabled = true;
   setStatus("Adding selected sources…", "saving");
   try {
-    const response = await fetch(
+    await apiJson(
       `/api/harris-matrices/${encodeURIComponent(matrix.matrix_id)}/sources`,
-      {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          job_ids: jobIds,
-          revision: matrix.revision,
-        }),
-      },
+      { job_ids: jobIds, revision: matrix.revision },
     );
-    await responseJson(response);
     window.location.assign(
       `/harris/${encodeURIComponent(matrix.matrix_id)}`,
     );
@@ -208,10 +190,7 @@ function renderMatrices(matrices) {
 
 async function loadMatrices() {
   try {
-    const response = await fetch("/api/harris-matrices", {
-      headers: { Accept: "application/json" },
-    });
-    renderMatrices(await responseJson(response));
+    renderMatrices(await api("/api/harris-matrices"));
   } catch (_error) {
     list.replaceChildren();
     const errorItem = document.createElement("li");
@@ -223,10 +202,7 @@ async function loadMatrices() {
 
 async function loadSources() {
   try {
-    const response = await fetch("/api/harris-source-jobs", {
-      headers: { Accept: "application/json" },
-    });
-    renderSources(await responseJson(response));
+    renderSources(await api("/api/harris-source-jobs"));
   } catch (_error) {
     renderSources([]);
   }
@@ -241,39 +217,20 @@ form.addEventListener("submit", async event => {
 
   try {
     const selectedJobIds = selectedSourceIds();
-    const response = await fetch("/api/harris-matrices", {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        title: data.get("title"),
-        site: data.get("site"),
-        trench: data.get("trench"),
-      }),
+    let matrix = await apiJson("/api/harris-matrices", {
+      title: data.get("title"),
+      site: data.get("site"),
+      trench: data.get("trench"),
     });
-    let matrix = await responseJson(response);
     if (selectedJobIds.length > 0) {
       setStatus("Importing selected sources…", "saving");
-      const importResponse = await fetch(
+      matrix = await apiJson(
         (
           `/api/harris-matrices/`
           + `${encodeURIComponent(matrix.matrix_id)}/sources`
         ),
-        {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            job_ids: selectedJobIds,
-            revision: matrix.revision,
-          }),
-        },
+        { job_ids: selectedJobIds, revision: matrix.revision },
       );
-      matrix = await responseJson(importResponse);
     }
     window.location.assign(
       `/harris/${encodeURIComponent(matrix.matrix_id)}`,

@@ -9,6 +9,7 @@ even across a server restart.
 import json
 import threading
 
+import storage
 from pipeline import convert_coords, editor as editor_pipeline, normalizer, validator
 
 from ..jobs import STATUS_MESSAGES, read_meta, write_meta
@@ -69,7 +70,7 @@ def run_editor_build(job_directory, build_fn, *args, log_cb=None):
 
 
 def run_editor_pipeline(job_id):
-    job_directory = editor_pipeline.JOBS_DIR / job_id
+    job_directory = storage.JOBS_DIR / job_id
     for subdirectory in PIPELINE_SUBDIRECTORIES:
         (job_directory / subdirectory).mkdir(exist_ok=True)
 

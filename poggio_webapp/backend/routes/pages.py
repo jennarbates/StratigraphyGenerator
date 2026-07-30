@@ -1,335 +1,27 @@
-"""Routes for pages."""
+"""Page routes, and the visualizer's file-discovery endpoint.
 
-import json
-import math
+Manifest reading and validation live in backend/services/viewer_files.py.
+"""
+
 from pathlib import Path
 
 from flask import (
     Blueprint,
     abort,
-    current_app,
-    jsonify,
     redirect,
     render_template,
     send_from_directory,
     url_for,
+    current_app,
+    jsonify,
 )
 
-from pipeline import editor as editor_pipeline
+import storage
 
 from ..jobs import job_dir, job_list, job_record, load_meta, rel_url
-
+from ..services.viewer_files import find_viewer_manifest, model3d_from_manifest
 
 bp = Blueprint("pages", __name__)
-
-
-def _is_within(path, directory):
-    try:
-        path.relative_to(directory)
-    except ValueError:
-        return False
-    return True
-
-
-def _find_viewer_manifest(job_directory, meta):
-    outputs = meta.get("model_outputs")
-    configured = (
-        outputs.get("viewer_manifest")
-        if isinstance(outputs, dict)
-        else None
-    )
-    if isinstance(configured, str) and configured:
-        candidate = Path(configured)
-        if not candidate.is_absolute():
-            candidate = job_directory / candidate
-        candidate = candidate.resolve()
-        if _is_within(candidate, job_directory) and candidate.is_file():
-            return candidate
-
-    conventional = (
-        job_directory
-        / "06_gempy_model"
-        / "trench_model_viewer.json"
-    ).resolve()
-    if _is_within(conventional, job_directory) and conventional.is_file():
-        return conventional
-    return None
-
-
-def _valid_number(value):
-    return (
-        isinstance(value, (int, float))
-        and not isinstance(value, bool)
-        and math.isfinite(value)
-    )
-
-
-def _has_valid_manifest_fields(manifest):
-    coordinate_system = manifest.get("coordinate_system")
-    extent = manifest.get("extent")
-    resolution = manifest.get("resolution")
-    series_order = manifest.get("series_order")
-    single_face_note = manifest.get("single_face_note")
-    surfaces = manifest.get("surfaces")
-    lith_block_path = manifest.get("lith_block_path")
-
-    return (
-        type(manifest.get("schema_version")) is int
-        and manifest["schema_version"] == 1
-        and manifest.get("kind") == "gempy-surface-model"
-        and isinstance(coordinate_system, dict)
-        and coordinate_system.get("units") == "m"
-        and coordinate_system.get("up_axis") == "Z"
-        and isinstance(extent, list)
-        and len(extent) == 6
-        and all(_valid_number(value) for value in extent)
-        and extent[0] < extent[1]
-        and extent[2] < extent[3]
-        and extent[4] < extent[5]
-        and isinstance(resolution, list)
-        and len(resolution) == 3
-        and all(
-            type(value) is int and value > 0
-            for value in resolution
-        )
-        and isinstance(series_order, list)
-        and all(isinstance(name, str) for name in series_order)
-        and (
-            single_face_note is None
-            or isinstance(single_face_note, str)
-        )
-        and isinstance(surfaces, list)
-        and isinstance(lith_block_path, str)
-        and bool(lith_block_path)
-    )
-
-
-def _resolve_manifest_artifact(manifest_directory, job_directory, path_str):
-    if not isinstance(path_str, str) or not path_str:
-        return None
-    relative = Path(path_str)
-    if relative.is_absolute() or ".." in relative.parts:
-        return None
-    candidate = (manifest_directory / relative).resolve()
-    if not _is_within(candidate, job_directory) or not candidate.is_file():
-        return None
-    return candidate
-
-
-def _validated_volume_metadata(volume, resolution):
-    if not isinstance(volume, dict):
-        return None
-
-    shape = volume.get("shape")
-    axes = volume.get("axes")
-    lithologies = volume.get("lithologies")
-    if not (
-        type(volume.get("schema_version")) is int
-        and volume["schema_version"] == 1
-        and volume.get("format") == "raw"
-        and volume.get("dtype") == "uint16-le"
-        and volume.get("layout") == "C"
-        and axes == ["x", "y", "z"]
-        and isinstance(shape, list)
-        and len(shape) == 3
-        and all(type(value) is int and value > 0 for value in shape)
-        and shape == resolution
-        and isinstance(volume.get("path"), str)
-        and bool(volume["path"])
-        and isinstance(lithologies, list)
-    ):
-        return None
-
-    normalized_lithologies = []
-    seen_ids = set()
-    for lithology in lithologies:
-        if not isinstance(lithology, dict):
-            return None
-        lithology_id = lithology.get("id")
-        name = lithology.get("name")
-        if not (
-            type(lithology_id) is int
-            and 0 <= lithology_id <= 65535
-            and lithology_id not in seen_ids
-            and isinstance(name, str)
-            and bool(name)
-        ):
-            return None
-        seen_ids.add(lithology_id)
-        normalized_lithologies.append({
-            "id": lithology_id,
-            "name": name,
-        })
-
-    return {
-        "schema_version": volume["schema_version"],
-        "format": volume["format"],
-        "dtype": volume["dtype"],
-        "layout": volume["layout"],
-        "axes": list(axes),
-        "shape": list(shape),
-        "path": volume["path"],
-        "lithologies": normalized_lithologies,
-    }
-
-
-def _validated_wall_traces(raw):
-    """The traced wall boundaries, one polyline per (face, surface).
-
-    Returns (traces, dropped). Malformed entries are dropped instead of
-    failing the manifest: the traces are an overlay showing which parts of the
-    model came from a drawing, and a model without them is still correct. A
-    polyline needs two points to be drawable, so a shorter one is dropped too.
-    """
-    if raw is None:
-        return [], 0
-    if not isinstance(raw, list):
-        return [], 1
-
-    traces = []
-    dropped = 0
-    for entry in raw:
-        if not isinstance(entry, dict):
-            dropped += 1
-            continue
-        face = entry.get("face")
-        surface = entry.get("surface")
-        raw_points = entry.get("points")
-        if not (
-            isinstance(face, str)
-            and face
-            and isinstance(surface, str)
-            and surface
-            and isinstance(raw_points, list)
-        ):
-            dropped += 1
-            continue
-
-        points = []
-        for point in raw_points:
-            if (
-                not isinstance(point, list)
-                or len(point) != 3
-                or not all(_valid_number(value) for value in point)
-            ):
-                points = None
-                break
-            points.append([float(value) for value in point])
-
-        if points is None or len(points) < 2:
-            dropped += 1
-            continue
-        traces.append({
-            "face": face,
-            "surface": surface,
-            "points": points,
-        })
-    return traces, dropped
-
-
-def _model3d_from_manifest(job_id, job_directory, manifest_path):
-    try:
-        manifest = json.loads(manifest_path.read_text())
-    except (OSError, UnicodeError, json.JSONDecodeError) as error:
-        current_app.logger.warning(
-            "Ignoring unreadable 3D viewer manifest: %s",
-            error,
-        )
-        return None
-
-    if not isinstance(manifest, dict) or not _has_valid_manifest_fields(manifest):
-        current_app.logger.warning(
-            "Ignoring unsupported or malformed 3D viewer manifest."
-        )
-        return None
-
-    warnings = []
-    surfaces = []
-    manifest_directory = manifest_path.parent
-    for entry in manifest["surfaces"]:
-        if (
-            not isinstance(entry, dict)
-            or not isinstance(entry.get("name"), str)
-            or not entry["name"]
-        ):
-            warnings.append("A surface entry is malformed and was omitted.")
-            continue
-        name = entry["name"]
-        mesh_path = _resolve_manifest_artifact(
-            manifest_directory,
-            job_directory,
-            entry.get("mesh_path"),
-        )
-        if mesh_path is None:
-            warnings.append(f"Surface {name!r} mesh is unavailable.")
-            continue
-        surfaces.append({
-            "name": name,
-            "url": rel_url(job_id, mesh_path),
-        })
-
-    if not surfaces:
-        current_app.logger.warning(
-            "Ignoring 3D viewer manifest with no available surfaces."
-        )
-        return None
-
-    wall_traces, dropped_traces = _validated_wall_traces(
-        manifest.get("wallTraces")
-    )
-    if dropped_traces:
-        warnings.append(
-            f"{dropped_traces} wall trace(s) were malformed and were omitted."
-        )
-
-    model3d = {
-        "schema_version": manifest["schema_version"],
-        "kind": manifest["kind"],
-        "coordinate_system": {
-            "units": manifest["coordinate_system"]["units"],
-            "up_axis": manifest["coordinate_system"]["up_axis"],
-        },
-        "extent": manifest["extent"],
-        "resolution": manifest["resolution"],
-        "series_order": manifest["series_order"],
-        "single_face_note": manifest["single_face_note"],
-        "surfaces": surfaces,
-        "warnings": warnings,
-    }
-    if wall_traces:
-        model3d["wall_traces"] = wall_traces
-
-    lith_block_path = _resolve_manifest_artifact(
-        manifest_directory,
-        job_directory,
-        manifest["lith_block_path"],
-    )
-    if lith_block_path is None:
-        warnings.append("Lithology block is unavailable.")
-    else:
-        model3d["lith_block_url"] = rel_url(job_id, lith_block_path)
-
-    raw_volume = manifest.get("volume")
-    if raw_volume is not None:
-        volume = _validated_volume_metadata(
-            raw_volume,
-            manifest["resolution"],
-        )
-        if volume is None:
-            warnings.append("Lithology volume metadata is unsupported or malformed.")
-        else:
-            volume_path = _resolve_manifest_artifact(
-                manifest_directory,
-                job_directory,
-                volume.pop("path"),
-            )
-            if volume_path is None:
-                warnings.append("Lithology volume is unavailable.")
-            else:
-                volume["url"] = rel_url(job_id, volume_path)
-                model3d["volume"] = volume
-
-    return model3d
 
 
 @bp.route("/")
@@ -339,7 +31,7 @@ def index():
 
 @bp.route("/jobs/<job_id>")
 def job_results(job_id):
-    job = job_record(editor_pipeline.JOBS_DIR / job_id)
+    job = job_record(storage.JOBS_DIR / job_id)
     if job is None:
         abort(404, description="unknown job id")
     if job["status"] == "editing":
@@ -408,9 +100,9 @@ def visualizer_files(job_id):
     # raw and normalized also keeps A/B compare working for field sheets.
 
     job_directory = job_dir(job_id).resolve()
-    manifest_path = _find_viewer_manifest(job_directory, meta)
+    manifest_path = find_viewer_manifest(job_directory, meta)
     if manifest_path is not None:
-        model3d = _model3d_from_manifest(
+        model3d = model3d_from_manifest(
             job_id,
             job_directory,
             manifest_path,

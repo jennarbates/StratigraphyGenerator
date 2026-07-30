@@ -1,20 +1,15 @@
 """Job directories, metadata, and safe file paths.
 
-WARNING (Phase 2 of MODULARIZATION_PLAN.md): this module currently reads the
-jobs directory from two different places.
+All paths resolve through ``storage.JOBS_DIR``, read at call time so a single
+assignment redirects every consumer.
 
-  * ``job_dir`` and everything built on it use ``config.JOBS_DIR``, bound at
-    import time by the ``from .config import JOBS_DIR`` below.
-  * ``job_record`` / ``job_list`` use ``editor_pipeline.JOBS_DIR``, which
-    ``pipeline/editor.py`` derives independently from ``__file__``.
-
-The two agree in production and disagree under test, where fixtures patch one
-or the other. This split arrived with the Phase 1 move and is preserved
-verbatim rather than silently "fixed" — unifying it changes behaviour and
-belongs in its own commit. Likewise ``load_meta``/``save_meta`` (keyed by
-job_id, tolerant of a missing file) and ``read_meta``/``write_meta`` (keyed by
-directory, stamps ``updated_at``, raises on a missing file) are two different
-contracts that Phase 2 reconciles.
+There is one implementation of reading and one of writing job metadata.
+``read_meta``/``write_meta`` take either a job_id or an already-resolved
+directory; ``load_meta``/``save_meta`` are the job_id-shaped aliases the route
+modules use. Passing a job_id resolves it through ``job_dir``, which aborts 404
+for an unknown job; passing a Path does not, so callers holding a directory
+they already validated (or one that may legitimately not exist yet) keep plain
+``FileNotFoundError`` semantics.
 """
 
 import json
@@ -24,10 +19,11 @@ from pathlib import Path
 
 from flask import abort
 
-from pipeline import editor as editor_pipeline
+import storage
 
-from .config import JOBS_DIR
 from .tasks import TASKS
+
+_REQUIRED = object()
 
 STATUS_MESSAGES = {
     "editing": "Continue editing the drawing.",
@@ -42,25 +38,65 @@ STATUS_MESSAGES = {
 
 
 def job_dir(job_id):
-    d = JOBS_DIR / job_id
+    d = storage.JOBS_DIR / job_id
     if not d.exists():
         abort(404, description="unknown job id")
     return d
 
 
-def meta_path(job_id):
-    return job_dir(job_id) / "meta.json"
+def meta_path(job):
+    """The meta.json path for a job_id or an already-resolved directory.
+
+    A job_id goes through ``job_dir``, so an unknown job aborts 404 before any
+    filesystem read. A Path is trusted as-is.
+    """
+    if isinstance(job, Path):
+        return job / "meta.json"
+    return job_dir(job) / "meta.json"
+
+
+def read_meta(job, default=_REQUIRED):
+    """A job's metadata.
+
+    With no default, a missing file raises FileNotFoundError and a corrupt one
+    raises JSONDecodeError — callers acting on one known job want to know.
+
+    With a default, both cases return it. A meta.json that cannot be parsed is
+    no more usable than one that is not there, and the callers that scan every
+    job directory must not let one damaged job break the whole listing.
+    """
+    path = meta_path(job)
+    try:
+        return json.loads(path.read_text())
+    except FileNotFoundError:
+        if default is _REQUIRED:
+            raise
+        return default
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        if default is _REQUIRED:
+            raise
+        return default
+
+
+def write_meta(job, meta, *, stamp=True):
+    """Persist a job's metadata, stamping ``updated_at`` by default.
+
+    ``job_list`` sorts on ``updated_at``, so every write stamps it — including
+    the extraction-flow writes that previously did not, and whose jobs
+    therefore always sorted on ``created_at``.
+    """
+    if stamp:
+        meta["updated_at"] = datetime.now(timezone.utc).isoformat()
+    meta_path(job).write_text(json.dumps(meta, indent=2))
 
 
 def load_meta(job_id):
-    mp = meta_path(job_id)
-    if not mp.exists():
-        return {}
-    return json.loads(mp.read_text())
+    """Tolerant read used by the route modules: {} for a job with no meta."""
+    return read_meta(job_id, {})
 
 
 def save_meta(job_id, meta):
-    meta_path(job_id).write_text(json.dumps(meta, indent=2))
+    return write_meta(job_id, meta)
 
 
 def rel_url(job_id, abs_path):
@@ -79,18 +115,8 @@ def safe_job_path(job_id, rel_path):
 
 
 # ---------------------------------------------------------------------------
-# Job metadata and record assembly, moved verbatim out of app.py in Phase 1.
-# These are keyed by directory rather than job_id; see the module docstring.
+# Job record assembly, moved out of app.py in Phase 1.
 # ---------------------------------------------------------------------------
-
-
-def write_meta(job_directory, meta):
-    meta["updated_at"] = datetime.now(timezone.utc).isoformat()
-    (job_directory / "meta.json").write_text(json.dumps(meta, indent=2))
-
-
-def read_meta(job_directory):
-    return json.loads((job_directory / "meta.json").read_text())
 
 
 def job_status(job_directory, meta):
@@ -175,10 +201,9 @@ def durable_status_payload(job_id, meta):
 
 
 def job_record(job_directory):
-    meta_file = job_directory / "meta.json"
-    if not meta_file.exists():
+    meta = read_meta(job_directory, None)
+    if meta is None:
         return None
-    meta = json.loads(meta_file.read_text())
     job_id = meta.get("job_id", job_directory.name)
     source = meta.get("source", "extraction")
     status = job_status(job_directory, meta)
@@ -244,7 +269,7 @@ def _timestamp_sort_value(value):
 
 def job_list():
     jobs = []
-    for job_directory in editor_pipeline.JOBS_DIR.iterdir():
+    for job_directory in storage.JOBS_DIR.iterdir():
         if job_directory.is_dir():
             job = job_record(job_directory)
             if job:

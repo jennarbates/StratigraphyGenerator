@@ -23,7 +23,7 @@ import {
   updateFinalizeControl,
   validateBearingDeg,
 } from "./grid.mjs";
-import { munsellToHex } from "../munsell-color.js";
+import { munsellToHex } from "../shared/munsell-color.js";
 
 const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 const POLYGON_COLORS = [

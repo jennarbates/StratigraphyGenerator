@@ -12,6 +12,7 @@ import json
 import pytest
 
 
+import storage
 from backend import create_app
 from backend.routes import trenches as trenches_routes
 from pipeline import build_gempy
@@ -22,12 +23,8 @@ from fixtures_merge import EAST_WALL, GRID_T900, NORTH_WALL
 
 @pytest.fixture
 def client(tmp_path, monkeypatch):
-    jobs_dir = tmp_path / "jobs"
-    jobs_dir.mkdir()
-    trenches_dir = tmp_path / "trenches"
-    trenches_dir.mkdir()
-    monkeypatch.setattr(trenches_routes, "JOBS_DIR", jobs_dir)
-    monkeypatch.setattr(trenches_routes, "TRENCHES_DIR", trenches_dir)
+    jobs_dir = storage.JOBS_DIR
+    trenches_dir = storage.TRENCHES_DIR
 
     app = create_app()
     app.config.update(TESTING=True)

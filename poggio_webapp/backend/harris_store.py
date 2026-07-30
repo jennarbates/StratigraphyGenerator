@@ -9,7 +9,7 @@ from pathlib import Path
 
 from pydantic import ValidationError
 
-from . import config
+import storage
 
 if __package__ == "backend":
     from pipeline.harris_matrix import HarrisMatrix, validate_matrix_graph
@@ -22,8 +22,6 @@ else:
 
 _MATRIX_ID = re.compile(r"[0-9a-f]{12}")
 _SAFE_INITIAL_FIELDS = ("title", "site", "trench")
-_DEFAULT_MATRICES_DIR = config.MATRICES_DIR
-MATRICES_DIR = _DEFAULT_MATRICES_DIR
 
 
 class HarrisStoreError(Exception):
@@ -71,9 +69,7 @@ def _validate_matrix_id(matrix_id: str) -> str:
 
 
 def _matrices_root() -> Path:
-    if MATRICES_DIR != _DEFAULT_MATRICES_DIR:
-        return MATRICES_DIR
-    return config.MATRICES_DIR
+    return storage.MATRICES_DIR
 
 
 def _matrix_directory(matrix_id: str) -> Path:

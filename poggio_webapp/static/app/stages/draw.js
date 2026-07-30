@@ -1,8 +1,8 @@
 import { apiJson } from "../core/api.js";
 import { goToStep, refreshChrome } from "../core/navigation.js";
 import { STRATA, invalidateDownstream, state } from "../core/state.js";
-import { pointInsideBand } from "../../boundary-label.js";
-import { munsellToHex } from "../../munsell-color.js";
+import { pointInsideBand } from "../../shared/boundary-label.js";
+import { munsellToHex } from "../../shared/munsell-color.js";
 import { ensureLocusTopBoundary } from "../draw-loci.js";
 import {
   applyVerifiedTextToDrawState,

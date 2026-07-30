@@ -9,11 +9,8 @@ from pathlib import Path
 
 import pytest
 
-from backend import config, create_app
-from backend import jobs as backend_jobs
-from backend.routes import jobs as jobs_routes
-from backend.routes import trenches as trenches_routes
-from pipeline import editor as editor_pipeline
+import storage
+from backend import create_app
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 WEBAPP_ROOT = REPO_ROOT / "poggio_webapp"
@@ -31,38 +28,27 @@ def webapp_root():
     return WEBAPP_ROOT
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def storage_dirs(tmp_path, monkeypatch):
     """Redirect every on-disk storage root at a fresh tmp_path.
 
-    JOBS_DIR is defined in ``backend.config`` but re-bound at import time by
-    four other modules (``from ..config import JOBS_DIR``), so patching the
-    config module alone does not reach them. ``pipeline.editor`` derives its
-    own copy from ``__file__`` and never consults config at all. Every target
-    below is therefore load-bearing.
+    One assignment per root reaches every consumer, because they all read
+    ``storage.<ROOT>`` at call time rather than binding it at import. Before
+    Phase 2 this took eight monkeypatches across five modules.
 
-    Phase 2 of MODULARIZATION_PLAN.md collapses these to a single assignment;
-    when it does, this fixture should shrink with it.
+    Autouse: no test may write to the real ``poggio_webapp/jobs`` — a test that
+    patched the wrong target used to pass while quietly writing into the
+    developer's working tree, which is a worse failure than a red test.
     """
-    jobs_dir = tmp_path / "jobs"
-    trenches_dir = tmp_path / "trenches"
-    matrices_dir = tmp_path / "matrices"
-    for directory in (jobs_dir, trenches_dir, matrices_dir):
+    for name in ("JOBS_DIR", "TRENCHES_DIR", "MATRICES_DIR"):
+        directory = tmp_path / name.split("_")[0].lower()
         directory.mkdir()
-
-    monkeypatch.setattr(config, "JOBS_DIR", jobs_dir)
-    monkeypatch.setattr(config, "TRENCHES_DIR", trenches_dir)
-    monkeypatch.setattr(config, "MATRICES_DIR", matrices_dir)
-    monkeypatch.setattr(backend_jobs, "JOBS_DIR", jobs_dir)
-    monkeypatch.setattr(jobs_routes, "JOBS_DIR", jobs_dir)
-    monkeypatch.setattr(trenches_routes, "JOBS_DIR", jobs_dir)
-    monkeypatch.setattr(trenches_routes, "TRENCHES_DIR", trenches_dir)
-    monkeypatch.setattr(editor_pipeline, "JOBS_DIR", jobs_dir)
+        monkeypatch.setattr(storage, name, directory)
 
     return {
-        "jobs": jobs_dir,
-        "trenches": trenches_dir,
-        "matrices": matrices_dir,
+        "jobs": storage.JOBS_DIR,
+        "trenches": storage.TRENCHES_DIR,
+        "matrices": storage.MATRICES_DIR,
     }
 
 

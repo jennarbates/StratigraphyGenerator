@@ -1,4 +1,5 @@
 import { api, apiJson, ensureJob } from "../core/api.js";
+import { escapeAttribute } from "../../shared/dom.js";
 import { refreshChrome } from "../core/navigation.js";
 import { invalidateDownstream, state } from "../core/state.js";
 import { $content, banner, errorBanner } from "../core/ui.js";
@@ -32,14 +33,6 @@ function labelFields() {
         </div>
       </fieldset>
   `;
-}
-
-function escapeAttribute(value) {
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;");
 }
 
 function bindLabelFields() {

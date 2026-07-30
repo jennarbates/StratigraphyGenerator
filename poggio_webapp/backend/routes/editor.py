@@ -13,9 +13,10 @@ from flask import (
 )
 from pydantic import ValidationError
 
+import storage
+from naming import clean_label
 from pipeline import editor as editor_pipeline
 from pipeline.editor import (
-    clean_label,
     create_editor_session,
     finalize_editor_session,
     load_editor_state,
@@ -70,7 +71,7 @@ def create_editor():
 
 @bp.route("/editor/<job_id>", methods=["GET"])
 def editor_page(job_id):
-    session_directory = editor_pipeline.JOBS_DIR / job_id
+    session_directory = storage.JOBS_DIR / job_id
     if not session_directory.is_dir():
         abort(404, description="unknown editor session")
 
@@ -115,7 +116,7 @@ def get_editor_state(job_id):
 
 @bp.route("/api/jobs/<job_id>/status", methods=["GET"])
 def get_job_status(job_id):
-    job_directory = editor_pipeline.JOBS_DIR / job_id
+    job_directory = storage.JOBS_DIR / job_id
     try:
         meta = read_meta(job_directory)
     except FileNotFoundError:
@@ -125,7 +126,7 @@ def get_job_status(job_id):
 
 @bp.route("/editor/<job_id>/finalize", methods=["POST"])
 def finalize_editor(job_id):
-    job_directory = editor_pipeline.JOBS_DIR / job_id
+    job_directory = storage.JOBS_DIR / job_id
     with FINALIZATION_LOCK:
         try:
             meta = read_meta(job_directory)

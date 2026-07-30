@@ -6,6 +6,7 @@ from xml.etree import ElementTree
 import pytest
 
 
+import storage
 from backend import config, create_app, harris_store
 from pipeline.harris_matrix import HarrisMatrix
 
@@ -19,18 +20,14 @@ MALFORMED_JOB = "333333333333"
 
 @pytest.fixture
 def route_context(tmp_path, monkeypatch):
-    matrices_dir = tmp_path / "matrices"
-    matrices_dir.mkdir()
-    jobs_dir = tmp_path / "jobs"
+    matrices_dir = storage.MATRICES_DIR
+    jobs_dir = storage.JOBS_DIR
     source_dir = jobs_dir / "111111111111"
     source_dir.mkdir(parents=True)
     (source_dir / "meta.json").write_bytes(b'{"title":"source"}\n')
     (source_dir / "extraction_output.json").write_bytes(
         b'{"schemaType":"FieldWallProfile"}\n'
     )
-
-    monkeypatch.setattr(config, "MATRICES_DIR", matrices_dir)
-    monkeypatch.setattr(config, "JOBS_DIR", jobs_dir)
     app = create_app()
     app.config.update(TESTING=True)
     return SimpleNamespace(

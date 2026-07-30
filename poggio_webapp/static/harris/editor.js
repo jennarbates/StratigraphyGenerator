@@ -1,3 +1,5 @@
+import { api, apiJson, responseJson } from "../shared/http.js";
+
 import {
   addManualRelation,
   addManualUnit,
@@ -140,21 +142,6 @@ function setDiagramStatus(message, state = "") {
   diagramStatus.dataset.state = state;
 }
 
-async function responseJson(response) {
-  let payload = {};
-  try {
-    payload = await response.json();
-  } catch (_error) {
-    payload = {};
-  }
-  if (!response.ok) {
-    const error = new Error(payload.error || "The request failed.");
-    error.status = response.status;
-    error.payload = payload;
-    throw error;
-  }
-  return payload;
-}
 
 function metadataFrom(matrix) {
   return {
@@ -716,18 +703,11 @@ async function saveCurrentMatrix() {
   const snapshot = saveRequestPayload(currentMatrix);
   let saved;
   try {
-    const response = await fetch(
+    saved = applySavedResponse(snapshot, await apiJson(
       `/api/harris-matrices/${encodeURIComponent(snapshot.matrix_id)}`,
-      {
-        method: "PUT",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(snapshot),
-      },
-    );
-    saved = applySavedResponse(snapshot, await responseJson(response));
+      snapshot,
+      "PUT",
+    ));
   } catch (error) {
     if (
       error?.status === 400
@@ -826,24 +806,13 @@ async function importSelectedSources() {
   try {
     await prepareServerAction();
     const before = currentMatrix;
-    const response = await fetch(
+    const payload = await apiJson(
       (
         `/api/harris-matrices/${encodeURIComponent(before.matrix_id)}`
         + "/sources"
       ),
-      {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          job_ids: jobIds,
-          revision: before.revision,
-        }),
-      },
+      { job_ids: jobIds, revision: before.revision },
     );
-    const payload = await responseJson(response);
     const warnings = Array.isArray(payload.import_warnings)
       ? payload.import_warnings
       : [];
@@ -874,24 +843,14 @@ async function importSelectedSources() {
 }
 
 async function sendSuggestionReview(request) {
-  const response = await fetch(
+  const response = await apiJson(
     (
       `/api/harris-matrices/${encodeURIComponent(request.matrixId)}`
       + `/suggestions/${encodeURIComponent(request.suggestionId)}`
     ),
-    {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        action: request.action,
-        revision: request.revision,
-      }),
-    },
+    { action: request.action, revision: request.revision },
   );
-  return responseJson(response);
+  return response;
 }
 
 async function reviewSuggestion(suggestionId, action) {
@@ -1036,11 +995,9 @@ printButton.addEventListener("click", () => {
 async function loadMatrix() {
   setStatus("loading");
   try {
-    const response = await fetch(
+    currentMatrix = validateMatrixPayload(await api(
       `/api/harris-matrices/${encodeURIComponent(editor.dataset.matrixId)}`,
-      { headers: { Accept: "application/json" } },
-    );
-    currentMatrix = validateMatrixPayload(await responseJson(response));
+    ));
     lastSavedMatrix = currentMatrix;
     populateMetadata(currentMatrix);
     renderEditorSections();
@@ -1054,10 +1011,7 @@ async function loadMatrix() {
 async function loadSourceJobs() {
   setSourceStatus("Loading source jobs…", "loading");
   try {
-    const response = await fetch("/api/harris-source-jobs", {
-      headers: { Accept: "application/json" },
-    });
-    const payload = await responseJson(response);
+    const payload = await api("/api/harris-source-jobs");
     if (!Array.isArray(payload)) {
       throw new TypeError("Source job response must be a list.");
     }

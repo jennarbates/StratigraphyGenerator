@@ -10,6 +10,8 @@ running this web app.
 import json
 import os
 import re
+
+from naming import safe_filename
 from collections.abc import Mapping
 
 import numpy as np
@@ -54,10 +56,6 @@ def middle_zoom_range(points, surf_order, surfaces=None, padding_frac=0.25,
     zlo, zhi = subset["Z"].min(), subset["Z"].max()
     pad = max((zhi - zlo) * padding_frac, min_padding)
     return zlo - pad, zhi + pad
-
-
-def safe_filename(name):
-    return re.sub(r"[^A-Za-z0-9_.-]+", "_", name).strip("_") or "surface"
 
 
 def wall_traces(points):
@@ -271,7 +269,7 @@ def export_meshes(geo_model, solution, surf_order, outdir):
             transformed,
             validated_faces,
         )
-        path = os.path.join(outdir, f"{safe_filename(surf_name)}.obj")
+        path = os.path.join(outdir, f"{safe_filename(surf_name, 'surface')}.obj")
         with open(path, "w") as f:
             f.write(f"# {surf_name}\n")
             for v in transformed_verts:

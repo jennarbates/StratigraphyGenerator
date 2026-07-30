@@ -1,3 +1,5 @@
+import { api, apiJson, responseJson } from "../shared/http.js";
+
 import {
   CANVAS_HEIGHT_METERS,
   CANVAS_WIDTH_METERS,
@@ -195,13 +197,6 @@ function configureFaces(state) {
   clearSelectedPoint();
 }
 
-async function responseJson(response) {
-  const body = await response.json();
-  if (!response.ok) {
-    throw new Error(body.error ?? `Request failed (${response.status}).`);
-  }
-  return body;
-}
 
 function createCell(text) {
   const cell = document.createElement("td");
@@ -284,8 +279,7 @@ function renderFinds(finds) {
 }
 
 async function loadFinds() {
-  const response = await fetch(`/finds/${encodeURIComponent(currentJobId)}`);
-  renderFinds(await responseJson(response));
+  renderFinds(await api(`/finds/${encodeURIComponent(currentJobId)}`));
 }
 
 async function selectJob(jobId) {
@@ -300,12 +294,12 @@ async function selectJob(jobId) {
   }
 
   const encodedJobId = encodeURIComponent(jobId);
-  const [stateResponse, findsResponse] = await Promise.all([
-    fetch(`/editor/${encodedJobId}/state`),
-    fetch(`/finds/${encodedJobId}`),
+  const [editorState, finds] = await Promise.all([
+    api(`/editor/${encodedJobId}/state`),
+    api(`/finds/${encodedJobId}`),
   ]);
-  configureFaces(await responseJson(stateResponse));
-  renderFinds(await responseJson(findsResponse));
+  configureFaces(editorState);
+  renderFinds(finds);
 
   const pageUrl = new URL(window.location);
   pageUrl.searchParams.set("job_id", jobId);
@@ -364,22 +358,14 @@ form.addEventListener("submit", async (event) => {
   submitButton.disabled = true;
   formStatus.textContent = "Saving…";
   try {
-    const response = await fetch(
-      `/finds/${encodeURIComponent(currentJobId)}/new`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          face_id: faceId(),
-          x: selectedPoint.x,
-          y: selectedPoint.y,
-          elevation: Number(elevationInput.value),
-          locus: locusInput.value,
-          description: descriptionInput.value,
-        }),
-      },
-    );
-    await responseJson(response);
+    await apiJson(`/finds/${encodeURIComponent(currentJobId)}/new`, {
+      face_id: faceId(),
+      x: selectedPoint.x,
+      y: selectedPoint.y,
+      elevation: Number(elevationInput.value),
+      locus: locusInput.value,
+      description: descriptionInput.value,
+    });
     elevationInput.value = "";
     locusInput.value = "";
     descriptionInput.value = "";
@@ -402,12 +388,11 @@ findsList.addEventListener("click", async (event) => {
   deleteButton.disabled = true;
   formStatus.textContent = "Deleting…";
   try {
-    const response = await fetch(
+    await api(
       `/finds/${encodeURIComponent(currentJobId)}/`
       + encodeURIComponent(deleteButton.dataset.findId),
       { method: "DELETE" },
     );
-    await responseJson(response);
     await loadFinds();
     formStatus.textContent = "Find deleted.";
   } catch (error) {

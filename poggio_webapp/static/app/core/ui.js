@@ -23,11 +23,7 @@ export function banner(kind, text) {
 // numbers read off the sheet). Was referenced by the boundary-review legend
 // but never defined — a latent ReferenceError hidden behind the old
 // assign-route bug.
-export function esc(s) {
-  return String(s).replace(/[&<>"']/g, (c) => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
-  }[c]));
-}
+export { esc } from "../../shared/dom.js";
 
 export function renderJsonTree(value, key = null, depth = 0) {
   const wrap = document.createElement("div");

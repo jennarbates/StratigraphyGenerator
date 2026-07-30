@@ -4,6 +4,8 @@ from pathlib import Path
 
 import pytest
 
+import storage
+
 from poggio_webapp.pipeline.harris_import import (
     HarrisImportError,
     discover_source_jobs,
@@ -154,7 +156,7 @@ def test_load_source_document_uses_every_discovery_order_branch(
     meta_fields,
     create_conventional,
 ):
-    jobs_dir = tmp_path / "jobs"
+    jobs_dir = storage.JOBS_DIR
     job_dir = jobs_dir / FIELD_JOB
     job_dir.mkdir(parents=True)
     candidates = {
@@ -193,7 +195,7 @@ def test_load_source_document_uses_every_discovery_order_branch(
 
 
 def test_outside_job_metadata_paths_are_ignored(tmp_path):
-    jobs_dir = tmp_path / "jobs"
+    jobs_dir = storage.JOBS_DIR
     job_dir = jobs_dir / FIELD_JOB
     job_dir.mkdir(parents=True)
     outside = write_json(
@@ -221,7 +223,7 @@ def test_outside_job_metadata_paths_are_ignored(tmp_path):
 
 
 def test_malformed_json_and_unsupported_shape_give_focused_errors(tmp_path):
-    jobs_dir = tmp_path / "jobs"
+    jobs_dir = storage.JOBS_DIR
     malformed_dir = jobs_dir / FIELD_JOB
     malformed_dir.mkdir(parents=True)
     (malformed_dir / "extraction_output.json").write_text(
@@ -305,7 +307,7 @@ def test_illustrator_units_import_every_face_without_merging_labels():
 def test_two_job_import_keeps_equal_labels_as_exact_separate_source_units(
     tmp_path,
 ):
-    jobs_dir = tmp_path / "jobs"
+    jobs_dir = storage.JOBS_DIR
     write_job(jobs_dir, FIELD_JOB, field_document())
     second_document = field_document()
     second_document["faceLabel"] = "South baulk"
@@ -349,7 +351,7 @@ def test_two_job_import_keeps_equal_labels_as_exact_separate_source_units(
 def test_import_warnings_have_stable_codes_and_no_automatic_graph_changes(
     tmp_path,
 ):
-    jobs_dir = tmp_path / "jobs"
+    jobs_dir = storage.JOBS_DIR
     write_job(jobs_dir, ILLUSTRATOR_JOB, illustrator_document())
 
     imported, warnings = import_source_jobs(
@@ -369,7 +371,7 @@ def test_import_warnings_have_stable_codes_and_no_automatic_graph_changes(
 
 
 def test_reimport_is_idempotent_and_preserves_user_edits(tmp_path):
-    jobs_dir = tmp_path / "jobs"
+    jobs_dir = storage.JOBS_DIR
     write_job(jobs_dir, FIELD_JOB, field_document())
 
     imported, _warnings = import_source_jobs(
@@ -396,7 +398,7 @@ def test_reimport_is_idempotent_and_preserves_user_edits(tmp_path):
 
 
 def test_discovery_omits_unusable_jobs_and_exposes_no_server_paths(tmp_path):
-    jobs_dir = tmp_path / "jobs"
+    jobs_dir = storage.JOBS_DIR
     write_job(jobs_dir, FIELD_JOB, field_document())
     unusable = jobs_dir / "333333333333"
     unusable.mkdir(parents=True)
@@ -428,8 +430,7 @@ def test_discovery_omits_unusable_jobs_and_exposes_no_server_paths(tmp_path):
     ],
 )
 def test_invalid_and_traversal_job_ids_are_rejected(tmp_path, job_id):
-    jobs_dir = tmp_path / "jobs"
-    jobs_dir.mkdir()
+    jobs_dir = storage.JOBS_DIR
 
     with pytest.raises(HarrisImportError, match="12 lowercase hexadecimal"):
         load_source_document(job_id, jobs_dir)
@@ -440,7 +441,7 @@ def test_invalid_and_traversal_job_ids_are_rejected(tmp_path, job_id):
 
 
 def test_import_never_changes_source_json_or_metadata_bytes(tmp_path):
-    jobs_dir = tmp_path / "jobs"
+    jobs_dir = storage.JOBS_DIR
     job_dir = write_job(jobs_dir, FIELD_JOB, field_document())
     write_json(
         job_dir / "meta.json",

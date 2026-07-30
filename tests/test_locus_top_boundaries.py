@@ -1,7 +1,7 @@
 import pytest
 
 
-from backend.routes.manual import Calibration, _build_fieldwall
+from pipeline.manual_extraction import Calibration, build_fieldwall
 from pipeline.assign_markers import _assemble
 from pipeline.convert_coords import fieldwall_to_profiles
 
@@ -46,7 +46,7 @@ def _manual_payload(include_base=True):
 
 
 def test_manual_fieldwall_uses_each_named_line_as_that_locus_top(calibration):
-    data, warnings = _build_fieldwall(_manual_payload(), calibration, None)
+    data, warnings = build_fieldwall(_manual_payload(), calibration, None)
 
     assert [layer["locusNumber"] for layer in data["layers"]] == ["1", "2"]
     locus_1, locus_2 = data["layers"]
@@ -60,7 +60,7 @@ def test_manual_fieldwall_uses_each_named_line_as_that_locus_top(calibration):
 
 def test_manual_fieldwall_requires_a_final_base(calibration):
     with pytest.raises(ValueError, match="final bottom line"):
-        _build_fieldwall(_manual_payload(include_base=False), calibration, None)
+        build_fieldwall(_manual_payload(include_base=False), calibration, None)
 
 
 def test_marker_assembly_does_not_shift_locus_names_down_one_line():
@@ -97,7 +97,7 @@ def test_marker_assembly_does_not_shift_locus_names_down_one_line():
 
 
 def test_fieldwall_conversion_models_the_locus_top_not_its_bottom(calibration):
-    data, _ = _build_fieldwall(_manual_payload(), calibration, None)
+    data, _ = build_fieldwall(_manual_payload(), calibration, None)
 
     adapted, notes = fieldwall_to_profiles(data)
 

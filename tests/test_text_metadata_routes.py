@@ -5,6 +5,7 @@ from types import SimpleNamespace
 import pytest
 
 
+import storage
 from backend import create_app
 from backend import jobs as backend_jobs
 from backend.routes import text_metadata
@@ -12,9 +13,7 @@ from backend.routes import text_metadata
 
 @pytest.fixture
 def route_context(tmp_path, monkeypatch):
-    jobs_dir = tmp_path / "jobs"
-    jobs_dir.mkdir()
-    monkeypatch.setattr(backend_jobs, "JOBS_DIR", jobs_dir)
+    jobs_dir = storage.JOBS_DIR
     app = create_app()
     app.config.update(TESTING=True)
     return SimpleNamespace(client=app.test_client(), jobs_dir=jobs_dir)

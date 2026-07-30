@@ -1,4 +1,4 @@
-import { SurfaceModelViewer } from "../model3d-viewer.js";
+import { SurfaceModelViewer } from "../shared/model3d-viewer.js";
 import { validateModel3d } from "./model3d-core.mjs";
 
 class VisualizerSurfaceModelViewer extends SurfaceModelViewer {

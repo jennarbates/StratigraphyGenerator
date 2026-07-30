@@ -3,6 +3,7 @@ import json
 import pytest
 
 
+import storage
 from app import app
 from backend.routes import editor as editor_routes
 from pipeline import editor
@@ -10,9 +11,7 @@ from pipeline import editor
 
 @pytest.fixture
 def client(tmp_path, monkeypatch):
-    jobs_dir = tmp_path / "jobs"
-    jobs_dir.mkdir()
-    monkeypatch.setattr(editor, "JOBS_DIR", jobs_dir)
+    jobs_dir = storage.JOBS_DIR
     app.config.update(TESTING=True)
     return app.test_client()
 
@@ -62,7 +61,7 @@ def test_post_find_without_stratigraphy_succeeds(client):
     stored = response.get_json()
     assert stored["find_id"]
     assert stored["locus"] == "1042"
-    assert not (editor.JOBS_DIR / job_id / "editor_state.json").exists()
+    assert not (storage.JOBS_DIR / job_id / "editor_state.json").exists()
 
 
 def test_post_find_missing_required_field_returns_clear_4xx(client):
@@ -119,7 +118,7 @@ def test_delete_unknown_find_returns_4xx(client):
 
 def test_post_find_syncs_existing_extraction_output(client):
     job_id = _create_editor(client)
-    output_path = editor.JOBS_DIR / job_id / "extraction_output.json"
+    output_path = storage.JOBS_DIR / job_id / "extraction_output.json"
     output_path.write_text(json.dumps({"trenchLabel": "T104", "finds": []}))
 
     response = client.post(f"/finds/{job_id}/new", json=_find_data())
@@ -160,5 +159,5 @@ def test_find_added_before_finalize_is_synced_into_output(
     assert save_response.status_code == 200
     assert finalize_response.status_code == 202
     assert pipeline_calls == [job_id]
-    output_path = editor.JOBS_DIR / job_id / "extraction_output.json"
+    output_path = storage.JOBS_DIR / job_id / "extraction_output.json"
     assert json.loads(output_path.read_text())["finds"] == [stored_find]

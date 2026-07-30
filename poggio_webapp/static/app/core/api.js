@@ -1,24 +1,12 @@
+// The wizard's API surface. Transport lives in shared/http.js, which the
+// harris, finds, trenches and canvas bundles use too; only ensureJob and
+// extractWaitStatus below depend on this bundle's state, which is why this
+// module still exists rather than every stage importing shared/http directly.
+import { api, apiJson, pollTask } from "../../shared/http.js";
 import { state } from "./state.js";
 import { $jobBadge } from "./ui.js";
 
-export async function api(path, opts = {}) {
-  const res = await fetch(path, opts);
-  let body;
-  try { body = await res.json(); } catch (e) { body = null; }
-  if (!res.ok) {
-    const msg = (body && (body.error || body.description)) || res.statusText;
-    throw new Error(msg);
-  }
-  return body;
-}
-
-export async function apiJson(path, payload, method = "POST") {
-  return api(path, {
-    method,
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload || {}),
-  });
-}
+export { api, apiJson, pollTask };
 
 export async function ensureJob() {
   if (state.jobId) return state.jobId;
@@ -26,20 +14,6 @@ export async function ensureJob() {
   state.jobId = r.job_id;
   $jobBadge.textContent = `Current drawing · ${state.jobId.slice(-6)}`;
   return state.jobId;
-}
-
-export async function pollTask(taskId, onLog) {
-  while (true) {
-    const t = await api(`/api/tasks/${taskId}`);
-    if (onLog) onLog(t.log || [], t.elapsed_seconds);
-    if (t.status === "done") return t;
-    if (t.status === "error") {
-      const err = new Error(t.error);
-      err.detail = t.error_detail || null;
-      throw err;
-    }
-    await new Promise((r) => setTimeout(r, 1200));
-  }
 }
 
 // How long is too long for the extraction stage? Derived from the actual

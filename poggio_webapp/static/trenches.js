@@ -1,3 +1,5 @@
+import { api, apiJson, responseJson } from "./shared/http.js";
+
 /* Trenches page: group the per-wall drawings of one trench and build them
    into a single model.
 
@@ -10,20 +12,6 @@
 const list = document.querySelector("[data-trench-list]");
 const POLL_INTERVAL_MS = 2000;
 
-async function responseJson(response) {
-  let payload = {};
-  try {
-    payload = await response.json();
-  } catch (_error) {
-    payload = {};
-  }
-  if (!response.ok) {
-    const error = new Error(payload.error || "The request failed.");
-    error.status = response.status;
-    throw error;
-  }
-  return payload;
-}
 
 function panel(text) {
   const item = document.createElement("div");
@@ -85,10 +73,7 @@ async function pollTask(taskId, setStatus) {
     await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL_MS));
     let payload;
     try {
-      payload = await responseJson(await fetch(
-        `/api/tasks/${encodeURIComponent(taskId)}`,
-        { headers: { Accept: "application/json" } },
-      ));
+      payload = await api(`/api/tasks/${encodeURIComponent(taskId)}`);
     } catch (error) {
       setStatus(
         error.message || "Lost contact with the build.",
@@ -144,17 +129,10 @@ async function startBuild(label, section) {
   );
 
   try {
-    const payload = await responseJson(await fetch(
+    const payload = await apiJson(
       `/api/trenches/${encodeURIComponent(label)}/build`,
-      {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(grid ? { grid } : {}),
-      },
-    ));
+      grid ? { grid } : {},
+    );
 
     messages.append(...[
       messageBanner("Grid warnings", payload.grid_warnings, "warn"),
@@ -246,9 +224,7 @@ function renderTrenches(trenches) {
 
 async function loadTrenches() {
   try {
-    const payload = await responseJson(await fetch("/api/trenches", {
-      headers: { Accept: "application/json" },
-    }));
+    const payload = await api("/api/trenches");
     renderTrenches(payload.trenches || {});
   } catch (_error) {
     list.replaceChildren();

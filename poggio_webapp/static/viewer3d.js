@@ -1,7 +1,7 @@
 // Saved-job results-page adapter for the shared surface renderer.
 
-import { munsellToHex } from "./munsell-color.js";
-import { SurfaceModelViewer } from "./model3d-viewer.js";
+import { munsellToHex } from "./shared/munsell-color.js";
+import { SurfaceModelViewer } from "./shared/model3d-viewer.js";
 
 function showStatus(statusEl, message) {
   if (!statusEl) return;

@@ -17,6 +17,7 @@ import pandas as pd
 import pytest
 
 
+import storage
 from pipeline import convert_coords
 from pipeline.build_gempy import run_build, wall_traces
 from pipeline.merge_walls import merge_extractions
@@ -157,9 +158,7 @@ def client(tmp_path, monkeypatch):
     import backend.jobs as jobs
     from app import app
 
-    jobs_dir = tmp_path / "jobs"
-    jobs_dir.mkdir()
-    monkeypatch.setattr(jobs, "JOBS_DIR", jobs_dir)
+    jobs_dir = storage.JOBS_DIR
     app.config.update(TESTING=True)
     return app.test_client(), jobs_dir
 

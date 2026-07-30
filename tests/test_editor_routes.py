@@ -4,6 +4,7 @@ from html.parser import HTMLParser
 import pytest
 
 
+import storage
 from app import app
 from backend import config
 from backend import jobs as backend_jobs
@@ -34,10 +35,7 @@ class _ResultsPageParser(HTMLParser):
 
 @pytest.fixture
 def client(tmp_path, monkeypatch):
-    jobs_dir = tmp_path / "jobs"
-    jobs_dir.mkdir()
-    monkeypatch.setattr(editor, "JOBS_DIR", jobs_dir)
-    monkeypatch.setattr(config, "JOBS_DIR", jobs_dir)
+    jobs_dir = storage.JOBS_DIR
     app.config.update(TESTING=True)
     return app.test_client()
 
@@ -105,7 +103,7 @@ def _invalid_structural_field_wall_envelope():
 
 def _read_job_meta(job_id):
     return json.loads(
-        (editor.JOBS_DIR / job_id / "meta.json").read_text()
+        (storage.JOBS_DIR / job_id / "meta.json").read_text()
     )
 
 
@@ -721,14 +719,14 @@ def test_synchronous_pipeline_failure_sets_error_and_preserves_editor_data(
     job_id = _create_editor(client)
     state = _valid_field_wall_state()
     client.post(f"/editor/{job_id}/save", json=state)
-    state_path = editor.JOBS_DIR / job_id / "editor_state.json"
+    state_path = storage.JOBS_DIR / job_id / "editor_state.json"
     original_editor_state = state_path.read_text()
 
     response = client.post(f"/editor/{job_id}/finalize")
 
     metadata = _read_job_meta(job_id)
     output = json.loads(
-        (editor.JOBS_DIR / job_id / "extraction_output.json").read_text()
+        (storage.JOBS_DIR / job_id / "extraction_output.json").read_text()
     )
     assert response.status_code == 500
     assert calls[0]["status"] == "finalizing"
@@ -813,7 +811,7 @@ def test_finalize_after_completion_returns_existing_lifecycle_information(
     first_response = client.post(f"/editor/{job_id}/finalize")
     metadata = _read_job_meta(job_id)
     metadata["status"] = "complete"
-    backend_jobs.write_meta(editor.JOBS_DIR / job_id, metadata)
+    backend_jobs.write_meta(storage.JOBS_DIR / job_id, metadata)
 
     second_response = client.post(f"/editor/{job_id}/finalize")
 

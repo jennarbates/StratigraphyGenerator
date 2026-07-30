@@ -11,19 +11,14 @@ from pydantic import (
     ValidationError,
 )
 
-from pipeline.harris_import import (
-    HarrisImportError,
-    discover_source_jobs,
-    import_source_jobs,
-)
-from pipeline.harris_suggestions import (
-    HarrisSuggestionError,
-    generate_suggestions,
-    review_suggestion,
-)
+from pipeline.harris_import import HarrisImportError, discover_source_jobs
+from pipeline.harris_suggestions import HarrisSuggestionError
 from pipeline.harris_render import HarrisRenderError, render_harris_svg
 
-from .. import config, harris_store
+import storage
+
+from .. import harris_store
+from ..services import harris_workspace
 
 
 bp = Blueprint("harris", __name__)
@@ -160,14 +155,6 @@ def _store_error_response(error):
     raise error
 
 
-def _load_expected_revision(matrix_id, expected_revision):
-    matrix = harris_store.load_matrix(matrix_id)
-    if matrix.revision != expected_revision:
-        raise harris_store.MatrixConflictError(
-            expected_revision,
-            matrix.revision,
-        )
-    return matrix
 
 
 @bp.route("/harris")
@@ -198,7 +185,7 @@ def list_harris_matrices():
 
 @bp.route("/api/harris-source-jobs", methods=["GET"])
 def list_harris_source_jobs():
-    return jsonify(discover_source_jobs(config.JOBS_DIR))
+    return jsonify(discover_source_jobs(storage.JOBS_DIR))
 
 
 @bp.route("/api/harris-matrices", methods=["POST"])
@@ -337,23 +324,10 @@ def import_harris_sources(matrix_id):
         return _invalid_request(error)
 
     try:
-        current = _load_expected_revision(
+        saved, warnings = harris_workspace.import_sources(
             matrix_id,
-            import_request.revision,
-        )
-        imported, warnings = import_source_jobs(
-            current,
             import_request.job_ids,
-            config.JOBS_DIR,
-        )
-        with_suggestions = generate_suggestions(
-            imported,
-            config.JOBS_DIR,
-        )
-        saved = harris_store.save_matrix(
-            matrix_id,
-            with_suggestions,
-            expected_revision=import_request.revision,
+            import_request.revision,
         )
     except (
         harris_store.InvalidMatrixIdError,
@@ -395,29 +369,14 @@ def review_harris_suggestion(matrix_id, suggestion_id):
         return _invalid_request(error)
 
     try:
-        current = _load_expected_revision(
+        saved = harris_workspace.review(
             matrix_id,
-            review_request.revision,
-        )
-        if not any(
-            suggestion.id == suggestion_id
-            for suggestion in current.suggestions
-        ):
-            return _error_response(
-                f"Suggestion {suggestion_id} was not found.",
-                "suggestion_not_found",
-                404,
-            )
-        reviewed = review_suggestion(
-            current,
             suggestion_id,
             review_request.action,
+            review_request.revision,
         )
-        saved = harris_store.save_matrix(
-            matrix_id,
-            reviewed,
-            expected_revision=review_request.revision,
-        )
+    except harris_workspace.SuggestionNotFoundError as error:
+        return _error_response(str(error), "suggestion_not_found", 404)
     except (
         harris_store.InvalidMatrixIdError,
         harris_store.MatrixNotFoundError,

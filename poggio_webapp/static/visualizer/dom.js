@@ -1,13 +1,1 @@
-export const $ = (id) => document.getElementById(id);
-
-export function esc(value) {
-  return String(value).replace(
-    /[&<>"]/g,
-    (char) => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-    })[char],
-  );
-}
+export { $, esc } from "../shared/dom.js";

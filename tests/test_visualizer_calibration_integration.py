@@ -13,15 +13,14 @@ import json
 import pytest
 
 
+import storage
 import backend.jobs as jobs
 from app import app
 
 
 @pytest.fixture
 def client(tmp_path, monkeypatch):
-    jobs_dir = tmp_path / "jobs"
-    jobs_dir.mkdir()
-    monkeypatch.setattr(jobs, "JOBS_DIR", jobs_dir)
+    jobs_dir = storage.JOBS_DIR
     app.config.update(TESTING=True)
     return app.test_client()
 
@@ -32,7 +31,7 @@ def _write_meta(job_dir, meta):
 
 def test_manual_route_calibration_flows_to_visualizer(client):
     job_id = "manual-calibration-integration"
-    job_dir = jobs.JOBS_DIR / job_id
+    job_dir = storage.JOBS_DIR / job_id
     job_dir.mkdir()
     scan_path = job_dir / "scan.png"
     scan_path.write_bytes(b"scan")
@@ -77,7 +76,7 @@ def test_manual_route_calibration_flows_to_visualizer(client):
 
 def test_marker_calibration_flows_to_visualizer(client):
     job_id = "marker-calibration-integration"
-    job_dir = jobs.JOBS_DIR / job_id
+    job_dir = storage.JOBS_DIR / job_id
     extraction_dir = job_dir / "03_extraction"
     extraction_dir.mkdir(parents=True)
     rotated_path = extraction_dir / "marker_source_rotated.png"

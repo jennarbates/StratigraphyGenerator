@@ -404,7 +404,7 @@ def make_trench_starter_config(merged):
     return cfg
 
 
-def _face_names(merged):
+def face_names(merged):
     """Face names in document order, resolved the way convert() resolves
     them so a config keyed off one works for the other."""
     names = []
@@ -446,7 +446,7 @@ def face_endpoints(face_cfg, length_m):
     return (X0, Y0), (X0 + L * math.sin(theta), Y0 + L * math.cos(theta))
 
 
-def _is_placeholder(face_cfg):
+def is_placeholder(face_cfg):
     """True if this face still carries make_starter_config()'s pattern."""
     try:
         originX = float(face_cfg["originX"])
@@ -499,7 +499,7 @@ def check_trench_grid_config(grid, merged, tolerance_m=0.05):
     """
     faces = [f for f in ((merged or {}).get("trenchProfiles") or [])
              if isinstance(f, dict)]
-    names = _face_names(merged)
+    names = face_names(merged)
     faces_cfg = (grid or {}).get("faces") or {}
 
     missing = [name for name in names if name not in faces_cfg]
@@ -514,7 +514,7 @@ def check_trench_grid_config(grid, merged, tolerance_m=0.05):
     # 1. Starter placeholders. Building on these is the failure mode the
     #    README warns about, so it is worth naming loudly per face.
     for name in names:
-        if _is_placeholder(faces_cfg[name]):
+        if is_placeholder(faces_cfg[name]):
             warnings.append(
                 f"face {name!r} is still the starter placeholder "
                 f"(originY 0, surfaceZ 100, bearing 90, originX a multiple of "

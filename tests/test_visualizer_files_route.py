@@ -4,15 +4,14 @@ from pathlib import Path
 import pytest
 
 
+import storage
 import backend.jobs as jobs
 from app import app
 
 
 @pytest.fixture
 def client(tmp_path, monkeypatch):
-    jobs_dir = tmp_path / "jobs"
-    jobs_dir.mkdir()
-    monkeypatch.setattr(jobs, "JOBS_DIR", jobs_dir)
+    jobs_dir = storage.JOBS_DIR
     app.config.update(TESTING=True)
     return app.test_client()
 
@@ -124,7 +123,7 @@ def _write_model_file(job_dir, relative_path):
 
 def test_manual_calibration_surfaced_under_calibration_key(client):
     job_id = "manual-calibration"
-    job_dir = jobs.JOBS_DIR / job_id
+    job_dir = storage.JOBS_DIR / job_id
     job_dir.mkdir()
     image_path = job_dir / "manual.png"
     image_path.write_bytes(b"image")
@@ -148,7 +147,7 @@ def test_manual_calibration_surfaced_under_calibration_key(client):
 
 def test_manual_calibration_omitted_without_matching_image(client):
     job_id = "missing-manual-image"
-    job_dir = jobs.JOBS_DIR / job_id
+    job_dir = storage.JOBS_DIR / job_id
     job_dir.mkdir()
     _write_meta(job_dir, {
         "manual_calibration": _manual_calibration(),
@@ -165,7 +164,7 @@ def test_manual_calibration_omitted_without_matching_image(client):
 
 def test_no_calibration_at_all_still_serves_image(client):
     job_id = "scan-without-calibration"
-    job_dir = jobs.JOBS_DIR / job_id
+    job_dir = storage.JOBS_DIR / job_id
     job_dir.mkdir()
     scan_path = job_dir / "scan.png"
     scan_path.write_bytes(b"scan")
@@ -184,7 +183,7 @@ def test_no_calibration_at_all_still_serves_image(client):
 
 def test_marker_calib_surfaced_under_calibration_key(client):
     job_id = "marker-calibration"
-    job_dir = jobs.JOBS_DIR / job_id
+    job_dir = storage.JOBS_DIR / job_id
     extraction_dir = job_dir / "03_extraction"
     extraction_dir.mkdir(parents=True)
     rotated_path = extraction_dir / "marker_source_rotated.png"
@@ -207,7 +206,7 @@ def test_marker_calib_surfaced_under_calibration_key(client):
 
 def test_marker_calib_ignored_without_rotated_image(client):
     job_id = "marker-calibration-without-rotated-image"
-    job_dir = jobs.JOBS_DIR / job_id
+    job_dir = storage.JOBS_DIR / job_id
     job_dir.mkdir()
     scan_path = job_dir / "scan.png"
     scan_path.write_bytes(b"scan")
@@ -230,7 +229,7 @@ def test_marker_calib_ignored_without_rotated_image(client):
 
 def test_no_model_keeps_existing_visualizer_payload_unchanged(client):
     job_id = "existing-two-dimensional-payload"
-    job_dir = jobs.JOBS_DIR / job_id
+    job_dir = storage.JOBS_DIR / job_id
     job_dir.mkdir()
     scan_path = _write_model_file(job_dir, "scan.png")
     normalized_path = _write_model_file(job_dir, "normalized.json")
@@ -267,7 +266,7 @@ def test_no_model_keeps_existing_visualizer_payload_unchanged(client):
 
 def test_metadata_manifest_returns_model3d_with_job_file_urls(client):
     job_id = "metadata-model"
-    job_dir = jobs.JOBS_DIR / job_id
+    job_dir = storage.JOBS_DIR / job_id
     job_dir.mkdir()
     manifest_path = _write_manifest(
         job_dir,
@@ -321,7 +320,7 @@ def test_metadata_manifest_returns_model3d_with_job_file_urls(client):
 
 def test_conventional_manifest_survives_without_model_outputs(client):
     job_id = "conventional-model"
-    job_dir = jobs.JOBS_DIR / job_id
+    job_dir = storage.JOBS_DIR / job_id
     job_dir.mkdir()
     _write_manifest(job_dir, _viewer_manifest())
     _write_model_file(
@@ -345,7 +344,7 @@ def test_conventional_manifest_survives_without_model_outputs(client):
 
 def test_metadata_manifest_is_preferred_over_conventional_manifest(client):
     job_id = "preferred-metadata-model"
-    job_dir = jobs.JOBS_DIR / job_id
+    job_dir = storage.JOBS_DIR / job_id
     job_dir.mkdir()
     _write_manifest(
         job_dir,
@@ -389,7 +388,7 @@ def test_metadata_manifest_is_preferred_over_conventional_manifest(client):
 
 def test_missing_mesh_is_omitted_with_surface_warning(client):
     job_id = "partially-missing-model"
-    job_dir = jobs.JOBS_DIR / job_id
+    job_dir = storage.JOBS_DIR / job_id
     job_dir.mkdir()
     _write_manifest(
         job_dir,
@@ -420,7 +419,7 @@ def test_missing_mesh_is_omitted_with_surface_warning(client):
 
 def test_manifest_with_no_existing_surfaces_omits_model3d(client):
     job_id = "model-without-surfaces"
-    job_dir = jobs.JOBS_DIR / job_id
+    job_dir = storage.JOBS_DIR / job_id
     job_dir.mkdir()
     _write_manifest(
         job_dir,
@@ -439,7 +438,7 @@ def test_manifest_with_no_existing_surfaces_omits_model3d(client):
 
 def test_missing_lith_block_keeps_surface_without_lith_url(client):
     job_id = "model-without-lith-block"
-    job_dir = jobs.JOBS_DIR / job_id
+    job_dir = storage.JOBS_DIR / job_id
     job_dir.mkdir()
     _write_manifest(job_dir, _viewer_manifest())
     _write_model_file(
@@ -458,7 +457,7 @@ def test_missing_lith_block_keeps_surface_without_lith_url(client):
 
 def test_valid_volume_replaces_manifest_path_with_job_file_url(client):
     job_id = "model-with-volume"
-    job_dir = jobs.JOBS_DIR / job_id
+    job_dir = storage.JOBS_DIR / job_id
     job_dir.mkdir()
     manifest = _viewer_manifest()
     manifest["volume"] = _volume_manifest()
@@ -505,7 +504,7 @@ def test_valid_volume_replaces_manifest_path_with_job_file_url(client):
 
 def test_missing_volume_binary_omits_volume_but_preserves_surfaces(client):
     job_id = "model-with-missing-volume"
-    job_dir = jobs.JOBS_DIR / job_id
+    job_dir = storage.JOBS_DIR / job_id
     job_dir.mkdir()
     manifest = _viewer_manifest()
     manifest["volume"] = _volume_manifest()
@@ -542,7 +541,7 @@ def test_malformed_or_unsupported_volume_is_omitted_safely(
     invalid_value,
 ):
     job_id = f"model-with-invalid-volume-{field}"
-    job_dir = jobs.JOBS_DIR / job_id
+    job_dir = storage.JOBS_DIR / job_id
     job_dir.mkdir()
     manifest = _viewer_manifest()
     manifest["volume"] = _volume_manifest(**{field: invalid_value})
@@ -570,7 +569,7 @@ def test_volume_path_traversal_is_rejected_without_exposing_a_path(
     tmp_path,
 ):
     job_id = "model-with-traversal-volume"
-    job_dir = jobs.JOBS_DIR / job_id
+    job_dir = storage.JOBS_DIR / job_id
     job_dir.mkdir()
     outside_volume = tmp_path / "outside-volume.bin"
     outside_volume.write_bytes(b"\x01\x00")
@@ -598,7 +597,7 @@ def test_volume_path_traversal_is_rejected_without_exposing_a_path(
 
 def test_malformed_manifest_does_not_break_two_dimensional_payload(client):
     job_id = "malformed-model"
-    job_dir = jobs.JOBS_DIR / job_id
+    job_dir = storage.JOBS_DIR / job_id
     job_dir.mkdir()
     manifest_path = (
         job_dir / "06_gempy_model" / "trench_model_viewer.json"
@@ -635,7 +634,7 @@ def test_unsupported_or_malformed_manifest_is_ignored(
     invalid_value,
 ):
     job_id = f"invalid-model-{field}"
-    job_dir = jobs.JOBS_DIR / job_id
+    job_dir = storage.JOBS_DIR / job_id
     job_dir.mkdir()
     manifest = _viewer_manifest()
     manifest[field] = invalid_value
@@ -657,7 +656,7 @@ def test_manifest_traversal_cannot_create_url_or_read_outside_job(
     tmp_path,
 ):
     job_id = "traversal-model"
-    job_dir = jobs.JOBS_DIR / job_id
+    job_dir = storage.JOBS_DIR / job_id
     job_dir.mkdir()
     outside_mesh = tmp_path / "outside.obj"
     outside_mesh.write_text("v 0 0 0")
@@ -684,7 +683,7 @@ def test_outside_metadata_manifest_is_ignored_for_conventional_fallback(
     tmp_path,
 ):
     job_id = "outside-metadata-manifest"
-    job_dir = jobs.JOBS_DIR / job_id
+    job_dir = storage.JOBS_DIR / job_id
     job_dir.mkdir()
     outside_manifest = tmp_path / "outside-viewer.json"
     outside_manifest.write_text(json.dumps(_viewer_manifest()))
@@ -713,7 +712,7 @@ def test_outside_metadata_manifest_is_ignored_for_conventional_fallback(
 
 def test_surface_name_is_returned_only_as_json_data(client):
     job_id = "hostile-surface-name"
-    job_dir = jobs.JOBS_DIR / job_id
+    job_dir = storage.JOBS_DIR / job_id
     job_dir.mkdir()
     surface_name = '<img src=x onerror="alert(1)">'
     _write_manifest(

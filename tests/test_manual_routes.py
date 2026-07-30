@@ -3,21 +3,20 @@ import json
 import pytest
 
 
+import storage
 import backend.jobs as jobs
 from app import app
-from backend.routes.manual import (
+from pipeline.manual_extraction import (
     Calibration,
-    _build_fieldwall,
-    _build_illustrator,
+    build_fieldwall,
+    build_illustrator,
     _converted_points,
 )
 
 
 @pytest.fixture
 def client(tmp_path, monkeypatch):
-    jobs_dir = tmp_path / "jobs"
-    jobs_dir.mkdir()
-    monkeypatch.setattr(jobs, "JOBS_DIR", jobs_dir)
+    jobs_dir = storage.JOBS_DIR
     app.config.update(TESTING=True)
     return app.test_client()
 
@@ -109,7 +108,7 @@ def _manual_route_payload():
 
 def test_manual_calibration_includes_kind(client):
     job_id = "manual-calibration-kind"
-    job_dir = jobs.JOBS_DIR / job_id
+    job_dir = storage.JOBS_DIR / job_id
     job_dir.mkdir()
     scan_path = job_dir / "scan.png"
     scan_path.write_bytes(b"scan")
@@ -129,7 +128,7 @@ def test_manual_calibration_includes_kind(client):
 
 
 def test_fieldwall_bottom_boundary_contains_matching_source_pixels(calibration):
-    data, _ = _build_fieldwall(_fieldwall_payload(), calibration, None)
+    data, _ = build_fieldwall(_fieldwall_payload(), calibration, None)
 
     assert [point["sourcePixel"] for point in data["layers"][0]["bottomBoundary"]] == [
         [100.25, 300.5],
@@ -138,7 +137,7 @@ def test_fieldwall_bottom_boundary_contains_matching_source_pixels(calibration):
 
 
 def test_fieldwall_top_boundary_contains_matching_source_pixels(calibration):
-    data, _ = _build_fieldwall(_fieldwall_payload(), calibration, None)
+    data, _ = build_fieldwall(_fieldwall_payload(), calibration, None)
 
     assert [point["sourcePixel"] for point in data["layers"][0]["topBoundary"]] == [
         [100.25, 210.5],
@@ -147,7 +146,7 @@ def test_fieldwall_top_boundary_contains_matching_source_pixels(calibration):
 
 
 def test_illustrator_bottom_boundary_contains_matching_source_pixels(calibration):
-    data, _ = _build_illustrator(_illustrator_payload(), calibration, None)
+    data, _ = build_illustrator(_illustrator_payload(), calibration, None)
 
     boundary = data["trenchProfiles"][0]["layers"][0]["bottomBoundary"]
     assert [point["sourcePixel"] for point in boundary] == [
@@ -157,7 +156,7 @@ def test_illustrator_bottom_boundary_contains_matching_source_pixels(calibration
 
 
 def test_illustrator_top_boundary_contains_matching_source_pixels(calibration):
-    data, _ = _build_illustrator(_illustrator_payload(), calibration, None)
+    data, _ = build_illustrator(_illustrator_payload(), calibration, None)
 
     boundary = data["trenchProfiles"][0]["layers"][0]["topBoundary"]
     assert [point["sourcePixel"] for point in boundary] == [
@@ -168,7 +167,7 @@ def test_illustrator_top_boundary_contains_matching_source_pixels(calibration):
 
 def test_fieldwall_feature_preserves_source_pixel_order(calibration):
     payload = _fieldwall_payload()
-    data, _ = _build_fieldwall(payload, calibration, None)
+    data, _ = build_fieldwall(payload, calibration, None)
 
     feature = data["layers"][0]["featuresInLayer"][0]
     assert [point["sourcePixel"] for point in feature["shapePoints"]] == (
@@ -178,7 +177,7 @@ def test_fieldwall_feature_preserves_source_pixel_order(calibration):
 
 def test_illustrator_feature_preserves_source_pixel_order(calibration):
     payload = _illustrator_payload()
-    data, _ = _build_illustrator(payload, calibration, None)
+    data, _ = build_illustrator(payload, calibration, None)
 
     feature = data["trenchProfiles"][0]["layers"][0]["featuresInLayer"][0]
     assert [point["sourcePixel"] for point in feature["shapePoints"]] == (
@@ -210,7 +209,7 @@ def test_sorted_boundary_keeps_source_pixel_attached_to_metre_point(calibration)
 
 
 def test_fallback_surface_stores_origin_and_reference_source_pixels(calibration):
-    data, warnings = _build_illustrator(
+    data, warnings = build_illustrator(
         _illustrator_payload(include_surface=False),
         calibration,
         None,
@@ -248,7 +247,7 @@ def test_existing_expected_metre_coordinates_do_not_change():
 
 
 def test_serialized_json_round_trips_source_pixel(calibration):
-    data, _ = _build_fieldwall(_fieldwall_payload(), calibration, None)
+    data, _ = build_fieldwall(_fieldwall_payload(), calibration, None)
 
     restored = json.loads(json.dumps(data))
 
@@ -291,7 +290,7 @@ def test_verified_text_is_merged_without_replacing_manual_draw_values(calibratio
         },
     })
 
-    data, _ = _build_fieldwall(payload, calibration, None)
+    data, _ = build_fieldwall(payload, calibration, None)
 
     assert data["trenchLabel"] == "Manual trench"
     assert data["faceLabel"] == "Manual face"
@@ -328,7 +327,7 @@ def test_manual_locus_not_present_in_verified_text_remains_human_entered(calibra
         "audit": [],
     }
 
-    data, _ = _build_fieldwall(payload, calibration, None)
+    data, _ = build_fieldwall(payload, calibration, None)
 
     assert data["loci"][0]["confidence"] == "human-entered"
     assert data["loci"][0]["munsell"] is None
@@ -351,7 +350,7 @@ def test_verified_draw_fields_are_used_when_manual_values_are_empty(calibration)
         },
     })
 
-    data, _ = _build_fieldwall(payload, calibration, None)
+    data, _ = build_fieldwall(payload, calibration, None)
 
     assert data["trenchLabel"] == "Verified trench"
     assert data["faceLabel"] == "Verified face"

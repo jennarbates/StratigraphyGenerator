@@ -8,6 +8,7 @@ from pydantic import ValidationError
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
+import storage
 from pipeline import editor
 from pipeline.extract_fieldwall import FieldWallProfile
 from pipeline.extract_illustrator import ArchaeologicalDiagram
@@ -15,9 +16,7 @@ from pipeline.extract_illustrator import ArchaeologicalDiagram
 
 @pytest.fixture(autouse=True)
 def isolate_jobs_dir(tmp_path, monkeypatch):
-    jobs_dir = tmp_path / "jobs"
-    jobs_dir.mkdir()
-    monkeypatch.setattr(editor, "JOBS_DIR", jobs_dir)
+    jobs_dir = storage.JOBS_DIR
 
 
 def _field_wall_state():
@@ -202,7 +201,7 @@ def _editor_state_envelope(schema_type="ArchaeologicalDiagram"):
 
 
 def _output_path(job_id):
-    return editor.JOBS_DIR / job_id / "extraction_output.json"
+    return storage.JOBS_DIR / job_id / "extraction_output.json"
 
 
 def test_finalize_field_wall_profile_sets_source_and_preserves_fields():
@@ -234,7 +233,7 @@ def test_finalize_validation_error_leaves_no_output_file():
     state = _field_wall_state()
     del state["trenchLabel"]
     editor.save_editor_state(job_id, state)
-    output_path = editor.JOBS_DIR / job_id / "extraction_output.json"
+    output_path = storage.JOBS_DIR / job_id / "extraction_output.json"
 
     with pytest.raises(ValidationError):
         editor.finalize_editor_session(job_id)
@@ -248,7 +247,7 @@ def test_finalize_output_round_trips_through_json_file():
 
     result = editor.finalize_editor_session(job_id)
 
-    output_path = editor.JOBS_DIR / job_id / "extraction_output.json"
+    output_path = storage.JOBS_DIR / job_id / "extraction_output.json"
     assert output_path.exists()
     output_data = json.loads(output_path.read_text())
     reparsed = FieldWallProfile.model_validate(output_data)

@@ -10,7 +10,7 @@ from flask import (
     send_file,
 )
 
-from ..config import JOBS_DIR
+import storage
 from ..jobs import safe_job_path, save_meta
 
 
@@ -20,7 +20,7 @@ bp = Blueprint("jobs", __name__)
 @bp.route("/api/jobs", methods=["POST"])
 def create_job():
     job_id = uuid.uuid4().hex[:12]
-    d = JOBS_DIR / job_id
+    d = storage.JOBS_DIR / job_id
     for sub in ["01_scan", "02_preprocess", "03_extraction",
                 "04_normalize_validate", "05_convert_coords", "06_gempy_model"]:
         (d / sub).mkdir(parents=True, exist_ok=True)

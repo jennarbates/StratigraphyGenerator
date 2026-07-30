@@ -1,5 +1,5 @@
 import { applyAlign } from "./alignment.js";
-import { pointInsideBand } from "../boundary-label.js";
+import { pointInsideBand } from "../shared/boundary-label.js";
 import { colorFor } from "./colors.js";
 import {
   calibrationAxes,

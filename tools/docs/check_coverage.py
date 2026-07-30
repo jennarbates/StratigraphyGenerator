@@ -27,6 +27,14 @@ WATCHED_PACKAGES = (
     "poggio_webapp/backend",
 )
 
+# Top-level modules that sit beside those packages rather than inside them.
+# `storage.py` reached `main` unmentioned because the watch list covered only
+# the two packages, so single files are enumerated explicitly.
+WATCHED_MODULES = (
+    "poggio_webapp/app.py",
+    "poggio_webapp/storage.py",
+)
+
 # Modules that exist for reasons no reader needs documented.
 EXEMPT_STEMS = frozenset({"__init__", "modularize_backend"})
 
@@ -53,7 +61,13 @@ def iter_watched_modules(repo_root: Path) -> list[Path]:
             if "__pycache__" in path.parts:
                 continue
             modules.append(path)
-    return modules
+
+    for relative in WATCHED_MODULES:
+        path = repo_root / relative
+        if path.is_file():
+            modules.append(path)
+
+    return sorted(modules, key=lambda p: p.as_posix())
 
 
 def documentation_text(repo_root: Path) -> str:

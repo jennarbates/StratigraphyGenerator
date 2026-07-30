@@ -7,6 +7,7 @@ import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
+import storage
 from backend import config, create_app
 
 
@@ -65,12 +66,8 @@ class _PageParser(HTMLParser):
 
 @pytest.fixture
 def page_context(tmp_path, monkeypatch):
-    matrices_dir = tmp_path / "matrices"
-    jobs_dir = tmp_path / "jobs"
-    matrices_dir.mkdir()
-    jobs_dir.mkdir()
-    monkeypatch.setattr(config, "MATRICES_DIR", matrices_dir)
-    monkeypatch.setattr(config, "JOBS_DIR", jobs_dir)
+    matrices_dir = storage.MATRICES_DIR
+    jobs_dir = storage.JOBS_DIR
 
     app = create_app()
     app.config.update(TESTING=True)

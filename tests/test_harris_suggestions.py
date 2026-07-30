@@ -4,6 +4,8 @@ from datetime import datetime, timezone
 
 import pytest
 
+import storage
+
 from poggio_webapp.pipeline.harris_import import import_source_jobs
 from poggio_webapp.pipeline.harris_matrix import (
     HarrisCorrelation,
@@ -195,7 +197,7 @@ def manual_relation(number, younger_id, older_id):
 
 
 def test_exact_shared_field_wall_boundary_suggests_above(tmp_path):
-    jobs_dir = tmp_path / "jobs"
+    jobs_dir = storage.JOBS_DIR
     matrix = imported_matrix(
         jobs_dir,
         [(FIELD_JOB, field_document())],
@@ -212,7 +214,7 @@ def test_exact_shared_field_wall_boundary_suggests_above(tmp_path):
 
 
 def test_exact_shared_illustrator_boundary_suggests_above(tmp_path):
-    jobs_dir = tmp_path / "jobs"
+    jobs_dir = storage.JOBS_DIR
     matrix = imported_matrix(
         jobs_dir,
         [(FIELD_JOB, illustrator_document())],
@@ -228,7 +230,7 @@ def test_exact_shared_illustrator_boundary_suggests_above(tmp_path):
 
 
 def test_boundaries_inside_tolerance_match_after_sorting(tmp_path):
-    jobs_dir = tmp_path / "jobs"
+    jobs_dir = storage.JOBS_DIR
     upper_bottom = [
         field_point(1.0, 0.5, "certain"),
         field_point(0.0, 0.4, "certain"),
@@ -256,7 +258,7 @@ def test_boundaries_inside_tolerance_match_after_sorting(tmp_path):
 
 
 def test_boundary_value_outside_tolerance_does_not_match(tmp_path):
-    jobs_dir = tmp_path / "jobs"
+    jobs_dir = storage.JOBS_DIR
     matrix = imported_matrix(
         jobs_dir,
         [
@@ -278,7 +280,7 @@ def test_boundary_value_outside_tolerance_does_not_match(tmp_path):
 
 
 def test_unequal_boundary_point_counts_do_not_match(tmp_path):
-    jobs_dir = tmp_path / "jobs"
+    jobs_dir = storage.JOBS_DIR
     matrix = imported_matrix(
         jobs_dir,
         [
@@ -324,7 +326,7 @@ def test_non_finite_or_one_point_boundaries_do_not_match(
     upper_bottom,
     lower_top,
 ):
-    jobs_dir = tmp_path / "jobs"
+    jobs_dir = storage.JOBS_DIR
     matrix = imported_matrix(
         jobs_dir,
         [
@@ -346,7 +348,7 @@ def test_non_finite_or_one_point_boundaries_do_not_match(
 def test_consecutive_layers_without_shared_geometry_do_not_suggest_ordering(
     tmp_path,
 ):
-    jobs_dir = tmp_path / "jobs"
+    jobs_dir = storage.JOBS_DIR
     matrix = imported_matrix(
         jobs_dir,
         [
@@ -370,7 +372,7 @@ def test_consecutive_layers_without_shared_geometry_do_not_suggest_ordering(
 def test_same_trimmed_case_insensitive_label_across_jobs_suggests_correlation(
     tmp_path,
 ):
-    jobs_dir = tmp_path / "jobs"
+    jobs_dir = storage.JOBS_DIR
     matrix = imported_matrix(
         jobs_dir,
         [
@@ -401,7 +403,7 @@ def test_same_trimmed_case_insensitive_label_across_jobs_suggests_correlation(
 def test_equal_labels_on_same_job_and_face_do_not_suggest_correlation(
     tmp_path,
 ):
-    jobs_dir = tmp_path / "jobs"
+    jobs_dir = storage.JOBS_DIR
     matrix = imported_matrix(
         jobs_dir,
         [(FIELD_JOB, field_document(labels=("Same", "same")))],
@@ -417,7 +419,7 @@ def test_generic_and_unlabeled_labels_do_not_suggest_correlation(
     tmp_path,
     label,
 ):
-    jobs_dir = tmp_path / "jobs"
+    jobs_dir = storage.JOBS_DIR
     matrix = imported_matrix(
         jobs_dir,
         [
@@ -438,7 +440,7 @@ def test_generic_and_unlabeled_labels_do_not_suggest_correlation(
 
 
 def test_suggestion_ids_and_order_are_deterministic(tmp_path):
-    jobs_dir = tmp_path / "jobs"
+    jobs_dir = storage.JOBS_DIR
     documents = [
         (
             FIELD_JOB,
@@ -474,7 +476,7 @@ def test_suggestion_ids_and_order_are_deterministic(tmp_path):
 
 
 def test_regeneration_is_idempotent_and_preserves_rejected_status(tmp_path):
-    jobs_dir = tmp_path / "jobs"
+    jobs_dir = storage.JOBS_DIR
     matrix = imported_matrix(
         jobs_dir,
         [(FIELD_JOB, field_document())],
@@ -494,7 +496,7 @@ def test_regeneration_is_idempotent_and_preserves_rejected_status(tmp_path):
 
 
 def test_accept_ordering_adds_exactly_one_suggestion_relation(tmp_path):
-    jobs_dir = tmp_path / "jobs"
+    jobs_dir = storage.JOBS_DIR
     matrix = generate_suggestions(
         imported_matrix(
             jobs_dir,
@@ -519,7 +521,7 @@ def test_accept_ordering_adds_exactly_one_suggestion_relation(tmp_path):
 
 
 def test_accept_correlation_creates_and_merges_exactly_one_group(tmp_path):
-    jobs_dir = tmp_path / "jobs"
+    jobs_dir = storage.JOBS_DIR
     matrix = imported_matrix(
         jobs_dir,
         [
@@ -572,7 +574,7 @@ def test_accept_correlation_creates_and_merges_exactly_one_group(tmp_path):
 
 
 def test_reject_changes_only_suggestion_status(tmp_path):
-    jobs_dir = tmp_path / "jobs"
+    jobs_dir = storage.JOBS_DIR
     generated = generate_suggestions(
         imported_matrix(
             jobs_dir,
@@ -595,7 +597,7 @@ def test_reject_changes_only_suggestion_status(tmp_path):
 
 
 def test_accepting_same_suggestion_twice_is_idempotent(tmp_path):
-    jobs_dir = tmp_path / "jobs"
+    jobs_dir = storage.JOBS_DIR
     generated = generate_suggestions(
         imported_matrix(
             jobs_dir,
@@ -620,7 +622,7 @@ def test_accepting_same_suggestion_twice_is_idempotent(tmp_path):
 
 
 def test_cycle_producing_acceptance_fails_without_mutation(tmp_path):
-    jobs_dir = tmp_path / "jobs"
+    jobs_dir = storage.JOBS_DIR
     generated = generate_suggestions(
         imported_matrix(
             jobs_dir,
@@ -643,7 +645,7 @@ def test_cycle_producing_acceptance_fails_without_mutation(tmp_path):
 
 
 def test_correlation_conflict_acceptance_fails_without_mutation(tmp_path):
-    jobs_dir = tmp_path / "jobs"
+    jobs_dir = storage.JOBS_DIR
     generated = generate_suggestions(
         imported_matrix(
             jobs_dir,
@@ -680,7 +682,7 @@ def test_correlation_conflict_acceptance_fails_without_mutation(tmp_path):
 
 
 def test_unknown_suggestion_and_action_give_focused_errors(tmp_path):
-    jobs_dir = tmp_path / "jobs"
+    jobs_dir = storage.JOBS_DIR
     generated = generate_suggestions(
         imported_matrix(
             jobs_dir,
@@ -704,7 +706,7 @@ def test_unknown_suggestion_and_action_give_focused_errors(tmp_path):
 
 
 def test_generation_and_review_never_change_source_files(tmp_path):
-    jobs_dir = tmp_path / "jobs"
+    jobs_dir = storage.JOBS_DIR
     matrix = imported_matrix(
         jobs_dir,
         [(FIELD_JOB, field_document())],

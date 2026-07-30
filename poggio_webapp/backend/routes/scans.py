@@ -4,7 +4,7 @@ import os
 
 from flask import Blueprint, abort, jsonify, request
 from pipeline import preprocess as p_preprocess
-from pipeline.editor import clean_label
+from naming import clean_label
 
 from ..config import ALLOWED_SCAN_EXT
 from ..jobs import job_dir, load_meta, rel_url, save_meta

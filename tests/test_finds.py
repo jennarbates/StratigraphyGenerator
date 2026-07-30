@@ -4,6 +4,7 @@ import re
 import pytest
 
 
+import storage
 from pipeline import editor
 from pipeline.extract_fieldwall import FieldWallProfile
 from pipeline.extract_illustrator import ArchaeologicalDiagram
@@ -11,9 +12,7 @@ from pipeline.extract_illustrator import ArchaeologicalDiagram
 
 @pytest.fixture(autouse=True)
 def isolate_jobs_dir(tmp_path, monkeypatch):
-    jobs_dir = tmp_path / "jobs"
-    jobs_dir.mkdir()
-    monkeypatch.setattr(editor, "JOBS_DIR", jobs_dir)
+    jobs_dir = storage.JOBS_DIR
 
 
 @pytest.fixture
@@ -30,7 +29,7 @@ def find_data():
 
 def test_add_find_on_fresh_job_assigns_id_without_editor_or_output(find_data):
     job_id = editor.create_editor_session("FieldWallProfile")
-    job_dir = editor.JOBS_DIR / job_id
+    job_dir = storage.JOBS_DIR / job_id
 
     stored_find = editor.add_find(job_id, find_data)
 
@@ -64,8 +63,8 @@ def test_get_finds_without_finds_file_returns_empty_list():
     job_id = editor.create_editor_session("FieldWallProfile")
 
     assert editor.get_finds(job_id) == []
-    assert not (editor.JOBS_DIR / job_id / "editor_state.json").exists()
-    assert not (editor.JOBS_DIR / job_id / "extraction_output.json").exists()
+    assert not (storage.JOBS_DIR / job_id / "editor_state.json").exists()
+    assert not (storage.JOBS_DIR / job_id / "extraction_output.json").exists()
 
 
 def test_add_find_twice_then_get_finds_returns_both_in_order(find_data):
@@ -90,10 +89,10 @@ def test_delete_find_removes_only_matching_entry(find_data):
 
     assert editor.get_finds(job_id) == [second]
     assert not (
-        editor.JOBS_DIR / job_id / "editor_state.json"
+        storage.JOBS_DIR / job_id / "editor_state.json"
     ).exists()
     assert not (
-        editor.JOBS_DIR / job_id / "extraction_output.json"
+        storage.JOBS_DIR / job_id / "extraction_output.json"
     ).exists()
 
 
@@ -113,7 +112,7 @@ def test_sync_finds_without_extraction_output_does_nothing(find_data):
 
     assert editor.get_finds(job_id) == [stored_find]
     assert not (
-        editor.JOBS_DIR / job_id / "extraction_output.json"
+        storage.JOBS_DIR / job_id / "extraction_output.json"
     ).exists()
 
 
@@ -124,7 +123,7 @@ def test_sync_finds_updates_existing_extraction_output(find_data):
         job_id,
         {**find_data, "face_id": "north", "locus": "1044"},
     )
-    output_path = editor.JOBS_DIR / job_id / "extraction_output.json"
+    output_path = storage.JOBS_DIR / job_id / "extraction_output.json"
     output_path.write_text(json.dumps({"trenchLabel": "T104", "finds": []}))
 
     editor.sync_finds_to_output(job_id)
@@ -133,7 +132,7 @@ def test_sync_finds_updates_existing_extraction_output(find_data):
     assert output["trenchLabel"] == "T104"
     assert output["finds"] == [first, second]
     assert output["finds"] == json.loads(
-        (editor.JOBS_DIR / job_id / "finds.json").read_text()
+        (storage.JOBS_DIR / job_id / "finds.json").read_text()
     )
 
 

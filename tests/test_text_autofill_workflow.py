@@ -6,6 +6,7 @@ import pytest
 from PIL import Image
 
 
+import storage
 from backend import create_app
 from backend import jobs as backend_jobs
 from backend.routes import jobs as jobs_routes
@@ -14,10 +15,7 @@ from backend.routes import text_metadata
 
 @pytest.fixture
 def workflow(tmp_path, monkeypatch):
-    jobs_dir = tmp_path / "jobs"
-    jobs_dir.mkdir()
-    monkeypatch.setattr(backend_jobs, "JOBS_DIR", jobs_dir)
-    monkeypatch.setattr(jobs_routes, "JOBS_DIR", jobs_dir)
+    jobs_dir = storage.JOBS_DIR
 
     app = create_app()
     app.config.update(TESTING=True)

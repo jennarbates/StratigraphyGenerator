@@ -4,14 +4,14 @@ from datetime import datetime, timedelta
 
 import pytest
 
+import storage
+
 from poggio_webapp.pipeline import editor
 
 
 @pytest.fixture(autouse=True)
 def isolate_jobs_dir(tmp_path, monkeypatch):
-    jobs_dir = tmp_path / "jobs"
-    jobs_dir.mkdir()
-    monkeypatch.setattr(editor, "JOBS_DIR", jobs_dir)
+    jobs_dir = storage.JOBS_DIR
 
 
 def test_create_editor_session_writes_metadata():
@@ -20,7 +20,7 @@ def test_create_editor_session_writes_metadata():
     assert job_id
     assert re.fullmatch(r"[0-9a-f]{12}", job_id)
 
-    meta_path = editor.JOBS_DIR / job_id / "editor_meta.json"
+    meta_path = storage.JOBS_DIR / job_id / "editor_meta.json"
     assert meta_path.exists()
 
     metadata = json.loads(meta_path.read_text())
@@ -30,7 +30,7 @@ def test_create_editor_session_writes_metadata():
 
 def test_create_editor_session_writes_draft_meta():
     job_id = editor.create_editor_session("FieldWallProfile")
-    job_dir = editor.JOBS_DIR / job_id
+    job_dir = storage.JOBS_DIR / job_id
     meta_path = job_dir / "meta.json"
 
     assert meta_path.exists()
@@ -55,7 +55,7 @@ def test_create_editor_session_maps_archaeological_schema_to_illustrator():
     job_id = editor.create_editor_session("ArchaeologicalDiagram")
 
     metadata = json.loads(
-        (editor.JOBS_DIR / job_id / "meta.json").read_text()
+        (storage.JOBS_DIR / job_id / "meta.json").read_text()
     )
     assert metadata["schema_type"] == "ArchaeologicalDiagram"
     assert metadata["sheet_type"] == "illustrator"
@@ -65,7 +65,7 @@ def test_create_editor_session_maps_fieldwall_schema_to_fieldwall():
     job_id = editor.create_editor_session("FieldWallProfile")
 
     metadata = json.loads(
-        (editor.JOBS_DIR / job_id / "meta.json").read_text()
+        (storage.JOBS_DIR / job_id / "meta.json").read_text()
     )
     assert metadata["schema_type"] == "FieldWallProfile"
     assert metadata["sheet_type"] == "fieldwall"
@@ -75,7 +75,7 @@ def test_create_editor_session_writes_parseable_created_and_updated_timestamps()
     job_id = editor.create_editor_session("FieldWallProfile")
 
     metadata = json.loads(
-        (editor.JOBS_DIR / job_id / "meta.json").read_text()
+        (storage.JOBS_DIR / job_id / "meta.json").read_text()
     )
     created_at = datetime.fromisoformat(metadata["created_at"])
     updated_at = datetime.fromisoformat(metadata["updated_at"])

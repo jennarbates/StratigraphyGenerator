@@ -1,16 +1,13 @@
 import { state } from "../core/state.js";
 import { refreshChrome } from "../core/navigation.js";
 import { $content } from "../core/ui.js";
+import { api } from "../core/api.js";
 
 async function addHarrisAction() {
   if (!state.jobId) return;
 
   try {
-    const response = await fetch("/api/harris-source-jobs", {
-      headers: { Accept: "application/json" },
-    });
-    if (!response.ok) return;
-    const sources = await response.json();
+    const sources = await api("/api/harris-source-jobs");
     if (
       !Array.isArray(sources)
       || !sources.some(source => source.job_id === state.jobId)
