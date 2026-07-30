@@ -42,12 +42,20 @@ python tools/docs/check_docs.py .
 python tools/docs/check_coverage.py .
 ```
 
-At `d23b842` these report 547 passed and 1 skipped, 74 passed, and two passing
-documentation checks.
+```bash
+python tools/docs/validate_visual_manifest.py .
+```
+
+At `d23b842` these report 547 passed and 1 skipped, 74 passed, and three
+passing documentation checks.
 
 `check_coverage.py` reports any module under `poggio_webapp/pipeline/` or
 `poggio_webapp/backend/` that no documentation page names by full path. It is a
 coverage floor — it proves a module was named, not that it was explained.
+
+`validate_visual_manifest.py` checks `docs/assets/visual-manifest.yml` against
+the pages, in both directions: entries must be well formed, and every embedded
+image must resolve to an `approved` entry.
 
 ## What each suite covers
 
@@ -119,7 +127,7 @@ Run all four. The strict build catches link problems the checker permits,
 because MkDocs rejects links from `docs/` to files outside it:
 
 ```bash
-python tools/docs/check_docs.py . && python tools/docs/check_coverage.py . && mkdocs build --strict && python -m pytest tests/docs -q
+python tools/docs/check_docs.py . && python tools/docs/check_coverage.py . && python tools/docs/validate_visual_manifest.py . && mkdocs build --strict && python -m pytest tests/docs -q
 ```
 
 ## What is not covered

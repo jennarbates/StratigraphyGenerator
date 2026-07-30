@@ -67,7 +67,7 @@ is invisible to readers, so the checker treats it as an error, not a warning.
 ### 4. Run the checks
 
 ```bash
-python tools/docs/check_docs.py . && python tools/docs/check_coverage.py . && mkdocs build --strict
+python tools/docs/check_docs.py . && python tools/docs/check_coverage.py . && python tools/docs/validate_visual_manifest.py . && mkdocs build --strict
 ```
 
 ## What the checkers enforce
@@ -110,6 +110,41 @@ permits. Reference such files as inline code rather than linking them.
   everything else. No dead ends.
 - **Link concepts from workflows.** A workflow's *Under the hood* section is
   where a reader is most receptive to the theory behind the step.
+
+## Adding a visual
+
+Every image in the guide is planned in `docs/assets/visual-manifest.yml`
+**before** it is produced. Capture is manual, so deciding what a visual must
+show is cheaper than re-shooting it.
+
+1. Add an entry with `status: planned`. Write the `alt` and `caption` now —
+   they are what force you to say what the visual teaches.
+2. Produce the asset. Screenshots follow the capture protocol; diagrams are
+   authored by hand; generated assets get a `regenerate` command.
+3. Move the entry to `status: approved` once it has been reviewed.
+4. Only then embed it in the page.
+
+```bash
+python tools/docs/validate_visual_manifest.py .
+```
+
+The validator works in both directions. Forward, it checks that entries are
+well formed and that an `approved` entry really has its file. Reverse — the
+half that matters — it checks that **every image embedded in the documentation
+resolves to an `approved` entry**. An unreviewed screenshot cannot reach a
+published page, and the manifest cannot quietly decay into a wishlist.
+
+Four types, named for how the asset is maintained rather than what it depicts:
+
+| Type | Maintained by | Extra fields |
+|---|---|---|
+| `screenshot` | Re-capturing from the app | `fixture`, `ui_state` |
+| `diagram` | Redrawing by hand | — |
+| `generated` | Running a script | `regenerate` |
+| `mermaid` | Editing the fence inline | no `path` |
+
+`ui_state` is what makes re-capture decidable after a UI change. Without it,
+nobody can tell whether a screenshot is still correct.
 
 ## Images and fixtures
 
