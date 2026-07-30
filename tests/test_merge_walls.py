@@ -7,10 +7,17 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT / "poggio_webapp"))
 
-from pipeline.merge_walls import merge_extractions, merged_series_order
+from pipeline.merge_walls import (
+    check_trench_grid_config,
+    face_endpoints,
+    make_trench_starter_config,
+    merge_extractions,
+    merged_series_order,
+)
 
 from fixtures_merge import (
     EAST_WALL,
+    GRID_T900,
     NORTH_WALL,
     SURFACE_L1,
     SURFACE_L2,
@@ -209,3 +216,111 @@ def test_empty_document_yields_empty_order():
     assert order == []
     assert any("no stratigraphic order" in n or "no named layers" in n
                for n in notes)
+
+
+# --------------------------------------------------------------------------
+# CHUNK 3: trench grid config helpers
+# --------------------------------------------------------------------------
+
+# GRID_T900 is keyed by the full wall names, so merge with those labels.
+def merge_t900_grid_labels():
+    merged, _ = merge_extractions(
+        [("north wall", NORTH_WALL), ("east wall", EAST_WALL)])
+    return merged
+
+
+@pytest.fixture
+def merged_t900():
+    return merge_t900_grid_labels()
+
+
+def warnings_about(warnings, face_name):
+    return [w for w in warnings if repr(face_name) in w]
+
+
+# 1. The real registration for the A6 trench is clean: walls share the corner
+#    (4, 3) exactly, no placeholders, one datum.
+def test_good_grid_produces_no_warnings(merged_t900):
+    assert check_trench_grid_config(GRID_T900, merged_t900) == []
+
+
+# 2. Nudging the east wall off the shared corner disconnects exactly it.
+def test_disconnected_wall_is_flagged(merged_t900):
+    grid = copy.deepcopy(GRID_T900)
+    grid["faces"]["east wall"]["originX"] = 4.5
+    warnings = check_trench_grid_config(grid, merged_t900)
+    assert len(warnings_about(warnings, "east wall")) == 1
+    assert "not connected" in warnings_about(warnings, "east wall")[0]
+    assert warnings_about(warnings, "north wall") == []
+
+
+# 3. The untouched starter config flags every face.
+def test_starter_config_flags_every_face(merged_t900):
+    starter = make_trench_starter_config(merged_t900)
+    warnings = check_trench_grid_config(starter, merged_t900)
+    placeholders = [w for w in warnings if "starter placeholder" in w]
+    assert len(placeholders) == 2
+    for name in ("north wall", "east wall"):
+        assert warnings_about(placeholders, name)
+
+
+# 4. Elevations that cannot share a benchmark are flagged.
+def test_datum_spread_is_flagged(merged_t900):
+    grid = copy.deepcopy(GRID_T900)
+    grid["faces"]["east wall"]["surfaceZ"] = 103.5
+    warnings = check_trench_grid_config(grid, merged_t900)
+    assert any("datum" in w for w in warnings)
+
+
+# 5. A face absent from the config is unusable, not a warning.
+def test_missing_face_raises(merged_t900):
+    grid = copy.deepcopy(GRID_T900)
+    del grid["faces"]["east wall"]
+    with pytest.raises(ValueError) as excinfo:
+        check_trench_grid_config(grid, merged_t900)
+    assert "east wall" in str(excinfo.value)
+
+
+# 6. Endpoint math: bearing 90 sends all displacement into X, none into Y.
+def test_face_endpoint_math():
+    start, end = face_endpoints(GRID_T900["faces"]["north wall"], 4.0)
+    assert start == pytest.approx((0.0, 3.0), abs=1e-6)
+    assert end == pytest.approx((4.0, 3.0), abs=1e-6)
+    # East wall: bearing 180 runs south, so Y decreases and X holds.
+    start, end = face_endpoints(GRID_T900["faces"]["east wall"], 3.0)
+    assert start == pytest.approx((4.0, 3.0), abs=1e-6)
+    assert end == pytest.approx((4.0, 0.0), abs=1e-6)
+
+
+# Extra: the starter config keeps its shape and gains the merged-trench
+# warning in _comment.
+def test_starter_config_comment_mentions_merged_trench(merged_t900):
+    starter = make_trench_starter_config(merged_t900)
+    assert set(starter["faces"]) == {"north wall", "east wall"}
+    assert "MERGED" in starter["_comment"]
+    assert "corner" in starter["_comment"]
+    # Still the same starter values convert_coords produces.
+    assert starter["faces"]["north wall"]["bearing_deg"] == 90.0
+
+
+# Extra: a face with no points cannot be placed, so the adjacency check says
+# so instead of guessing a length.
+def test_pointless_face_is_skipped_with_a_warning(merged_t900):
+    merged = copy.deepcopy(merged_t900)
+    merged["trenchProfiles"].append({"face": "plan", "layers": []})
+    grid = copy.deepcopy(GRID_T900)
+    grid["faces"]["plan"] = {"originX": 0.0, "originY": 3.0,
+                             "surfaceZ": 100.0, "bearing_deg": 0.0}
+    warnings = check_trench_grid_config(grid, merged)
+    skipped = warnings_about(warnings, "plan")
+    assert len(skipped) == 1
+    assert "no boundary points" in skipped[0]
+
+
+# Extra: a single-wall trench has no corners to check, so no warning either
+# way; the datum check needs two faces too.
+def test_single_face_has_no_adjacency_or_datum_warnings():
+    merged, _ = merge_extractions([("north wall", NORTH_WALL)])
+    grid = {"faces": {"north wall": copy.deepcopy(
+        GRID_T900["faces"]["north wall"])}}
+    assert check_trench_grid_config(grid, merged) == []

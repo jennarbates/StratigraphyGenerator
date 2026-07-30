@@ -24,6 +24,7 @@ only on genuinely unusable input.
 
 import copy
 import heapq
+import math
 
 from . import convert_coords
 
@@ -364,3 +365,210 @@ def _cycle_message(order, order_index, successors, faces_by_surface):
             + listed
             + ". Check the layer order on those walls, or correlate the loci "
               "explicitly; no order is guessed.")
+
+
+# ---------------------------------------------------------------------------
+# Grid config for a merged trench
+# ---------------------------------------------------------------------------
+
+# The pattern make_starter_config() stamps out: face i gets originX = i * 10,
+# originY 0, surfaceZ 100, bearing 90. Left in a config it silently produces a
+# row of parallel walls 10 m apart instead of a pit.
+_PLACEHOLDER_ORIGIN_STEP = 10.0
+_PLACEHOLDER_ORIGIN_Y = 0.0
+_PLACEHOLDER_SURFACE_Z = 100.0
+_PLACEHOLDER_BEARING = 90.0
+
+_MAX_DATUM_SPREAD_M = 2.0
+
+
+def make_trench_starter_config(merged):
+    """A starter grid config for a merged multi-wall document.
+
+    Delegates to convert_coords.make_starter_config() and returns its result
+    unchanged except for an extended _comment: a merged trench only forms a pit
+    if adjacent walls actually share their corner coordinates, which a
+    per-sheet starter cannot know.
+    """
+    cfg = convert_coords.make_starter_config(merged)
+    cfg["_comment"] = cfg.get("_comment", "") + (
+        " This is a MERGED multi-wall trench: every face below is one wall of "
+        "the same pit, and the placeholder values put them in a row 10 m "
+        "apart, not around a pit. Adjacent walls MUST share corner "
+        "coordinates -- one wall's end point has to be the next wall's start "
+        "point within survey tolerance -- or the model will not close into a "
+        "trench and surfaces will be interpolated across empty space. Replace "
+        "every value with real survey numbers, then re-check with "
+        "check_trench_grid_config()."
+    )
+    return cfg
+
+
+def _face_names(merged):
+    """Face names in document order, resolved the way convert() resolves
+    them so a config keyed off one works for the other."""
+    names = []
+    for face_i, face in enumerate((merged or {}).get("trenchProfiles") or []):
+        if not isinstance(face, dict):
+            continue
+        names.append(face.get("face") or f"face_{face_i}")
+    return names
+
+
+def face_length_m(face):
+    """The face's along-wall extent: the largest x found on its boundaries.
+    Returns None when the face has no usable points."""
+    xs = []
+    for layer in (face.get("layers") or []):
+        if not isinstance(layer, dict):
+            continue
+        for key in ("bottomBoundary", "topBoundary"):
+            for point in (layer.get(key) or []):
+                if not isinstance(point, dict):
+                    continue
+                x = convert_coords.get_x(point)
+                if isinstance(x, (int, float)) and not isinstance(x, bool):
+                    xs.append(float(x))
+    return max(xs) if xs else None
+
+
+def face_endpoints(face_cfg, length_m):
+    """The face's two ends in site coordinates: ((X0, Y0), (X1, Y1)).
+
+    Uses convert()'s axis convention exactly -- X = X0 + x*sin(bearing),
+    Y = Y0 + x*cos(bearing), bearing in degrees clockwise from north -- so
+    bearing 90 puts all displacement into X and none into Y.
+    """
+    X0 = float(face_cfg["originX"])
+    Y0 = float(face_cfg["originY"])
+    theta = math.radians(float(face_cfg["bearing_deg"]))
+    L = float(length_m)
+    return (X0, Y0), (X0 + L * math.sin(theta), Y0 + L * math.cos(theta))
+
+
+def _is_placeholder(face_cfg):
+    """True if this face still carries make_starter_config()'s pattern."""
+    try:
+        originX = float(face_cfg["originX"])
+        originY = float(face_cfg["originY"])
+        surfaceZ = float(face_cfg["surfaceZ"])
+        bearing = float(face_cfg["bearing_deg"])
+    except (KeyError, TypeError, ValueError):
+        return False
+    remainder = abs(originX) % _PLACEHOLDER_ORIGIN_STEP
+    on_step = (remainder < 1e-9
+               or abs(remainder - _PLACEHOLDER_ORIGIN_STEP) < 1e-9)
+    return (originY == _PLACEHOLDER_ORIGIN_Y
+            and surfaceZ == _PLACEHOLDER_SURFACE_Z
+            and bearing == _PLACEHOLDER_BEARING
+            and on_step)
+
+
+def _endpoint_components(endpoints, tolerance_m):
+    """Group faces that meet at a corner. endpoints: {face: (start, end)}.
+    Returns a list of face-name lists, each list in first-seen order."""
+    names = list(endpoints)
+    parent = {name: name for name in names}
+
+    def find(name):
+        while parent[name] != name:
+            parent[name] = parent[parent[name]]
+            name = parent[name]
+        return name
+
+    for i, a in enumerate(names):
+        for b in names[i + 1:]:
+            touching = any(
+                math.dist(pa, pb) <= tolerance_m
+                for pa in endpoints[a] for pb in endpoints[b])
+            if touching:
+                parent[find(a)] = find(b)
+
+    groups = {}
+    for name in names:
+        groups.setdefault(find(name), []).append(name)
+    return list(groups.values())
+
+
+def check_trench_grid_config(grid, merged, tolerance_m=0.05):
+    """Sanity-check a merged trench's grid config. Returns warnings: list[str].
+
+    Bad geometry is never fatal -- it is the operator's to judge, and this
+    repo's convention is to report rather than guess. A face missing from the
+    config IS fatal (ValueError): convert() would silently drop that wall.
+    """
+    faces = [f for f in ((merged or {}).get("trenchProfiles") or [])
+             if isinstance(f, dict)]
+    names = _face_names(merged)
+    faces_cfg = (grid or {}).get("faces") or {}
+
+    missing = [name for name in names if name not in faces_cfg]
+    if missing:
+        raise ValueError(
+            "grid config has no entry for these faces of the merged trench: "
+            + ", ".join(repr(name) for name in missing)
+            + " -- convert() would drop them from the model")
+
+    warnings = []
+
+    # 1. Starter placeholders. Building on these is the failure mode the
+    #    README warns about, so it is worth naming loudly per face.
+    for name in names:
+        if _is_placeholder(faces_cfg[name]):
+            warnings.append(
+                f"face {name!r} is still the starter placeholder "
+                f"(originY 0, surfaceZ 100, bearing 90, originX a multiple of "
+                f"10); replace it with real survey values before building")
+
+    # 2. Corner adjacency. Only meaningful once there are walls to join.
+    if len(names) > 1:
+        endpoints = {}
+        for name, face in zip(names, faces):
+            length = face_length_m(face)
+            if length is None:
+                warnings.append(
+                    f"face {name!r} has no boundary points, so its extent is "
+                    "unknown -- skipped the corner-adjacency check for it")
+                continue
+            try:
+                endpoints[name] = face_endpoints(faces_cfg[name], length)
+            except (KeyError, TypeError, ValueError):
+                warnings.append(
+                    f"face {name!r} has an unusable grid entry (need numeric "
+                    "originX, originY, bearing_deg) -- skipped the "
+                    "corner-adjacency check for it")
+
+        if len(endpoints) > 1:
+            components = _endpoint_components(endpoints, tolerance_m)
+            # The trench is whichever group of walls is largest; ties go to the
+            # group holding the earliest face, so the answer is deterministic.
+            # An open end (a wall of an unexcavated side) is fine; a wall that
+            # joins nothing at either end is the real problem.
+            order = {name: i for i, name in enumerate(endpoints)}
+            trench = max(components,
+                         key=lambda g: (len(g), -min(order[n] for n in g)))
+            for name in endpoints:
+                if name not in trench:
+                    warnings.append(
+                        f"face {name!r} is not connected to the rest of the "
+                        f"trench: neither of its ends lands within "
+                        f"{tolerance_m} m of another wall's end. Adjacent "
+                        "walls must share corner coordinates")
+
+    # 3. Datum sanity.
+    elevations = []
+    for name in names:
+        try:
+            elevations.append(float(faces_cfg[name]["surfaceZ"]))
+        except (KeyError, TypeError, ValueError):
+            continue
+    if len(elevations) > 1:
+        spread = max(elevations) - min(elevations)
+        if spread > _MAX_DATUM_SPREAD_M:
+            warnings.append(
+                f"surfaceZ spreads {spread:.2f} m across the faces "
+                f"({min(elevations):.2f} to {max(elevations):.2f}); the walls "
+                "may not share a datum -- confirm all elevations come from the "
+                "same benchmark")
+
+    return warnings
