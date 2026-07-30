@@ -1,5 +1,8 @@
 site_name: Poggio Civitate Trench Digitization Guide
 site_description: Guidance for turning trench-profile drawings into 3D geological models.
+site_url: https://jennarbates.github.io/StratigraphyGenerator/
+repo_url: https://github.com/jennarbates/StratigraphyGenerator
+edit_uri: edit/main/docs/
 
 theme:
   name: material
@@ -11,6 +14,16 @@ theme:
   features:
     - content.code.annotate
     - content.tabs.link
+    # Nearly fifty pages across six sections need real navigation, not one
+    # long sidebar: tabs for the sections, collapsible groups within them.
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.indexes
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.action.edit
 
 plugins:
   - search

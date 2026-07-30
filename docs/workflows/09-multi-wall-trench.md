@@ -7,6 +7,7 @@ source_files:
   - poggio_webapp/pipeline/merge_walls.py
   - poggio_webapp/pipeline/convert_coords.py
   - poggio_webapp/backend/routes/scans.py
+  - poggio_webapp/storage.py
   - poggio_webapp/backend/config.py
 verified_against: d23b842
 ---

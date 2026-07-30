@@ -3,6 +3,7 @@ title: Output Files
 audience: developer
 status: current
 source_files:
+  - poggio_webapp/storage.py
   - poggio_webapp/backend/config.py
   - poggio_webapp/app.py
   - poggio_webapp/pipeline/preprocess.py
@@ -30,7 +31,7 @@ flowchart LR
   C[convert] --> C1[points.csv]
   C --> C2[points_orientations.csv]
   G[gempy] --> G1[model, meshes, section images]
-  M[trench build] --> M1[trenches/&lt;label&gt;/merged.json]
+  M[trench build] --> M1[trenches/LABEL/merged.json]
 ```
 
 *What lands on disk, and which stage is responsible for it.*

@@ -127,14 +127,21 @@ that in its notes.
 by the build, not by any upload, and its contents are derived: delete it and
 the next build recreates it from the jobs. The jobs remain the source of truth.
 
-The three top-level directories, all defined in
-`poggio_webapp/backend/config.py` and created on import:
+The three writable roots, all defined in `poggio_webapp/storage.py` and created
+on import:
 
 | Directory | Holds | Source of truth? |
 |---|---|---|
 | `jobs/` | One folder per sheet | Yes |
 | `trenches/` | Merged multi-wall output | No — derived |
 | `matrices/` | Harris matrices | Yes |
+
+`storage.py` is deliberately a leaf module: it imports nothing from `backend`
+or `pipeline`, so both layers can depend on it without inverting the dependency
+direction. Read the paths through the module — `storage.JOBS_DIR`, never
+`from storage import JOBS_DIR`. The `from` form binds the value at import time,
+which previously left several modules holding private copies that a test could
+not redirect.
 
 ## Related concepts
 

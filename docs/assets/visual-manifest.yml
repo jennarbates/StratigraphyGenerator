@@ -98,6 +98,7 @@
   path: docs/assets/diagrams/glossary-anatomy.svg
   pages:
   - docs/start-here/glossary.md
+  - README.md
   alt: A labelled trench section naming the trench, wall, face, locus, layer, boundary, and
     feature
   caption: Most glossary terms are visible on one section. This is that section.
@@ -347,6 +348,7 @@
   pages:
   - docs/workflows/09-multi-wall-trench.md
   - docs/concepts/jobs-sheets-and-trenches.md
+  - README.md
   alt: Four separately drawn walls positioned by their registration to enclose one rectangular
     pit
   caption: Correct registration is what turns four independent drawings into one trench.
@@ -380,6 +382,7 @@
   path: docs/assets/diagrams/wh-reading-a-matrix.svg
   pages:
   - docs/workflows/harris-matrix.md
+  - README.md
   alt: A small Harris matrix with the youngest units at the top and arrows running downward
     to older units
   caption: Relationships run from younger to older, so the youngest units sit at the top.
@@ -424,6 +427,7 @@
   path: docs/assets/diagrams/two-sheet-types.svg
   pages:
   - docs/concepts/source-drawing-types.md
+  - README.md
   alt: An illustrator sheet identified by hatch patterns beside a field sheet identified by
     locus numbers and Munsell colours
   caption: The two sheets record material differently, which is why they use different schemas.
@@ -461,6 +465,7 @@
   path: docs/assets/diagrams/genuine-vs-fabricated.svg
   pages:
   - docs/concepts/accuracy-and-provenance.md
+  - README.md
   alt: A boundary following ink on the drawing beside a smooth boundary that lies off the
     ink entirely
   caption: A boundary that does not lie on ink is fabricated by definition. This is the check
@@ -471,6 +476,7 @@
   type: mermaid
   pages:
   - docs/architecture/system-overview.md
+  - README.md
   alt: Browser, Flask routes, and pipeline modules with the calls between them
   caption: The three tiers and what crosses between them.
   status: approved

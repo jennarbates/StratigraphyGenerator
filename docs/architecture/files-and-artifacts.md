@@ -21,7 +21,7 @@ The repository stores job artifacts in numbered subfolders so each stage leaves 
 
 ```mermaid
 flowchart TD
-  Job[jobs/&lt;job_id&gt;/] --> Meta[meta.json]
+  Job[jobs/JOB_ID/] --> Meta[meta.json]
   Job --> S[01_scan/ - the untouched upload]
   Job --> P[02_preprocess/ - prepared images]
   Job --> E[03_extraction/ - extraction.json]

@@ -4,6 +4,7 @@ audience: beginner
 status: current
 source_files:
   - poggio_webapp/backend/errors.py
+  - poggio_webapp/storage.py
   - poggio_webapp/backend/config.py
   - poggio_webapp/backend/tasks.py
   - poggio_webapp/backend/routes/trenches.py

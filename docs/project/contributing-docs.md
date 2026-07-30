@@ -161,6 +161,31 @@ real scan. See [synthetic fixtures](../fixtures/README.md).
 Every image needs non-empty alt text — the checker fails the build otherwise.
 Write it to describe what the image *shows*, not that it is an image.
 
+## Continuous integration and deployment
+
+`.github/workflows/docs.yml` runs on every push to `main` and on every pull
+request. It installs both dependency sets, then runs each check as its own step
+so a failure names itself:
+
+1. `check_docs.py` — links, front matter, orphan pages
+2. `check_coverage.py` — module documentation coverage
+3. `validate_visual_manifest.py` — the visual manifest, both directions
+4. `check_readme_sync.py` — README against the navigation
+5. `pytest tests/` and the Node test suites
+6. `mkdocs build --strict`
+7. A regeneration check: `generate_diagrams.py` must produce no diff against
+   the committed SVGs, so a hand-edited or stale diagram cannot ship
+
+Pushes to `main` that pass then deploy the built site to GitHub Pages.
+
+**Enabling deployment is a one-time repository setting.** Under *Settings →
+Pages*, set the source to **GitHub Actions**. Until that is done the `deploy`
+job fails and the published URL returns 404; the checks themselves are
+unaffected.
+
+`site/` stays gitignored. Pages deploys from the workflow artifact, never from
+a committed build.
+
 ## Testing the tooling
 
 The documentation tooling has its own tests:
