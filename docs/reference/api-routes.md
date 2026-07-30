@@ -15,6 +15,7 @@ source_files:
   - poggio_webapp/backend/routes/task_status.py
   - poggio_webapp/backend/routes/pages.py
   - poggio_webapp/backend/routes/harris.py
+  - poggio_webapp/backend/routes/trenches.py
 verified_against: 2267711
 ---
 
@@ -57,6 +58,9 @@ This reference documents all HTTP endpoints available in the Flask backend. All 
 | `/api/harris-matrices/<matrix_id>/suggestions/<suggestion_id>` | POST | `{action: "accept" \| "reject", revision: int}` | saved matrix | No | supported | Review one proposal and increment revision |
 | `/api/harris-matrices/<matrix_id>/export.json` | GET | none | JSON attachment | No | supported | Download the saved version 1 record |
 | `/api/harris-matrices/<matrix_id>/export.svg` | GET | optional `inline=1` | SVG attachment or inline image | No | supported | Render the deterministic reduced display graph |
+| `/api/trenches` | GET | none | `{trenches: {label: [member, ...]}}` | No | backend-only | Group jobs by their `trench_label`; jobs without one are skipped |
+| `/api/trenches/<label>/build` | POST | JSON: `grid`, optional `correlation`, `series_order` | `{needs_grid, starter, notes}` or `{task_id, notes, grid_warnings}` | **Yes** | backend-only | Merge every wall of a trench and build one model. Omit `grid` to get a starter config back without writing anything |
+| `/api/trenches/<label>/file` | GET | query `path=<rel>` | binary | No | backend-only | Retrieve a file from the trench folder, refusing to escape it |
 | `/` | GET | none | HTML | No | supported | Render the vanilla JavaScript drawing workflow |
 | `/visualizer` | GET | query `job=<job_id>` (optional) | HTML | No | supported | Interactive 2D extraction and 3D surface viewer |
 | `/harris` | GET | optional `source_job=<job_id>` | HTML | No | supported | Matrix dashboard; a usable source can be preselected without mutation |
@@ -208,6 +212,44 @@ OR use the starter:
 ```
 GET /api/jobs/<job_id>/gridconfig/starter
 ```
+
+### Trench Build
+
+**POST `/api/trenches/<label>/build`**
+
+Posting without a `grid` key writes nothing and returns a starter config:
+
+```json
+{
+  "needs_grid": true,
+  "starter": { "faces": { "North": { "originX": 0, "originY": 0, "surfaceZ": 100, "bearing_deg": 90 } } },
+  "notes": ["…"]
+}
+```
+
+Posting with a filled-in `grid` starts the build:
+
+```json
+{
+  "grid": { "faces": { "North": { "originX": 0, "originY": 0, "surfaceZ": 100, "bearing_deg": 90 } } },
+  "correlation": { "North:3": "5" },
+  "series_order": ["Locus 1 (10YR 5/4)", "Locus 3 (7.5YR 4/3)"]
+}
+```
+
+`correlation` maps `"wall_label:locusNumber"` to a canonical locus number, for a
+deposit recorded under different numbers on different walls. `series_order` is
+derived from the walls when omitted.
+
+The build refuses rather than guessing in seven cases — unlabelled jobs,
+un-normalized walls, duplicate wall labels, placeholder registration, faces
+missing from the grid, zero interface points, and contradictory layer order.
+Each returns `400` with a specific message. See [combine walls into one
+trench](../workflows/09-multi-wall-trench.md).
+
+Unlike the single-job convert, **placeholder registration is fatal here.**
+Identical starter values lay every wall along the same bearing, producing a row
+of parallel walls instead of walls around a pit.
 
 ---
 

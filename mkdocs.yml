@@ -36,6 +36,7 @@ nav:
   - Home: index.md
   - Start here:
       - What this project does: start-here/what-this-project-does.md
+      - How to read these docs: start-here/how-to-read-these-docs.md
       - Choose your path: start-here/choose-your-path.md
       - Quickstart: start-here/quickstart.md
       - First model tutorial: start-here/first-model.md
@@ -52,10 +53,13 @@ nav:
       - Place on site: workflows/06-place-on-site.md
       - Create the model: workflows/07-create-model.md
       - View and download: workflows/08-view-and-download.md
+      - Combine walls into one trench: workflows/09-multi-wall-trench.md
+      - Build a Harris Matrix: workflows/harris-matrix.md
       - Log a find: workflows/logging-finds.md
   - Concepts:
       - From archaeology to 3D: concepts/archaeology-to-3d.md
       - Source drawing types: concepts/source-drawing-types.md
+      - Jobs, sheets, and trenches: concepts/jobs-sheets-and-trenches.md
       - Layers and boundaries: concepts/layers-and-boundaries.md
       - Coordinate spaces: concepts/coordinate-spaces.md
       - Accuracy and provenance: concepts/accuracy-and-provenance.md
@@ -63,6 +67,9 @@ nav:
       - Markers, features, and finds: concepts/markers-features-and-finds.md
   - Project:
       - Capability status: project/capability-status.md
+      - Roadmap: project/roadmap.md
+      - Project history: project/history.md
+      - Contributing to the docs: project/contributing-docs.md
   - Architecture:
       - System overview: architecture/system-overview.md
       - Job lifecycle: architecture/job-lifecycle.md
@@ -73,4 +80,11 @@ nav:
       - Files and artifacts: architecture/files-and-artifacts.md
   - Reference:
       - Drawing guidelines: reference/drawing-guidelines.md
+      - Data schemas: reference/data-schemas.md
+      - Validation rules: reference/validation-rules.md
+      - API routes: reference/api-routes.md
+      - Output files: reference/output-files.md
+      - Configuration: reference/configuration.md
+      - Running the tests: reference/running-the-tests.md
+      - Troubleshooting: reference/troubleshooting.md
       - Synthetic fixtures: fixtures/README.md

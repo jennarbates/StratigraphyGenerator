@@ -57,6 +57,22 @@ For a safe example, use the generated fixtures described in [docs/fixtures/READM
 
 The browser steps in `poggio_webapp/static/app/stages/scan.js`, `poggio_webapp/static/app/stages/preprocess.js`, and `poggio_webapp/static/app/stages/draw.js` drive the workflow. The server routes in `poggio_webapp/backend/routes/scans.py`, `poggio_webapp/backend/routes/preprocess.py`, and `poggio_webapp/backend/routes/manual.py` store the uploaded file, the prepared image, and the manual extraction.
 
+## Where the path branches
+
+The numbered steps above describe **one sheet**, which is what a job holds. Two
+branches leave that path:
+
+- **Several walls of one trench.** A hand-drawn field sheet records a single
+  wall, so a whole trench spans several jobs. Take each wall through step 4
+  (normalization) independently, then [combine walls into one
+  trench](09-multi-wall-trench.md) to merge them and build one model. An
+  illustrated sheet may already carry several faces, in which case no merge is
+  needed. See [jobs, sheets, and
+  trenches](../concepts/jobs-sheets-and-trenches.md).
+- **Chronology rather than geometry.** A [Harris Matrix](harris-matrix.md) is
+  built separately from any drawing job, and can import units from several
+  finished jobs without changing them.
+
 ## Next
 
 Start with [Add a drawing](01-add-drawing.md), then continue to [Prepare the image](02-prepare-image.md) and [Trace the layers](03-trace-layers.md).

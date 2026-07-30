@@ -9,6 +9,7 @@ source_files:
   - poggio_webapp/pipeline/normalizer.py
   - poggio_webapp/pipeline/validator.py
   - poggio_webapp/pipeline/convert_coords.py
+  - poggio_webapp/pipeline/merge_walls.py
   - poggio_webapp/pipeline/build_gempy.py
   - poggio_webapp/pipeline/editor.py
 verified_against: a8b58f1
@@ -24,7 +25,31 @@ The pipeline modules turn a drawing into normalized geometry, converted coordina
 - Extract structured drawing data from either illustrator-style or field-wall-style sheets.
 - Normalize and validate the extracted data before coordinate conversion.
 - Convert the validated geometry into coordinate CSVs and, where available, build a GemPy model.
+- Merge several single-wall extractions into one multi-face document before conversion.
 - Support the newer editor flow with its own session metadata, structural validation, and find logging.
+
+### Where the merge layer sits
+
+`poggio_webapp/pipeline/merge_walls.py` runs **between normalization and
+coordinate conversion**, and only for multi-wall trenches. Everything
+downstream of extraction — grid config, conversion, and the model build — is
+already multi-face, while a `FieldWallProfile` sheet is single-wall, so the
+merge has to happen before conversion rather than after it.
+
+It reads each wall's normalized extraction and returns one `trenchProfiles`
+document plus a list of human-readable notes. Inputs are never mutated.
+
+The constraint that shapes the module: GemPy fuses interface points into a
+surface by exact string match on the surface name, so the same locus recorded
+on two walls must produce one identical name. Because field-sheet surface names
+embed a Munsell reading, and readings of the same locus differ slightly between
+sheets, the merge canonicalizes Munsell values per locus number across the
+trench and feeds them into the existing adapter rather than building surface
+strings itself.
+
+Series order is derived by topologically sorting the ordering constraints from
+every face, with ties broken by first-seen order. Contradictory walls raise
+rather than resolving to a guess.
 
 ## Inputs
 
@@ -46,6 +71,7 @@ The pipeline modules turn a drawing into normalized geometry, converted coordina
 - `poggio_webapp/pipeline/normalizer.py`
 - `poggio_webapp/pipeline/validator.py`
 - `poggio_webapp/pipeline/convert_coords.py`
+- `poggio_webapp/pipeline/merge_walls.py`
 - `poggio_webapp/pipeline/build_gempy.py`
 - `poggio_webapp/pipeline/editor.py`
 
@@ -61,12 +87,17 @@ The pipeline modules turn a drawing into normalized geometry, converted coordina
 - `tests/test_editor_routes.py`
 - `tests/test_editor_status.py`
 - `tests/test_finds_routes.py`
+- `tests/test_merge_walls.py`
+- `tests/test_merge_integration.py`
+
+See [running the tests](../reference/running-the-tests.md) for the full suite.
 
 ## Related workflow pages
 
 - [Prepare the image](../workflows/02-prepare-image.md)
 - [Clean up the data](../workflows/04-clean-data.md)
 - [Place on site](../workflows/06-place-on-site.md)
+- [Combine walls into one trench](../workflows/09-multi-wall-trench.md)
 
 ## Under the hood
 
