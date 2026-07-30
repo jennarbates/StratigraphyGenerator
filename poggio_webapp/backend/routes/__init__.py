@@ -15,6 +15,7 @@ from .text_metadata import bp as text_metadata_bp
 from .processing import bp as processing_bp
 from .gempy import bp as gempy_bp
 from .harris import bp as harris_bp
+from .trenches import bp as trenches_bp
 
 
 BLUEPRINTS = (
@@ -31,6 +32,7 @@ BLUEPRINTS = (
     processing_bp,
     gempy_bp,
     harris_bp,
+    trenches_bp,
 )
 
 
