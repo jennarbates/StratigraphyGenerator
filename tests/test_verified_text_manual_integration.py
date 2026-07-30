@@ -1,13 +1,9 @@
 import json
-import sys
 from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
 
-
-REPO_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(REPO_ROOT / "poggio_webapp"))
 
 from backend import create_app
 from backend import jobs as backend_jobs

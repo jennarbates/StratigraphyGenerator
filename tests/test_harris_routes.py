@@ -1,15 +1,10 @@
 import json
-import sys
 from datetime import datetime, timezone
-from pathlib import Path
 from types import SimpleNamespace
 from xml.etree import ElementTree
 
 import pytest
 
-
-REPO_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(REPO_ROOT / "poggio_webapp"))
 
 from backend import config, create_app, harris_store
 from pipeline.harris_matrix import HarrisMatrix

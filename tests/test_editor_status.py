@@ -1,15 +1,10 @@
 import json
-import sys
-from pathlib import Path
 
 import pytest
 
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(REPO_ROOT / "poggio_webapp"))
-
-import app as app_module
 from app import app
+from backend.services import editor_pipeline as editor_pipeline_service
 from backend.tasks import TASKS
 from pipeline import editor
 
@@ -164,7 +159,7 @@ def test_successful_editor_build_persists_complete_status_and_outputs(
     def fake_build(*args, log_cb=None):
         return build_result
 
-    result = app_module._run_editor_build(
+    result = editor_pipeline_service.run_editor_build(
         job_directory,
         fake_build,
         "points.csv",
@@ -199,7 +194,7 @@ def test_failed_editor_build_persists_safe_error_and_preserves_source_state(
         raise RuntimeError("secret database password")
 
     with pytest.raises(RuntimeError, match="secret database password"):
-        app_module._run_editor_build(
+        editor_pipeline_service.run_editor_build(
             job_directory,
             fail_build,
             "points.csv",

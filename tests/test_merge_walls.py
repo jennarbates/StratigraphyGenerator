@@ -1,11 +1,7 @@
 import copy
-import sys
-from pathlib import Path
 
 import pytest
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(REPO_ROOT / "poggio_webapp"))
 
 from pipeline.merge_walls import (
     check_trench_grid_config,

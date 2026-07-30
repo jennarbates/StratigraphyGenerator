@@ -6,12 +6,18 @@ from pathlib import Path
 
 from flask import (
     Blueprint,
+    abort,
     current_app,
     jsonify,
+    redirect,
+    render_template,
     send_from_directory,
+    url_for,
 )
 
-from ..jobs import job_dir, load_meta, rel_url
+from pipeline import editor as editor_pipeline
+
+from ..jobs import job_dir, job_list, job_record, load_meta, rel_url
 
 
 bp = Blueprint("pages", __name__)
@@ -328,7 +334,25 @@ def _model3d_from_manifest(job_id, job_directory, manifest_path):
 
 @bp.route("/")
 def index():
-    return send_from_directory(current_app.template_folder, "index.html")
+    return render_template("index.html", jobs=job_list(), result_job=None)
+
+
+@bp.route("/jobs/<job_id>")
+def job_results(job_id):
+    job = job_record(editor_pipeline.JOBS_DIR / job_id)
+    if job is None:
+        abort(404, description="unknown job id")
+    if job["status"] == "editing":
+        return redirect(url_for("editor.editor_page", job_id=job_id))
+    return render_template("index.html", jobs=job_list(), result_job=job)
+
+
+@bp.route("/trenches")
+def trenches_page():
+    """The multi-wall trench list. Every trench, wall and build state on it
+    comes from /api/trenches at run time, so nothing job-specific is rendered
+    into the shell."""
+    return render_template("trenches.html")
 
 
 @bp.route("/visualizer")

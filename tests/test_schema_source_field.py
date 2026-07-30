@@ -1,6 +1,5 @@
 import json
 import subprocess
-import sys
 from pathlib import Path
 
 import pytest
@@ -10,7 +9,6 @@ from pydantic import ValidationError
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(REPO_ROOT / "poggio_webapp"))
 
 from pipeline.extract_fieldwall import FieldWallProfile
 from pipeline.extract_illustrator import ArchaeologicalDiagram

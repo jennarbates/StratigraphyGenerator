@@ -109,7 +109,7 @@
     data-job-source="{{ result_job.source }}"
     data-result-status="{{ result_job.status }}"
     {% if poll_results %}
-    data-status-url="{{ url_for('get_job_status', job_id=result_job.job_id) }}"
+    data-status-url="{{ url_for('editor.get_job_status', job_id=result_job.job_id) }}"
     data-poll-interval-ms="2000"
     data-poll-max-failures="3"
     {% endif %}
@@ -186,7 +186,7 @@
           <strong>Your drawing is still saved.</strong>
           Return to the editor to review it, or start another drawing.
           <div class="result-actions">
-            <a class="button-link secondary" href="{{ url_for('editor_page', job_id=result_job.job_id) }}">Review the saved drawing</a>
+            <a class="button-link secondary" href="{{ url_for('editor.editor_page', job_id=result_job.job_id) }}">Review the saved drawing</a>
           </div>
         </div>
       {% endif %}

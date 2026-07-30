@@ -8,14 +8,9 @@ GemPy itself.
 
 import csv
 import json
-import sys
-from pathlib import Path
 
 import pytest
 
-
-REPO_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(REPO_ROOT / "poggio_webapp"))
 
 from backend import create_app
 from backend.routes import trenches as trenches_routes

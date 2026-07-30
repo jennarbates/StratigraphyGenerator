@@ -16,8 +16,6 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(REPO_ROOT / "poggio_webapp"))
 
 from pipeline import convert_coords
 from pipeline.build_gempy import run_build, wall_traces

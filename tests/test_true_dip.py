@@ -8,13 +8,9 @@ test_apparent_dips_understate_the_true_dip is where it is pinned down.
 import copy
 import csv
 import math
-import sys
-from pathlib import Path
 
 import pytest
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(REPO_ROOT / "poggio_webapp"))
 
 from pipeline import convert_coords
 from pipeline.merge_walls import merge_extractions

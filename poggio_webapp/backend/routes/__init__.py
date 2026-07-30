@@ -4,6 +4,8 @@ from flask import Flask
 
 from .pages import bp as pages_bp
 from .jobs import bp as jobs_bp
+from .editor import bp as editor_bp
+from .finds import bp as finds_bp
 from .scans import bp as scans_bp
 from .preprocess import bp as preprocess_bp
 from .extraction import bp as extraction_bp
@@ -21,6 +23,8 @@ from .trenches import bp as trenches_bp
 BLUEPRINTS = (
     pages_bp,
     jobs_bp,
+    editor_bp,
+    finds_bp,
     scans_bp,
     preprocess_bp,
     extraction_bp,

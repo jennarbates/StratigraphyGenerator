@@ -1,10 +1,5 @@
 import math
-import sys
-from pathlib import Path
 
-
-REPO_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(REPO_ROOT / "poggio_webapp"))
 
 from backend.routes.markers import _build_marker_calib
 

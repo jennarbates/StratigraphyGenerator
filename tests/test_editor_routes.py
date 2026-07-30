@@ -1,17 +1,13 @@
 import json
-import sys
 from html.parser import HTMLParser
-from pathlib import Path
 
 import pytest
 
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(REPO_ROOT / "poggio_webapp"))
-
-import app as app_module
 from app import app
 from backend import config
+from backend import jobs as backend_jobs
+from backend.routes import editor as editor_routes
 from pipeline import editor
 
 
@@ -124,8 +120,8 @@ def _mock_pipeline_start(monkeypatch, task_id="editor-task-123"):
         return task_id
 
     monkeypatch.setattr(
-        app_module,
-        "_run_editor_pipeline",
+        editor_routes,
+        "run_editor_pipeline",
         fake_run_editor_pipeline,
     )
     return calls
@@ -421,7 +417,7 @@ def test_complete_results_page_uses_mesh_viewer_with_section_fallback(
     section_path = model_directory / "trench_model_section_y.png"
     section_path.write_bytes(b"png")
 
-    job = app_module._job_record(job_directory)
+    job = backend_jobs.job_record(job_directory)
     response = client.get(f"/jobs/{job_id}")
     page = _parse_results_page(response)
     html = response.get_data(as_text=True)
@@ -721,7 +717,7 @@ def test_synchronous_pipeline_failure_sets_error_and_preserves_editor_data(
         calls.append(_read_job_meta(job_id))
         raise RuntimeError("sensitive internal pipeline detail")
 
-    monkeypatch.setattr(app_module, "_run_editor_pipeline", fail_pipeline)
+    monkeypatch.setattr(editor_routes, "run_editor_pipeline", fail_pipeline)
     job_id = _create_editor(client)
     state = _valid_field_wall_state()
     client.post(f"/editor/{job_id}/save", json=state)
@@ -749,7 +745,7 @@ def test_pipeline_failure_returns_non_2xx_with_user_safe_error(
     def fail_pipeline(job_id):
         raise RuntimeError("database password was rejected")
 
-    monkeypatch.setattr(app_module, "_run_editor_pipeline", fail_pipeline)
+    monkeypatch.setattr(editor_routes, "run_editor_pipeline", fail_pipeline)
     job_id = _create_editor(client)
     client.post(
         f"/editor/{job_id}/save",
@@ -817,7 +813,7 @@ def test_finalize_after_completion_returns_existing_lifecycle_information(
     first_response = client.post(f"/editor/{job_id}/finalize")
     metadata = _read_job_meta(job_id)
     metadata["status"] = "complete"
-    app_module._save_meta(editor.JOBS_DIR / job_id, metadata)
+    backend_jobs.write_meta(editor.JOBS_DIR / job_id, metadata)
 
     second_response = client.post(f"/editor/{job_id}/finalize")
 

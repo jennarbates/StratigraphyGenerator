@@ -1,0 +1,56 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "poggio-civitate"
+version = "0.1.0"
+description = "Trench digitization pipeline — archaeological section drawings to 3D models"
+requires-python = ">=3.11"
+
+# Mirrors poggio_webapp/requirements.txt. Keep the two in sync until that file
+# is retired in favour of this one.
+dependencies = [
+    "flask",
+    "opencv-python-headless",
+    "numpy",
+    "pandas",
+    "pillow",
+    "google-genai",
+    "pydantic",
+    "pdf2image",
+]
+
+[project.optional-dependencies]
+# Stage 06 (3D model) only. Heavy install, kept optional so the rest of the
+# pipeline works without it.
+model = [
+    "gempy",
+    "gempy_viewer",
+]
+docs = [
+    "mkdocs==1.6.1",
+    "mkdocs-material==9.7.7",
+    "pymdown-extensions==11.0.1",
+    "PyYAML==6.0.3",
+]
+dev = [
+    "pytest",
+]
+
+[tool.setuptools]
+# Explicit discovery: the repo root holds docs/, site/, tools/ and sample data
+# alongside the package, so auto-discovery would either fail or sweep in dirs
+# that are not Python packages.
+package-dir = { "" = "poggio_webapp" }
+packages = ["backend", "backend.routes", "pipeline"]
+py-modules = ["app"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Replaces the sys.path.insert() block that used to be copy-pasted into every
+# test module:
+#   "poggio_webapp" -> backend, pipeline, app
+#   "tests"         -> fixtures_merge (shared test data)
+#   "."             -> tools.docs (exercised by tests/docs/)
+pythonpath = ["poggio_webapp", "tests", "."]

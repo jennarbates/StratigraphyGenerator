@@ -1,11 +1,5 @@
-import sys
-from pathlib import Path
-
 import pytest
 
-
-REPO_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(REPO_ROOT / "poggio_webapp"))
 
 from backend.routes.manual import Calibration, _build_fieldwall
 from pipeline.assign_markers import _assemble
