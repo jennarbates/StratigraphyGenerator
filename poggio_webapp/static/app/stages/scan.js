@@ -4,6 +4,62 @@ import { invalidateDownstream, state } from "../core/state.js";
 import { $content, banner, errorBanner } from "../core/ui.js";
 import { editorCreationPayload } from "./start-options.mjs";
 
+/* Optional trench grouping labels. They live here rather than in the shared
+   state because they belong to this form only, and renderScan() re-renders it
+   whenever the start method or sheet type changes. */
+const labels = { trench: "", wall: "" };
+
+function labelFields() {
+  return `
+      <fieldset class="trench-grouping">
+        <legend>Which trench and wall is this? (optional)</legend>
+        <p class="hint">Fill these in before you add your drawing. Drawings
+        that share a trench label can later be combined into one 3D model of
+        the whole trench.</p>
+        <div class="row">
+          <label class="field" for="trenchLabel">
+            <span class="label-text">Trench label</span>
+            <input type="text" id="trenchLabel" name="trench_label"
+                   value="${escapeAttribute(labels.trench)}"
+                   placeholder="for example T900">
+          </label>
+          <label class="field" for="wallLabel">
+            <span class="label-text">Wall label</span>
+            <input type="text" id="wallLabel" name="wall_label"
+                   value="${escapeAttribute(labels.wall)}"
+                   placeholder="for example north wall">
+          </label>
+        </div>
+      </fieldset>
+  `;
+}
+
+function escapeAttribute(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+}
+
+function bindLabelFields() {
+  const trench = document.getElementById("trenchLabel");
+  const wall = document.getElementById("wallLabel");
+  if (trench) {
+    trench.addEventListener("input", () => { labels.trench = trench.value; });
+  }
+  if (wall) {
+    wall.addEventListener("input", () => { labels.wall = wall.value; });
+  }
+}
+
+function labelPayload() {
+  const payload = {};
+  if (labels.trench.trim()) payload.trench_label = labels.trench.trim();
+  if (labels.wall.trim()) payload.wall_label = labels.wall.trim();
+  return payload;
+}
+
 export function renderScan() {
   const startContent = state.startMethod === "blank"
     ? `
@@ -95,9 +151,13 @@ export function renderScan() {
         </button>
       </div>
 
+      ${labelFields()}
+
       ${startContent}
     </div>
   `;
+
+  bindLabelFields();
 
   document.querySelectorAll('input[name="startMethod"]').forEach((input) => {
     input.addEventListener("change", () => {
@@ -129,7 +189,10 @@ export function renderScan() {
       status.textContent = "";
 
       try {
-        const payload = editorCreationPayload(state.sheetType);
+        const payload = {
+          ...editorCreationPayload(state.sheetType),
+          ...labelPayload(),
+        };
         const response = await apiJson("/editor/new", payload);
         window.location.assign(response.editor_url);
       } catch (error) {
@@ -200,6 +263,9 @@ async function handleScanFile(file) {
     const fd = new FormData();
     fd.append("file", file);
     fd.append("sheet_type", state.sheetType);
+    for (const [name, value] of Object.entries(labelPayload())) {
+      fd.append(name, value);
+    }
     const r = await api(`/api/jobs/${state.jobId}/scan`, { method: "POST", body: fd });
     state.scan.url = r.scan_url;
     state.scan.isPdf = r.is_pdf;

@@ -371,6 +371,14 @@ def job_results(job_id):
     return render_template("index.html", jobs=_job_list(), result_job=job)
 
 
+@app.route("/trenches")
+def trenches_page():
+    """The multi-wall trench list. Every trench, wall and build state on it
+    comes from /api/trenches at run time, so nothing job-specific is rendered
+    into the shell."""
+    return render_template("trenches.html")
+
+
 @app.route("/finds")
 def finds_page():
     return render_template("finds.html", jobs=_job_list())

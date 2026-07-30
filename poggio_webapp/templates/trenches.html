@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trenches · Poggio Civitate</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="app">
+  <main class="content">
+
+    <div class="panel">
+      <div class="stage-kicker">Multi-wall trenches</div>
+      <h2>Trenches</h2>
+      <p class="lede">
+        One drawing records one wall. Drawings that were given the same trench
+        label are grouped here, and their walls can be combined into a single
+        3D model of the whole pit.
+      </p>
+      <a class="quiet-link" href="/">Back to the drawing workspace</a>
+    </div>
+
+    <section
+      id="trench-list"
+      data-trench-list
+      aria-live="polite"
+      aria-label="Trenches and their walls"
+    >
+      <div class="panel">
+        <p class="lede">Loading trenches&hellip;</p>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script type="module" src="/static/trenches.js"></script>
+</body>
+</html>
