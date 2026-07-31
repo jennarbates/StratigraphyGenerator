@@ -7,7 +7,9 @@ source_files:
   - docs/workflows/06-place-on-site.md
   - docs/workflows/07-create-model.md
   - poggio_webapp/pipeline/convert_coords.py
-verified_against: a8b58f1
+  - poggio_webapp/pipeline/site_grid.py
+  - poggio_webapp/pipeline/site_elevation.py
+verified_against: 636b160
 ---
 
 # Coordinate spaces
@@ -54,7 +56,7 @@ Synthetic documentation example: a boundary point is first clicked in the image,
 
 ![A trench face annotated with originX, originY, surfaceZ, and bearing measured clockwise from north](../assets/diagrams/w06-registration-fields.svg)
 
-*Four numbers place a face on the site. Bearing is clockwise from north.*
+*Four numbers place a face on the site. Bearing is clockwise from Grid North.*
 
 ## How the repository represents it
 
@@ -72,7 +74,43 @@ Y = originY + x * cos(bearing)
 Z = surfaceZ - depth
 ```
 
-The bearing is interpreted as clockwise from north. Degrees are converted to radians before the trigonometry is applied. The formula itself stays the same.
+The bearing is interpreted as clockwise from **Grid North**. Degrees are converted to radians before the trigonometry is applied. The formula itself stays the same.
+
+## The site frame these coordinates live in
+
+Site-wide coordinates in this application are Poggio Civitate **local site grid**
+coordinates. They are not GPS, WGS84 or UTM, and no conversion sits between the two:
+model `X` is grid easting and model `Y` is grid northing, both in metres.
+
+Four things follow, and each of them changes what you should type into a grid config.
+
+**Grid North is not north.** The site is oriented to an artificial reference
+direction. The total station sets it as horizontal angle 0 — 90 East, 180 South,
+270 West — and `bearing_deg` uses the same convention. Grid North sits about 2.5°
+off projected north, so a bearing read from a magnetic compass is wrong by more
+than rounding.
+
+**South and West are negative.** The site's sign rule is that North and East are
+positive, South and West negative. A corner labelled `190E/53S` is
+`originX 190`, `originY -53`. Getting this backwards mirrors the whole site
+north-to-south while leaving every distance and slope internally consistent, so
+nothing downstream can catch it.
+
+**There are two local grids** — the hill of Poggio Civitate and Vescovado di
+Murlo — so a pair of coordinates is not a location until the grid is named. Their
+origins are about 1.5 million metres apart once projected. The grid config carries
+a `site_grid` field for this, and a trench whose sheets disagree is refused.
+
+**Elevations are mAE — "meters absolute elevation".** Values at this site are in
+the twenties; `surfaceZ 100` in the worked example above is a placeholder, not a
+plausible reading. Field measurements are taken *below datum* from a nail near the
+trench and converted to absolute elevation for the record, so a grid config can
+declare either form. A below-datum config with no recorded datum elevation is
+refused rather than defaulted to zero.
+
+For export, the local grid can be projected to Monte Mario 1 (EPSG:3003) using the
+affine the project publishes for each grid. That is an output step; nothing in the
+model build leaves the local frame.
 
 ## Related concepts
 

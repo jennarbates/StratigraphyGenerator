@@ -38,8 +38,23 @@ STATUS_MESSAGES = {
 
 
 def job_dir(job_id):
+    """The directory for one job, refusing any id that is not a child of it.
+
+    The containment check is the point, not the existence check. ``job_id``
+    arrives straight off the URL, and a Flask string converter rejects a slash
+    but not a dot: ``/api/jobs/../file?path=storage.py`` resolved
+    ``JOBS_DIR / ".."`` to ``poggio_webapp/`` and handed that to
+    ``safe_job_path``, whose own containment test then compared against the
+    already-escaped base and passed. Every file under the application root,
+    and every other job's files, were readable through one route.
+
+    This is the same escape ``naming.safe_filename`` documents closing for
+    ``/api/trenches/<label>/file``; the fix was applied to one route and never
+    generalised. Resolving first and requiring the parent to be the jobs root
+    closes it for any id, including one that is nothing but dots.
+    """
     d = storage.JOBS_DIR / job_id
-    if not d.exists():
+    if d.resolve().parent != storage.JOBS_DIR.resolve() or not d.exists():
         abort(404, description="unknown job id")
     return d
 

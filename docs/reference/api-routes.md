@@ -46,7 +46,7 @@ flowchart LR
 |----------|--------|---------|----------|-------|--------|-------|
 | `/api/jobs` | POST | `{}` | `{job_id: str}` | No | supported | Creates a new job with UUID identifier and folder structure |
 | `/api/jobs/<job_id>/file` | GET | query `path=<rel>` | binary | No | supported | Retrieve any file from the job folder by relative path |
-| `/api/jobs/<job_id>/scan` | POST | multipart: `sheet_type`, `file` | `{scan_url, sheet_type, is_pdf, dimensions, recommended_upscale}` | No | supported | Upload source image (PNG, JPG, PDF, TIFF) |
+| `/api/jobs/<job_id>/scan` | POST | multipart: `sheet_type`, `file`, optional `trench_label`, `wall_label`, `season`, `locus_epoch` | `{scan_url, sheet_type, is_pdf, dimensions, recommended_upscale}` plus any labels given back in canonical form | No | supported | Upload source image (PNG, JPG, PDF, TIFF). `trench_label` is canonicalized (`T-104` &rarr; `T104`); `wall_label` is free text and only trimmed |
 | `/api/jobs/<job_id>/preprocess` | POST | JSON: `upscale`, `deskew`, `highcontrast`, `pdf_dpi`, `pdf_page` | `{deskew_angle, outputs}` | No | supported | Rotate, deskew, and normalize image brightness |
 | `/api/jobs/<job_id>/extract` | POST | JSON: `api_key`, `square_cm` (fieldwall only), `max_output_tokens` | `{task_id}` | **Yes** | supported | Start AI extraction using Gemini; returns task ID |
 | `/api/jobs/<job_id>/extract/upload` | POST | multipart: `file` | `{raw_json, sheet_type, file_url}` | No | supported | Import extraction JSON from external source |
@@ -75,7 +75,7 @@ flowchart LR
 | `/api/harris-matrices/<matrix_id>/suggestions/<suggestion_id>` | POST | `{action: "accept" \| "reject", revision: int}` | saved matrix | No | supported | Review one proposal and increment revision |
 | `/api/harris-matrices/<matrix_id>/export.json` | GET | none | JSON attachment | No | supported | Download the saved version 1 record |
 | `/api/harris-matrices/<matrix_id>/export.svg` | GET | optional `inline=1` | SVG attachment or inline image | No | supported | Render the deterministic reduced display graph |
-| `/api/trenches` | GET | none | `{trenches: {label: [member, ...]}}` | No | experimental | Group jobs by their `trench_label`; jobs without one are skipped |
+| `/api/trenches` | GET | none | `{trenches: {label: [member, ...]}}`, plus `label_variants` when a trench was recorded under more than one spelling | No | experimental | Group jobs by their canonical `trench_label`; jobs without one are skipped |
 | `/api/trenches/<label>/build` | POST | JSON: `grid`, optional `correlation`, `series_order` | `{needs_grid, starter, notes}` or `{task_id, notes, grid_warnings}` | **Yes** | experimental | Merge every wall of a trench and build one model. Omit `grid` to get a starter config back without writing anything |
 | `/api/trenches/<label>/file` | GET | query `path=<rel>` | binary | No | experimental | Retrieve a file from the trench folder, refusing to escape it |
 | `/api/jobs/<job_id>/text-extraction` | POST | JSON: `api_key`, `square_cm`, `max_output_tokens` | `{task_id}` | **Yes** | experimental | Start the field-wall text read; aborts `400` without a key |

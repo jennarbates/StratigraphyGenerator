@@ -46,6 +46,7 @@ def _field_wall_state():
                         "xMeters": 0.0,
                         "depthMeters": 0.0,
                         "confidence": "human-traced",
+                        "uncertaintyCm": None,
                     }
                 ],
                 "bottomBoundary": [
@@ -53,6 +54,7 @@ def _field_wall_state():
                         "xMeters": 0.0,
                         "depthMeters": 0.4,
                         "confidence": "human-traced",
+                        "uncertaintyCm": None,
                     }
                 ],
                 "featuresInLayer": [],
@@ -102,6 +104,7 @@ def _archaeological_diagram_state():
                                 "xCoordinateMeters": 0.0,
                                 "yCoordinateMeters": 0.0,
                                 "confidence": "human-traced",
+                                "uncertaintyCm": None,
                             }
                         ],
                         "bottomBoundary": [
@@ -109,6 +112,7 @@ def _archaeological_diagram_state():
                                 "xCoordinateMeters": 0.0,
                                 "yCoordinateMeters": 0.4,
                                 "confidence": "human-traced",
+                                "uncertaintyCm": None,
                             }
                         ],
                     }

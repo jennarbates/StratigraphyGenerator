@@ -339,6 +339,7 @@ const chunkThreeArchaeologicalFixture = {
               xCoordinateMeters: 0.0,
               yCoordinateMeters: 0.0,
               confidence: "human-traced",
+              uncertaintyCm: null,
             },
           ],
           bottomBoundary: [
@@ -346,6 +347,7 @@ const chunkThreeArchaeologicalFixture = {
               xCoordinateMeters: 0.0,
               yCoordinateMeters: 0.4,
               confidence: "human-traced",
+              uncertaintyCm: null,
             },
           ],
         },
@@ -619,6 +621,7 @@ test("multi-face assembly includes each face and each registered polygon once", 
       xCoordinateMeters: 0.5,
       yCoordinateMeters: 0.25,
       confidence: "human-traced",
+      uncertaintyCm: null,
     }],
   );
 });

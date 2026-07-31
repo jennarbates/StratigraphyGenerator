@@ -97,7 +97,27 @@ def _clean_polyline(raw: Any, label: str, minimum: int) -> list[list[float]]:
     return points
 
 
-def _converted_points(calib: Calibration, points: list[list[float]], fieldwall: bool) -> list[dict[str, Any]]:
+def _uncertainty_cm(value: Any) -> float | None:
+    """An optional +/- in centimetres, the site's own error model.
+
+    The Kobo forms record a +/- per coordinate or elevation, with ranged
+    readings entered as a midpoint plus half the range. Carried here so a
+    reading that has one keeps it; omitted entirely when there is none, because
+    an invented precision is worse than an absent one.
+    """
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    if not math.isfinite(value) or value < 0:
+        return None
+    return round(float(value), 4)
+
+
+def _converted_points(
+    calib: Calibration,
+    points: list[list[float]],
+    fieldwall: bool,
+    uncertainty_cm: float | None = None,
+) -> list[dict[str, Any]]:
     converted = []
     for pixel_x, pixel_y in points:
         x, depth = calib.convert([pixel_x, pixel_y])
@@ -115,6 +135,8 @@ def _converted_points(calib: Calibration, points: list[list[float]], fieldwall: 
                 "confidence": "human-traced",
                 "sourcePixel": [pixel_x, pixel_y],
             }
+        if uncertainty_cm is not None:
+            point["uncertaintyCm"] = uncertainty_cm
         converted.append(((x, depth), point))
     converted.sort(key=lambda converted_point: converted_point[0])
     return [point for _, point in converted]
@@ -222,7 +244,10 @@ def _manual_boundaries(payload: dict[str, Any], calib: Calibration, fieldwall: b
         if kind not in {"surface", "bottom"}:
             continue
         points_px = _clean_polyline(boundary.get("points"), f"boundary {i + 1}", 2)
-        converted = _converted_points(calib, points_px, fieldwall)
+        converted = _converted_points(
+            calib, points_px, fieldwall,
+            _uncertainty_cm(boundary.get("uncertaintyCm")),
+        )
         if kind == "surface":
             if surface is None:
                 surface = converted
@@ -273,7 +298,10 @@ def _manual_fieldwall_boundaries(payload: dict[str, Any], calib: Calibration):
         if kind not in {"top", "base"}:
             continue
         points_px = _clean_polyline(boundary.get("points"), f"boundary {i + 1}", 2)
-        converted = _converted_points(calib, points_px, fieldwall=True)
+        converted = _converted_points(
+            calib, points_px, fieldwall=True,
+            uncertainty_cm=_uncertainty_cm(boundary.get("uncertaintyCm")),
+        )
         if kind == "top":
             name = str(boundary.get("name") or "").strip()
             if not name:

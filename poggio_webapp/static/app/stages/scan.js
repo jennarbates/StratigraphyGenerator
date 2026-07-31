@@ -8,7 +8,7 @@ import { editorCreationPayload } from "./start-options.mjs";
 /* Optional trench grouping labels. They live here rather than in the shared
    state because they belong to this form only, and renderScan() re-renders it
    whenever the start method or sheet type changes. */
-const labels = { trench: "", wall: "" };
+const labels = { trench: "", wall: "", season: "", siteGrid: "" };
 
 function labelFields() {
   return `
@@ -30,7 +30,29 @@ function labelFields() {
                    value="${escapeAttribute(labels.wall)}"
                    placeholder="for example north wall">
           </label>
+          <label class="field" for="seasonLabel">
+            <span class="label-text">Season</span>
+            <input type="text" id="seasonLabel" name="season" inputmode="numeric"
+                   value="${escapeAttribute(labels.season)}"
+                   placeholder="for example 2025">
+          </label>
+          <label class="field" for="siteGridSelect">
+            <span class="label-text">Site grid</span>
+            <select id="siteGridSelect" name="site_grid">
+              <option value=""${labels.siteGrid ? "" : " selected"}>Not recorded</option>
+              <option value="poggio-civitate"${labels.siteGrid === "poggio-civitate" ? " selected" : ""}>Poggio Civitate (the hill)</option>
+              <option value="vescovado-di-murlo"${labels.siteGrid === "vescovado-di-murlo" ? " selected" : ""}>Vescovado di Murlo</option>
+            </select>
+          </label>
         </div>
+        <p class="hint">The trench label is written the way the site records it
+        &mdash; <code>T104</code>, with no space or hyphen. <code>T-104</code>
+        and <code>T 104</code> are read as the same trench.</p>
+        <p class="hint">The site runs two local grids, so a pair of
+        coordinates is only a location once you say which one. Give the season
+        when a trench was dug in more than one
+        year. Locus numbers continue across consecutive years, so seasons with
+        a gap between them need a locus epoch before they can be combined.</p>
       </fieldset>
   `;
 }
@@ -44,12 +66,22 @@ function bindLabelFields() {
   if (wall) {
     wall.addEventListener("input", () => { labels.wall = wall.value; });
   }
+  const season = document.getElementById("seasonLabel");
+  if (season) {
+    season.addEventListener("input", () => { labels.season = season.value; });
+  }
+  const siteGrid = document.getElementById("siteGridSelect");
+  if (siteGrid) {
+    siteGrid.addEventListener("change", () => { labels.siteGrid = siteGrid.value; });
+  }
 }
 
 function labelPayload() {
   const payload = {};
   if (labels.trench.trim()) payload.trench_label = labels.trench.trim();
   if (labels.wall.trim()) payload.wall_label = labels.wall.trim();
+  if (labels.season.trim()) payload.season = labels.season.trim();
+  if (labels.siteGrid) payload.site_grid = labels.siteGrid;
   return payload;
 }
 

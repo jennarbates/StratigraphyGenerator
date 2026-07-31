@@ -5,7 +5,7 @@ import uuid
 from datetime import UTC, datetime
 
 import storage
-from naming import clean_label
+from naming import canonical_trench, clean_label
 
 from .schema import ALLOWED_SCHEMA_TYPES, SHEET_TYPES_BY_SCHEMA
 
@@ -48,8 +48,11 @@ def create_editor_session(
         "created_at": created_at,
         "updated_at": created_at,
     }
-    if clean_label(trench_label):
-        draft_metadata["trench_label"] = clean_label(trench_label)
+    # Canonicalized here as well as in the route: this is the boundary where a
+    # label becomes stored data, and it is reachable without going through the
+    # route. Both calls are idempotent.
+    if canonical_trench(trench_label):
+        draft_metadata["trench_label"] = canonical_trench(trench_label)
     if clean_label(wall_label):
         draft_metadata["wall_label"] = clean_label(wall_label)
     (session_dir / "meta.json").write_text(

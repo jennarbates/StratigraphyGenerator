@@ -16,7 +16,11 @@ import {
   renderJsonTree,
 } from "../core/ui.js";
 
-const FEATURE_TYPES = ["rock/stone", "cut", "lens", "void", "other feature"];
+import {
+  DEFAULT_FEATURE_TYPE,
+  featureTypeOptions,
+} from "../../shared/site-vocab.mjs";
+
 let lastAppliedVerifiedText = null;
 
 export function renderDraw() {
@@ -163,7 +167,7 @@ export function renderDraw() {
           its outside edge. Choose “Finish this shape” when you return to the start.</p>
           <div class="btn-row">
             <select id="dwFeatureType" aria-label="Type of feature" style="max-width:210px">
-              ${FEATURE_TYPES.map((type) => `<option>${type}</option>`).join("")}
+              ${featureTypeOptions(DEFAULT_FEATURE_TYPE)}
             </select>
             <input id="dwFeatureDesc" aria-label="Optional feature description"
                    placeholder="Short note (optional)" style="min-width:220px">
@@ -343,7 +347,7 @@ export function renderDraw() {
       <div class="btn-row" style="align-items:center;gap:8px" data-feature-index="${index}">
         <span class="hint" style="min-width:28px">F${index + 1}</span>
         <select data-role="type" aria-label="Type for shape ${index + 1}">
-          ${FEATURE_TYPES.map((type) => `<option ${type === feature.feature_type ? "selected" : ""}>${type}</option>`).join("")}
+          ${featureTypeOptions(feature.feature_type)}
         </select>
         <input data-role="description" aria-label="Description for shape ${index + 1}" placeholder="Short note (optional)"
                value="${esc(feature.description || "")}" style="flex:1;min-width:220px">

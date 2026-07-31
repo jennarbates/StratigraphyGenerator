@@ -54,6 +54,9 @@ class BoundaryPoint(BaseModel):
     xMeters: float | None
     depthMeters: float | None
     confidence: str | None = None
+    # The site's own error model: a +/- in centimetres, with ranged readings
+    # recorded as a midpoint plus half the range. Optional and never invented.
+    uncertaintyCm: float | None = None
 
 
 class FieldFeature(BaseModel):

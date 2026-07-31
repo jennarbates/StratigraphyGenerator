@@ -12,6 +12,8 @@ site-coordinate math below stays a single code path.
 import csv
 import math
 
+from . import site_elevation, site_grid
+
 
 def slope_to_orientation(
     slope: float,
@@ -179,10 +181,40 @@ def make_starter_config(data):
     profiles, _ = as_profiles(data)
 
     cfg = {
-        "_comment": "Fill in real site values. bearing_deg = compass direction "
-                    "(clockwise from north) that the face's local +x axis points. "
-                    "originX/Y = site coords of the face's x=0 edge. surfaceZ = "
-                    "ground-surface elevation at that edge.",
+        "_comment": (
+            "Fill in real site values from the master Geospatial Spreadsheet "
+            "(opening-coordinates column for the season). bearing_deg = the "
+            "direction the face's local +x axis points, in degrees clockwise "
+            "from GRID NORTH -- the site's artificial reference direction, the "
+            "one the total station sets as HA 0 (90 East, 180 South, 270 "
+            "West). It is NOT magnetic north and NOT projected north; Grid "
+            "North sits about 2.5 degrees off the latter. originX/originY = "
+            "site grid coordinates of the face's x=0 edge, with the site's "
+            "sign rule: North and East positive, South and West negative, so "
+            "190E/53S is originX 190, originY -53. surfaceZ = ground-surface "
+            "elevation at that edge, absolute, in mAE (meters absolute "
+            "elevation) -- elevations at this site are in the twenties, not "
+            "the hundreds."
+        ),
+        # Which of the site's two local grids these numbers belong to. A bare
+        # pair of coordinates is not a location: the Poggio Civitate and
+        # Vescovado di Murlo grids have origins about 1.5 million metres apart
+        # once projected.
+        "site_grid": None,
+        # Where the numbers below came from. Declared rather than inferred:
+        # is_placeholder() otherwise has to recognise the starter's own value
+        # pattern, and its docstring admits real survey values can collide
+        # with it. Set to "surveyed" once these are real.
+        "source": "placeholder",
+        "vertical": {
+            "frame": site_elevation.MAE,
+            # "absolute" or "below-datum". Below-datum readings need the datum
+            # nail's own elevation before they can be resolved, and are
+            # transitional by the site's own rule -- they must be corrected to
+            # absolute elevations for the final record.
+            "entryForm": "absolute",
+            "datumNail": {"absoluteZ": None, "label": None},
+        },
         "faces": {},
     }
     for i, face in enumerate(profiles.get("trenchProfiles", [])):
@@ -196,17 +228,29 @@ def make_starter_config(data):
 
     if field_wall:
         # The sheet's own tie-in labels are the likeliest source of these
-        # numbers, but what they mean (northing / easting / elevation) is a
-        # site-records question -- surface them verbatim, don't interpret.
-        ties = [t.get("rawText") for t in (data.get("gridTiePoints") or [])
-                if t.get("rawText")]
+        # numbers. Grid labels like "190E/53S" now have a defined reading --
+        # site_grid.label_to_grid applies the site's sign rule -- so any that
+        # parse are offered alongside the raw text. They are still offered,
+        # not applied: which end of a face a label marks is a site-records
+        # question this module cannot answer.
+        ties = []
+        for tie in (data.get("gridTiePoints") or []):
+            raw = tie.get("rawText")
+            if not raw:
+                continue
+            try:
+                grid_x, grid_y = site_grid.label_to_grid(raw)
+            except site_grid.GridError:
+                ties.append({"rawText": raw, "gridX": None, "gridY": None})
+            else:
+                ties.append({"rawText": raw, "gridX": grid_x, "gridY": grid_y})
         cfg["_tiePointsFromSheet"] = ties
         cfg["_comment"] += (
             " This is a single-wall field sheet, so there is one face. The "
             "labels transcribed off the drawing are listed in "
-            "_tiePointsFromSheet for reference — they are NOT interpreted "
-            "here; confirm against site records which are northings, "
-            "eastings or elevations before using them."
+            "_tiePointsFromSheet, with their grid coordinates where the label "
+            "could be read. They are NOT applied here: which end of the face "
+            "each label marks is a site-records question. Confirm before use."
         )
     return cfg
 

@@ -2,8 +2,10 @@ import { apiJson } from "../core/api.js";
 import { refreshChrome } from "../core/navigation.js";
 import { invalidateDownstream, state } from "../core/state.js";
 import { $content, banner, errorBanner, esc } from "../core/ui.js";
-
-const FEATURE_TYPES = ["rock/stone", "cut", "lens", "void", "other feature"];
+import {
+  DEFAULT_FEATURE_TYPE,
+  featureTypeOptions,
+} from "../../shared/site-vocab.mjs";
 
 export function renderFeatures() {
   const ft = state.features;
@@ -96,9 +98,7 @@ export function renderFeatures() {
       rows.map((c, i) => `
         <div class="btn-row" style="align-items:center;gap:8px" data-fi="${i}">
           <span class="hint" style="min-width:34px">F${i + 1}</span>
-          <select data-role="type">${FEATURE_TYPES.map(t =>
-            `<option ${t === c.feature_type ? "selected" : ""}>${t}</option>`).join("")}
-          </select>
+          <select data-role="type">${featureTypeOptions(c.feature_type)}</select>
           <input data-role="desc" placeholder="description (optional)"
                  value="${esc(c.description || "")}" style="flex:1;min-width:180px">
           <span class="hint">${c.manual ? "drawn by you" : "CV proposal"}</span>
@@ -188,7 +188,7 @@ export function renderFeatures() {
     if (w < 6 || h < 6) return;  // a click, not a drag
     ft.candidates.push({ x: Math.round(x), y: Math.round(y),
                          width: Math.round(w), height: Math.round(h),
-                         feature_type: "rock/stone", description: "",
+                         feature_type: DEFAULT_FEATURE_TYPE, description: "",
                          accepted: true, manual: true });
     drawBoxes(); renderList();
   });

@@ -247,34 +247,50 @@ def _adjacency(nodes, edges):
 
 
 def _find_cycle(nodes, edges):
+    """The first cycle found by a three-colour depth-first search, or None.
+
+    White (0) unvisited, grey (1) on the current path, black (2) finished. An
+    edge to a grey node closes a cycle, and the path slice from that node names
+    the units actually on it.
+
+    The search keeps its own explicit stack rather than recursing. Every stored
+    matrix is validated through here on load and on save, with no cap on unit
+    count, so a long enough chain of relations turned a matrix that should
+    merely be reported on into a RecursionError -- a 500 instead of a finding.
+    Traversal order is unchanged: starts in sorted order, neighbours in the
+    sorted order ``_adjacency`` already imposes.
+    """
     adjacent = _adjacency(nodes, edges)
     state = {node: 0 for node in nodes}
-    path = []
-    path_indexes = {}
 
-    def visit(node):
-        state[node] = 1
-        path_indexes[node] = len(path)
-        path.append(node)
+    for start in sorted(nodes):
+        if state[start] != 0:
+            continue
 
-        for neighbor in adjacent[node]:
-            if state[neighbor] == 0:
-                cycle = visit(neighbor)
-                if cycle is not None:
-                    return cycle
-            elif state[neighbor] == 1:
-                return path[path_indexes[neighbor]:] + [neighbor]
+        path = [start]
+        path_indexes = {start: 0}
+        state[start] = 1
+        stack = [(start, 0)]
 
-        path.pop()
-        path_indexes.pop(node)
-        state[node] = 2
-        return None
+        while stack:
+            node, neighbor_index = stack[-1]
+            neighbors = adjacent[node]
+            if neighbor_index < len(neighbors):
+                stack[-1] = (node, neighbor_index + 1)
+                neighbor = neighbors[neighbor_index]
+                if state[neighbor] == 0:
+                    state[neighbor] = 1
+                    path_indexes[neighbor] = len(path)
+                    path.append(neighbor)
+                    stack.append((neighbor, 0))
+                elif state[neighbor] == 1:
+                    return path[path_indexes[neighbor]:] + [neighbor]
+                continue
+            stack.pop()
+            path.pop()
+            path_indexes.pop(node)
+            state[node] = 2
 
-    for node in sorted(nodes):
-        if state[node] == 0:
-            cycle = visit(node)
-            if cycle is not None:
-                return cycle
     return None
 
 

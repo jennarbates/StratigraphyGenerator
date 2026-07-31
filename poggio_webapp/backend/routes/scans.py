@@ -3,9 +3,11 @@
 import os
 
 from flask import Blueprint, abort, jsonify, request
+from werkzeug.utils import secure_filename
 
-from naming import clean_label
+from naming import canonical_trench, clean_label
 from pipeline import preprocess as p_preprocess
+from pipeline import site_grid as p_site_grid
 
 from ..config import ALLOWED_SCAN_EXT
 from ..jobs import job_dir, load_meta, rel_url, save_meta
@@ -27,7 +29,13 @@ def upload_scan(job_id):
     if ext not in ALLOWED_SCAN_EXT:
         abort(400, description=f"unsupported file type {ext}")
 
-    scan_path = d / "01_scan" / file.filename
+    # The uploaded name is client-supplied and is joined onto a storage root.
+    # secure_filename strips directory components and anything else that is not
+    # a safe path component; an ordinary name like "field-wall.png" survives
+    # unchanged. A name that reduces to nothing keeps the extension we already
+    # validated, so the file is still recognisable downstream.
+    filename = secure_filename(file.filename) or f"scan{ext}"
+    scan_path = d / "01_scan" / filename
     file.save(scan_path)
 
     dims = None
@@ -40,8 +48,17 @@ def upload_scan(job_id):
         except Exception:
             pass  # non-fatal: recommendation is a nicety, not required to proceed
 
-    trench_label = clean_label(request.form.get("trench_label"))
+    # The trench label is an identifier and is canonicalized; the wall label is
+    # free text ("north wall") and is only tidied.
+    trench_label = canonical_trench(request.form.get("trench_label"))
     wall_label = clean_label(request.form.get("wall_label"))
+    season = clean_label(request.form.get("season"))
+    locus_epoch = clean_label(request.form.get("locus_epoch"))
+    try:
+        site_grid_name = p_site_grid.normalize_grid_name(
+            request.form.get("site_grid"))
+    except p_site_grid.GridError as error:
+        abort(400, description=str(error))
 
     meta = load_meta(job_id)
     meta["sheet_type"] = sheet_type
@@ -49,8 +66,14 @@ def upload_scan(job_id):
         meta["trench_label"] = trench_label
     if wall_label:
         meta["wall_label"] = wall_label
+    if season:
+        meta["season"] = season
+    if locus_epoch:
+        meta["locus_epoch"] = locus_epoch
+    if site_grid_name:
+        meta["site_grid"] = site_grid_name
     meta["scan_path"] = str(scan_path)
-    meta["scan_filename"] = file.filename
+    meta["scan_filename"] = filename
     save_meta(job_id, meta)
 
     payload = {
@@ -64,4 +87,10 @@ def upload_scan(job_id):
         payload["trench_label"] = trench_label
     if wall_label:
         payload["wall_label"] = wall_label
+    if season:
+        payload["season"] = season
+    if locus_epoch:
+        payload["locus_epoch"] = locus_epoch
+    if site_grid_name:
+        payload["site_grid"] = site_grid_name
     return jsonify(payload)

@@ -652,6 +652,9 @@ function pointCoordinate(point, finalKey, alternateFinalKey, pixelKey) {
   return pixelsToMeters(point[pixelKey], PIXELS_PER_METER);
 }
 
+// The site records a +/- in centimetres per coordinate; a traced point has
+// none unless one is entered, but the field is emitted so the assembled state
+// matches the extraction schema exactly.
 function archaeologicalBoundary(points) {
   return points.map((point) => ({
     xCoordinateMeters: pointCoordinate(
@@ -667,6 +670,7 @@ function archaeologicalBoundary(points) {
       "y",
     ),
     confidence: point.confidence ?? "human-traced",
+    uncertaintyCm: point.uncertaintyCm ?? null,
   }));
 }
 
@@ -685,6 +689,7 @@ function fieldWallBoundary(points) {
       "y",
     ),
     confidence: point.confidence ?? "human-traced",
+    uncertaintyCm: point.uncertaintyCm ?? null,
   }));
 }
 

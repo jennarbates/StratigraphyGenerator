@@ -99,6 +99,200 @@ nav:
       - Pipeline: architecture/pipeline.md
       - Asynchronous tasks: architecture/asynchronous-tasks.md
       - Files and artifacts: architecture/files-and-artifacts.md
+      - Pipeline walkthrough: architecture/pipeline-walkthrough.md
+      - Codebase review: architecture/code-review.md
+      - Algorithm index: architecture/algorithm-index.md
+  # One page per technique and one page per archaeological term. Both sections
+  # are grown a batch at a time; each batch adds its pages here in the same
+  # commit, because a page absent from the navigation fails the orphan check.
+  - Computer science:
+      - cs/index.md
+      - Images and pixels:
+          - Raster images and pixels: cs/raster-images-and-pixels.md
+          - Colour spaces and channels: cs/colour-spaces-and-channels.md
+          - Grayscale conversion: cs/grayscale-conversion.md
+          - Colour-channel arithmetic: cs/colour-channel-arithmetic.md
+          - Bit depth and dynamic range: cs/bit-depth-and-dynamic-range.md
+          - EXIF orientation: cs/exif-orientation.md
+      - Filtering and enhancement:
+          - Convolution: cs/convolution.md
+          - Gaussian blur: cs/gaussian-blur.md
+          - Homomorphic illumination correction: cs/homomorphic-illumination-correction.md
+          - Histogram equalisation: cs/histogram-equalisation.md
+          - CLAHE: cs/clahe.md
+          - Unsharp masking: cs/unsharp-masking.md
+          - Bilinear and bicubic interpolation: cs/bilinear-and-bicubic-interpolation.md
+          - Lanczos resampling: cs/lanczos-resampling.md
+          - Area-averaging downsampling: cs/area-averaging-downsampling.md
+      - Thresholding and masks:
+          - Global thresholding: cs/global-thresholding.md
+          - Otsu's method: cs/otsu-thresholding.md
+          - Adaptive thresholding: cs/adaptive-thresholding.md
+          - Binary masks and bitwise operations: cs/binary-masks-and-bitwise-operations.md
+          - Connected-component labelling: cs/connected-component-labelling.md
+      - Morphology:
+          - Structuring elements: cs/structuring-elements.md
+          - Erosion: cs/erosion.md
+          - Dilation: cs/dilation.md
+          - Morphological opening: cs/morphological-opening.md
+          - Morphological closing: cs/morphological-closing.md
+      - Edges, lines, and contours:
+          - Image gradients and Sobel: cs/image-gradients-and-sobel.md
+          - Canny edge detection: cs/canny-edge-detection.md
+          - Edge thinning (non-maximum suppression): cs/edge-thinning-non-maximum-suppression.md
+          - Hysteresis thresholding: cs/hysteresis-thresholding.md
+          - Hough line transform: cs/hough-line-transform.md
+          - Contour tracing: cs/contour-tracing.md
+          - Contour hierarchy: cs/contour-hierarchy.md
+      - Shape description:
+          - Contour area and perimeter: cs/contour-area-and-perimeter.md
+          - Bounding boxes: cs/bounding-boxes.md
+          - Minimum enclosing circle: cs/minimum-enclosing-circle.md
+          - Convex hull: cs/convex-hull.md
+          - Circularity: cs/circularity.md
+          - Solidity: cs/solidity.md
+          - Extent and fill ratio: cs/extent-and-fill-ratio.md
+          - Aspect ratio: cs/aspect-ratio.md
+          - Ramer–Douglas–Peucker simplification: cs/ramer-douglas-peucker.md
+      - Candidate filtering:
+          - Intersection over union: cs/intersection-over-union.md
+          - Non-maximum suppression: cs/non-maximum-suppression.md
+          - Greedy algorithms: cs/greedy-algorithms.md
+          - Multi-scale analysis: cs/multi-scale-analysis.md
+      - Vectors and linear algebra:
+          - Vectors and magnitude: cs/vectors-and-magnitude.md
+          - Unit vectors and normalisation: cs/unit-vectors-and-normalisation.md
+          - Dot product: cs/dot-product.md
+          - Vector projection: cs/vector-projection.md
+          - Cross product: cs/cross-product.md
+          - Plane normals: cs/plane-normals.md
+          - Orthonormal bases: cs/orthonormal-bases.md
+      - Transforms:
+          - Translation, rotation, and scaling: cs/translation-rotation-scaling.md
+          - Similarity transforms: cs/similarity-transforms.md
+          - Affine transforms: cs/affine-transforms.md
+          - Homogeneous coordinates: cs/homogeneous-coordinates.md
+          - Compass bearings versus mathematical angles: cs/compass-bearings-vs-mathematical-angles.md
+      - Computational geometry:
+          - Signed area and the orientation test: cs/signed-area-and-orientation-test.md
+          - Shoelace formula: cs/shoelace-formula.md
+          - Line segment intersection: cs/line-segment-intersection.md
+          - Polygon self-intersection: cs/polygon-self-intersection.md
+          - Point in polygon: cs/point-in-polygon.md
+          - Polyline clipping: cs/polyline-clipping.md
+          - Linear interpolation: cs/linear-interpolation.md
+          - Piecewise-linear functions: cs/piecewise-linear-functions.md
+          - Grid snapping and quantisation: cs/grid-snapping-and-quantisation.md
+      - Numerical methods and statistics:
+          - Floating-point representation: cs/floating-point-representation.md
+          - Epsilon comparison: cs/epsilon-comparison.md
+          - Mean and variance: cs/mean-and-variance.md
+          - Coefficient of variation: cs/coefficient-of-variation.md
+          - Median and robust statistics: cs/median-and-robust-statistics.md
+          - Ordinary least squares: cs/ordinary-least-squares.md
+          - Spatial interpolation and kriging: cs/spatial-interpolation-and-kriging.md
+      - Graphs:
+          - Graphs and terminology: cs/graphs-and-terminology.md
+          - Directed acyclic graphs: cs/directed-acyclic-graphs.md
+          - Adjacency representations: cs/adjacency-representations.md
+          - Depth-first search: cs/depth-first-search.md
+          - Breadth-first search: cs/breadth-first-search.md
+          - Cycle detection: cs/cycle-detection.md
+          - Topological sorting: cs/topological-sorting.md
+          - Transitive reduction: cs/transitive-reduction.md
+          - Union-Find (disjoint sets): cs/union-find.md
+          - Connected components: cs/connected-components.md
+          - Layered graph drawing: cs/layered-graph-drawing.md
+      - Data structures:
+          - Hash tables: cs/hash-tables.md
+          - Sets and membership: cs/sets-and-membership.md
+          - Heaps and priority queues: cs/heaps-and-priority-queues.md
+          - Stacks and explicit recursion: cs/stacks-and-explicit-recursion.md
+          - Bounded caches and eviction: cs/bounded-caches-and-eviction.md
+      - Hashing, encoding, and serialisation:
+          - Hash functions and SHA-256: cs/hash-functions-and-sha256.md
+          - Content-addressed identifiers: cs/content-addressed-identifiers.md
+          - Endianness: cs/endianness.md
+          - Binary serialisation: cs/binary-serialisation.md
+          - JSON and schema design: cs/json-schema-design.md
+          - Regular expressions: cs/regular-expressions.md
+      - Concurrency and shared state:
+          - Threads and the GIL: cs/threads-and-the-gil.md
+          - Locks and critical sections: cs/locks-and-critical-sections.md
+          - Race conditions: cs/race-conditions.md
+          - Optimistic concurrency control: cs/optimistic-concurrency-control.md
+          - Atomic file writes: cs/atomic-file-writes.md
+      - Reliability:
+          - Idempotency: cs/idempotency.md
+          - Immutability and defensive copying: cs/immutability-and-defensive-copying.md
+          - Determinism and stable sorting: cs/determinism-and-stable-sorting.md
+          - Exponential backoff: cs/exponential-backoff.md
+          - Retry budgets: cs/retry-budgets.md
+          - Fail-closed design: cs/fail-closed-design.md
+          - Debouncing and throttling: cs/debouncing-and-throttling.md
+      - Validation and error handling:
+          - Validation at trust boundaries: cs/validation-at-trust-boundaries.md
+          - Error taxonomies: cs/error-taxonomies.md
+          - Schema versioning: cs/schema-versioning.md
+          - Structural versus schema validation: cs/structural-vs-schema-validation.md
+      - Architecture:
+          - Layered architecture: cs/layered-architecture.md
+          - Dependency direction and leaf modules: cs/dependency-direction-and-leaf-modules.md
+          - Application factory: cs/application-factory.md
+          - Blueprint and plugin registries: cs/blueprint-and-plugin-registries.md
+          - Late binding versus import-time binding: cs/late-binding-vs-import-time-binding.md
+          - Closure late-binding capture: cs/closure-late-binding-capture.md
+          - Separation of concerns: cs/separation-of-concerns.md
+          - Pure functions and testability: cs/pure-functions-and-testability.md
+      - Security:
+          - Path traversal and containment: cs/path-traversal-and-containment.md
+          - Input sanitisation: cs/input-sanitisation.md
+          - Decompression bombs: cs/decompression-bombs.md
+          - Same-origin URL validation: cs/same-origin-url-validation.md
+      - Scientific computing practice:
+          - Provenance and data lineage: cs/provenance-and-data-lineage.md
+          - Human-in-the-loop review: cs/human-in-the-loop-review.md
+          - Two-phase commit with review: cs/two-phase-commit-with-review.md
+          - Fabrication detection: cs/fabrication-detection.md
+          - Interpolation versus measurement: cs/interpolation-vs-measurement.md
+  - Archaeology:
+      - archaeology/index.md
+      - The trench and its anatomy:
+          - Trench: archaeology/trench.md
+          - Trench profile: archaeology/trench-profile.md
+          - Wall and baulk: archaeology/wall-and-baulk.md
+          - Face: archaeology/face.md
+          - Locus: archaeology/locus.md
+          - Layer: archaeology/layer.md
+          - Boundary: archaeology/boundary.md
+          - Cut: archaeology/cut.md
+          - Fill: archaeology/fill.md
+          - Natural: archaeology/natural.md
+      - Stratigraphy and chronology:
+          - Stratigraphy: archaeology/stratigraphy.md
+          - Law of superposition: archaeology/law-of-superposition.md
+          - Harris Matrix: archaeology/harris-matrix.md
+          - Stratigraphic relationships: archaeology/stratigraphic-relationships.md
+          - Correlation: archaeology/correlation.md
+          - Locus numbering epochs: archaeology/locus-numbering-epochs.md
+          - Feature: archaeology/feature.md
+          - Find: archaeology/find.md
+          - Find identifiers: archaeology/find-identifiers.md
+          - Marker: archaeology/marker.md
+          - Munsell colour: archaeology/munsell-colour.md
+      - Survey, measurement, and recording:
+          - Datum: archaeology/datum.md
+          - Elevation: archaeology/elevation.md
+          - Grid registration: archaeology/grid-registration.md
+          - Site coordinates: archaeology/site-coordinates.md
+          - Bearing and azimuth: archaeology/bearing-and-azimuth.md
+          - Apparent and true dip: archaeology/apparent-and-true-dip.md
+          - Interface point: archaeology/interface-point.md
+          - Orientation seed: archaeology/orientation-seed.md
+          - Survey point codes: archaeology/survey-point-codes.md
+          - Grid tie point: archaeology/grid-tie-point.md
+          - Scale and DPI: archaeology/scale-and-dpi.md
+          - Recording sheet: archaeology/recording-sheet.md
   - Reference:
       - Drawing guidelines: reference/drawing-guidelines.md
       - Data schemas: reference/data-schemas.md

@@ -447,8 +447,39 @@ def face_endpoints(face_cfg, length_m):
     return (X0, Y0), (X0 + L * math.sin(theta), Y0 + L * math.cos(theta))
 
 
-def is_placeholder(face_cfg):
-    """True if this face still carries make_starter_config()'s pattern."""
+def registration_source(grid):
+    """A grid config's declared provenance: 'placeholder', 'surveyed' or ''.
+
+    The roadmap's own item: without it, placeholder-ness has to be inferred
+    from a value pattern, and nothing stops a placeholder model being mistaken
+    for a real one once it leaves the application. '' means an older config
+    that predates the field, where inference is still the only option.
+    """
+    declared = (grid or {}).get("source")
+    if declared in ("placeholder", "surveyed"):
+        return declared
+    return ""
+
+
+def is_placeholder(face_cfg, grid=None):
+    """True if this face still carries make_starter_config()'s pattern.
+
+    A grid config that declares its own ``source`` is believed: a declaration
+    beats an inference, and an operator who has entered real survey values can
+    say so instead of having to nudge one of them away from a coincidence.
+
+    Without a declaration the value pattern is the only signal, and real survey
+    values that happen to match all of it -- originY 0, surfaceZ exactly 100,
+    bearing exactly 90, originX a multiple of 10 -- read as a placeholder. That
+    is the safe direction to be wrong in for the single-sheet path, where the
+    result is only a warning. On the merged path
+    ``trench_builder._check_registration`` turns it into a refusal, so being
+    told to double-check a genuine coincidence costs less than building a row
+    of parallel walls that looks like a trench.
+    """
+    declared = registration_source(grid)
+    if declared:
+        return declared == "placeholder"
     try:
         originX = float(face_cfg["originX"])
         originY = float(face_cfg["originY"])
@@ -515,7 +546,7 @@ def check_trench_grid_config(grid, merged, tolerance_m=0.05):
     # 1. Starter placeholders. Building on these is the failure mode the
     #    README warns about, so it is worth naming loudly per face.
     for name in names:
-        if is_placeholder(faces_cfg[name]):
+        if is_placeholder(faces_cfg[name], grid):
             warnings.append(
                 f"face {name!r} is still the starter placeholder "
                 f"(originY 0, surfaceZ 100, bearing 90, originX a multiple of "

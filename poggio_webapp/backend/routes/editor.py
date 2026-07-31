@@ -14,7 +14,7 @@ from flask import (
 from pydantic import ValidationError
 
 import storage
-from naming import clean_label
+from naming import canonical_trench, clean_label
 from pipeline import editor as editor_pipeline
 from pipeline.editor import (
     create_editor_session,
@@ -45,7 +45,7 @@ bp = Blueprint("editor", __name__)
 def create_editor():
     body = request.get_json(force=True, silent=True) or {}
     schema_type = body.get("schema_type")
-    trench_label = clean_label(body.get("trench_label"))
+    trench_label = canonical_trench(body.get("trench_label"))
     wall_label = clean_label(body.get("wall_label"))
     try:
         job_id = create_editor_session(

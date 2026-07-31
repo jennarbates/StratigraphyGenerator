@@ -11,6 +11,7 @@ from ..services.trench_builder import (
     TrenchBuildError,
     build,
     grouped_members,
+    label_variants,
     public_member,
     trench_dir,
 )
@@ -20,12 +21,23 @@ bp = Blueprint("trenches", __name__)
 
 @bp.route("/api/trenches")
 def list_trenches():
-    return jsonify({
+    grouped = grouped_members()
+    payload = {
         "trenches": {
             label: [public_member(m) for m in members]
-            for label, members in grouped_members().items()
+            for label, members in grouped.items()
         }
-    })
+    }
+    # Only present for trenches whose jobs were recorded under more than one
+    # spelling, so the interface can show that a merge happened.
+    variants = {
+        label: found
+        for label, members in grouped.items()
+        if (found := label_variants(members))
+    }
+    if variants:
+        payload["label_variants"] = variants
+    return jsonify(payload)
 
 
 @bp.route("/api/trenches/<label>/build", methods=["POST"])

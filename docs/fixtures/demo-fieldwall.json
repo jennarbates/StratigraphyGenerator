@@ -20,36 +20,43 @@
         {
           "confidence": "synthetic",
           "depthMeters": 0.62,
+          "uncertaintyCm": null,
           "xMeters": 0.0
         },
         {
           "confidence": "synthetic",
           "depthMeters": 0.58,
+          "uncertaintyCm": null,
           "xMeters": 0.47
         },
         {
           "confidence": "synthetic",
           "depthMeters": 0.72,
+          "uncertaintyCm": null,
           "xMeters": 1.36
         },
         {
           "confidence": "synthetic",
           "depthMeters": 0.67,
+          "uncertaintyCm": null,
           "xMeters": 2.14
         },
         {
           "confidence": "synthetic",
           "depthMeters": 0.81,
+          "uncertaintyCm": null,
           "xMeters": 3.29
         },
         {
           "confidence": "synthetic",
           "depthMeters": 0.76,
+          "uncertaintyCm": null,
           "xMeters": 3.91
         },
         {
           "confidence": "synthetic",
           "depthMeters": 0.86,
+          "uncertaintyCm": null,
           "xMeters": 4.8
         }
       ],
@@ -70,36 +77,43 @@
         {
           "confidence": "synthetic",
           "depthMeters": 0.18,
+          "uncertaintyCm": null,
           "xMeters": 0.0
         },
         {
           "confidence": "synthetic",
           "depthMeters": 0.14,
+          "uncertaintyCm": null,
           "xMeters": 0.52
         },
         {
           "confidence": "synthetic",
           "depthMeters": 0.2,
+          "uncertaintyCm": null,
           "xMeters": 1.41
         },
         {
           "confidence": "synthetic",
           "depthMeters": 0.17,
+          "uncertaintyCm": null,
           "xMeters": 2.18
         },
         {
           "confidence": "synthetic",
           "depthMeters": 0.23,
+          "uncertaintyCm": null,
           "xMeters": 3.36
         },
         {
           "confidence": "synthetic",
           "depthMeters": 0.19,
+          "uncertaintyCm": null,
           "xMeters": 4.02
         },
         {
           "confidence": "synthetic",
           "depthMeters": 0.24,
+          "uncertaintyCm": null,
           "xMeters": 4.8
         }
       ]
@@ -109,36 +123,43 @@
         {
           "confidence": "synthetic",
           "depthMeters": 1.3,
+          "uncertaintyCm": null,
           "xMeters": 0.0
         },
         {
           "confidence": "synthetic",
           "depthMeters": 1.38,
+          "uncertaintyCm": null,
           "xMeters": 0.71
         },
         {
           "confidence": "synthetic",
           "depthMeters": 1.31,
+          "uncertaintyCm": null,
           "xMeters": 1.18
         },
         {
           "confidence": "synthetic",
           "depthMeters": 1.48,
+          "uncertaintyCm": null,
           "xMeters": 2.37
         },
         {
           "confidence": "synthetic",
           "depthMeters": 1.4,
+          "uncertaintyCm": null,
           "xMeters": 3.08
         },
         {
           "confidence": "synthetic",
           "depthMeters": 1.53,
+          "uncertaintyCm": null,
           "xMeters": 4.21
         },
         {
           "confidence": "synthetic",
           "depthMeters": 1.46,
+          "uncertaintyCm": null,
           "xMeters": 4.8
         }
       ],
@@ -148,36 +169,43 @@
         {
           "confidence": "synthetic",
           "depthMeters": 0.62,
+          "uncertaintyCm": null,
           "xMeters": 0.0
         },
         {
           "confidence": "synthetic",
           "depthMeters": 0.58,
+          "uncertaintyCm": null,
           "xMeters": 0.47
         },
         {
           "confidence": "synthetic",
           "depthMeters": 0.72,
+          "uncertaintyCm": null,
           "xMeters": 1.36
         },
         {
           "confidence": "synthetic",
           "depthMeters": 0.67,
+          "uncertaintyCm": null,
           "xMeters": 2.14
         },
         {
           "confidence": "synthetic",
           "depthMeters": 0.81,
+          "uncertaintyCm": null,
           "xMeters": 3.29
         },
         {
           "confidence": "synthetic",
           "depthMeters": 0.76,
+          "uncertaintyCm": null,
           "xMeters": 3.91
         },
         {
           "confidence": "synthetic",
           "depthMeters": 0.86,
+          "uncertaintyCm": null,
           "xMeters": 4.8
         }
       ]

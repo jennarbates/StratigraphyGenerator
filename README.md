@@ -259,6 +259,10 @@ Pages: [system overview](docs/architecture/system-overview.md) ·
 The pipeline page carries an **interactive stage explorer**: click any stage to
 see its module, input, output, and route.
 
+The [algorithm index](docs/architecture/algorithm-index.md) lists what is in
+each module, so you can start from a file you are reading rather than from a
+concept you already know the name of.
+
 ### What lands on disk
 
 ```mermaid
@@ -275,6 +279,45 @@ flowchart TD
 Each stage writes into its own subfolder, so a failure in one cannot erase
 earlier output. `jobs/`, `trenches/`, and `matrices/` are all gitignored: a
 fresh clone has none of them.
+
+---
+
+## Computer science
+
+Every algorithm, data structure, and engineering principle in this repository
+has its own page: what the idea is, where this project uses it, and **why that
+technique rather than the obvious alternative**.
+
+Start at the [concept catalogue](docs/cs/index.md), which groups them by
+subject, or at the [algorithm index](docs/architecture/algorithm-index.md),
+which groups them by source module.
+
+The pages are written for someone who knows the archaeology and not the
+computer science. [Union-Find](docs/cs/union-find.md) is a worked example — it
+is how this project decides whether four separately drawn walls actually
+enclose a pit, and how it collapses correlated units into one node of a Harris
+Matrix.
+
+---
+
+## Archaeology
+
+Every archaeological term this project uses has a reference page that goes
+further than the [glossary](docs/start-here/glossary.md): what the term means
+in excavation practice, why the practice exists, which schema field holds it,
+and which neighbouring term it is constantly confused with.
+
+That last part matters. This application makes distinctions a drawing does
+not — a marker is not a feature, a feature is not a find, and a layer is not
+always a locus — and recording one as another produces data that validates
+cleanly and means something else.
+
+Start at the [term catalogue](docs/archaeology/index.md).
+[Locus](docs/archaeology/locus.md) is a worked example, including the
+one-line shift that silently moves every unit in the model down by one — and
+[locus numbering epochs](docs/archaeology/locus-numbering-epochs.md) explains
+why a trench reopened after a gap cannot simply be merged with its earlier
+seasons.
 
 ---
 
@@ -335,8 +378,10 @@ risk this project carries.
   running build, though the files it already wrote survive.
 - **A single face is extrapolated** across the whole model extent, so confidence
   falls off away from recorded points.
-- **`true_dip.py` is implemented and tested but wired into nothing**, so merged
-  models still use apparent dips, which are systematically too shallow.
+- **Single-sheet builds use apparent dips**, which are systematically too
+  shallow. `true_dip.py` corrects this on *merged* trenches only — one wall
+  cannot determine a surface's true orientation, so there is nothing to correct
+  from. See [apparent and true dip](docs/archaeology/apparent-and-true-dip.md).
 
 The authoritative, per-capability record is
 [capability status](docs/project/capability-status.md), which labels every

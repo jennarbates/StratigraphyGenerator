@@ -204,8 +204,10 @@ def write_lithology_binary(
     if np.any(values > 65535):
         raise ValueError("lithology block values must not exceed 65535")
 
-    flattened = values.reshape(shape, order="C").ravel(order="C")
-    encoded = np.asarray(flattened, dtype="<u2")
+    # `<u2` is pinned rather than left as the platform's native uint16: the
+    # browser decodes this file with DataView.getUint16(i, true), so the file
+    # has to be little-endian on every machine that writes one.
+    encoded = np.asarray(values.reshape(shape, order="C"), dtype="<u2").ravel(order="C")
     with open(output_path, "wb") as binary_file:
         binary_file.write(encoded.tobytes(order="C"))
 
@@ -255,11 +257,20 @@ def validate_mesh_arrays(vertices, faces):
     return vertex_array, face_array
 
 
-def export_meshes(geo_model, solution, surf_order, outdir):
+def export_meshes(geo_model, solution, surf_order, outdir, log_cb=None):
     os.makedirs(outdir, exist_ok=True)
     vertices = solution.raw_arrays.vertices
     edges = solution.raw_arrays.edges
     n = min(len(vertices), len(surf_order))
+    if n < len(surf_order) and log_cb:
+        # Meshes stay aligned with surf_order because both are truncated from
+        # the same end, so nothing is mislabelled -- but a surface silently
+        # missing from the viewer is worth a line in the log.
+        log_cb(
+            f"NOTE: GemPy returned {n} mesh(es) for {len(surf_order)} surfaces; "
+            f"no mesh was written for: "
+            + ", ".join(repr(name) for name in surf_order[n:])
+        )
     written = []
     for surf_name, verts, faces in zip(surf_order, vertices[:n], edges[:n]):
         _, validated_faces = validate_mesh_arrays(verts, faces)
@@ -398,7 +409,8 @@ def run_build(points_csv, orientations_csv, out_prefix,
     written = []
     if make_meshes:
         meshdir = f"{out_prefix}_meshes"
-        written = export_meshes(geo_model, solution, surf_order, meshdir)
+        written = export_meshes(geo_model, solution, surf_order, meshdir,
+                                log_cb=log)
         result["outputs"]["meshes"] = written
         log(f"wrote {len(written)} mesh(es) -> {meshdir}/")
 

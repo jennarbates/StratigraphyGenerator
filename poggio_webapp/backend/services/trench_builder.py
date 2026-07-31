@@ -21,8 +21,14 @@ import json
 from pathlib import Path
 
 import storage
-from naming import safe_filename
-from pipeline import convert_coords, merge_walls, true_dip
+from naming import canonical_trench, safe_filename
+from pipeline import (
+    convert_coords,
+    merge_walls,
+    site_elevation,
+    site_grid,
+    true_dip,
+)
 
 from ..jobs import read_meta
 from ..tasks import start_task
@@ -62,15 +68,30 @@ def grouped_members():
         meta = read_meta(job_directory, None)
         if not isinstance(meta, dict):
             continue
-        label = meta.get("trench_label")
-        if not isinstance(label, str) or not label.strip():
+        # Canonicalized on read, not just on write: jobs created before the
+        # rule existed still carry whatever the operator typed, and grouping
+        # them by the raw string is exactly the split this closes.
+        label = canonical_trench(meta.get("trench_label"))
+        if not label:
             continue
         normalized = meta.get("normalized_path")
         wall_label = meta.get("wall_label")
-        grouped.setdefault(label.strip(), []).append({
+        season = meta.get("season")
+        locus_epoch = meta.get("locus_epoch")
+        grouped.setdefault(label, []).append({
             "job_id": meta.get("job_id") or job_directory.name,
             "wall_label": wall_label if isinstance(wall_label, str) else None,
             "sheet_type": meta.get("sheet_type"),
+            "season": season if isinstance(season, str) else None,
+            "locus_epoch": (
+                locus_epoch if isinstance(locus_epoch, str) else None),
+            # What the operator actually typed. Kept so the canonicalization
+            # can be seen rather than inferred: a job that was grouped under a
+            # label it does not literally carry should be able to say so.
+            "recorded_label": meta.get("trench_label"),
+            "site_grid": (
+                meta["site_grid"] if isinstance(meta.get("site_grid"), str)
+                else None),
             "has_normalized": bool(
                 normalized and Path(normalized).is_file()),
             "_normalized_path": normalized,
@@ -82,6 +103,29 @@ def grouped_members():
 
 def public_member(member):
     return {k: v for k, v in member.items() if not k.startswith("_")}
+
+
+def label_variants(members):
+    """The distinct spellings this trench's jobs were recorded under.
+
+    Canonicalization is not a mutation here -- stored metadata keeps whatever
+    the operator typed, and grouping normalizes on read. That preserves the
+    transcription, but it means jobs can be silently merged under a label none
+    of them literally carries. Returning the variants lets the interface show
+    the merge instead of hiding it, which is the same choice the merge layer
+    makes when it reports a Munsell disagreement rather than resolving it out
+    of sight.
+
+    Sorted, and empty when every job already agreed with the canonical form.
+    """
+    canonical = {canonical_trench(m.get("recorded_label")) for m in members}
+    recorded = {
+        m["recorded_label"] for m in members
+        if isinstance(m.get("recorded_label"), str) and m["recorded_label"].strip()
+    }
+    if len(recorded) < 2 and recorded <= canonical:
+        return []
+    return sorted(recorded)
 
 
 def resolve_wall_labels(members, notes):
@@ -111,6 +155,150 @@ def resolve_wall_labels(members, notes):
             f"({described}). Each job must describe a different wall")
 
 
+def check_locus_epochs(members, notes):
+    """Refuse to merge sheets whose locus numbers may not mean the same thing.
+
+    *Excavation and Documentation Procedures* makes locus numbering conditional
+    on how a trench was reopened:
+
+      * reopened in consecutive years -- numbering CONTINUES ("if the last
+        locus excavated ... in prior year was Locus 10, you will begin
+        excavating in Locus 11");
+      * reopened after a gap -- "you may treat this as a new trench opening --
+        you do not need to continue with any locus sequences";
+      * an administratively new trench over older ones -- restarts at Locus 1.
+
+    So neither (trench, locus) nor (trench, season, locus) is a safe fixed key.
+    The first fuses two deposits when numbering restarted; the second splits
+    one deposit that ran across two consecutive seasons, which is ordinary.
+
+    What the application cannot do is work out which case applies, so the
+    numbering epoch is declared rather than inferred. Consecutive seasons pass
+    without one, because that is the case where numbering demonstrably
+    continues. A gap does not: guessing there would either fuse two deposits
+    into one model surface or split one into two, and both look plausible in
+    the output.
+    """
+    epochs = sorted({m["locus_epoch"] for m in members if m["locus_epoch"]})
+    if len(epochs) > 1:
+        raise TrenchBuildError(
+            "these sheets declare different locus numbering epochs ("
+            + ", ".join(repr(e) for e in epochs)
+            + "). Locus numbers restart at each epoch, so the same number "
+            "means different deposits on either side of one. Build each epoch "
+            "as its own trench")
+    if epochs:
+        undeclared = [m["job_id"] for m in members if not m["locus_epoch"]]
+        if undeclared:
+            notes.append(
+                f"jobs {', '.join(undeclared)} declare no locus epoch; taking "
+                f"them as part of {epochs[0]!r}, the only one declared")
+        return
+
+    seasons = sorted({m["season"] for m in members if m["season"]})
+    if len(seasons) < 2:
+        return
+
+    years = sorted({int(s) for s in seasons if s.isdigit() and len(s) == 4})
+    unparsed = [s for s in seasons if not (s.isdigit() and len(s) == 4)]
+    if unparsed:
+        raise TrenchBuildError(
+            "these sheets span more than one season and at least one season is "
+            "not a 4-digit year ("
+            + ", ".join(repr(s) for s in unparsed)
+            + "), so whether their locus numbering continues cannot be "
+            "determined. Set a locus_epoch on each job")
+    if years == list(range(years[0], years[-1] + 1)):
+        notes.append(
+            f"sheets span consecutive seasons {years[0]}-{years[-1]}; locus "
+            "numbering continues across those, so their locus numbers are "
+            "being read as one sequence")
+        return
+
+    missing = [y for y in range(years[0], years[-1] + 1) if y not in years]
+    raise TrenchBuildError(
+        "these sheets span non-consecutive seasons ("
+        + ", ".join(str(y) for y in years)
+        + f"; nothing from {', '.join(str(y) for y in missing)}). A trench "
+        "reopened after a gap may restart its locus numbering, so the same "
+        "locus number need not mean the same deposit. Set a locus_epoch on "
+        "each job to say which numbering sequence it belongs to")
+
+
+def check_site_grid(members, grid, notes):
+    """Refuse to build a trench whose sheets disagree about which grid.
+
+    Poggio Civitate runs two local grids -- the hill and Vescovado di Murlo --
+    so a pair of coordinates is only a location once the grid is named. The two
+    origins are about 1.5 million metres apart once projected, so a mismatch is
+    never a near miss that a tolerance could absorb: it is one wall of the
+    trench placed in another village.
+
+    Returns the agreed grid name, or '' when no sheet declared one. Not
+    declaring is permitted -- most existing jobs predate the field, and every
+    trench modelled so far is on one grid -- but a *disagreement* is not.
+    """
+    declared = sorted({m["site_grid"] for m in members if m["site_grid"]})
+    if len(declared) > 1:
+        raise TrenchBuildError(
+            "these sheets are recorded against different site grids ("
+            + ", ".join(repr(name) for name in declared)
+            + "). The two local grids have origins about 1.5 million metres "
+            "apart, so their coordinates cannot be combined into one trench")
+
+    from_sheets = declared[0] if declared else ""
+    from_config = ""
+    if isinstance(grid, dict):
+        try:
+            from_config = site_grid.normalize_grid_name(grid.get("site_grid"))
+        except site_grid.GridError as error:
+            raise TrenchBuildError(str(error)) from error
+
+    if from_sheets and from_config and from_sheets != from_config:
+        raise TrenchBuildError(
+            f"the grid config is for site grid {from_config!r} but these "
+            f"sheets were recorded against {from_sheets!r}. One of the two is "
+            "wrong, and the difference is not a rounding error")
+
+    agreed = from_config or from_sheets
+    if not agreed:
+        notes.append(
+            "no site grid is declared on these sheets or in the grid config. "
+            "Poggio Civitate runs two local grids, so record which one these "
+            "coordinates belong to")
+    return agreed
+
+
+def check_vertical_frame(grid, notes):
+    """Report on a grid config's vertical block, refusing what cannot resolve.
+
+    A trench still recorded below datum with no datum-nail elevation cannot
+    produce absolute elevations at all, and defaulting the datum to zero would
+    put the model tens of metres from the trench while looking entirely
+    consistent. Everything else is a note: by the site's own rule below-datum
+    is transitional paperwork, which is worth saying out loud but is not this
+    application's to refuse.
+    """
+    vertical = (grid or {}).get("vertical")
+    if not isinstance(vertical, dict):
+        return
+    try:
+        site_elevation.normalize_frame(vertical.get("frame"))
+        description = site_elevation.describe(vertical)
+    except site_elevation.ElevationError as error:
+        raise TrenchBuildError(str(error)) from error
+
+    if (vertical.get("entryForm") == "below-datum"
+            and site_elevation.datum_absolute_z(vertical) is None):
+        raise TrenchBuildError(
+            "this trench's elevations are recorded below datum and the datum "
+            "nail's own absolute elevation is not recorded, so they cannot be "
+            "resolved. Enter the datum elevation before building -- treating "
+            "a missing datum as zero would place the model tens of metres "
+            "from the trench without anything downstream noticing")
+    notes.append(description)
+
+
 def _load_sheets(members):
     sheets = []
     for member in members:
@@ -130,7 +318,7 @@ def _check_registration(grid, merged):
     operator's config cannot block an otherwise valid build."""
     faces_cfg = (grid or {}).get("faces") or {}
     placeholders = [name for name in merge_walls.face_names(merged)
-                    if merge_walls.is_placeholder(faces_cfg[name])]
+                    if merge_walls.is_placeholder(faces_cfg[name], grid)]
     if placeholders:
         raise TrenchBuildError(
             "these faces still carry the starter placeholder registration: "
@@ -147,11 +335,14 @@ def build(label, body):
     supplied a grid config yet, or ``{"task_id": ...}`` once the build starts.
     Raises TrenchBuildError for anything the operator must fix first.
     """
-    members = grouped_members().get(label.strip())
+    # Canonicalized so a request for "T-104" finds the group that "T104"
+    # built, matching how grouped_members() keys it.
+    canonical = canonical_trench(label)
+    members = grouped_members().get(canonical)
     if not members:
         raise TrenchBuildError(
-            f"no jobs are labelled trench {label!r}; set a trench label on "
-            "each wall's job first")
+            f"no jobs are labelled trench {canonical or label!r}; set a trench "
+            "label on each wall's job first")
 
     unready = [m["job_id"] for m in members if not m["has_normalized"]]
     if unready:
@@ -161,6 +352,7 @@ def build(label, body):
             + ". Finalize or normalize each wall before building the trench")
 
     notes = []
+    check_locus_epochs(members, notes)
     resolve_wall_labels(members, notes)
     sheets = _load_sheets(members)
 
@@ -178,6 +370,9 @@ def build(label, body):
             "starter": merge_walls.make_trench_starter_config(merged),
             "notes": notes,
         }
+
+    check_site_grid(members, grid, notes)
+    check_vertical_frame(grid, notes)
 
     try:
         grid_warnings = merge_walls.check_trench_grid_config(grid, merged)
