@@ -60,6 +60,7 @@ nav:
       - How to read these docs: start-here/how-to-read-these-docs.md
       - Choose your path: start-here/choose-your-path.md
       - Quickstart: start-here/quickstart.md
+      - Run the demo: start-here/demo.md
       - First model tutorial: start-here/first-model.md
       - Glossary: start-here/glossary.md
   - Workflows:
@@ -301,6 +302,7 @@ nav:
           - Scale and DPI: archaeology/scale-and-dpi.md
           - Recording sheet: archaeology/recording-sheet.md
           - Trench layout: archaeology/trench-layout.md
+          - Geospatial Spreadsheet: archaeology/geospatial-spreadsheet.md
           - Kobo locus import: archaeology/kobo-locus-import.md
           - Provenance links: archaeology/provenance-links.md
   - Reference:

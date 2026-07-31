@@ -513,8 +513,11 @@ def check_trench_grid_config(grid, merged, tolerance_m=0.05):
     """Sanity-check a merged trench's grid config. Returns warnings: list[str].
 
     Bad geometry is never fatal -- it is the operator's to judge, and this
-    repo's convention is to report rather than guess. A face missing from the
-    config IS fatal (ValueError): convert() would silently drop that wall.
+    repo's convention is to report rather than guess. Two things ARE fatal
+    (ValueError), both because convert() cannot proceed on them: a face missing
+    from the config, which convert() would silently drop, and a face whose
+    surfaceZ is absent, which is every depth on that wall measured from
+    nothing.
     """
     faces = [f for f in ((merged or {}).get("trenchProfiles") or [])
              if isinstance(f, dict)]
@@ -527,6 +530,27 @@ def check_trench_grid_config(grid, merged, tolerance_m=0.05):
             "grid config has no entry for these faces of the merged trench: "
             + ", ".join(repr(name) for name in missing)
             + " -- convert() would drop them from the model")
+
+    # surfaceZ is the ground surface every depth on that wall is subtracted
+    # from, so a face without one has no elevations at all -- not approximate
+    # ones. build_grid_config() leaves it None on exactly this evidence: a
+    # corner whose opening elevation was never recorded. Until this check
+    # existed the None reached convert(), where `Z0 - depth` raised a bare
+    # TypeError; the refusal the layout notes promise was a stack trace.
+    unregistered = [
+        name for name in names
+        if not isinstance(faces_cfg[name].get("surfaceZ"), (int, float))
+        or isinstance(faces_cfg[name].get("surfaceZ"), bool)
+    ]
+    if unregistered:
+        raise ValueError(
+            "these faces have no surfaceZ in the grid config: "
+            + ", ".join(repr(name) for name in unregistered)
+            + ". surfaceZ is the ground surface each wall's depths are "
+            "measured down from, so without it those depths convert to no "
+            "elevation at all. This is usually a corner whose opening "
+            "elevation was never recorded -- supply it, or build the walls "
+            "that are registered as their own trench")
 
     warnings = []
 

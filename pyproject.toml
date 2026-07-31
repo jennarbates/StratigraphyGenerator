@@ -44,7 +44,7 @@ dev = [
 # alongside the package, so auto-discovery would either fail or sweep in dirs
 # that are not Python packages.
 package-dir = { "" = "poggio_webapp" }
-packages = ["backend", "backend.routes", "pipeline"]
+packages = ["backend", "backend.routes", "pipeline", "demo"]
 py-modules = ["app"]
 
 [tool.pytest.ini_options]
@@ -83,7 +83,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.isort]
-known-first-party = ["backend", "pipeline", "storage", "naming", "app"]
+known-first-party = ["backend", "pipeline", "storage", "naming", "app", "demo"]
 
 [tool.ruff.lint.per-file-ignores]
 # Re-export surfaces: these exist precisely to expose names they do not use.

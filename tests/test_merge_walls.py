@@ -281,6 +281,43 @@ def test_missing_face_raises(merged_t900):
     assert "east wall" in str(excinfo.value)
 
 
+# 5b. A face with no surfaceZ is equally unusable. build_grid_config() leaves
+#     it None for a corner whose opening elevation was never recorded, and
+#     until this refusal existed that None reached convert(), where
+#     `Z0 - depth` raised a bare TypeError -- the documented refusal was a
+#     stack trace.
+def test_missing_surface_z_raises(merged_t900):
+    grid = copy.deepcopy(GRID_T900)
+    grid["faces"]["east wall"]["surfaceZ"] = None
+    with pytest.raises(ValueError) as excinfo:
+        check_trench_grid_config(grid, merged_t900)
+    assert "east wall" in str(excinfo.value)
+    assert "surfaceZ" in str(excinfo.value)
+    # The north wall is registered and must not be swept in with it.
+    assert "north wall" not in str(excinfo.value)
+
+
+# 5c. Absent entirely, not just null: a config that never had the key is the
+#     same failure and must not fall through to convert() either.
+def test_absent_surface_z_raises(merged_t900):
+    grid = copy.deepcopy(GRID_T900)
+    del grid["faces"]["east wall"]["surfaceZ"]
+    with pytest.raises(ValueError) as excinfo:
+        check_trench_grid_config(grid, merged_t900)
+    assert "east wall" in str(excinfo.value)
+
+
+# 5d. A surfaceZ of 0.0 is a real elevation -- sea level on an absolute frame,
+#     the datum nail itself on a relative one -- and must not read as missing.
+def test_zero_surface_z_is_a_real_elevation(merged_t900):
+    grid = copy.deepcopy(GRID_T900)
+    grid["faces"]["east wall"]["surfaceZ"] = 0.0
+    # Reported, because 0 is a hundred metres from the other wall's datum --
+    # but reported, not refused. Only an absent value is unusable.
+    warnings = check_trench_grid_config(grid, merged_t900)
+    assert not any("have no surfaceZ" in w for w in warnings)
+
+
 # 6. Endpoint math: bearing 90 sends all displacement into X, none into Y.
 def test_face_endpoint_math():
     start, end = face_endpoints(GRID_T900["faces"]["north wall"], 4.0)

@@ -10,6 +10,7 @@ source_files:
   - poggio_webapp/pipeline/editor/schema.py
   - poggio_webapp/pipeline/series_order.py
   - poggio_webapp/pipeline/trench_layout.py
+  - poggio_webapp/pipeline/geospatial_sheet.py
   - poggio_webapp/pipeline/locus_import.py
   - poggio_webapp/pipeline/provenance.py
 verified_against: 40e4a0d
@@ -47,7 +48,7 @@ Every page has the same seven sections.
 
 ## The catalogue
 
-Thirty-seven terms. **Phasing** — grouping units into periods of activity — is
+Thirty-eight terms. **Phasing** — grouping units into periods of activity — is
 deliberately absent: it is a later interpretive step this application does not
 perform, and several pages below say so where it would otherwise be assumed.
 
@@ -71,7 +72,7 @@ perform, and several pages below say so where it would otherwise be assumed.
 
 ### Records beyond this application
 
-- [Kobo locus import](kobo-locus-import.md) · [Provenance links](provenance-links.md)
+- [Geospatial Spreadsheet](geospatial-spreadsheet.md) · [Kobo locus import](kobo-locus-import.md) · [Provenance links](provenance-links.md)
 
 ## Related concepts
 

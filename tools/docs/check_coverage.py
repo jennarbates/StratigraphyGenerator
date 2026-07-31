@@ -24,6 +24,7 @@ from pathlib import Path
 WATCHED_PACKAGES = (
     "poggio_webapp/pipeline",
     "poggio_webapp/backend",
+    "poggio_webapp/demo",
 )
 
 # Top-level modules that sit beside those packages rather than inside them.

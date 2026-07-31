@@ -13,7 +13,7 @@ MKDOCS := .venv/bin/mkdocs
 JS_TESTS := "poggio_webapp/static/**/*.test.mjs" "docs/javascripts/**/*.test.mjs"
 
 .DEFAULT_GOAL := help
-.PHONY: help test test-js lint format check check-docs diagrams run docs docs-serve clean
+.PHONY: help test test-js lint format check check-docs diagrams run docs docs-serve clean demo demo-run demo-list
 
 help:  ## Show this help
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) \
@@ -51,6 +51,26 @@ check: lint check-docs test test-js diagrams  ## Everything CI runs, in CI's ord
 
 run:  ## Start the web app on http://localhost:5000
 	cd poggio_webapp && ../$(PY) app.py
+
+# The demo writes into poggio_webapp/{jobs,trenches,matrices}, the same three
+# gitignored roots the application uses for your own work. Reseeding removes
+# the previous run's trenches and leaves everything else alone.
+#
+# PYTHONPATH rather than `cd poggio_webapp` as `run` does: the storage roots
+# resolve from storage.py's own location either way, and staying at the repo
+# root keeps the venv's sys.prefix consistent. `cd` there makes Python warn
+# about the ../ in its own prefix on every line of output, which is noise in a
+# command whose whole job is to be read.
+demo:  ## Seed both demonstration trenches (T905 refuses, T906 builds)
+	PYTHONPATH=poggio_webapp $(PY) -m demo.seed stops
+	PYTHONPATH=poggio_webapp $(PY) -m demo.seed complete
+
+demo-run:  ## Build both demonstration trenches and report where each lands
+	PYTHONPATH=poggio_webapp $(PY) -m demo.run T905
+	PYTHONPATH=poggio_webapp $(PY) -m demo.run T906
+
+demo-list:  ## List the record sets the demo can be run against
+	PYTHONPATH=poggio_webapp $(PY) -m demo.seed --list
 
 docs:  ## Build the documentation site into site/
 	.venv/bin/mkdocs build
