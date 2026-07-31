@@ -9,7 +9,7 @@ source_files:
   - poggio_webapp/pipeline/assign_markers.py
   - poggio_webapp/pipeline/merge_walls.py
   - poggio_webapp/pipeline/validator.py
-verified_against: 636b160
+verified_against: 40e4a0d
 ---
 
 # Locus
@@ -109,26 +109,40 @@ than one wall of the same trench.
 
 ### The name that reaches the model
 
-`convert_coords.fieldwall_to_profiles()` builds the model surface name from both
-halves:
+`convert_coords.surface_id()` builds the model surface name from the locus
+number **alone**:
 
 ```python
-if num and munsell:
-    surface = f"Locus {num} ({munsell})"     # "Locus 2 (10YR 5/6 yellowish brown)"
-elif num:
-    surface = f"Locus {num}"
-    notes.append(f"locus {num} has no Munsell entry in loci[] — "
-                 f"surface named without a color")
+def surface_id(locus_number):
+    """The stable identity of a locus's model surface: ``Locus 6``.
+
+    A deposit is identified at this site by its trench and locus number. A
+    model is built from one trench, so the locus number alone is unique within
+    it, and the prefix would add nothing.
+
+    What this deliberately does NOT contain is the Munsell reading. GemPy fuses
+    interface points into a surface by exact string match on this value, so
+    anything inside it is part of the deposit's identity. A soil colour is an
+    observation about a deposit, not a name for one: readings of the same
+    deposit differ legitimately between recorders, between walls, and between
+    wet and dry soil. ...
+    """
+    return f"Locus {locus_number}"
 ```
 
-This matters more than it looks. GemPy fuses interface points into one surface
-**by exact string match on that name**. `Locus 2 (10YR 5/6 yellowish brown)` and
-`Locus 2` are two different surfaces to the modeller, which is why
-`merge_walls.py` canonicalises the Munsell reading for each locus number across
-the whole trench before any name is built:
+That last paragraph is the whole argument, and it is worth stating plainly:
+**the locus number is the identity; the colour is an observation about it.**
 
-> `locus 2: Munsell disagrees between wall 'north' (…) and wall 'east' (…);`
-> `using the first trench-wide so both walls map to one model surface`
+Earlier the surface name was `Locus 2 (10YR 5/6 yellowish brown)`, and because
+GemPy fuses by exact string match, two walls reading one deposit's colour
+slightly differently produced *two model surfaces*. A whole canonicalisation
+layer existed in `merge_walls` to force the readings to agree so the identities
+would. Taking the colour out of the identity removed the failure and about
+sixty lines with it.
+
+The colour survives as a **display label**, carried separately —
+`convert_coords.surface_labels()` returns `{surface_id: display label}` for
+anything user-facing, and only where the two differ.
 
 ### Where the "named line is the top" rule is enforced
 
@@ -159,7 +173,7 @@ And in the marker-classification prompt, `poggio_webapp/pipeline/assign_markers.
 | **[Find](index.md)** | An object recovered *from* a locus. A find records `locus` as one of its fields — that is the relationship. A find is a point, not a unit. |
 | **[Marker](index.md)** | A pencil dot on the sheet marking one measured vertex of a locus boundary. Many markers describe one locus's edge. |
 | **Phase or period** | A locus is a single recorded unit. Grouping loci into phases is a later interpretive step this application does not do. |
-| **Surface name in the model** | The model surface `Locus 2 (10YR 5/6 …)` is *derived* from the locus. Renaming it in the CSV does not rename the locus. |
+| **Surface name in the model** | The model surface `Locus 2` is *derived* from the locus number by `convert_coords.surface_id()`. Renaming it in the CSV does not rename the locus. |
 
 ## Getting it wrong
 
@@ -191,9 +205,10 @@ and marker assembly warns:
 > `bottom boundary`
 
 **A locus in `layers[]` with no entry in `loci[]`.** The geometry exists but the
-Munsell does not, so the model surface is named without a colour — and on a
-multi-wall trench that produces two surfaces for one deposit. The validator
-warns:
+Munsell does not, so the locus has no colour recorded. Since
+[surface identity is the locus number alone](#the-name-that-reaches-the-model),
+this no longer splits a deposit into two model surfaces — it is now a
+completeness problem rather than a modelling one. The validator still warns:
 
 > `layer references locus 2, which has no entry in loci[] (no Munsell reading)`
 

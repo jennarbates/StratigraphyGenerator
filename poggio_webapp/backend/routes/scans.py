@@ -7,6 +7,7 @@ from werkzeug.utils import secure_filename
 
 from naming import canonical_trench, clean_label
 from pipeline import preprocess as p_preprocess
+from pipeline import provenance as p_provenance
 from pipeline import site_grid as p_site_grid
 
 from ..config import ALLOWED_SCAN_EXT
@@ -59,6 +60,10 @@ def upload_scan(job_id):
             request.form.get("site_grid"))
     except p_site_grid.GridError as error:
         abort(400, description=str(error))
+    try:
+        provenance_fields, provenance_notes = p_provenance.read(request.form)
+    except p_provenance.ProvenanceError as error:
+        abort(400, description=str(error))
 
     meta = load_meta(job_id)
     meta["sheet_type"] = sheet_type
@@ -72,6 +77,8 @@ def upload_scan(job_id):
         meta["locus_epoch"] = locus_epoch
     if site_grid_name:
         meta["site_grid"] = site_grid_name
+    # Only supplied fields, so an omitted one never blanks a stored value.
+    meta.update(provenance_fields)
     meta["scan_path"] = str(scan_path)
     meta["scan_filename"] = filename
     save_meta(job_id, meta)
@@ -93,4 +100,7 @@ def upload_scan(job_id):
         payload["locus_epoch"] = locus_epoch
     if site_grid_name:
         payload["site_grid"] = site_grid_name
+    payload.update(provenance_fields)
+    if provenance_notes:
+        payload["notes"] = provenance_notes
     return jsonify(payload)

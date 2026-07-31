@@ -16,6 +16,9 @@ import pandas as pd
 
 from naming import safe_filename
 
+from . import series_order as series_order_module
+from .series_order import ELEVATION, SUPPLIED
+
 
 def infer_extent(points, pad_xy, pad_z):
     xmin, xmax = points["X"].min(), points["X"].max()
@@ -34,6 +37,14 @@ def infer_extent(points, pad_xy, pad_z):
 
 
 def infer_series_order(points):
+    """Order surfaces by mean elevation, highest first.
+
+    This is an assumption, not evidence, and at this site it is one the
+    excavation's own procedures contradict: "stratigraphically newer deposits
+    may exist at lower elevations than stratigraphically older deposits". It
+    stays because a model with no other information still has to be buildable,
+    but every caller labels it -- see pipeline/series_order.py.
+    """
     return (
         points.groupby("surface")["Z"]
         .mean()
@@ -100,6 +111,10 @@ def write_viewer_manifest(
     volume_path=None,
     volume_lithologies=None,
     traces=None,
+    surface_labels=None,
+    order_source=None,
+    order_note=None,
+    arbitrary_pairs=None,
 ):
     manifest_path = os.path.abspath(os.fspath(manifest_path))
     manifest_dir = os.path.dirname(manifest_path)
@@ -114,8 +129,13 @@ def write_viewer_manifest(
         )
         return relative.replace(os.sep, "/")
 
+    labels = dict(surface_labels or {})
+
     manifest = {
-        "schema_version": 1,
+        # 2 adds surfaces[].label. A version 1 manifest has no labels and is
+        # still valid: the viewer falls back to the surface name, which is what
+        # it always displayed.
+        "schema_version": 2,
         "kind": "gempy-surface-model",
         "coordinate_system": {
             "units": "m",
@@ -124,12 +144,32 @@ def write_viewer_manifest(
         "extent": [plain_number(value) for value in extent],
         "resolution": [int(value) for value in resolution],
         "series_order": [str(name) for name in series_order],
+        # Where that order came from, and what it is worth. An elevation sort
+        # is an assumption this site's procedures contradict, and a reader
+        # cannot tell one order from another by looking at it.
+        "series_order_provenance": {
+            "source": str(order_source or ELEVATION),
+            "note": str(
+                order_note
+                if order_note is not None
+                else series_order_module.describe(order_source or ELEVATION)
+            ),
+            "arbitrary_pairs": [
+                [str(earlier), str(later)]
+                for earlier, later in (arbitrary_pairs or [])
+            ],
+        },
         "single_face_note": (
             None if single_face_note is None else str(single_face_note)
         ),
         "surfaces": [
             {
+                # `name` is the identity GemPy fused on -- "Locus 6". `label`
+                # is what a reader should see -- "Locus 6 (10YR 5/3 brown)".
+                # Keeping them apart is what stopped a soil colour from being
+                # able to split one deposit into two model surfaces.
                 "name": str(name),
+                "label": str(labels.get(str(name), name)),
                 "mesh_path": relative_path(mesh_path),
             }
             for name, mesh_path in zip(series_order, mesh_paths)
@@ -310,6 +350,9 @@ def run_build(points_csv, orientations_csv, out_prefix,
               make_zoom_plot=True,
               zoom_surfaces=None,
               zoom_vertical_exaggeration=None,
+              surface_labels=None,
+              order_source=None,
+              arbitrary_pairs=None,
               log_cb=None):
     """Runs the full GemPy build stage. Returns a dict describing outputs."""
 
@@ -333,9 +376,22 @@ def run_build(points_csv, orientations_csv, out_prefix,
         if missing:
             raise RuntimeError(f"--series-order names not found in {points_csv}: "
                                 f"{', '.join(sorted(missing))}")
+        resolved_source = order_source or SUPPLIED
     else:
         surf_order = infer_series_order(points)
+        # Nothing better was supplied, so this is the elevation assumption
+        # regardless of what the caller claimed.
+        resolved_source = ELEVATION
+    order_note = series_order_module.describe(resolved_source)
     log(f"stratigraphic order (young -> old): {surf_order}")
+    if resolved_source == ELEVATION:
+        log("WARNING: " + order_note)
+    else:
+        log(order_note)
+    if arbitrary_pairs:
+        log("NOTE: no recorded relationship orders "
+            + "; ".join(f"{a!r} and {b!r}" for a, b in arbitrary_pairs)
+            + " -- the model imposes an order the excavation did not record")
 
     coverage = points.groupby("surface")["face"].unique()
     single_face = {surf: faces[0] for surf, faces in coverage.items() if len(faces) == 1}
@@ -367,6 +423,9 @@ def run_build(points_csv, orientations_csv, out_prefix,
     result = {
         "extent": resolved_extent,
         "series_order": surf_order,
+        "series_order_source": resolved_source,
+        "series_order_note": order_note,
+        "arbitrary_order_pairs": [list(pair) for pair in (arbitrary_pairs or [])],
         "single_face_note": single_face_note,
         "outputs": {},
     }
@@ -425,6 +484,10 @@ def run_build(points_csv, orientations_csv, out_prefix,
         volume_path=lith_binary_path,
         volume_lithologies=volume_lithologies,
         traces=wall_traces(points),
+        surface_labels=surface_labels,
+        order_source=resolved_source,
+        order_note=order_note,
+        arbitrary_pairs=arbitrary_pairs,
     )
     result["outputs"]["viewer_manifest"] = manifest_path
     log(f"wrote {manifest_path}")

@@ -65,7 +65,14 @@ GRID_T900 = {
     }
 }
 
-# Canonical surface names the merge should produce from this fixture.
-# Locus 2 uses the NORTH wall's reading because that sheet comes first.
-SURFACE_L1 = "Locus 1 (10YR 5/3 brown)"
-SURFACE_L2 = "Locus 2 (10YR 3/2 very dark grayish brown)"
+# Surface identities the merge should produce from this fixture. Identity is
+# the locus number alone: the fixture's two walls disagree about locus 2's
+# Munsell reading ON PURPOSE, and they must still model one surface.
+SURFACE_L1 = "Locus 1"
+SURFACE_L2 = "Locus 2"
+
+# The display labels those surfaces carry. Locus 2 takes the NORTH wall's
+# reading because that sheet comes first; the east wall's differing reading is
+# reported as a note rather than resolved away.
+LABEL_L1 = "Locus 1 (10YR 5/3 brown)"
+LABEL_L2 = "Locus 2 (10YR 3/2 very dark grayish brown)"

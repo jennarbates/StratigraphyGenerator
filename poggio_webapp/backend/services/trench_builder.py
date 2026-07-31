@@ -17,6 +17,7 @@ without an app, and what stopped this from being another 110-line view
 function.
 """
 
+import csv
 import json
 from pathlib import Path
 
@@ -25,6 +26,7 @@ from naming import canonical_trench, safe_filename
 from pipeline import (
     convert_coords,
     merge_walls,
+    series_order,
     site_elevation,
     site_grid,
     true_dip,
@@ -328,6 +330,95 @@ def _check_registration(grid, merged):
               "walls in a row instead of around the pit")
 
 
+def _modelled_surfaces(points_csv):
+    """The surface names the converted points actually contain."""
+    surfaces = set()
+    with open(points_csv, newline="") as handle:
+        for row in csv.DictReader(handle):
+            name = (row.get("surface") or "").strip()
+            if name:
+                surfaces.add(name)
+    return surfaces
+
+
+def _harris_order(label, surfaces, notes):
+    """A series order from this trench's Harris matrix, or None.
+
+    None means "no matrix to use", which is ordinary. A matrix that exists but
+    cannot order this model is an error worth raising: it means the record and
+    the model disagree about what is in the trench, and quietly falling back
+    would hide that.
+    """
+    from .. import harris_store
+
+    candidates = series_order.matrices_for_trench(
+        label, harris_store.list_matrices())
+    if not candidates:
+        return None
+    if len(candidates) > 1:
+        titles = ", ".join(
+            f"{c['title']!r} ({c['matrix_id']})" for c in candidates)
+        raise TrenchBuildError(
+            f"more than one Harris matrix is recorded for this trench: "
+            f"{titles}. Keep one, or pass an explicit series_order")
+
+    summary = candidates[0]
+    try:
+        matrix = harris_store.load_matrix(summary["matrix_id"])
+    except harris_store.HarrisStoreError as error:
+        raise TrenchBuildError(
+            f"the Harris matrix for this trench could not be read: {error}"
+        ) from error
+
+    try:
+        order, arbitrary, order_notes = series_order.from_harris(
+            matrix, available_surfaces=surfaces)
+    except series_order.SeriesOrderError as error:
+        raise TrenchBuildError(str(error)) from error
+
+    notes.append(
+        f"using the Harris matrix {summary['title']!r} "
+        f"({summary['matrix_id']}, revision {summary['revision']}) for "
+        "stratigraphic order")
+    notes.extend(order_notes)
+    return order, arbitrary
+
+
+def resolve_series_order(label, body, merged, points_csv, notes):
+    """Pick the best available evidence for stratigraphic order.
+
+    Precedence, best first: an order supplied with the request, this trench's
+    Harris matrix, the layer sequence recorded on the walls. If none of those
+    yields one, ``run_build`` falls back to sorting by mean elevation -- and
+    labels it, because at this site that assumption is documented as sometimes
+    false rather than merely imprecise.
+
+    Returns ``(order, source, arbitrary_pairs)``.
+    """
+    supplied = body.get("series_order")
+    if supplied:
+        notes.append(series_order.describe(series_order.SUPPLIED))
+        return supplied, series_order.SUPPLIED, []
+
+    surfaces = _modelled_surfaces(points_csv)
+    harris = _harris_order(label, surfaces, notes)
+    if harris is not None:
+        order, arbitrary = harris
+        return order, series_order.HARRIS, arbitrary
+
+    try:
+        order, order_notes = merge_walls.merged_series_order(merged)
+    except ValueError as error:
+        raise TrenchBuildError(str(error)) from error
+    notes.extend(order_notes)
+    if order:
+        notes.append(series_order.describe(series_order.RECORDED))
+        return order, series_order.RECORDED, []
+
+    notes.append("WARNING: " + series_order.describe(series_order.ELEVATION))
+    return None, series_order.ELEVATION, []
+
+
 def build(label, body):
     """Build the merged model for one trench.
 
@@ -408,13 +499,8 @@ def build(label, body):
     notes.extend(true_dip.apply_true_dip(
         conversion["points_csv"], conversion["orientations_csv"], grid))
 
-    series_order = body.get("series_order")
-    if not series_order:
-        try:
-            series_order, order_notes = merge_walls.merged_series_order(merged)
-        except ValueError as error:
-            raise TrenchBuildError(str(error)) from error
-        notes.extend(order_notes)
+    series_order, order_source, arbitrary_pairs = resolve_series_order(
+        label, body, merged, conversion["points_csv"], notes)
 
     # Imported here, not at module scope: gempy is an optional extra and every
     # refusal above must work without it installed.
@@ -433,6 +519,9 @@ def build(label, body):
         str(model_directory / "trench_model"),
         project_name=safe_label(label),
         series_order=series_order,
+        surface_labels=conversion.get("surface_labels"),
+        order_source=order_source,
+        arbitrary_pairs=arbitrary_pairs,
     )
     return {
         "task_id": task_id,

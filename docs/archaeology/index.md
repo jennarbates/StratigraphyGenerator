@@ -8,7 +8,11 @@ source_files:
   - poggio_webapp/pipeline/harris_matrix.py
   - poggio_webapp/pipeline/convert_coords.py
   - poggio_webapp/pipeline/editor/schema.py
-verified_against: 636b160
+  - poggio_webapp/pipeline/series_order.py
+  - poggio_webapp/pipeline/trench_layout.py
+  - poggio_webapp/pipeline/locus_import.py
+  - poggio_webapp/pipeline/provenance.py
+verified_against: 40e4a0d
 ---
 
 # Archaeology reference
@@ -43,7 +47,7 @@ Every page has the same seven sections.
 
 ## The catalogue
 
-Thirty-three terms. **Phasing** — grouping units into periods of activity — is
+Thirty-seven terms. **Phasing** — grouping units into periods of activity — is
 deliberately absent: it is a later interpretive step this application does not
 perform, and several pages below say so where it would otherwise be assumed.
 
@@ -55,7 +59,7 @@ perform, and several pages below say so where it would otherwise be assumed.
 ### Stratigraphy and chronology
 
 - [Stratigraphy](stratigraphy.md) · [Law of superposition](law-of-superposition.md) · [Harris Matrix](harris-matrix.md)
-- [Stratigraphic relationships](stratigraphic-relationships.md) · [Correlation](correlation.md) · [Locus numbering epochs](locus-numbering-epochs.md)
+- [Stratigraphic relationships](stratigraphic-relationships.md) · [Correlation](correlation.md) · [Locus numbering epochs](locus-numbering-epochs.md) · [Series order](series-order.md)
 - [Feature](feature.md) · [Find](find.md) · [Find identifiers](find-identifiers.md) · [Marker](marker.md) · [Munsell colour](munsell-colour.md)
 
 ### Survey, measurement, and recording
@@ -63,7 +67,11 @@ perform, and several pages below say so where it would otherwise be assumed.
 - [Datum](datum.md) · [Elevation](elevation.md) · [Grid registration](grid-registration.md) · [Site coordinates](site-coordinates.md)
 - [Bearing and azimuth](bearing-and-azimuth.md) · [Apparent and true dip](apparent-and-true-dip.md) · [Interface point](interface-point.md)
 - [Orientation seed](orientation-seed.md) · [Survey point codes](survey-point-codes.md) · [Grid tie point](grid-tie-point.md)
-- [Scale and DPI](scale-and-dpi.md) · [Recording sheet](recording-sheet.md)
+- [Scale and DPI](scale-and-dpi.md) · [Recording sheet](recording-sheet.md) · [Trench layout](trench-layout.md)
+
+### Records beyond this application
+
+- [Kobo locus import](kobo-locus-import.md) · [Provenance links](provenance-links.md)
 
 ## Related concepts
 

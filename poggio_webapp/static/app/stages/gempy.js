@@ -85,6 +85,20 @@ export function renderGempy() {
       const resEl = document.getElementById("gpResult");
       let html = banner("ok", "Your 3D model has been created.");
       if (urls.single_face_note) html += banner("warn", urls.single_face_note);
+      // An elevation-sorted order is an assumption this site's own procedures
+      // record as sometimes false, so it is a warning, not a footnote.
+      if (urls.series_order_note) {
+        html += banner(
+          urls.series_order_source === "elevation" ? "warn" : "info",
+          urls.series_order_note,
+        );
+      }
+      (urls.arbitrary_order_pairs || []).length && (html += banner(
+        "warn",
+        "No recorded relationship orders "
+        + urls.arbitrary_order_pairs.map((p) => `${p[0]} and ${p[1]}`).join("; ")
+        + ". The model had to place them in some order; that boundary is not evidence.",
+      ));
       html += `<div class="section-imgs">`;
       if (urls.outputs.section) html += `<figure><img src="${urls.outputs.section}" alt="Cross-section of the 3D trench model"><figcaption>Full model cross-section</figcaption></figure>`;
       if (urls.outputs.section_zoom) html += `<figure><img src="${urls.outputs.section_zoom}" alt="Closer view of the middle layers"><figcaption>Closer view of the middle layers</figcaption></figure>`;

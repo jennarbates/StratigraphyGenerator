@@ -8,9 +8,11 @@ source_files:
   - tests/docs/test_check_docs.py
   - tools/docs/check_docs.py
   - poggio_webapp/static/canvas/grid.test.mjs
+  - poggio_webapp/static/module-layering.test.mjs
+  - Makefile
   - tools/docs/check_readme_sync.py
   - docs/javascripts/coordinate-converter.test.mjs
-verified_against: b7a381e
+verified_against: 40e4a0d
 ---
 
 # Running the tests
@@ -40,12 +42,35 @@ Python, from the repository root:
 python -m pytest tests/ -q
 ```
 
-JavaScript, using Node's built-in runner — **the glob must be quoted**, since
-passing the directory alone fails to discover the files:
+JavaScript, using Node's built-in runner — **the globs must be quoted, and a
+directory must never be passed instead**:
 
 ```bash
 node --test "poggio_webapp/static/**/*.test.mjs" "docs/javascripts/**/*.test.mjs"
 ```
+
+Passing a directory does not under-discover; it over-discovers. Node collects
+every `.js` file it finds, including the browser-only glue, and dies with:
+
+```
+Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'three'
+imported from poggio_webapp/static/shared/model3d-viewer.js
+```
+
+That reads as a broken install and is not one. `three` is vendored under
+`poggio_webapp/static/vendor/three/` and resolved in the browser by the import
+map in `poggio_webapp/templates/index.html`; Node has no import map, and the two
+files that need it (`shared/model3d-viewer.js` and `visualizer/volume3d.js`)
+also need WebGL, a canvas, and a `document`, so making the specifier resolve
+would not make them runnable. They are browser-only by nature, not by
+convention.
+
+`poggio_webapp/static/module-layering.test.mjs` keeps that boundary true rather
+than assumed. It fails if any file outside those two imports `three`, if either
+of them stops importing it, or if any import chain starting at a test file
+reaches one of them — transitively, because the mistake that actually happens is
+one hop removed: a core module grows an import of the glue, and a test nowhere
+near it starts failing with a module-resolution error.
 
 The second glob covers the documentation's interactive components. It matters
 most for the coordinate converter, which re-implements in JavaScript arithmetic
@@ -70,7 +95,18 @@ python tools/docs/validate_visual_manifest.py .
 python tools/docs/check_readme_sync.py .
 ```
 
-All four should pass with no failures. Exact totals move as tests are added,
+Or, in one command, exactly what CI runs and in CI's order:
+
+```bash
+make check
+```
+
+`make` is the shortest path to a correct invocation: `make test` for Python,
+`make test-js` for JavaScript (which owns the glob so nobody has to retype it),
+`make check-docs` for the four checkers plus a strict site build, and
+`make diagrams` to regenerate the SVGs and fail if the committed ones are stale.
+
+All four checkers should pass with no failures. Exact totals move as tests are added,
 so treat a green run rather than a specific count as the signal.
 
 `check_coverage.py` reports any module under `poggio_webapp/pipeline/` or

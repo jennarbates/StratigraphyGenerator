@@ -7,7 +7,7 @@ source_files:
   - poggio_webapp/pipeline/merge_walls.py
   - poggio_webapp/backend/services/trench_builder.py
   - poggio_webapp/pipeline/editor/validation.py
-verified_against: 636b160
+verified_against: 40e4a0d
 ---
 
 # Grid registration
@@ -73,14 +73,62 @@ Keyed by [face](face.md) name:
 }
 ```
 
-The generated starter config defines each term in its `_comment`:
+The generated starter config defines each term in its `_comment`, and the
+definitions are specific to this site rather than generic:
 
 ```python
-"_comment": "Fill in real site values. bearing_deg = compass direction "
-            "(clockwise from north) that the face's local +x axis points. "
-            "originX/Y = site coords of the face's x=0 edge. surfaceZ = "
-            "ground-surface elevation at that edge.",
+"_comment": (
+    "Fill in real site values from the master Geospatial Spreadsheet "
+    "(opening-coordinates column for the season). bearing_deg = the "
+    "direction the face's local +x axis points, in degrees clockwise "
+    "from GRID NORTH -- the site's artificial reference direction, the "
+    "one the total station sets as HA 0 (90 East, 180 South, 270 "
+    "West). It is NOT magnetic north and NOT projected north; Grid "
+    "North sits about 2.5 degrees off the latter. originX/originY = "
+    "site grid coordinates of the face's x=0 edge, with the site's "
+    "sign rule: North and East positive, South and West negative, so "
+    "190E/53S is originX 190, originY -53. surfaceZ = ground-surface "
+    "elevation at that edge, absolute, in mAE (meters absolute "
+    "elevation) -- elevations at this site are in the twenties, not "
+    "the hundreds."
+),
 ```
+
+Three site facts a generic description would miss: the bearing is from **Grid
+North**, the site's own reference direction, about 2.5° off projected north;
+southings and westings are **negative**, so `190E/53S` is `originY -53`; and
+elevations are **mAE**, in the twenties — which is why the placeholder `100.0`
+is obviously not a real reading.
+
+### Two more fields the config carries
+
+```python
+# Which of the site's two local grids these numbers belong to. A bare
+# pair of coordinates is not a location: the Poggio Civitate and
+# Vescovado di Murlo grids have origins about 1.5 million metres apart
+# once projected.
+"site_grid": None,
+# Where the numbers below came from. Declared rather than inferred:
+# is_placeholder() otherwise has to recognise the starter's own value
+# pattern, and its docstring admits real survey values can collide
+# with it. Set to "surveyed" once these are real.
+"source": "placeholder",
+```
+
+`site_grid` matters because the site runs **two** local grids. A coordinate pair
+without one is not a location.
+
+`source` is the better answer to the placeholder problem: a declaration beats an
+inference, so an operator with real survey values can say so rather than nudging
+a number away from a coincidence. `is_placeholder` honours it:
+
+```python
+declared = registration_source(grid)
+if declared:
+    return declared == "placeholder"
+```
+
+falling back to the value-pattern check only when nothing is declared.
 
 ### The transform
 

@@ -29,7 +29,13 @@ function normalizedSurfaces(model3d) {
       );
     }
     return {
+      // `name` identifies the surface and is what every lookup keys on;
+      // `label` is what a reader sees. A manifest written before labels
+      // existed has none, so the name stands in.
       name: surface.name,
+      label: typeof surface.label === "string" && surface.label.trim() !== ""
+        ? surface.label
+        : surface.name,
       url: surface.url,
       index,
       color: null,
@@ -433,6 +439,7 @@ export class SurfaceModelViewer {
         .filter((surface) => surface.object3d)
         .map((surface) => ({
           name: surface.name,
+          label: surface.label,
           color: surface.color,
           visible: surface.object3d.visible,
         })),
@@ -440,6 +447,7 @@ export class SurfaceModelViewer {
         .filter((surface) => surface.error)
         .map((surface) => ({
           name: surface.name,
+          label: surface.label,
           message: errorMessage(surface.error),
         })),
     };

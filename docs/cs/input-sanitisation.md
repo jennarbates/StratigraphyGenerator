@@ -7,7 +7,7 @@ source_files:
   - poggio_webapp/backend/config.py
   - poggio_webapp/naming.py
   - poggio_webapp/pipeline/harris_render.py
-verified_against: 636b160
+verified_against: 40e4a0d
 ---
 
 # Input sanitisation
@@ -180,11 +180,20 @@ The extraction schemas transcribe the sheet **verbatim**. From
 
 ```python
 # The sheet's own tie-in labels are the likeliest source of these
-# numbers, but what they mean (northing / easting / elevation) is a
-# site-records question -- surface them verbatim, don't interpret.
+# numbers. Grid labels like "190E/53S" now have a defined reading --
+# site_grid.label_to_grid applies the site's sign rule -- so any that
+# parse are offered alongside the raw text. They are still offered,
+# not applied: which end of a face a label marks is a site-records
+# question this module cannot answer.
 ```
 
-Transcribed text is **evidence**. Cleaning it would destroy what was recorded.
+Transcription and interpretation are separated rather than merged. The label is
+*parsed* — `site_grid.label_to_grid` reads `190E/53S` as `(190, -53)` by the
+site's own sign rule — but `rawText` is kept beside the parse, and neither is
+applied to a face.
+
+Transcribed text is **evidence**. Cleaning it in place would destroy what was
+recorded.
 The safety comes from never using it as a path, an identifier, or executable
 content — see [path traversal](path-traversal-and-containment.md).
 

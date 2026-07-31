@@ -63,7 +63,7 @@ flowchart LR
 | `/api/jobs/<job_id>/markers/assign` | POST | JSON: assignment list | `{...}` | No | experimental | Assign markers to loci |
 | `/api/jobs/<job_id>/markers/finalize` | POST | `{}` | `{extraction_json}` | No | experimental | Convert marker assignments to FieldWallProfile |
 | `/api/jobs/<job_id>/gempy` | POST | JSON: `points_csv`, `orientations_csv`, `output_prefix` | `{task_id}` | **Yes** | supported | Start GemPy 3D model build |
-| `/api/jobs/<job_id>/gempy/result/<task_id>` | GET | none | `{status, result, error}` | No | supported | Poll for GemPy build results |
+| `/api/jobs/<job_id>/gempy/result/<task_id>` | GET | none | `{extent, series_order, series_order_source, series_order_note, arbitrary_order_pairs, single_face_note, outputs}` | No | supported | File URLs and caveats for a finished GemPy build. `series_order_source` is one of `harris-matrix`, `recorded-sequence`, `supplied`, `elevation`; `arbitrary_order_pairs` lists surfaces the model had to order without recorded evidence |
 | `/api/tasks/<task_id>` | GET | none | `{status, result, error, progress}` | No | supported | Get status of any asynchronous task |
 | `/api/jobs/<job_id>/visualizer-files` | GET | none | `{...file_urls, model3d?}` | No | supported | List 2D assets and, when valid surfaces exist, safe 3D model data |
 | `/api/harris-matrices` | GET | none | matrix summary array | No | supported | List valid matrices newest first |
@@ -78,6 +78,9 @@ flowchart LR
 | `/api/trenches` | GET | none | `{trenches: {label: [member, ...]}}`, plus `label_variants` when a trench was recorded under more than one spelling | No | experimental | Group jobs by their canonical `trench_label`; jobs without one are skipped |
 | `/api/trenches/<label>/build` | POST | JSON: `grid`, optional `correlation`, `series_order` | `{needs_grid, starter, notes}` or `{task_id, notes, grid_warnings}` | **Yes** | experimental | Merge every wall of a trench and build one model. Omit `grid` to get a starter config back without writing anything |
 | `/api/trenches/<label>/file` | GET | query `path=<rel>` | binary | No | experimental | Retrieve a file from the trench folder, refusing to escape it |
+| `/api/trenches/geospatial-sheet` | POST | multipart: `file` (season CSV), optional `phase` (`opening`\|`closing`), `site_grid` | `{phase, registered, needs_wall_names, notes}` | No | experimental | Register every trench in a season from its Geospatial Spreadsheet. Reads a downloaded file and writes nothing. A trench extended mid-season, whose extra vertices are recorded unlabelled, is returned under `needs_wall_names` rather than guessed at |
+| `/api/trenches/<label>/layout` | POST | JSON: `corners`, `walls`, optional `site_grid`, `vertical` | `{trench, grid, notes}` | No | experimental | Derive a grid config from the trench's surveyed corner coordinates. Writes nothing; the config comes back for checking against the drawings |
+| `/api/trenches/<label>/loci/import` | POST | multipart: `file` (CSV export), optional `column_map`, `vertical` | `{loci, column_map, unmatched, notes}` | No | experimental | Read a downloaded Kobo Locus Entry export. Offline only — no API call is made. Column names are never guessed: an unrecognised export is refused with its own headers listed |
 | `/api/jobs/<job_id>/text-extraction` | POST | JSON: `api_key`, `square_cm`, `max_output_tokens` | `{task_id}` | **Yes** | experimental | Start the field-wall text read; aborts `400` without a key |
 | `/api/jobs/<job_id>/text-extraction` | GET | none | candidate labels, or a not-started marker | No | experimental | Read back the labels the extraction proposed |
 | `/api/jobs/<job_id>/text-verification` | POST | JSON: the reviewed labels | saved verification | No | experimental | Save the human-accepted, corrected, or unreadable labels |
@@ -264,7 +267,7 @@ Posting with a filled-in `grid` starts the build:
 {
   "grid": { "faces": { "North": { "originX": 0, "originY": 0, "surfaceZ": 100, "bearing_deg": 90 } } },
   "correlation": { "North:3": "5" },
-  "series_order": ["Locus 1 (10YR 5/4)", "Locus 3 (7.5YR 4/3)"]
+  "series_order": ["Locus 1", "Locus 3"]
 }
 ```
 

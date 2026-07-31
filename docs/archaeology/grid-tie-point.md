@@ -6,7 +6,7 @@ source_files:
   - poggio_webapp/pipeline/extract_fieldwall.py
   - poggio_webapp/pipeline/convert_coords.py
   - poggio_webapp/pipeline/validator.py
-verified_against: 636b160
+verified_against: 40e4a0d
 ---
 
 # Grid tie point
@@ -77,24 +77,46 @@ Transcribed verbatim:
 ```python
 if field_wall:
     # The sheet's own tie-in labels are the likeliest source of these
-    # numbers, but what they mean (northing / easting / elevation) is a
-    # site-records question -- surface them verbatim, don't interpret.
-    ties = [t.get("rawText") for t in (data.get("gridTiePoints") or [])
-            if t.get("rawText")]
+    # numbers. Grid labels like "190E/53S" now have a defined reading --
+    # site_grid.label_to_grid applies the site's sign rule -- so any that
+    # parse are offered alongside the raw text. They are still offered,
+    # not applied: which end of a face a label marks is a site-records
+    # question this module cannot answer.
+    ties = []
+    for tie in (data.get("gridTiePoints") or []):
+        raw = tie.get("rawText")
+        if not raw:
+            continue
+        try:
+            grid_x, grid_y = site_grid.label_to_grid(raw)
+        except site_grid.GridError:
+            ties.append({"rawText": raw, "gridX": None, "gridY": None})
+        else:
+            ties.append({"rawText": raw, "gridX": grid_x, "gridY": grid_y})
     cfg["_tiePointsFromSheet"] = ties
-    cfg["_comment"] += (
-        " This is a single-wall field sheet, so there is one face. The "
-        "labels transcribed off the drawing are listed in "
-        "_tiePointsFromSheet for reference — they are NOT interpreted "
-        "here; confirm against site records which are northings, "
-        "eastings or elevations before using them."
-    )
 ```
 
-The starter grid config carries the labels **as reference material** with an
-explicit warning. The software could guess — the numbers decrease left to right,
-so perhaps they are northings — and guessing would produce a plausible
-registration that is wrong by a rotation.
+and the comment appended to the config says what that offer is worth:
+
+```python
+" This is a single-wall field sheet, so there is one face. The "
+"labels transcribed off the drawing are listed in "
+"_tiePointsFromSheet, with their grid coordinates where the label "
+"could be read. They are NOT applied here: which end of the face "
+"each label marks is a site-records question. Confirm before use."
+```
+
+Two things are separated here, and the separation is the point. **Reading the
+label** is now a solved problem — `site_grid.label_to_grid` applies the site's
+own sign rule, so `190E/53S` yields `(190, -53)` deterministically, and a label
+it cannot read yields `gridX: None` rather than a guess. **Placing the face** is
+not: knowing that a label means (190, −53) does not say whether that point is
+the face's x = 0 edge, its far end, or a station somewhere along it.
+
+So the software does the part it can defend and stops. It could guess the rest
+— the numbers decrease left to right, so perhaps the leftmost label is the
+origin — and guessing would produce a plausible registration wrong by a
+rotation.
 
 This is [fail-closed design](../cs/fail-closed-design.md) applied to
 interpretation rather than to computation.
@@ -160,7 +182,7 @@ The labels are more reliable than measuring the printed graph-paper grid.
 | **[Site coordinates](site-coordinates.md)** | A tie label is a number of unknown axis. Site coordinates are a full XYZ triple. |
 | **A scale bar** | A scale bar shows a distance. Tie labels show *positions*, from which a distance can be derived. |
 | **[Survey point codes](survey-point-codes.md)** | Those are instrument codes. Tie points are pencil labels on paper. |
-| **Interpreted data** | Deliberately. `_tiePointsFromSheet` is reference material with a warning attached. |
+| **Interpreted data** | Deliberately. `_tiePointsFromSheet` carries each label's grid coordinates where they could be read, but nothing is applied to a face — it is reference material with a warning attached. |
 
 ## Getting it wrong
 

@@ -5,7 +5,7 @@ status: current
 source_files:
   - poggio_webapp/pipeline/convert_coords.py
   - poggio_webapp/pipeline/build_gempy.py
-verified_against: 636b160
+verified_against: 40e4a0d
 ---
 
 # Interface point
@@ -72,8 +72,8 @@ Written to `points.csv`:
 
 ```csv
 X,Y,Z,surface,face
-512.3000,1043.7500,271.1300,Locus 2 (10YR 5/6 yellowish brown),southern baulk
-512.3000,1044.6000,271.0600,Locus 2 (10YR 5/6 yellowish brown),southern baulk
+512.3000,1043.7500,271.1300,Locus 2,southern baulk
+512.3000,1044.6000,271.0600,Locus 2,southern baulk
 ```
 
 Three details.
@@ -155,9 +155,10 @@ ordered = group.sort_values("X" if x_span > y_span else "Y", kind="stable")
 ## Getting it wrong
 
 **Inconsistent surface names across walls.** GemPy fuses by exact string match,
-so `Locus 2 (10YR 5/6)` and `Locus 2 (10YR 5/4)` are two surfaces for one
-deposit. This is why merging
-[canonicalises Munsell readings](munsell-colour.md) trench-wide.
+so anything inside the name is part of the deposit's identity. That is why
+`surface_id` is the [locus number alone](munsell-colour.md) — a differing
+Munsell reading between two walls used to split one deposit into two surfaces,
+and no longer can.
 
 **Expecting points where boundaries were not traced.** Only traced boundaries
 produce interface points. A layer with no `bottomBoundary` contributes nothing.

@@ -37,7 +37,9 @@ function addLegendRows(legendEl, summary, viewer) {
     swatch.style.background = surface.color;
 
     const text = document.createElement("span");
-    text.textContent = surface.name;
+    // The label carries the Munsell reading where there is one; visibility is
+    // still keyed on the surface's identity, above.
+    text.textContent = surface.label || surface.name;
     row.append(checkbox, swatch, text);
     legendEl.appendChild(row);
   });

@@ -5,7 +5,7 @@ status: current
 source_files:
   - poggio_webapp/pipeline/merge_walls.py
   - poggio_webapp/pipeline/convert_coords.py
-verified_against: 636b160
+verified_against: 40e4a0d
 ---
 
 # Datum
@@ -76,9 +76,35 @@ datum:
 }
 ```
 
-The starter config's `_comment` defines it:
+The starter config's `_comment` defines it, with the site's own vertical
+frame:
 
-> surfaceZ = ground-surface elevation at that edge.
+> surfaceZ = ground-surface elevation at that edge, absolute, in mAE (meters
+> absolute elevation) -- elevations at this site are in the twenties, not the
+> hundreds.
+
+"In the twenties, not the hundreds" is a usefully blunt way of saying the
+placeholder `100.0` is not a plausible reading here.
+
+The config also carries the vertical frame explicitly:
+
+```python
+"vertical": {
+    "frame": site_elevation.MAE,
+    # "absolute" or "below-datum". Below-datum readings need the datum
+    # nail's own elevation before they can be resolved, and are
+    # transitional by the site's own rule -- they must be corrected to
+    # absolute elevations for the final record.
+    "entryForm": "absolute",
+    "datumNail": {"absoluteZ": None, "label": None},
+},
+```
+
+`entryForm` is the interesting field. A reading taken *below a datum nail* is
+not yet an elevation — it needs that nail's own absolute height before it can be
+resolved, and the site's rule is that such readings are transitional and must be
+corrected to absolute before the final record. The config records which kind of
+number it holds rather than assuming.
 
 and depth converts to elevation by subtraction —
 `poggio_webapp/pipeline/convert_coords.py`:

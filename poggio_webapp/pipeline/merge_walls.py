@@ -10,12 +10,18 @@ convert(), build_gempy) is already multi-face.
 The one correctness rule that shapes this module: GemPy fuses interface points
 into a surface purely by exact string match on the surface name. The same
 locus on two walls is the same deposit and MUST get the identical name;
-different deposits must never collide. Surface names for field sheets are
-built by convert_coords.fieldwall_to_profiles() as 'Locus N (munsell)', and
-Munsell readings of one locus routinely differ slightly between sheets, so
-this module canonicalizes the Munsell label per locus number trench-wide and
-feeds the canonical values into the existing adapter. It never builds surface
-strings itself.
+different deposits must never collide. Surface names are built by
+convert_coords.surface_id() as 'Locus N' -- identity only, no soil colour --
+so two walls recording one deposit fuse whatever their Munsell readings say.
+This module never builds surface strings itself.
+
+It used to do rather more here. While the Munsell reading was part of the
+surface name, a colour that differed between sheets split one deposit into two
+model surfaces, so this module computed a trench-wide canonical reading and
+rewrote every sheet to use it. Taking the colour out of the identity removed
+the failure, and with it the ~60 lines that worked around it. What remains is
+the reporting: a disagreement between walls is a real fact about the recording
+and is still surfaced, just no longer resolved behind the operator's back.
 
 Like the rest of the pipeline, functions return a `notes` list of
 human-readable warnings instead of silently guessing, and raise ValueError
@@ -91,12 +97,25 @@ def _apply_correlation(label, sheet, parsed, notes):
                      f"wall {label!r} -- check the map for typos")
 
 
-def _canonical_munsell(field_sheets, notes):
-    """One trench-wide locusNumber -> Munsell label map. First usable reading
-    (in sheet order, then loci[] order) wins; disagreements become notes.
+def _report_munsell_disagreements(field_sheets, notes):
+    """Note where two walls read one locus's colour differently.
+
+    This used to do more. When the Munsell reading was part of the GemPy
+    surface name, two walls describing one deposit slightly differently
+    produced two model surfaces, so this function computed a trench-wide
+    canonical reading and a companion rewrote every sheet to use it -- forcing
+    a field observation to agree so that an identity would.
+
+    Surfaces are now identified by locus number alone
+    (``convert_coords.surface_id``), so the walls fuse whatever their colours
+    say and there is nothing left to canonicalize. The disagreement is still
+    worth surfacing: it is a real fact about the recording, and a supervisor
+    may want to reconcile it. It is reported and nothing is rewritten.
+
     Within one sheet, only the first entry per number is considered; the
-    adapter itself notes intra-sheet duplicates when it runs."""
-    canon = {}   # num -> (label, wall_label that defined it)
+    adapter itself notes intra-sheet duplicates when it runs.
+    """
+    seen = {}   # num -> (reading, wall_label that read it first)
     for wall_label, sheet in field_sheets:
         seen_here = set()
         for entry in (sheet.get("loci") or []):
@@ -109,46 +128,15 @@ def _canonical_munsell(field_sheets, notes):
             reading = convert_coords._munsell_label(entry)
             if reading is None:
                 continue
-            if num not in canon:
-                canon[num] = (reading, wall_label)
-            elif canon[num][0] != reading:
-                first_reading, first_wall = canon[num]
+            if num not in seen:
+                seen[num] = (reading, wall_label)
+            elif seen[num][0] != reading:
+                first_reading, first_wall = seen[num]
                 notes.append(
                     f"locus {num}: Munsell disagrees between wall "
                     f"{first_wall!r} ({first_reading!r}) and wall "
-                    f"{wall_label!r} ({reading!r}); using {first_reading!r} "
-                    "trench-wide so both walls map to one model surface")
-    return {num: reading for num, (reading, _) in canon.items()}
-
-
-def _canonicalize_sheet(label, sheet, canon, notes):
-    """Overwrite this sheet's Munsell values with the trench-wide canonical
-    ones, and make sure every locus used in layers[] has a loci[] entry when
-    a canonical reading exists -- otherwise fieldwall_to_profiles would name
-    it 'Locus N' (no color) here and 'Locus N (color)' on another wall, and
-    GemPy would treat one deposit as two surfaces."""
-    listed = set()
-    for entry in (sheet.get("loci") or []):
-        if not isinstance(entry, dict):
-            continue
-        num = str(entry.get("locusNumber", "")).strip()
-        if not num:
-            continue
-        listed.add(num)
-        if num in canon:
-            entry["munsell"] = canon[num]
-    for entry in (sheet.get("layers") or []):
-        if not isinstance(entry, dict):
-            continue
-        num = str(entry.get("locusNumber", "")).strip()
-        if num and num in canon and num not in listed:
-            sheet.setdefault("loci", []).append(
-                {"locusNumber": num, "munsell": canon[num]})
-            listed.add(num)
-            notes.append(
-                f"wall {label!r}: locus {num} appears in layers[] but not "
-                f"loci[]; using the trench-wide Munsell reading "
-                f"{canon[num]!r} so its surface name matches the other walls")
+                    f"{wall_label!r} ({reading!r}). Both walls still model one "
+                    f"surface; {first_reading!r} is used as its label")
 
 
 def merge_extractions(sheets, correlation=None):
@@ -177,12 +165,11 @@ def merge_extractions(sheets, correlation=None):
         if convert_coords.is_field_wall(sheet):
             _apply_correlation(label, sheet, parsed_correlation, notes)
 
-    # 2. Trench-wide canonical Munsell per locus, pushed back into each copy.
+    # 2. Report colour disagreements between walls. Nothing is rewritten:
+    #    surfaces are identified by locus number, so the walls already fuse.
     field_sheets = [(label, sheet) for label, sheet in copies
                     if convert_coords.is_field_wall(sheet)]
-    canon = _canonical_munsell(field_sheets, notes)
-    for label, sheet in field_sheets:
-        _canonicalize_sheet(label, sheet, canon, notes)
+    _report_munsell_disagreements(field_sheets, notes)
 
     # 3. Adapt every sheet to faces. Field sheets go through the existing
     #    adapter (which does ALL surface naming); illustrator-shaped sheets

@@ -275,6 +275,7 @@ nav:
           - Stratigraphic relationships: archaeology/stratigraphic-relationships.md
           - Correlation: archaeology/correlation.md
           - Locus numbering epochs: archaeology/locus-numbering-epochs.md
+          - Series order: archaeology/series-order.md
           - Feature: archaeology/feature.md
           - Find: archaeology/find.md
           - Find identifiers: archaeology/find-identifiers.md
@@ -293,6 +294,9 @@ nav:
           - Grid tie point: archaeology/grid-tie-point.md
           - Scale and DPI: archaeology/scale-and-dpi.md
           - Recording sheet: archaeology/recording-sheet.md
+          - Trench layout: archaeology/trench-layout.md
+          - Kobo locus import: archaeology/kobo-locus-import.md
+          - Provenance links: archaeology/provenance-links.md
   - Reference:
       - Drawing guidelines: reference/drawing-guidelines.md
       - Data schemas: reference/data-schemas.md

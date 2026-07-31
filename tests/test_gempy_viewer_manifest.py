@@ -59,10 +59,11 @@ def write_test_manifest(
     return manifest_path, json.loads(manifest_path.read_text())
 
 
-def test_manifest_has_version_one_and_required_kind(tmp_path):
+def test_manifest_has_version_two_and_required_kind(tmp_path):
+    """Version 2 added surfaces[].label. The viewer still reads version 1."""
     _, manifest = write_test_manifest(tmp_path)
 
-    assert manifest["schema_version"] == 1
+    assert manifest["schema_version"] == 2
     assert manifest["kind"] == "gempy-surface-model"
     assert manifest["coordinate_system"] == {"units": "m", "up_axis": "Z"}
 
@@ -119,10 +120,12 @@ def test_manifest_paths_are_relative_portable_and_match_mesh_files(tmp_path):
     assert manifest["surfaces"] == [
         {
             "name": "Layer / A? (north)",
+            "label": "Layer / A? (north)",
             "mesh_path": "trench_model_meshes/Layer_A_north.obj",
         },
         {
             "name": "Layer B",
+            "label": "Layer B",
             "mesh_path": "trench_model_meshes/Layer_B.obj",
         },
     ]
@@ -276,6 +279,7 @@ def test_builder_writes_absolute_manifest_output_with_known_artifacts(
         [
             {
                 "name": surface_name,
+                "label": surface_name,
                 "mesh_path": (
                     "trench_model_meshes/Layer_A_north.obj"
                 ),

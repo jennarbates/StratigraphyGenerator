@@ -3,16 +3,27 @@
 
 PY := .venv/bin/python
 RUFF := .venv/bin/ruff
+MKDOCS := .venv/bin/mkdocs
+
+# The JavaScript suite is addressed by glob, never by directory. `node --test`
+# on a directory collects every .js file it finds, including the browser-only
+# glue that imports three from an import map Node cannot read -- which fails
+# with ERR_MODULE_NOT_FOUND and looks like a broken install. This glob is the
+# same one CI uses; static/module-layering.test.mjs keeps the split honest.
+JS_TESTS := "poggio_webapp/static/**/*.test.mjs" "docs/javascripts/**/*.test.mjs"
 
 .DEFAULT_GOAL := help
-.PHONY: help test lint format check run docs docs-serve clean
+.PHONY: help test test-js lint format check check-docs diagrams run docs docs-serve clean
 
 help:  ## Show this help
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) \
 		| awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
 
-test:  ## Run the test suite
+test:  ## Run the Python test suite
 	$(PY) -m pytest
+
+test-js:  ## Run the JavaScript test suite
+	node --test $(JS_TESTS)
 
 lint:  ## Check style and import hygiene
 	$(RUFF) check .
@@ -21,7 +32,22 @@ format:  ## Apply the safe lint fixes and format
 	$(RUFF) check . --fix
 	$(RUFF) format .
 
-check: lint test  ## What CI should run: lint, then tests
+check-docs:  ## Run the four documentation checkers and build the site strictly
+	$(PY) tools/docs/check_docs.py .
+	$(PY) tools/docs/check_coverage.py .
+	$(PY) tools/docs/validate_visual_manifest.py .
+	$(PY) tools/docs/check_readme_sync.py .
+	$(MKDOCS) build --strict
+
+diagrams:  ## Regenerate the diagrams and fail if the committed files are stale
+	$(PY) tools/docs/generate_diagrams.py .
+	@git diff --quiet -- docs/assets/diagrams || { \
+		echo "Generated diagrams differ from the committed files."; \
+		git diff --stat -- docs/assets/diagrams; \
+		exit 1; \
+	}
+
+check: lint check-docs test test-js diagrams  ## Everything CI runs, in CI's order
 
 run:  ## Start the web app on http://localhost:5000
 	cd poggio_webapp && ../$(PY) app.py

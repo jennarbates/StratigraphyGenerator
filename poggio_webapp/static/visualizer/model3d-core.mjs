@@ -1,7 +1,11 @@
 import { validateVolumeMetadata } from "./volume3d-core.mjs";
 
 const MODEL_KIND = "gempy-surface-model";
-const SUPPORTED_SCHEMA_VERSION = 1;
+// Version 2 added surfaces[].label. Version 1 manifests carry no label and
+// stay valid: the surface name is what the viewer always displayed, so it
+// is the fallback.
+const SUPPORTED_SCHEMA_VERSIONS = Object.freeze([1, 2]);
+const CURRENT_SCHEMA_VERSION = 2;
 const MIN_OPACITY = 0.1;
 const MAX_OPACITY = 1;
 const DEFAULT_OPACITY = 0.72;
@@ -151,8 +155,16 @@ function validatedSurfaces(value) {
     }
     names.add(name);
 
+    // `name` is the identity GemPy fused points on; `label` is what a reader
+    // should see. Keeping them separate is what stops a soil colour reading
+    // from being able to split one deposit into two surfaces.
+    const label = surface.label === undefined || surface.label === null
+      ? name
+      : validatedNonEmptyString(surface.label, `${path}.label`);
+
     return {
       name,
+      label,
       url: validatedJobUrl(surface.url, `${path}.url`),
     };
   });
@@ -200,19 +212,62 @@ function validatedWallTraces(value) {
  * Optional download and browser-volume metadata are retained after the same
  * safe URL and schema checks used by their isolated renderers.
  */
+// Where the stratigraphic order came from. Absent in manifests written before
+// this was recorded, and those were all elevation-sorted -- so that is the
+// honest default rather than "unknown".
+function validatedOrderProvenance(value) {
+  if (value === undefined || value === null) {
+    return { source: "elevation", note: "", arbitrary_pairs: [] };
+  }
+  if (!isObject(value)) {
+    throw new TypeError("model3d.series_order_provenance must be an object");
+  }
+  const pairs = value.arbitrary_pairs === undefined
+    ? []
+    : value.arbitrary_pairs;
+  if (!Array.isArray(pairs)) {
+    throw new TypeError(
+      "model3d.series_order_provenance.arbitrary_pairs must be an array",
+    );
+  }
+  return {
+    source: validatedNonEmptyString(
+      value.source,
+      "model3d.series_order_provenance.source",
+    ),
+    note: typeof value.note === "string" ? value.note : "",
+    arbitrary_pairs: pairs.map((pair, index) => {
+      const path = `model3d.series_order_provenance.arbitrary_pairs[${index}]`;
+      if (!Array.isArray(pair) || pair.length !== 2) {
+        throw new TypeError(`${path} must be a pair of surface names`);
+      }
+      return [
+        validatedNonEmptyString(pair[0], `${path}[0]`),
+        validatedNonEmptyString(pair[1], `${path}[1]`),
+      ];
+    }),
+  };
+}
+
+export function orderIsAssumed(model3d) {
+  return validateModel3d(model3d).series_order_provenance.source === "elevation";
+}
+
 export function validateModel3d(raw) {
   if (!isObject(raw)) {
     throw new TypeError("model3d must be an object");
   }
-  if (raw.schema_version !== SUPPORTED_SCHEMA_VERSION) {
-    throw new TypeError("model3d.schema_version must be 1");
+  if (!SUPPORTED_SCHEMA_VERSIONS.includes(raw.schema_version)) {
+    throw new TypeError(
+      `model3d.schema_version must be one of ${SUPPORTED_SCHEMA_VERSIONS.join(", ")}`,
+    );
   }
   if (raw.kind !== MODEL_KIND) {
     throw new TypeError(`model3d.kind must be "${MODEL_KIND}"`);
   }
 
   const normalized = {
-    schema_version: SUPPORTED_SCHEMA_VERSION,
+    schema_version: raw.schema_version,
     kind: MODEL_KIND,
     coordinate_system: validatedCoordinateSystem(raw.coordinate_system),
     extent: validatedExtent(raw.extent),
@@ -223,6 +278,7 @@ export function validateModel3d(raw) {
       { nonEmpty: true },
     ),
     single_face_note: raw.single_face_note ?? null,
+    series_order_provenance: validatedOrderProvenance(raw.series_order_provenance),
     surfaces: validatedSurfaces(raw.surfaces),
     warnings: raw.warnings === undefined
       ? []
@@ -350,7 +406,10 @@ export function surfaceControlModel(
 
   return normalized.surfaces.map((surface, index) => ({
     name: surface.name,
+    label: surface.label,
     url: surface.url,
+    // Coloured by identity, not by label: a surface keeps its colour even if
+    // its Munsell reading is corrected.
     color: colorFor(surface.name, index),
     visible: true,
   }));

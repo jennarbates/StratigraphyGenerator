@@ -7,7 +7,7 @@ source_files:
   - poggio_webapp/pipeline/extract_fieldwall.py
   - poggio_webapp/pipeline/manual_extraction.py
   - poggio_webapp/pipeline/validator.py
-verified_against: 636b160
+verified_against: 40e4a0d
 ---
 
 # Layer
@@ -132,8 +132,10 @@ surface = layer.get("inferredMaterial") or layer.get("layerName") or "unknown"
 ```
 
 GemPy fuses interface points by **exact string match** on this name, so the same
-deposit on two walls must produce the identical string. That is why
-[merging](../cs/union-find.md) canonicalises Munsell readings trench-wide.
+deposit on two walls must produce the identical string. For a field sheet that
+name is `convert_coords.surface_id(locusNumber)` — `Locus 6`, the locus number
+alone — so two walls fuse on the number and a differing
+[Munsell reading](munsell-colour.md) cannot split them.
 
 ## What it is not
 
@@ -167,8 +169,8 @@ real:
 That severity split is [the archaeology speaking through the code](../cs/error-taxonomies.md).
 
 **Naming the same deposit differently on two walls.** GemPy would model it as two
-surfaces. Merging canonicalises the Munsell part; the locus number is yours to
-get right.
+surfaces. Since identity is the locus number alone, the number is the thing
+that must be right; a differing colour is reported and harmless.
 
 **Confusing a layer with a feature.** A lens of charcoal a few centimetres across
 is a feature within a layer; a charcoal-rich band running the wall's width is a

@@ -67,7 +67,7 @@ def test_correlation_renames_locus():
     merged, notes = merge_t900(correlation={"east:2": "7"})
     east = surfaces_of(merged, "east")
     north = surfaces_of(merged, "north")
-    assert "Locus 7 (10YR 3/1 very dark gray)" in east
+    assert "Locus 7" in east
     assert SURFACE_L2 not in east
     assert SURFACE_L2 in north
     assert any("east" in n and "7" in n and "renamed" in n for n in notes)
@@ -118,13 +118,19 @@ def test_cross_sheet_collision_prefixes_illustrator_face():
 
 # Extra: a locus used in layers[] but missing from loci[] on one wall still
 # gets the trench-wide canonical name, so the deposit stays one surface.
-def test_layer_locus_missing_from_loci_uses_canonical_name():
+def test_layer_locus_missing_from_loci_still_shares_one_surface():
+    """A locus recorded in layers[] but absent from loci[] has no colour to
+    contribute. That used to split it from the same deposit on another wall,
+    which is why the merge synthesised a loci[] entry carrying the trench-wide
+    reading. Identity no longer depends on colour, so the two walls fuse with
+    nothing rewritten and nothing to warn about."""
     east = copy.deepcopy(EAST_WALL)
     east["loci"] = [entry for entry in east["loci"]
                     if entry["locusNumber"] != "2"]
     merged, notes = merge_extractions([("north", NORTH_WALL), ("east", east)])
     assert surfaces_of(merged, "east") == [SURFACE_L1, SURFACE_L2]
-    assert any("not" in n and "loci" in n and "east" in n for n in notes)
+    assert surfaces_of(merged, "north") == [SURFACE_L1, SURFACE_L2]
+    assert not any("loci[]" in n for n in notes)
 
 
 # --------------------------------------------------------------------------

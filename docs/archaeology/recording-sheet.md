@@ -6,7 +6,7 @@ source_files:
   - poggio_webapp/pipeline/extract_fieldwall.py
   - poggio_webapp/pipeline/extract_illustrator.py
   - poggio_webapp/pipeline/extract_text.py
-verified_against: 636b160
+verified_against: 40e4a0d
 ---
 
 # Recording sheet
@@ -90,13 +90,20 @@ notes.append(f"locus {num} is listed more than once in loci[] — "
              f"and ignoring {label!r}")
 ```
 
-Grid tie labels are transcribed and explicitly **not interpreted**:
+Grid tie labels are transcribed, parsed where they can be, and explicitly
+**not applied**:
 
 ```python
 # The sheet's own tie-in labels are the likeliest source of these
-# numbers, but what they mean (northing / easting / elevation) is a
-# site-records question -- surface them verbatim, don't interpret.
+# numbers. Grid labels like "190E/53S" now have a defined reading --
+# site_grid.label_to_grid applies the site's sign rule -- so any that
+# parse are offered alongside the raw text. They are still offered,
+# not applied: which end of a face a label marks is a site-records
+# question this module cannot answer.
 ```
+
+The raw text is kept beside the parse, so the sheet's own wording survives even
+when the label is read successfully.
 
 ### Text has its own review contract
 

@@ -444,7 +444,8 @@ function renderSurfaceControls(viewer){
 
     const name=document.createElement("span");
     name.className="model3d-surface-name";
-    name.textContent=surface.name;
+    // Identity drives visibility and colour; the label is only what is read.
+    name.textContent=surface.label||surface.name;
 
     label.append(input,swatch,name);
     root.appendChild(label);

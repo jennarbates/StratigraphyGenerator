@@ -237,7 +237,7 @@ def test_visualizer_files_route_omits_wall_traces_when_absent(client):
 
 def test_existing_manifest_keys_are_untouched(manifest):
     """Additive only: the keys the viewer already reads keep their shape."""
-    assert manifest["schema_version"] == 1
+    assert manifest["schema_version"] == 2
     assert manifest["kind"] == "gempy-surface-model"
     assert manifest["coordinate_system"] == {"units": "m", "up_axis": "Z"}
     assert manifest["surfaces"] == []

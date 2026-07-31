@@ -13,6 +13,7 @@ import {
   setAllSurfaceVisibility,
   surfaceControlModel,
   validateModel3d,
+  orderIsAssumed,
 } from "./model3d-core.mjs";
 
 function validModel(overrides = {}) {
@@ -53,7 +54,14 @@ test("validateModel3d normalizes a valid minimal model without mutating it", () 
   const raw = validModel();
   const normalized = validateModel3d(raw);
 
-  assert.deepEqual(normalized, raw);
+  // Version 1 carries no labels and no order provenance, so each surface is
+  // labelled by its name and the order is taken to be the elevation sort that
+  // every manifest of that age used.
+  assert.deepEqual(normalized, {
+    ...raw,
+    surfaces: raw.surfaces.map((surface) => ({ ...surface, label: surface.name })),
+    series_order_provenance: { source: "elevation", note: "", arbitrary_pairs: [] },
+  });
   assert.notStrictEqual(normalized, raw);
   assert.notStrictEqual(normalized.extent, raw.extent);
   assert.notStrictEqual(normalized.surfaces, raw.surfaces);
@@ -66,11 +74,40 @@ test("validateModel3d requires an object", () => {
   }
 });
 
-test("validateModel3d accepts only the supported schema and kind", () => {
-  expectTypeError(validModel({ schema_version: undefined }), /schema_version must be 1/);
-  expectTypeError(validModel({ schema_version: 2 }), /schema_version must be 1/);
+test("validateModel3d accepts only the supported schemas and kind", () => {
+  expectTypeError(validModel({ schema_version: undefined }), /schema_version must be one of 1, 2/);
+  expectTypeError(validModel({ schema_version: 3 }), /schema_version must be one of 1, 2/);
   expectTypeError(validModel({ kind: undefined }), /kind must be "gempy-surface-model"/);
   expectTypeError(validModel({ kind: "volume" }), /kind must be "gempy-surface-model"/);
+});
+
+test("a version 1 manifest still loads, labelled by surface name", () => {
+  // Models built before surface labels existed must keep working: the name is
+  // what the viewer always displayed, so it is the fallback.
+  const normalized = validateModel3d(validModel({ schema_version: 1 }));
+  assert.equal(normalized.schema_version, 1);
+  for (const surface of normalized.surfaces) {
+    assert.equal(surface.label, surface.name);
+  }
+});
+
+test("a version 2 manifest carries a label distinct from its identity", () => {
+  const raw = validModel({ schema_version: 2 });
+  raw.surfaces = raw.surfaces.map((surface) => ({
+    ...surface,
+    label: `${surface.name} (10YR 5/3 brown)`,
+  }));
+
+  const normalized = validateModel3d(raw);
+
+  assert.equal(normalized.surfaces[0].name, raw.surfaces[0].name);
+  assert.equal(normalized.surfaces[0].label, `${raw.surfaces[0].name} (10YR 5/3 brown)`);
+});
+
+test("a blank surface label is rejected rather than silently ignored", () => {
+  const raw = validModel({ schema_version: 2 });
+  raw.surfaces = raw.surfaces.map((surface) => ({ ...surface, label: "  " }));
+  expectTypeError(raw, /label must be a non-empty string/);
 });
 
 test("validateModel3d requires metre-based Z-up coordinates", () => {
@@ -341,12 +378,14 @@ test("surfaceControlModel preserves manifest order and passed colors", () => {
   assert.deepEqual(controls, [
     {
       name: "Topsoil",
+      label: "Topsoil",
       url: "/api/jobs/job-1/file?path=06_gempy_model/topsoil.obj",
       color: "0:Topsoil",
       visible: true,
     },
     {
       name: "Fill",
+      label: "Fill",
       url: "/api/jobs/job-1/file?path=06_gempy_model/fill.obj",
       color: "1:Fill",
       visible: true,
@@ -478,5 +517,40 @@ test("modelLoadStatusSummary covers loading and all-failed recovery", () => {
       failedNames: ["Topsoil", "Fill"],
       recoverable: true,
     },
+  );
+});
+
+
+test("a manifest states where its stratigraphic order came from", () => {
+  const raw = validModel({
+    series_order_provenance: {
+      source: "harris-matrix",
+      note: "stratigraphic order came from the trench's Harris matrix",
+      arbitrary_pairs: [["Locus 1", "Locus 2"]],
+    },
+  });
+
+  const provenance = validateModel3d(raw).series_order_provenance;
+
+  assert.equal(provenance.source, "harris-matrix");
+  assert.deepEqual(provenance.arbitrary_pairs, [["Locus 1", "Locus 2"]]);
+  assert.equal(orderIsAssumed(raw), false);
+});
+
+test("an order with no stated source is treated as the elevation assumption", () => {
+  // Every manifest written before provenance existed was elevation-sorted, so
+  // that is the honest default rather than "unknown".
+  assert.equal(orderIsAssumed(validModel()), true);
+});
+
+test("a malformed arbitrary pair is rejected", () => {
+  expectTypeError(
+    validModel({
+      series_order_provenance: {
+        source: "harris-matrix",
+        arbitrary_pairs: [["Locus 1"]],
+      },
+    }),
+    /arbitrary_pairs\[0\] must be a pair of surface names/,
   );
 });

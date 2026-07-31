@@ -199,12 +199,19 @@ surface by exact string match on the surface name.** The same locus recorded on
 two walls is one deposit and must receive one identical name; two different
 deposits must never collide.
 
-That is harder than it sounds, because surface names for field sheets are built
-as `Locus N (munsell)`, and Munsell readings of the same locus routinely differ
-slightly between sheets. So the merge canonicalizes the Munsell label per locus
-number across the whole trench — first usable reading wins, disagreements
-become notes — and feeds the canonical values into the existing adapter. It
-never builds surface strings itself.
+A surface's name is therefore its **identity**, and only a deposit's identity
+belongs in it. Field sheets name surfaces `Locus N` — the locus number alone.
+The Munsell reading travels beside it as a display label, `Locus 6 (10YR 5/3
+brown)`, which is what you see in the viewer.
+
+This used to work the other way, and the difference is worth knowing if you
+have older models. When the reading was part of the name, two walls describing
+one deposit slightly differently produced two model surfaces — so the merge
+computed a trench-wide canonical reading and rewrote every sheet to use it,
+forcing a field observation to agree so that an identity would. Taking the
+colour out of the identity removed the failure and the workaround together. A
+disagreement between walls is still reported as a note; it is simply no longer
+resolved on your behalf, and your sheets are no longer edited.
 
 When the same deposit was recorded under *different* locus numbers on different
 walls, pass a `correlation` map of `"wall:locus"` to the canonical number.

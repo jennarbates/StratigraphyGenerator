@@ -19,6 +19,7 @@ from pipeline.site_grid import (
     grid_to_site,
     label_to_grid,
     normalize_grid_name,
+    project_model_footprint,
     to_epsg3003,
 )
 
@@ -160,3 +161,33 @@ def test_grid_north_is_about_two_and_a_half_degrees_off_projected_north():
     and the reason a magnetic bearing is recognisably wrong."""
     for offset in grid_north_offset_degrees(POGGIO_CIVITATE):
         assert offset == pytest.approx(2.5, abs=0.2)
+
+
+def test_a_model_footprint_projects_its_four_corners():
+    footprint = project_model_footprint(
+        [190, 194, -56, -53, 28.0, 29.5], POGGIO_CIVITATE)
+
+    assert footprint["crs"] == "EPSG:3003"
+    assert footprint["site_grid"] == POGGIO_CIVITATE
+    assert len(footprint["corners"]) == 4
+    assert footprint["corners"][0] == list(
+        to_epsg3003(190, -56, POGGIO_CIVITATE))
+
+
+def test_a_footprint_keeps_elevation_untouched():
+    """The projection is horizontal; mAE is already absolute metres."""
+    footprint = project_model_footprint(
+        [190, 194, -56, -53, 28.0, 29.5], POGGIO_CIVITATE)
+
+    assert footprint["z_range"] == [28.0, 29.5]
+    assert footprint["z_frame"] == "mAE"
+
+
+def test_a_footprint_needs_a_full_extent():
+    with pytest.raises(GridError, match="six values"):
+        project_model_footprint([190, 194], POGGIO_CIVITATE)
+
+
+def test_a_footprint_needs_a_named_grid():
+    with pytest.raises(GridError, match="site grid must be named"):
+        project_model_footprint([190, 194, -56, -53, 28.0, 29.5], None)

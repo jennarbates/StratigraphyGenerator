@@ -6,7 +6,7 @@ source_files:
   - poggio_webapp/pipeline/harris_matrix.py
   - poggio_webapp/pipeline/merge_walls.py
   - poggio_webapp/backend/config.py
-verified_against: 636b160
+verified_against: 40e4a0d
 ---
 
 # Sets and membership
@@ -78,13 +78,21 @@ for num in sorted(set(renames) - applied):
 The `applied` set was built during the rename pass; the difference is exactly
 the typos.
 
-And in `merge_walls._validate_sheets`, intersection detects clashes:
+And in `merge_walls._report_munsell_disagreements`, a per-sheet set enforces
+"first entry per number wins" while the walk is still in progress:
 
 ```python
-listed = set()
-...
-if num and num in canon and num not in listed:
+seen_here = set()
+for entry in (sheet.get("loci") or []):
+    ...
+    if not num or num in seen_here:
+        continue
+    seen_here.add(num)
 ```
+
+Two sets doing different jobs in one loop: `seen_here` is scoped to one sheet
+and suppresses intra-sheet repeats, while `seen` spans all of them and is what
+a disagreement is measured against.
 
 ### Allowlists
 

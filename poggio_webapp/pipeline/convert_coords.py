@@ -95,13 +95,33 @@ def _munsell_label(entry):
     return None
 
 
+def surface_id(locus_number):
+    """The stable identity of a locus's model surface: ``Locus 6``.
+
+    A deposit is identified at this site by its trench and locus number. A
+    model is built from one trench, so the locus number alone is unique within
+    it, and the prefix would add nothing.
+
+    What this deliberately does NOT contain is the Munsell reading. GemPy fuses
+    interface points into a surface by exact string match on this value, so
+    anything inside it is part of the deposit's identity. A soil colour is an
+    observation about a deposit, not a name for one: readings of the same
+    deposit differ legitimately between recorders, between walls, and between
+    wet and dry soil. When the reading was part of the name, two walls
+    describing one deposit slightly differently produced two model surfaces,
+    and an entire canonicalization layer existed in merge_walls to stop that
+    happening. Identity here, colour in the display label.
+    """
+    return f"Locus {locus_number}"
+
+
 def fieldwall_to_profiles(data, face_name=None):
     """Adapt a FieldWallProfile dict into the single-face trenchProfiles shape
     that convert() reads. Returns (adapted_data, notes).
 
-    A field sheet records ONE wall, so this produces exactly one face. Surface
-    names become 'Locus N (munsell)' so the GemPy surfaces stay traceable back
-    to the recorder's locus numbers.
+    A field sheet records ONE wall, so this produces exactly one face. Surfaces
+    are identified as 'Locus N' and carry the recorder's Munsell reading as a
+    separate display label -- see surface_id() for why the two are separate.
     """
     notes = []
 
@@ -127,14 +147,13 @@ def fieldwall_to_profiles(data, face_name=None):
     for i, layer in enumerate(data.get("layers") or []):
         num = str(layer.get("locusNumber", "")).strip()
         munsell = munsell_by_locus.get(num)
-        if num and munsell:
-            surface = f"Locus {num} ({munsell})"
-        elif num:
-            surface = f"Locus {num}"
-            notes.append(f"locus {num} has no Munsell entry in loci[] — "
-                         f"surface named without a color")
+        if num:
+            surface = surface_id(num)
+            # The colour rides alongside the identity, never inside it.
+            display = f"{surface} ({munsell})" if munsell else surface
         else:
             surface = f"layer_{i}"
+            display = surface
             notes.append(f"layer at index {i} has no locusNumber — "
                          f"named {surface!r}")
 
@@ -157,6 +176,7 @@ def fieldwall_to_profiles(data, face_name=None):
                        "confidence": p.get("confidence")})
         layers.append({"layerName": surface,
                        "inferredMaterial": surface,
+                       "displayLabel": display,
                        "bottomBoundary": bb})
 
     if not layers:
@@ -255,6 +275,29 @@ def make_starter_config(data):
     return cfg
 
 
+def surface_labels(data):
+    """{surface_id: display label} for a document, for anything user-facing.
+
+    Only surfaces whose label differs from their id appear, so a document with
+    no Munsell readings produces an empty map rather than a table of
+    identities. The first label seen for an id wins; a later disagreement is
+    the merge layer's to report, not this function's to resolve.
+    """
+    labels = {}
+    for face in (data or {}).get("trenchProfiles") or []:
+        if not isinstance(face, dict):
+            continue
+        for layer in (face.get("layers") or []):
+            if not isinstance(layer, dict):
+                continue
+            name = layer.get("inferredMaterial") or layer.get("layerName")
+            label = layer.get("displayLabel")
+            if not name or not label or label == name:
+                continue
+            labels.setdefault(str(name), str(label))
+    return labels
+
+
 def convert(data, grid, out_csv):
     """Returns (rows, orient, missing_faces, notes)."""
     profiles, notes = as_profiles(data)
@@ -335,6 +378,7 @@ def convert(data, grid, out_csv):
 def run_convert(data: dict, grid: dict, out_csv: str):
     rows, orient, missing, notes = convert(data, grid, out_csv)
     orient_csv = out_csv.rsplit(".", 1)[0] + "_orientations.csv"
+    profiles, _ = as_profiles(data)
     return {
         "points_csv": out_csv,
         "orientations_csv": orient_csv,
@@ -344,4 +388,8 @@ def run_convert(data: dict, grid: dict, out_csv: str):
         "notes": notes,
         "source_shape": "field_wall" if is_field_wall(data) else "illustrator",
         "rows_preview": rows[:200],
+        # Not written into the CSV: the CSV's `surface` column is the identity
+        # GemPy fuses on, and adding a colour to it is the coupling this
+        # separation removes. Labels travel beside it, for display only.
+        "surface_labels": surface_labels(profiles),
     }

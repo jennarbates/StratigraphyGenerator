@@ -6,7 +6,7 @@ source_files:
   - poggio_webapp/pipeline/convert_coords.py
   - poggio_webapp/pipeline/true_dip.py
   - poggio_webapp/pipeline/merge_walls.py
-verified_against: 636b160
+verified_against: 40e4a0d
 ---
 
 # Compass bearings versus mathematical angles
@@ -98,9 +98,20 @@ def to_site(x, depth, X0=X0, Y0=Y0, Z0=Z0, sin_t=sin_t, cos_t=cos_t):
 whoever fills it in:
 
 ```python
-"_comment": "Fill in real site values. bearing_deg = compass direction "
-            "(clockwise from north) that the face's local +x axis points. ..."
+"_comment": (
+    "Fill in real site values from the master Geospatial Spreadsheet "
+    "(opening-coordinates column for the season). bearing_deg = the "
+    "direction the face's local +x axis points, in degrees clockwise "
+    "from GRID NORTH -- the site's artificial reference direction, the "
+    "one the total station sets as HA 0 (90 East, 180 South, 270 "
+    "West). It is NOT magnetic north and NOT projected north; Grid "
+    "North sits about 2.5 degrees off the latter. ..."
+)
 ```
+
+Note what the comment has to rule out. "Clockwise from north" is not enough of a
+specification when a site has three norths to choose from — see
+[grid registration](../archaeology/grid-registration.md).
 
 ### Projecting a site position back onto a wall
 

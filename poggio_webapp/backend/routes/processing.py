@@ -98,6 +98,11 @@ def run_convert(job_id):
 
     meta["points_csv"] = result["points_csv"]
     meta["orientations_csv"] = result["orientations_csv"]
+    # Display labels for the surfaces this conversion produced. Kept in meta
+    # rather than in the CSV: the CSV's `surface` column is the identity GemPy
+    # fuses on, and putting a soil colour back into it is exactly the coupling
+    # this separation removed.
+    meta["surface_labels"] = result.get("surface_labels") or {}
     save_meta(job_id, meta)
 
     result["points_csv_url"] = rel_url(job_id, result["points_csv"])

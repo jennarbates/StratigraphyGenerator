@@ -38,6 +38,7 @@ def run_gempy(job_id):
         make_zoom_plot=bool(body.get("make_zoom_plot", True)),
         zoom_surfaces=body.get("zoom_surfaces"),
         zoom_vertical_exaggeration=body.get("zoom_vertical_exaggeration"),
+        surface_labels=meta.get("surface_labels"),
     )
 
     task_id = start_task(
@@ -64,6 +65,9 @@ def gempy_result_urls(job_id, task_id):
     return jsonify({
         "extent": t["result"].get("extent"),
         "series_order": t["result"].get("series_order"),
+        "series_order_source": t["result"].get("series_order_source"),
+        "series_order_note": t["result"].get("series_order_note"),
+        "arbitrary_order_pairs": t["result"].get("arbitrary_order_pairs") or [],
         "single_face_note": t["result"].get("single_face_note"),
         "outputs": urls,
     })

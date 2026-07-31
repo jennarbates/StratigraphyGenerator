@@ -7,14 +7,15 @@ source_files:
   - poggio_webapp/pipeline/convert_coords.py
   - poggio_webapp/pipeline/merge_walls.py
   - poggio_webapp/static/shared/munsell-color.js
-verified_against: 636b160
+verified_against: 40e4a0d
 ---
 
 # Munsell colour
 
 A standard notation for soil colour, read by holding a physical chart against
 the deposit. `10YR 5/6` is a measurement, not a description — and in this
-project it becomes part of a model surface's name.
+project it is deliberately a **label** on a deposit rather than part of its
+identity.
 
 ## What it is
 
@@ -44,7 +45,8 @@ flowchart LR
   S["a deposit in the section"] --> C["hold the Munsell chart<br/>against it, in daylight"]
   C --> R["10YR 5/6"]
   R --> L["locus record"]
-  L --> N["model surface name:<br/>'Locus 2 (10YR 5/6 yellowish brown)'"]
+  L --> N["display label:<br/>'Locus 2 (10YR 5/6 yellowish brown)'"]
+  L -.->|"NOT part of it"| I["model surface identity:<br/>'Locus 2'"]
 ```
 
 ## Why excavation records it
@@ -90,50 +92,74 @@ def _munsell_label(entry):
     return None
 ```
 
-### It becomes part of the model surface name
+### It is a label, deliberately not an identity
+
+`convert_coords.surface_id()` names a model surface from the locus number
+alone, and the docstring says exactly why the colour is excluded:
+
+> A soil colour is an observation about a deposit, not a name for one: readings
+> of the same deposit differ legitimately between recorders, between walls, and
+> between wet and dry soil. When the reading was part of the name, two walls
+> describing one deposit slightly differently produced two model surfaces, and
+> an entire canonicalization layer existed in merge_walls to stop that
+> happening. **Identity here, colour in the display label.**
+
+That last sentence is the design in four words. The colour is carried
+separately, by `convert_coords.surface_labels()`:
 
 ```python
-if num and munsell:
-    surface = f"Locus {num} ({munsell})"     # "Locus 2 (10YR 5/6 yellowish brown)"
-elif num:
-    surface = f"Locus {num}"
-    notes.append(f"locus {num} has no Munsell entry in loci[] — "
-                 f"surface named without a color")
+def surface_labels(data):
+    """{surface_id: display label} for a document, for anything user-facing.
+
+    Only surfaces whose label differs from their id appear, so a document with
+    no Munsell readings produces an empty map rather than a table of
+    identities. The first label seen for an id wins; a later disagreement is
+    the merge layer's to report, not this function's to resolve.
+    """
 ```
 
-That has a consequence nobody would guess: **GemPy fuses interface points into
-one surface by exact string match on this name.** So a Munsell reading that
-differs slightly between two walls produces two surfaces for one deposit.
+### Disagreements are reported, not resolved
 
-`poggio_webapp/pipeline/merge_walls.py` exists partly to fix that:
+Because the colour is no longer part of the identity, two walls reading one
+deposit differently **already fuse**. There is nothing to canonicalise, and
+`merge_walls` says so in the function that used to do it:
 
 ```python
-def _canonical_munsell(field_sheets, notes):
-    """One trench-wide locusNumber -> Munsell label map. First usable reading
-    (in sheet order, then loci[] order) wins; disagreements become notes."""
+def _report_munsell_disagreements(field_sheets, notes):
+    """Note where two walls read one locus's colour differently.
+
+    This used to do more. When the Munsell reading was part of the GemPy
+    surface name, two walls describing one deposit slightly differently
+    produced two model surfaces, so this function computed a trench-wide
+    canonical reading and a companion rewrote every sheet to use it -- forcing
+    a field observation to agree so that an identity would.
+
+    Surfaces are now identified by locus number alone
+    (``convert_coords.surface_id``), so the walls fuse whatever their colours
+    say and there is nothing left to canonicalize. The disagreement is still
+    worth surfacing: it is a real fact about the recording, and a supervisor
+    may want to reconcile it. It is reported and nothing is rewritten.
+    """
 ```
+
+**"Forcing a field observation to agree so that an identity would"** is the
+diagnosis of what was wrong. The disagreement is real data about the recording;
+overwriting it to satisfy a string-matching rule was the software's problem
+leaking into the archaeology.
+
+The note now reports without rewriting:
 
 ```python
 notes.append(
     f"locus {num}: Munsell disagrees between wall "
     f"{first_wall!r} ({first_reading!r}) and wall "
-    f"{wall_label!r} ({reading!r}); using {first_reading!r} "
-    "trench-wide so both walls map to one model surface")
+    f"{wall_label!r} ({reading!r}). Both walls still model one "
+    f"surface; {first_reading!r} is used as its label")
 ```
 
-It picks one and **says so**, rather than merging silently or refusing. A
-disagreement is normal — the same deposit genuinely looks slightly different on
-two walls, in different light, read by different people — and it is not an error.
-
-A locus used in `layers[]` but absent from `loci[]` gets the trench-wide reading
-added, so its surface name matches the other walls:
-
-```python
-notes.append(
-    f"wall {label!r}: locus {num} appears in layers[] but not "
-    f"loci[]; using the trench-wide Munsell reading "
-    f"{canon[num]!r} so its surface name matches the other walls")
-```
+The module docstring records the size of the removal: taking the colour out of
+the identity "removed the failure, and with it the ~60 lines that worked around
+it."
 
 ### Displayed as an approximate colour
 
@@ -164,9 +190,9 @@ The parser handles notation embedded in a longer label, which is how it reads
 |---|---|
 | **A description** | "Brown" is a description. `10YR 5/6` is a match against a physical standard. |
 | **A digital colour** | It refers to a chip under daylight. The screen swatch is an approximation and says so. |
-| **[Locus](locus.md) identity** | A locus is identified by its number. The Munsell reading describes it. Two loci can share a reading. |
+| **[Locus](locus.md) identity** | A locus is identified by its number, and so is its model surface. The Munsell reading *describes* the deposit; it does not name it. Two loci can share a reading. |
 | **A material identification** | Colour is one criterion. Texture, inclusions, and compaction matter too, which is why `description` exists alongside. |
-| **Stable across walls** | The same deposit routinely reads slightly differently on two walls. Merging canonicalises rather than treating it as an error. |
+| **Stable across walls** | The same deposit routinely reads slightly differently on two walls. That is expected, is reported, and no longer affects the model — the walls fuse on locus number regardless. |
 
 ## Getting it wrong
 
@@ -176,14 +202,16 @@ shade or under an artificial lamp is not comparable.
 **Reading wet versus dry.** Soil darkens substantially when wet. The convention
 matters and should be recorded consistently.
 
-**Omitting the reading.** The surface is then named `Locus 2` with no colour,
-which on a multi-wall trench means **two surfaces for one deposit** unless
-merging supplies the canonical value. The warning exists for exactly this.
+**Omitting the reading.** The deposit then has no recorded colour. Since the
+surface identity is the locus number alone this no longer splits it into two
+model surfaces — it is a completeness problem rather than a modelling one, and
+the validator still warns.
 
 **Expecting the screen swatch to match the chip.** It is a visual aid.
 
-**Treating a disagreement between walls as an error.** It is normal, and merging
-reports which reading it used.
+**Treating a disagreement between walls as an error.** It is normal. Merging
+reports it and rewrites nothing; the reading it names is the *display label*,
+not a resolution of the disagreement.
 
 ## Related pages
 
@@ -191,6 +219,6 @@ reports which reading it used.
 - [Layer](layer.md) — the band it describes.
 - [Correlation](correlation.md) — why similar colours do not prove sameness.
 - [Combine walls into one trench](../workflows/09-multi-wall-trench.md) — where
-  readings are canonicalised.
+  readings between walls are reported.
 - [Regular expressions](../cs/regular-expressions.md) — how the notation is
   parsed.

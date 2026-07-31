@@ -176,3 +176,31 @@ def grid_north_offset_degrees(grid):
         raise GridError("a site grid must be named")
     a, b, _, d, _e, _f = _EPSG3003[name]
     return math.degrees(math.atan2(b, a)), math.degrees(math.atan2(-d, a))
+
+
+def project_model_footprint(extent, grid):
+    """A model's extent projected into EPSG:3003, for handing to a GIS.
+
+    ``extent`` is the six-value box the viewer manifest carries. Returns the
+    four corners of its horizontal footprint, in order, plus the Z range
+    unchanged -- elevation is already absolute metres and the projection is
+    horizontal only.
+
+    Stops at EPSG:3003 deliberately. Going on to EPSG:4326 needs a full
+    projection library this application does not depend on, or Open Context's
+    reprojection endpoint -- which would mean sending coordinates off the
+    machine, and the promise here is that they stay on it. A GIS can take
+    Monte Mario 1 directly.
+    """
+    if len(extent) != 6:
+        raise GridError("a model extent needs six values")
+    xlo, xhi, ylo, yhi, zlo, zhi = (float(value) for value in extent)
+    corners = [(xlo, ylo), (xhi, ylo), (xhi, yhi), (xlo, yhi)]
+    return {
+        "crs": "EPSG:3003",
+        "crs_name": "Monte Mario 1 / Italy zone 1",
+        "site_grid": normalize_grid_name(grid),
+        "corners": [list(to_epsg3003(x, y, grid)) for x, y in corners],
+        "z_range": [zlo, zhi],
+        "z_frame": "mAE",
+    }

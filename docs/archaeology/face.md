@@ -6,7 +6,7 @@ source_files:
   - poggio_webapp/pipeline/convert_coords.py
   - poggio_webapp/pipeline/merge_walls.py
   - poggio_webapp/pipeline/build_gempy.py
-verified_against: 636b160
+verified_against: 40e4a0d
 ---
 
 # Face
@@ -72,7 +72,7 @@ Face geometry, in the extraction document:
       "face": "southern baulk",
       "layers": [
         {
-          "layerName": "Locus 2 (10YR 5/6 yellowish brown)",
+          "layerName": "Locus 2",
           "bottomBoundary": [
             { "xCoordinateMeters": 0.0, "depthMeters": 0.31 },
             { "xCoordinateMeters": 0.85, "depthMeters": 0.38 }
@@ -99,11 +99,18 @@ Face registration, in the grid config, keyed by the same name:
 }
 ```
 
-The `_comment` in a generated starter config defines each term:
+The `_comment` in a generated starter config defines each term, in the site's
+own conventions:
 
-> bearing_deg = compass direction (clockwise from north) that the face's local
-> +x axis points. originX/Y = site coords of the face's x=0 edge. surfaceZ =
-> ground-surface elevation at that edge.
+> bearing_deg = the direction the face's local +x axis points, in degrees
+> clockwise from GRID NORTH … originX/originY = site grid coordinates of the
+> face's x=0 edge, with the site's sign rule: North and East positive, South
+> and West negative, so 190E/53S is originX 190, originY -53. surfaceZ =
+> ground-surface elevation at that edge, absolute, in mAE (meters absolute
+> elevation).
+
+See [grid registration](grid-registration.md) for the full text, and for the
+`site_grid` and `source` fields the config also carries.
 
 ### The conversion
 

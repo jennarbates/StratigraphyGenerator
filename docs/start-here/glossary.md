@@ -151,6 +151,12 @@ Munsell reading is an attribute of the locus, not part of its name: readings of
 one deposit differ legitimately between recorders and between wet and dry soil.
 Locus numbers are entered as the bare number, `5`, never `" 5 "`.
 
+That distinction reaches the model. A locus becomes a GemPy **surface** named
+`Locus 6`, and the colour rides alongside as a display label,
+`Locus 6 (10YR 5/3 brown)`. The viewer shows the label; everything that has to
+match — fusing two walls into one surface, stratigraphic order, mesh files —
+uses the identity.
+
 *In depth: [Locus](../archaeology/locus.md)*
 ### Locus epoch
 
@@ -199,6 +205,42 @@ every job that has one, and used to decide whether locus numbering is
 continuous (see **locus epoch**). It is not part of a locus's identity.
 
 *In depth: [Locus numbering epochs](../archaeology/locus-numbering-epochs.md) · [Find identifiers](../archaeology/find-identifiers.md)*
+### Stratigraphic order
+
+The young-to-old sequence of surfaces a model is built from. Three sources can
+supply it, and they are not equally trustworthy:
+
+1. **A Harris matrix** — the excavation's own record of which deposit lies
+   above which. Preferred whenever one exists for the trench.
+2. **The recorded layer sequence** — each wall's layers are drawn top to
+   bottom, so adjacent pairs are constraints. Real evidence, but only about
+   what one wall saw.
+3. **Mean elevation** — an assumption that higher means younger. This site's
+   procedures record cases where it is false: *"stratigraphically newer
+   deposits may exist at lower elevations than stratigraphically older
+   deposits"*. A model ordered this way says so, in the build log and in the
+   viewer.
+
+Some deposits have **no** order relative to each other — either side of a wall,
+for instance, excavated at the same level. A Harris matrix represents that by
+having no relationship between them; a model cannot, because it needs a total
+order. Where an order was imposed on unordered deposits, the model records
+which pairs, because that boundary is not evidence.
+
+*In depth: [Stratigraphic relationships](../archaeology/stratigraphic-relationships.md) · [Harris matrix](../archaeology/harris-matrix.md) · [Law of superposition](../archaeology/law-of-superposition.md)*
+### Trench layout
+
+The trenchbook section recording how a trench was set out: its opening
+dimensions, the grid coordinates of its four corners, how it was sited off a
+baseline, and the location and elevation of its datum nail.
+
+Those corner coordinates are the same numbers grid registration needs, so the
+application can derive a registration from them instead of asking anyone to
+work out a bearing. A layout is refused if its corners describe a self-crossing
+shape — two labels transposed makes a bow-tie, which is a valid polygon but not
+a trench.
+
+*In depth: [Grid registration](../archaeology/grid-registration.md) · [Datum](../archaeology/datum.md)*
 ### Trench
 
 The excavated pit, and the unit every other identifier hangs off. Written the
