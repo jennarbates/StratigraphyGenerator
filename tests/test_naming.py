@@ -1,9 +1,9 @@
 """The shared label rules in naming.py.
 
 ``safe_filename`` and ``safe_label`` used to be separate copies of the same
-regex in pipeline/build_gempy.py and backend/routes/trenches.py. Phase 2 of
-MODULARIZATION_PLAN.md merged them, so these tests pin the merged behaviour for
-both callers.
+regex in pipeline/build_gempy.py and backend/routes/trenches.py. The
+modularization refactor merged them, so these tests pin the merged behaviour
+for both callers.
 """
 
 import pytest

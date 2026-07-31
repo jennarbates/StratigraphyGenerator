@@ -1,11 +1,12 @@
 """Snapshot of the application's complete URL map.
 
-This exists to protect the Phase 1 refactor in MODULARIZATION_PLAN.md, which
-moves twelve routes out of ``app.py`` and into blueprints and deletes the
-``app.view_functions["pages.index"]`` monkeypatch. Those are pure moves: the
-route table before and after must be byte-identical. If a rule disappears,
-gains a method, or changes shape during that move, this test says so
-immediately instead of leaving a page quietly 404ing in production.
+This was written to protect the modularization refactor, which moved twelve
+routes out of ``app.py`` and into blueprints and deleted the
+``app.view_functions["pages.index"]`` monkeypatch. Those were pure moves: the
+route table before and after had to be byte-identical. It goes on earning its
+keep for every later move — if a rule disappears, gains a method, or changes
+shape, this test says so immediately instead of leaving a page quietly 404ing
+in production.
 
 When a route is legitimately added or removed, update EXPECTED_RULES in the
 same commit — that edit is the reviewable record of the change.
@@ -71,10 +72,12 @@ EXPECTED_RULES = {
     ("/visualizer", "GET"),
 }
 
-# Routes that app.py currently registers outside the blueprint system. Phase 1
-# moves each into a blueprint; the set above must not change when it does.
-# See MODULARIZATION_PLAN.md §1.1.
-ROUTES_OWNED_BY_APP_PY = {
+# Routes that app.py used to register directly, before the modularization
+# refactor moved each one into a blueprint. app.py now owns no routes at all.
+# They are pinned separately from EXPECTED_RULES because they were the ones at
+# risk during that move, and they are the ones a future move is most likely to
+# drop.
+ROUTES_MOVED_FROM_APP_PY = {
     ("/jobs/<job_id>", "GET"),
     ("/trenches", "GET"),
     ("/finds", "GET"),
@@ -108,16 +111,18 @@ def test_every_expected_route_resolves_to_a_handler(app):
         assert app.view_functions.get(rule.endpoint) is not None, rule.endpoint
 
 
-@pytest.mark.parametrize("rule,method", sorted(ROUTES_OWNED_BY_APP_PY))
+@pytest.mark.parametrize("rule,method", sorted(ROUTES_MOVED_FROM_APP_PY))
 def test_app_py_routes_are_registered(app, rule, method):
-    """Pinned individually so a Phase 1 regression names the lost route."""
+    """Pinned individually so a regression names the exact route that was lost."""
     assert (rule, method) in _rules(app)
 
 
 def test_index_is_not_the_unrendered_template(client):
-    """``routes/pages.py:index`` send_from_directory's the raw Jinja template;
-    ``app.py`` overrides it with a real render. Whichever handler wins after
-    Phase 1, the response must not contain unrendered template syntax."""
+    """``/`` must return a rendered page, never raw Jinja.
+
+    This guards a bug that already happened once: a handler that served the
+    template file itself instead of rendering it, so the browser received
+    ``{% ... %}`` markup as text."""
     response = client.get("/")
     assert response.status_code == 200
     body = response.get_data(as_text=True)

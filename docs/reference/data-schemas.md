@@ -3,6 +3,7 @@ title: Data Schemas
 audience: developer
 status: current
 source_files:
+  - poggio_webapp/pipeline/extract_text.py
   - poggio_webapp/pipeline/extract_fieldwall.py
   - poggio_webapp/pipeline/extract_illustrator.py
   - poggio_webapp/pipeline/assign_markers.py
@@ -430,6 +431,55 @@ See [Build and review a Harris Matrix](../workflows/harris-matrix.md) for
 validation codes, review rules, provenance, and export behavior.
 
 ---
+
+## Text candidate schemas
+
+These back [check the writing](../workflows/03-alternative-import-and-ai.md),
+the optional step that reads a field sheet's written labels. They are
+deliberately separate from `FieldWallProfile` itself: a candidate is a
+*proposal* awaiting human review, not a recorded value. A reviewed sheet keeps
+them under `FieldWallProfile.textCandidates`, so the proposal and the accepted
+value stay distinguishable after the fact.
+
+### GeminiFieldWallTextCandidates
+
+The envelope returned for one sheet.
+
+| Field | Type | Notes |
+|---|---|---|
+| `schemaVersion` | `int` | Envelope version |
+| `sheetType` | literal | Fixed for field-wall sheets |
+| `document` | `GeminiDocumentTextCandidates` | Sheet-level labels |
+| `loci` | `list[GeminiLocusTextCandidate]` | One entry per locus read |
+
+### GeminiDocumentTextCandidates
+
+Sheet-level labels: `trenchLabel`, `faceLabel`, `date`, `gridSquareCm`,
+`northArrowPresent`, `illustrators`, `gridTiePoints`, `marginalia`, and
+`otherText`. Each scalar is a candidate object rather than a bare value.
+
+### GeminiLocusTextCandidate
+
+One locus as read from the sheet: `locusNumber`, `munsellRaw`, `description`.
+All three are optional, because a sheet may record only some of them.
+
+### The three candidate value types
+
+`GeminiTextCandidate`, `GeminiNumberCandidate`, and `GeminiBooleanCandidate`
+share one shape:
+
+| Field | Type | Notes |
+|---|---|---|
+| `raw` | `str` | Exactly what was read off the sheet |
+| `proposed` | text, number, or boolean | The parsed value, or null when unreadable |
+| `confidence` | literal | How sure the read was |
+| `bbox` | box or null | Where on the sheet it was found |
+| `notes` | `str` or null | Why a read is uncertain |
+
+Keeping `raw` beside `proposed` is what makes review possible: a reviewer can
+see the characters on the sheet next to the interpretation of them, and correct
+either. A candidate whose `proposed` is null is not a failure — it is the
+extractor declining to guess.
 
 ## Validation and Conversion
 

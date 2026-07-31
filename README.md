@@ -51,22 +51,47 @@ flowchart LR
 Install the core dependencies and launch the application. No API key, no GemPy,
 no PDF support needed for a first run.
 
+Run these **from the repository root**. The first line builds a private Python
+environment in `.venv/` so this project's packages never touch the rest of your
+system.
+
 ```bash
-cd poggio_webapp
 python3 -m venv .venv
 source .venv/bin/activate
-python -m pip install -r requirements.txt
-python app.py
+python -m pip install -r poggio_webapp/requirements.txt
 ```
 
-Leave that running and open <http://localhost:5000>.
+Then start the application:
 
-| Dependency group | Needed first run? | Purpose |
+```bash
+make run
+```
+
+Leave that running and open <http://localhost:5000>. Stop it with
+<kbd>Ctrl</kbd>+<kbd>C</kbd>.
+
+> There is **one** virtual environment, at the repository root. Every `make`
+> target uses it, so keep it there — a `.venv` created anywhere else will leave
+> `make test` and `make docs` unable to find their tools.
+
+`make` shows what else it can do:
+
+| Command | Does |
+|---|---|
+| `make run` | Start the app on <http://localhost:5000> |
+| `make test` | Run the Python test suite |
+| `make lint` | Check style and import hygiene |
+| `make check` | Lint, then test — what CI runs |
+| `make docs` | Build this documentation site |
+| `make help` | List every target |
+
+| Dependency group | Needed first run? | Install with |
 |---|---|---|
-| `poggio_webapp/requirements.txt` | **Yes** | Flask, image processing, the supported manual path |
-| Poppler | No | Reading PDF pages |
-| `gempy`, `gempy_viewer` | No | The 3D model build; deliberately excluded as a heavy install |
-| `requirements-docs.txt` | No | Building the documentation site |
+| Flask, image processing, the supported manual path | **Yes** | `pip install -r poggio_webapp/requirements.txt` |
+| `pytest`, `ruff` — needed by `make test`, `make lint` | No | `pip install pytest ruff` |
+| Building the documentation site (`make docs`) | No | `pip install -r requirements-docs.txt` |
+| Poppler — reading PDF pages | No | System package manager, not pip |
+| `gempy`, `gempy_viewer` — the 3D model build | No | `pip install gempy gempy_viewer` (heavy) |
 
 <!-- screenshot slot: quickstart-first-screen — see docs/assets/visual-manifest.yml -->
 
@@ -242,8 +267,8 @@ flowchart TD
   Job --> S[01_scan/ - the untouched upload]
   Job --> P[02_preprocess/ - prepared images]
   Job --> E[03_extraction/ - extraction.json]
-  Job --> N[04_normalize/ - normalized.json]
-  Job --> C[05_convert/ - points.csv, orientations]
+  Job --> N[04_normalize_validate/ - normalized.json, report]
+  Job --> C[05_convert_coords/ - points.csv, orientations]
   Job --> G[06_gempy_model/ - model and exports]
 ```
 
@@ -267,13 +292,20 @@ fresh clone has none of them.
 
 ### Running the tests
 
+The Python suite, from the repository root:
+
 ```bash
-python -m pytest tests/ -q
+make test
 ```
+
+The browser-side suite, which needs Node rather than Python:
 
 ```bash
 node --test "poggio_webapp/static/**/*.test.mjs" "docs/javascripts/**/*.test.mjs"
 ```
+
+The four documentation checks — links and front matter, module coverage, the
+visual manifest, and a strict site build:
 
 ```bash
 python tools/docs/check_docs.py . && python tools/docs/check_coverage.py . && python tools/docs/validate_visual_manifest.py . && mkdocs build --strict
@@ -337,6 +369,11 @@ coverage, the visual manifest, and a strict site build. See
 ## Repository layout
 
 ```
+Makefile                 one documented command per task — run `make help`
+mkdocs.yml               configuration for the documentation site
+pyproject.toml           dependencies, test settings, and lint rules
+.venv/                   the one virtual environment (you create this)
+
 00_docs/                 reference material for whoever draws the profiles
 01_scans/                raw drawings
 docs/                    the documentation guide (MkDocs)
@@ -351,4 +388,10 @@ poggio_webapp/           the pipeline and browser application  <- start here
                          merge_walls, build_gempy, and the rest
   static/, templates/    the browser interface
   jobs/                  created at runtime, one folder per sheet
+  trenches/              created at runtime, merged multi-wall output
+  matrices/              created at runtime, Harris matrix workspaces
 ```
+
+The three runtime folders hold **your** working files and are never committed,
+so a fresh clone has none of them. The application recreates whichever it needs
+on startup.

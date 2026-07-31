@@ -1,6 +1,6 @@
 """The unified job-metadata contract in backend/jobs.py.
 
-Before Phase 2 of MODULARIZATION_PLAN.md there were two implementations that
+Before the modularization refactor there were two implementations that
 disagreed: ``load_meta``/``save_meta`` (keyed by job_id, tolerant of a missing
 file, no timestamp) and ``read_meta``/``write_meta`` (keyed by directory,
 raising, stamping ``updated_at``). These pin the single merged contract.

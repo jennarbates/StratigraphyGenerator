@@ -25,8 +25,8 @@ flowchart TD
   Job --> S[01_scan/ - the untouched upload]
   Job --> P[02_preprocess/ - prepared images]
   Job --> E[03_extraction/ - extraction.json]
-  Job --> N[04_normalize/ - normalized.json]
-  Job --> C[05_convert/ - points.csv, orientations]
+  Job --> N[04_normalize_validate/ - normalized.json, report]
+  Job --> C[05_convert_coords/ - points.csv, orientations]
   Job --> G[06_gempy_model/ - model and exports]
 ```
 

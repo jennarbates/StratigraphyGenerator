@@ -130,7 +130,7 @@ These checks apply only to `FieldWallProfile` extractions (identified by `loci` 
 
 | Rule | Level | Trigger | Notes |
 |------|-------|---------|-------|
-| Scale mismatch | warning | Grid labels span and drawn grid extent differ by > 50% or < 67% | `<face>: tie-point labels span <span> units but placed across <extent> m — label-to-extent ratio <ratio>. If those are metre marks, the extracted scale is wrong.` |
+| Scale mismatch | warning | Grid labels span and drawn grid extent differ by > 50% or < 67% | `<face>: tie-point labels span <span> units but were placed across only <extent> m of the drawing (<ratio>x apart). If those labels are metre marks, the extracted scale is wrong.` |
 
 ---
 
@@ -266,7 +266,7 @@ The user can accept warnings and continue, or re-extract/re-trace.
 
 ### Scenario 3: Grid Scale Mismatch Warning
 
-**Symptom:** `tie-point labels span X units but placed across Y m — ratio Z.A`
+**Symptom:** `tie-point labels span X units but were placed across only Y m of the drawing (Zx apart)`
 
 **Cause:** Transcribed grid-cell labels don't match drawn grid extent; scale may be wrong
 

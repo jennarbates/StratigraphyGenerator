@@ -49,8 +49,8 @@ flowchart LR
 │   └── ...
 │
 ├── 02_preprocess/
-│   ├── clean.png                 # Deskewed, brightness-normalized image
-│   ├── deskew_angle.txt          # Rotation angle in degrees
+│   ├── <name>_clean.png          # Deskewed, brightness-normalized image
+│   ├── <name>_highcontrast.png   # Optional viewing aid, not used downstream
 │   └── ...
 │
 ├── 03_extraction/
@@ -190,10 +190,15 @@ User uploads one file via `POST /api/jobs/<job_id>/scan`:
 
 | File | Format | Purpose |
 |------|--------|---------|
-| `clean.png` | PNG | Main preprocessed image (input for extraction) |
-| `deskew_angle.txt` | Text | Rotation angle in degrees (e.g., `-2.5`) |
-| `original_dim.txt` | Text | Original image dimensions (e.g., `4000x5000`) |
-| `upscaled_dim.txt` | Text | Image dimensions after upscaling |
+| `<name>_clean.png` | PNG | Main preprocessed image (input for extraction) |
+| `<name>_highcontrast.png` | PNG | Optional viewing aid; **not** the image later stages consume |
+
+`<name>` is the stem of the uploaded file, so the names follow the source
+rather than being fixed.
+
+The deskew angle is **not** written to disk. It comes back in the preprocess
+response as `deskew_angle`, alongside the `outputs` map. Nothing persists it,
+so a job folder alone does not record how far the sheet was rotated.
 
 **Metadata in meta.json:**
 

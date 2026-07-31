@@ -3,6 +3,8 @@ title: Configuration
 audience: developer
 status: current
 source_files:
+  - poggio_webapp/app.py
+  - poggio_webapp/storage.py
   - poggio_webapp/backend/config.py
   - poggio_webapp/backend/__init__.py
   - poggio_webapp/app.py
@@ -29,8 +31,8 @@ Without `GEMINI_API_KEY`, the `/api/jobs/<job_id>/extract` and marker-detection 
 
 | Variable | Purpose | Default |
 |----------|---------|---------|
-| `FLASK_ENV` | Flask development mode | `production` |
-| `FLASK_DEBUG` | Enable debug mode and auto-reload | `0` |
+| `FLASK_DEBUG` | Enable debug mode and auto-reload; read in `app.py` | `0` |
+| `PORT` | Port the development server binds to | `5000` |
 
 ### Not Configurable (Hardcoded)
 
@@ -251,26 +253,39 @@ Unhandled exceptions return HTTP 500 with error logged.
 
 ### Startup
 
-Starting the application:
+Starting the application, from the repository root:
 
 ```bash
-cd poggio_webapp
-python app.py
+make run
 ```
+
+That is `cd poggio_webapp && ../.venv/bin/python app.py`.
+
+Paths do not depend on where you launch from: `storage.py` resolves every root
+from its own file location, not the working directory. The `make` target exists
+so there is one spelling of the command that always uses the repository's
+virtual environment.
 
 This:
 
 1. Creates the Flask app via `backend.create_app()`
 2. Registers all blueprints
-3. Ensures `poggio_webapp/jobs/` directory exists
+3. Ensures the `jobs/`, `trenches/`, and `matrices/` directories exist
 4. Starts the Flask development server on `http://localhost:5000/`
 
 The development server reloads on Python file changes (default Flask behavior).
 
 ### Directories Created Automatically
 
-- `poggio_webapp/jobs/` — created if it does not exist
+`storage.ensure_dirs()` runs on import, so all three writable roots exist as
+soon as anything imports `storage`:
+
+- `poggio_webapp/jobs/` — one folder per drawing
+- `poggio_webapp/trenches/` — merged multi-wall output
+- `poggio_webapp/matrices/` — Harris matrix workspaces
 - Each job's subdirectories — created on first job creation
+
+All three are gitignored, so a fresh clone has none of them.
 
 ---
 
@@ -335,13 +350,27 @@ _EDITOR_META_LOCK = threading.Lock()
 _STATUS_MESSAGES_LOCK = threading.Lock()
 ```
 
-### Static and Template Paths
+### Filesystem roots
 
-All paths are resolved relative to `poggio_webapp/`:
+Every writable root is defined once, in `poggio_webapp/storage.py`, and
+resolved relative to `poggio_webapp/`:
 
 ```python
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent
+
 JOBS_DIR = BASE_DIR / "jobs"
+TRENCHES_DIR = BASE_DIR / "trenches"
+MATRICES_DIR = BASE_DIR / "matrices"
+
 STATIC_DIR = BASE_DIR / "static"
 TEMPLATES_DIR = BASE_DIR / "templates"
 ```
+
+`storage.py` calls `ensure_dirs()` on import, so the three writable roots exist
+as soon as anything imports it. All three are gitignored.
+
+Read these through the module — `storage.JOBS_DIR`, never
+`from storage import JOBS_DIR`. The `from` form binds the value at import time,
+which previously left several modules holding private copies that a test could
+not redirect. Reading the attribute at call time means one assignment moves
+every consumer at once, which is what the test fixtures rely on.

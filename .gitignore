@@ -11,14 +11,21 @@ __pycache__/
 # Generated docs site (built by `mkdocs build`)
 site/
 
-# Runtime data: job working directories
+# Runtime data. The application creates these three on import, in storage.py.
+# They hold your own working files, so they are never committed: a fresh clone
+# has none of them, and the app recreates whichever it needs.
 poggio_webapp/jobs/
+poggio_webapp/trenches/
+poggio_webapp/matrices/
 
-# Pre-modularization legacy sources. Archived rather than deleted because
-# none of them were ever committed. See MODULARIZATION_PLAN.md, phase 5.
+# Pre-modularization legacy sources. Archived rather than deleted because none
+# of them were ever committed; recoverable from the tarball inside.
 .archive/
 
-# Agent scratch docs
+# Agent scratch docs: working notes and task contracts, not user documentation.
+# They stay on disk but out of the repository, so the root stays readable and
+# nobody mistakes a plan for a description of what the code does.
 00_docs/CLAUDE.md
-DOCUMENTATION_AGENT_PROMPTS.md
-DOCUMENTATION_AGENT_WORKPLAN.md
+DOCUMENTATION_V2_PLAN.md
+HARRIS_MATRIX_TASK_CONTRACT.md
+multi_wall_agent_plan.md
