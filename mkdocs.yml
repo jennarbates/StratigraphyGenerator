@@ -77,6 +77,12 @@ nav:
       - Combine walls into one trench: workflows/09-multi-wall-trench.md
       - Build a Harris Matrix: workflows/harris-matrix.md
       - Log a find: workflows/logging-finds.md
+  - Worked example:
+      - A trench, end to end: worked-example/index.md
+      - Registering T905: worked-example/registration.md
+      - T905's stratigraphy: worked-example/stratigraphy.md
+      - The sounding as measured geometry: worked-example/the-sounding.md
+      - Finds, and what the record cannot support: worked-example/finds-and-limits.md
   - Concepts:
       - From archaeology to 3D: concepts/archaeology-to-3d.md
       - Source drawing types: concepts/source-drawing-types.md

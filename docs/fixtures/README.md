@@ -36,6 +36,18 @@ one outlined internal feature.
 *Caption: A generated illustrator-style source image. Layer names, patterns,
 and all face-local measurements are fictional.*
 
+## The other kind of example
+
+These two fixtures are **clean**. They validate with zero errors and zero
+warnings, and they exist to show what a well-formed input looks like.
+
+The [worked example](../worked-example/index.md) is the complement: an invented
+trench modelled on the shape of a real season's paperwork, complete with a
+corner nobody measured, a transposed digit, a redundant stratigraphic
+assertion, and five findspots that contradict their loci. It is equally
+fictional and equally unusable as evidence — but it is where the refusals are
+demonstrated, because a clean fixture cannot trigger one.
+
 ## Safety and validation
 
 The generator draws both images from the fixture data; it does not read, copy,

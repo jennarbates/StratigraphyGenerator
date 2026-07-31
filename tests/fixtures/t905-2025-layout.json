@@ -1,0 +1,153 @@
+{
+  "_comment": [
+    "SYNTHETIC DOCUMENTATION FIXTURE. Trench T905, its personnel, its",
+    "coordinates, its elevations and its finds are invented. Nothing here is",
+    "archaeological evidence and none of it may be used for interpretation.",
+    "",
+    "It is not invented freely, though. Real excavation records do not arrive",
+    "clean, and an example built from tidy numbers teaches the wrong lesson:",
+    "it shows the happy path and hides every refusal. So T905 is modelled on",
+    "the SHAPE of a real season's paperwork -- the same kinds of gap,",
+    "disagreement, transcription slip and unrecorded value -- while carrying",
+    "none of its content. Every defect below is deliberate and documented.",
+    "",
+    "The one that matters most is in `corners`: the northeast corner has no",
+    "opening elevation, so one wall cannot be registered and the build refuses",
+    "it. See docs/worked-example/registration.md."
+  ],
+
+  "trench": "T905",
+  "season": "2025",
+  "site_grid": "poggio-civitate",
+  "trench_book": "STU I",
+  "supervisor": "Supervisor Eight",
+
+  "vertical": {
+    "frame": "mAE",
+    "entryForm": "absolute",
+    "datumNail": {
+      "absoluteZ": 25.23,
+      "label": "T905 2025, nail in a tree by the southwest corner (corrected value)"
+    }
+  },
+
+  "corners": [
+    {"label": "150E/20S", "corner": "NW", "elevation": 24.28},
+    {"label": "155E/20S", "corner": "NE"},
+    {"label": "155E/25S", "corner": "SE", "elevation": 24.16},
+    {"label": "150E/25S", "corner": "SW", "elevation": 24.70}
+  ],
+
+  "walls": ["north wall", "east wall", "south wall", "west wall"],
+
+  "_sources": {
+    "corners": {
+      "record": "invented, in the form of a season Geospatial Spreadsheet",
+      "column": "Opening Coordinates (X/Y)",
+      "note": [
+        "A real sheet stores these already signed, as 'NW: 150/-20' rather",
+        "than '150E/20S', because the site's cardinal-inversion rule (South",
+        "and West negative) is applied before the number reaches the sheet.",
+        "The labels here are in the trench-book spelling so that the",
+        "conversion is visible; see tests/fixtures/geospatial-sample.csv for",
+        "the signed form."
+      ]
+    },
+    "elevations": {
+      "record": "invented, in the form of a trench book's opening elevations",
+      "entry": "day 1, Locus 1 opening elevations, pg. 33",
+      "note": [
+        "Three of the four corners only. The NE corner at 155E/20S has NO",
+        "opening elevation and is absent here rather than filled in.",
+        "",
+        "The reason is the one that produces this gap in practice: T905's",
+        "northeastern meters fall inside a trench excavated in a previous",
+        "season and backfilled. Locus 1, the opening topsoil, covers only the",
+        "ground that was not dug before, so the opening elevation list stops",
+        "at 151E/20S -- the eastern limit of Locus 1 -- and the trench's own",
+        "northeast corner never gets an opening reading at all.",
+        "",
+        "That corner does receive an elevation eventually, as Locus 3's NE3 at",
+        "23.96 mAE, but that is a floor surface measured 15 days and two loci",
+        "later. It is not the trench's opening surface and is not used here.",
+        "",
+        "The SW corner's 24.70 mAE is NOT natural relief. It is the crest of a",
+        "spoil heap left by an earlier season, 0.52 m deep, which was removed",
+        "as part of Locus 1."
+      ]
+    },
+    "datumNail": {
+      "record": "invented, in the form of a trench book's Trench Layout section",
+      "note": [
+        "First shot at 25.73 mAE at the start of the season.",
+        "",
+        "CORRECTED mid-season: the datum points established at the start of the",
+        "season were found to be 0.50 m high because of a transit error. They",
+        "were reshot and every point recorded before the correction was",
+        "adjusted. T905's datum is 25.23 mAE.",
+        "",
+        "25.23 is the value used here, and every elevation in this fixture and",
+        "in t905-2025-loci and t905-2025-special-finds is on the corrected",
+        "scale. See _known_problems for how that can be checked rather than",
+        "taken on trust."
+      ]
+    },
+    "site_grid": {
+      "record": "invented",
+      "note": [
+        "T905 sits on the Piano del Tesoro, so the hill grid rather than",
+        "Vescovado di Murlo. The two origins are about 1.5 million metres",
+        "apart once projected, so a config that names neither is not merely",
+        "untidy."
+      ]
+    },
+    "walls": {
+      "record": "derived",
+      "note": [
+        "Named from the corner labels: two corners sharing a cardinal letter",
+        "name the wall between them, so NW to NE is the north wall. All four",
+        "sides come out 5.00 m, matching the recorded 5 m by 5 m trench."
+      ]
+    }
+  },
+
+  "_known_problems": [
+    "THE EAST WALL CANNOT BE REGISTERED. Its origin corner is NE, which has no",
+    "opening elevation, so its surfaceZ is null and the build refuses it. The",
+    "other three walls register from surveyed values with no placeholders.",
+    "This is the documented refusal working correctly, and it is the reason",
+    "this fixture exists: a trench that registers cleanly cannot demonstrate",
+    "it.",
+    "",
+    "THE TWO SEASONS' BASELINES DISAGREE BY 30 cm. While triangulating the",
+    "corners the team found that a point projected as 156E from the previous",
+    "season's baseline lies 30 cm west of the same label projected from this",
+    "season's. They chose to keep the earlier baseline so that the coordinates",
+    "of the structure recorded then would still line up. Every coordinate here",
+    "is therefore on the earlier baseline, deliberately, and is offset about",
+    "0.30 m from anything shot against the newer one. Combining this trench",
+    "with one that used the newer baseline means reconciling that first.",
+    "",
+    "THE DATUM NAIL'S PLAN POSITION IS RECORDED THREE DIFFERENT WAYS. The",
+    "Trench Layout section puts it on a tree outside the southwest corner; a",
+    "daily entry puts the same tree in the centre of the trench; the locus",
+    "descriptions refer to 'the tree in the southwest'. Its ELEVATION is",
+    "consistent everywhere. Its easting and northing are recorded nowhere, so",
+    "this fixture gives it none.",
+    "",
+    "THE DAY-1 CLOSING ELEVATION REPEATS THE OPENING ONE AT SW. Both read",
+    "24.70 mAE, on a day spent lowering the spoil heap in exactly that corner.",
+    "The next day's closing reads 24.26 mAE there. The day-1 closing figure",
+    "looks carried over rather than freshly measured, so only the opening set",
+    "is used here.",
+    "",
+    "THE ELEVATIONS ARE ON THE CORRECTED (25.23) SCALE, and the sequence shows",
+    "it rather than the record merely asserting it. The locus closed the day",
+    "before the datum was reshot and the locus opened the day after are",
+    "continuous: one closes at 23.87-24.02 mAE and the next opens at",
+    "23.87-23.99 mAE at points inside it. A 0.50 m step at that boundary would",
+    "be unmistakable, and there is none. That is what a retrospectively",
+    "corrected elevation series looks like, and it is worth checking for",
+    "before trusting one."
+  ]
+}

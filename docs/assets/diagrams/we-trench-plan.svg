@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 482" role="img" aria-labelledby="t d">
+  <title id="t">Plan of the synthetic trench T905</title>
+  <desc id="d">A five metre square trench in plan, showing the cobbled surface and wall in its northern half, a two by one metre sounding east of the wall, and three marked problems: a corner with no opening elevation, a corner whose height is a spoil heap, and two finds plotted outside the trench.</desc>
+  <style>
+:root {
+  --bg: #ffffff; --ink: #1b1b1b; --muted: #5c5c5c; --line: #6b6b6b;
+  --panel: #f7f9fb; --fill: #e8edf2; --edge: #b3bcc5;
+  --accent: #1f6feb; --warn: #a8481a; --good: #266048;
+  --band-a: #ddcdb2; --band-b: #c8ae80; --band-c: #ac8f63; --band-d: #8f7248;
+}
+text { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+       fill: var(--ink); font-size: 15px; }
+.sm { font-size: 13px; }
+.muted { fill: var(--muted); }
+.bold { font-weight: 650; }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
+.panel { fill: var(--panel); stroke: var(--edge); stroke-width: 1.5; }
+.fill { fill: var(--fill); stroke: var(--edge); stroke-width: 1.5; }
+.edge { fill: none; stroke: var(--line); stroke-width: 2; }
+.thin { fill: none; stroke: var(--edge); stroke-width: 1; }
+.accent { stroke: var(--accent); fill: none; stroke-width: 2.5; }
+.accent-f { fill: var(--accent); }
+.warn { stroke: var(--warn); fill: none; stroke-width: 2.5; }
+.warn-f { fill: var(--warn); }
+.good { stroke: var(--good); fill: none; stroke-width: 2.5; }
+.good-f { fill: var(--good); }
+.dash { stroke-dasharray: 6 4; }
+.dot { stroke-dasharray: 2 3; }
+</style>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--line)"/>
+    </marker>
+    <marker id="arrow-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/>
+    </marker>
+  </defs>
+  <rect width="1000" height="482" fill="var(--bg)"/>
+  <text x="24" y="30" text-anchor="start" class="bold">T905 in plan: eight loci, and three gaps in the record</text>
+  <rect x="175.0" y="60.0" width="350" height="350" class="fill"/>
+  <text x="350.0" y="361.00000000000006" text-anchor="middle" class="sm muted">Locus 3 — floor surface</text>
+  <polyline points="175.0,60.0 373.80000000000024,60.0 360.5000000000004,155.19999999999996 175.0,187.40000000000003 175.0,60.0" class="edge"/>
+  <text x="258.9999999999992" y="122.9999999999999" text-anchor="middle" class="sm bold">Locus 5</text>
+  <polyline points="373.80000000000024,60.0 398.9999999999992,60.0 354.20000000000016,225.19999999999996 331.0999999999993,232.20000000000005 373.80000000000024,60.0" class="accent"/>
+  <text x="448.0000000000004" y="151.00000000000006" text-anchor="start" class="sm accent-f">Locus 4 — wall</text>
+  <line x1="444.4999999999996" y1="161.49999999999994" x2="391.9999999999996" y2="143.99999999999994" class="accent" marker-end="url(#arrow-a)"/>
+  <rect x="385.0" y="200.0" width="70" height="140" class="panel"/>
+  <text x="420.0" y="248.99999999999994" text-anchor="middle" class="sm bold">Loci</text>
+  <text x="420.0" y="270.0" text-anchor="middle" class="sm bold">6·7·8</text>
+  <text x="420.0" y="297.9999999999999" text-anchor="middle" class="sm muted">sounding</text>
+  <circle cx="525.0" cy="60.0" r="7" class="warn-f"/>
+  <text x="539.0" y="52.0" text-anchor="start" class="sm warn-f">NE corner: no opening</text>
+  <text x="539.0" y="70.0" text-anchor="start" class="sm warn-f">elevation recorded</text>
+  <circle cx="175.0" cy="410.0" r="7" class="warn-f"/>
+  <text x="191.0" y="386.0" text-anchor="start" class="sm warn-f">SW 24.70 mAE — a spoil heap,</text>
+  <text x="191.0" y="404.0" text-anchor="start" class="sm warn-f">not ground</text>
+  <circle cx="138.59999999999928" cy="91.49999999999994" r="5" class="warn-f"/>
+  <circle cx="117.60000000000048" cy="130.7000000000001" r="5" class="warn-f"/>
+  <text x="20" y="178.99999999999994" text-anchor="start" class="sm warn-f">SF 8, SF 9 —</text>
+  <text x="20" y="196.99999999999994" text-anchor="start" class="sm warn-f">outside the trench</text>
+  <text x="575" y="150" text-anchor="start" class="sm">150E/20S is the northwest corner.</text>
+  <text x="575" y="172" text-anchor="start" class="sm">South and West are negative, so the</text>
+  <text x="575" y="192" text-anchor="start" class="sm">trench runs 150–155E by 20–25S.</text>
+  <text x="575" y="232" text-anchor="start" class="sm">Three walls register from surveyed</text>
+  <text x="575" y="252" text-anchor="start" class="sm">values. The east wall cannot: its</text>
+  <text x="575" y="272" text-anchor="start" class="sm">origin is the northeast corner, which</text>
+  <text x="575" y="292" text-anchor="start" class="sm">sat inside a backfilled trench and</text>
+  <text x="575" y="312" text-anchor="start" class="sm">never got an opening reading.</text>
+  <text x="575" y="352" text-anchor="start" class="sm">Loci 4 and 5 were drawn and left</text>
+  <text x="575" y="372" text-anchor="start" class="sm">standing. Only the 2 × 1 m sounding</text>
+  <text x="575" y="392" text-anchor="start" class="sm">cut through the floor.</text>
+  <text x="24" y="462" text-anchor="start" class="sm muted">Synthetic example. Every coordinate is invented and none of it is archaeological evidence.</text>
+</svg>

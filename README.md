@@ -190,6 +190,38 @@ result. See [build and review a Harris Matrix](docs/workflows/harris-matrix.md).
 
 ---
 
+## Worked example
+
+The workflow pages each cover one step. The worked example covers one **trench**
+— eight loci, a sounding, a Harris matrix and 26 findspots — and shows what the
+application does with a record that is complete in some places and simply absent
+in others.
+
+![Plan of a five metre square trench showing a cobbled surface and a wall in its northern half, a two by one metre sounding, a corner with no opening elevation, a corner whose height is a spoil heap, and two finds plotted outside the trench](docs/assets/diagrams/we-trench-plan.svg)
+
+The trench is **T905**, and it is invented — but not invented tidily. The
+[synthetic fixtures](docs/fixtures/README.md) are clean examples that show what
+a well-formed input looks like. T905 is modelled on the shape of a real season's
+paperwork instead, with the gaps, transposed digits and contradictions that
+field records actually have, because a pipeline demonstrated only on clean input
+has never been shown to refuse anything.
+
+Three results come out of it:
+
+- **One of the four walls cannot be registered.** Its origin corner sat inside a
+  previous season's backfilled trench, so no opening elevation was ever measured
+  there. The application will not invent one, and the build stops.
+- **The record agrees with itself more often than it disagrees.** Four vertices
+  recorded twice on different loci match exactly; the sounding's four surfaces
+  chain without a gap. That is what makes the disagreements worth noticing.
+- **Five of the 26 findspots contradict their locus**, and no single check
+  catches all five — two fail on plan position, one only on elevation, one on
+  both.
+
+Start at [a trench, end to end](docs/worked-example/index.md).
+
+---
+
 ## Concepts
 
 Why the system works the way it does. Each page is reachable from the workflow

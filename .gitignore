@@ -25,9 +25,21 @@ poggio_webapp/matrices/
 # Real excavation records. Coordinates, elevations, personnel names and
 # contact details belong in the project's own systems, not in a public
 # repository. Test fixtures reproduce the shape of these files with invented
-# content -- see tests/fixtures/geospatial-sample.csv.
+# content -- see tests/fixtures/geospatial-sample.csv and the synthetic worked
+# example in tests/fixtures/t905-2025-*.json.
+#
+# `local/` is where real records go. Everything in it stays on the machine it
+# was put on. tests/test_local_records.py runs against whatever is in there and
+# skips when it is empty, so a fresh clone and CI both pass with none of it
+# present. One directory rather than a per-trench pattern, because a rule that
+# names trenches only excludes the trenches somebody remembered to name.
+local/
+
+# Belt and braces for the old location. Real trenches at this site are numbered
+# T1xx; the synthetic ones documentation uses are T9xx, so t905-*.json stays
+# tracked and any real trench dropped into tests/fixtures/ by habit does not.
 tests/fixtures/geospatial-2025.csv
-tests/fixtures/t104-*.json
+tests/fixtures/t1[0-9][0-9]-*.json
 01_scans/
 
 # Agent scratch docs: working notes and task contracts, not user documentation.

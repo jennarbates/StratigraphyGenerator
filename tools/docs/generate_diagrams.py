@@ -947,6 +947,227 @@ def normalization_after() -> str:
     )
 
 
+def worked_example_plan() -> str:
+    """T905 in plan: what was recorded, and the three things that were not.
+
+    Redrawn from the fixture's own coordinates, so the geometry here and the
+    numbers in ``tests/fixtures/t905-2025-loci.json`` cannot drift apart
+    without one of them being wrong.
+    """
+    # 1 m = 70 px, with grid 150E/20S at the top-left of the trench. The left
+    # margin is wide because two of the findspots plot outside the west baulk,
+    # which is the whole point of showing them.
+    def px(gx):
+        return 175 + (gx - 150.0) * 70
+
+    def py(gy):
+        return 60 + (-20.0 - gy) * 70
+
+    def ring(points, cls):
+        return poly([(px(x), py(y)) for x, y in points]
+                    + [(px(points[0][0]), py(points[0][1]))], cls)
+
+    b = [
+        heading(24, 30, "T905 in plan: eight loci, and three gaps in the record"),
+        # the trench
+        f'  <rect x="{px(150)}" y="{py(-20)}" width="350" height="350" '
+        f'class="fill"/>',
+        txt(px(152.5), py(-24.3), "Locus 3 — floor surface", "sm muted", "middle"),
+    ]
+    # Locus 5, the cobbled surface, and Locus 4, the wall
+    b += [
+        ring([(150, -20), (152.84, -20), (152.65, -21.36), (150, -21.82)],
+             "edge"),
+        txt(px(151.2), py(-20.9), "Locus 5", "sm bold", "middle"),
+        ring([(152.84, -20), (153.20, -20), (152.56, -22.36), (152.23, -22.46)],
+             "accent"),
+        txt(px(153.9), py(-21.3), "Locus 4 — wall", "sm accent-f"),
+        arrow(px(153.85), py(-21.45), px(153.1), py(-21.2), "accent", "arrow-a"),
+    ]
+    # the sounding
+    b += [
+        f'  <rect x="{px(153)}" y="{py(-22)}" width="70" height="140" '
+        f'class="panel"/>',
+        txt(px(153.5), py(-22.7), "Loci", "sm bold", "middle"),
+        txt(px(153.5), py(-23.0), "6·7·8", "sm bold", "middle"),
+        txt(px(153.5), py(-23.4), "sounding", "sm muted", "middle"),
+    ]
+    # the three gaps
+    b += [
+        dot(px(155), py(-20), 7, "warn-f"),
+        txt(px(155) + 14, py(-20) - 8, "NE corner: no opening", "sm warn-f"),
+        txt(px(155) + 14, py(-20) + 10, "elevation recorded", "sm warn-f"),
+        dot(px(150), py(-25), 7, "warn-f"),
+        txt(px(150) + 16, py(-25) - 24, "SW 24.70 mAE — a spoil heap,", "sm warn-f"),
+        txt(px(150) + 16, py(-25) - 6, "not ground", "sm warn-f"),
+        dot(px(149.48), py(-20.45), 5, "warn-f"),
+        dot(px(149.18), py(-21.01), 5, "warn-f"),
+        txt(20, py(-21.7), "SF 8, SF 9 —", "sm warn-f"),
+        txt(20, py(-21.7) + 18, "outside the trench", "sm warn-f"),
+    ]
+    b += [
+        txt(575, 150, "150E/20S is the northwest corner.", "sm"),
+        txt(575, 172, "South and West are negative, so the", "sm"),
+        txt(575, 192, "trench runs 150–155E by 20–25S.", "sm"),
+        txt(575, 232, "Three walls register from surveyed", "sm"),
+        txt(575, 252, "values. The east wall cannot: its", "sm"),
+        txt(575, 272, "origin is the northeast corner, which", "sm"),
+        txt(575, 292, "sat inside a backfilled trench and", "sm"),
+        txt(575, 312, "never got an opening reading.", "sm"),
+        txt(575, 352, "Loci 4 and 5 were drawn and left", "sm"),
+        txt(575, 372, "standing. Only the 2 × 1 m sounding", "sm"),
+        txt(575, 392, "cut through the floor.", "sm"),
+        txt(24, 462,
+            "Synthetic example. Every coordinate is invented and none of it is "
+            "archaeological evidence.",
+            "sm muted"),
+    ]
+    return document(
+        1000, 482,
+        "Plan of the synthetic trench T905",
+        "A five metre square trench in plan, showing the cobbled surface and "
+        "wall in its northern half, a two by one metre sounding east of the "
+        "wall, and three marked problems: a corner with no opening elevation, "
+        "a corner whose height is a spoil heap, and two finds plotted outside "
+        "the trench.",
+        "\n".join(b),
+    )
+
+
+def worked_example_section() -> str:
+    """The sounding as four measured surfaces, along its western edge."""
+    def px(northing):
+        return 130 + (abs(northing) - 22.0) * 180
+
+    def py(z):
+        return 80 + (24.05 - z) * 500
+
+    surfaces = [
+        ("Locus 6 opening — the floor surface", 23.99, 23.87),
+        ("Locus 6 closing = Locus 7 opening", 23.79, 23.74),
+        ("Locus 7 closing = Locus 8 opening", 23.62, 23.51),
+    ]
+    b = [heading(24, 30, "The sounding, west edge: four surfaces, three of them shared")]
+
+    # the two excavated bodies
+    for index, colour in enumerate(("band-b", "band-c")):
+        top = surfaces[index]
+        bottom = surfaces[index + 1]
+        b.append(
+            f'  <path d="M{px(-22)},{py(top[1])} L{px(-24)},{py(top[2])} '
+            f'L{px(-24)},{py(bottom[2])} L{px(-22)},{py(bottom[1])} Z" '
+            f'fill="var(--{colour})" stroke="var(--edge)" stroke-width="1.5"/>'
+        )
+    # Locus 8, unexcavated: its base is not a recorded surface, so the block is
+    # cut off flat and left unlabelled rather than given an invented floor.
+    b.append(
+        f'  <path d="M{px(-22)},{py(surfaces[2][1])} L{px(-24)},{py(surfaces[2][2])} '
+        f'L{px(-24)},{py(23.46)} L{px(-22)},{py(23.46)} Z" '
+        f'fill="var(--band-d)" stroke="var(--edge)" stroke-width="1.5"/>'
+    )
+
+    for label, north_z, south_z in surfaces:
+        b += [
+            f'  <line x1="{px(-22)}" y1="{py(north_z)}" x2="{px(-24)}" '
+            f'y2="{py(south_z)}" class="edge"/>',
+            txt(px(-22) - 12, py(north_z) + 4, f"{north_z:.2f}", "mono", "end"),
+            txt(px(-24) + 12, py(south_z) + 4, f"{south_z:.2f}", "mono"),
+            txt(px(-24) + 66, py(south_z) + 4, label, "sm muted"),
+        ]
+
+    b += [
+        txt(px(-22), 60, "22S", "sm muted", "middle"),
+        txt(px(-24), 60, "24S", "sm muted", "middle"),
+        txt(px(-23), py(23.90), "Locus 6", "sm bold", "middle"),
+        txt(px(-23), py(23.68), "Locus 7", "sm bold", "middle"),
+        txt(px(-23), py(23.51), "Locus 8 — unexcavated", "sm bold", "middle"),
+        txt(24, 424,
+            "One locus's closing surface is the next one's opening surface, at "
+            "all four corners. Nothing is interpolated here:",
+            "sm"),
+        txt(24, 444,
+            "every line is two recorded elevations joined. Locus 6 measures 0.20 m "
+            "thick at the northwest corner and 0.13 m at the southwest,",
+            "sm"),
+        txt(24, 464,
+            "so the season's single stated figure of “about 20 cm” "
+            "describes one corner rather than the layer.",
+            "sm"),
+        txt(24, 500,
+            "Synthetic example. Every elevation is invented and none of it is "
+            "archaeological evidence.",
+            "sm muted"),
+    ]
+    return document(
+        900, 520,
+        "Section through the synthetic sounding",
+        "A section down the western edge of a two metre sounding, showing three "
+        "recorded surfaces bounding two excavated layers above an unexcavated "
+        "one, with the elevation of each surface labelled at both ends.",
+        "\n".join(b),
+    )
+
+
+def worked_example_matrix() -> str:
+    """The season's matrix, with the correlation and the redundant edge."""
+    nodes = {
+        1: ("Locus 1", 430, 70), 2: ("Locus 2", 430, 150),
+        5: ("Locus 5", 190, 235), 3: ("Locus 3", 390, 235),
+        6: ("Locus 6", 550, 235), 4: ("Locus 4", 750, 235),
+        7: ("Locus 7", 470, 320), 8: ("Locus 8", 470, 400),
+    }
+    b = [heading(24, 30, "T905's matrix: one correlation, one redundant edge")]
+    for number, (name, x, y) in nodes.items():
+        cls = "fill" if number in (3, 6) else "panel"
+        b += [box(x - 62, y - 20, 124, 40, cls),
+              txt(x, y + 5, name, "sm bold", "middle")]
+
+    for younger, older in ((1, 2), (2, 5), (2, 3), (2, 4), (6, 7), (7, 8)):
+        x1, y1 = nodes[younger][1], nodes[younger][2] + 20
+        x2, y2 = nodes[older][1], nodes[older][2] - 20
+        b.append(arrow(x1, y1, x2, y2))
+
+    # the correlation, and the edge the reduction drops
+    b += [
+        '  <line x1="452" y1="235" x2="488" y2="235" class="accent dash"/>',
+        txt(470, 214, "equal to", "sm accent-f", "middle"),
+        path("M612,250 Q700,340 534,398", "warn dash"),
+        txt(660, 300, "6 → 8: asserted,", "sm warn-f"),
+        txt(660, 320, "then dropped", "sm warn-f"),
+    ]
+    b += [
+        '  <line x1="80" y1="70" x2="80" y2="400" class="accent" '
+        'marker-end="url(#arrow-a)"/>',
+        txt(70, 70, "younger", "sm accent-f", "end"),
+        txt(70, 400, "older", "sm accent-f", "end"),
+        txt(24, 452,
+            "Loci 3 and 6 are one deposit under two numbers: 6 is the piece of 3 "
+            "the sounding removed. Both SU forms say so, and a correlation is",
+            "sm"),
+        txt(24, 472,
+            "what the schema has for it — the drawn matrix stacked them instead, "
+            "which would make a deposit younger than itself. Locus 6's form also",
+            "sm"),
+        txt(24, 492,
+            "asserts it overlies 8 as well as 7; that follows from 6 → 7 → 8, so "
+            "it is kept in the record and omitted from the diagram with a warning.",
+            "sm"),
+        txt(24, 528,
+            "Synthetic example. Invented loci; not an archaeological "
+            "interpretation.",
+            "sm muted"),
+    ]
+    return document(
+        1000, 548,
+        "Harris matrix of the synthetic trench T905",
+        "A Harris matrix with eight loci running from topsoil at the top to an "
+        "unexcavated layer at the bottom, two of them joined by a dashed "
+        "correlation, and one dashed edge marked as asserted but dropped from "
+        "the display.",
+        "\n".join(b),
+    )
+
+
 DIAGRAMS: dict[str, Callable[[], str]] = {
     "normalization-before": normalization_before,
     "normalization-after": normalization_after,
@@ -969,6 +1190,9 @@ DIAGRAMS: dict[str, Callable[[], str]] = {
     "genuine-vs-fabricated": genuine_vs_fabricated,
     "r-good-vs-bad-drawing": good_vs_bad_drawing,
     "p-status-labels": status_labels,
+    "we-trench-plan": worked_example_plan,
+    "we-sounding-section": worked_example_section,
+    "we-matrix": worked_example_matrix,
 }
 
 

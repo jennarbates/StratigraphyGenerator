@@ -596,3 +596,40 @@
   alt: The same trench sheet rotated to the detected horizontal
   caption: 'After: rotated to the detected horizontal.'
   status: approved
+- id: we-trench-plan
+  type: generated
+  path: docs/assets/diagrams/we-trench-plan.svg
+  pages:
+  - docs/worked-example/index.md
+  - docs/worked-example/registration.md
+  regenerate: python tools/docs/generate_diagrams.py
+  alt: Plan of a five metre square trench showing a cobbled surface and a wall in its
+    northern half, a two by one metre sounding, a corner with no opening elevation,
+    a corner whose height is a spoil heap, and two finds plotted outside the trench
+  caption: Everything the worked example turns on is visible in plan, including the
+    three places where the record runs out.
+  status: approved
+- id: we-sounding-section
+  type: generated
+  path: docs/assets/diagrams/we-sounding-section.svg
+  pages:
+  - docs/worked-example/the-sounding.md
+  regenerate: python tools/docs/generate_diagrams.py
+  alt: A section down the western edge of a two metre sounding showing three recorded
+    surfaces bounding two excavated layers above an unexcavated one, each surface labelled
+    with its elevation at both ends
+  caption: Each locus closes on the surface the next one opens on, so the four elevations
+    describe one continuous column.
+  status: approved
+- id: we-matrix
+  type: generated
+  path: docs/assets/diagrams/we-matrix.svg
+  pages:
+  - docs/worked-example/stratigraphy.md
+  regenerate: python tools/docs/generate_diagrams.py
+  alt: A Harris matrix of eight loci running from topsoil to an unexcavated layer,
+    with two loci joined by a dashed correlation and one dashed edge marked as asserted
+    but dropped from the display
+  caption: One correlation and one redundant edge, both taken from the recording forms
+    rather than inferred.
+  status: approved

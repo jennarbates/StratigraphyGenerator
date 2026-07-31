@@ -1,0 +1,485 @@
+{
+  "_comment": [
+    "SYNTHETIC DOCUMENTATION FIXTURE. Companion to t905-2025-layout.json.",
+    "Trench T905 is invented; so are its loci, its surfaces and its finds.",
+    "None of it is archaeological evidence.",
+    "",
+    "Eight loci, each with every vertex, elevation, Munsell value and",
+    "stratigraphic assertion a real locus record carries -- and with the same",
+    "kinds of defect. Where two of T905's records are made to disagree, BOTH",
+    "readings are kept and the disagreement is named in _known_problems, which",
+    "is the practice the real thing demands. Where a record is blank, the field",
+    "is absent rather than inferred.",
+    "",
+    "Grid coordinates are signed: South and West negative. A trench book writes",
+    "'153E/22S'; that is (153.0, -22.0) here. Elevations are metres above sea",
+    "level on the corrected 25.23 mAE datum.",
+    "",
+    "See docs/worked-example/stratigraphy.md and",
+    "docs/worked-example/the-sounding.md."
+  ],
+
+  "trench": "T905",
+  "season": "2025",
+  "site_grid": "poggio-civitate",
+  "trench_book": "STU I",
+  "supervisor": "Supervisor Eight",
+
+  "loci": [
+    {
+      "locus": 1,
+      "unit_type": "deposit",
+      "summary": "Topsoil, excavated together with the spoil heap of an earlier season",
+      "munsell": "2.5Y 4/3 olive brown",
+      "opened": {"date": "2025-06-02", "page": 33},
+      "closed": {"date": "2025-06-10", "page": 65},
+      "vertex_source": "daily log only; the locus form's coordinate table is blank",
+      "opening_vertices": [
+        {"label": "NW", "gridX": 150.0, "gridY": -20.0, "elevation": 24.28},
+        {"label": "NE", "gridX": 151.0, "gridY": -20.0, "elevation": 24.22},
+        {"label": null, "gridX": 151.0, "gridY": -22.0, "elevation": 24.26},
+        {"label": null, "gridX": 154.0, "gridY": -22.0, "elevation": 24.13},
+        {"label": null, "gridX": 154.0, "gridY": -23.0, "elevation": 24.17},
+        {"label": null, "gridX": 155.0, "gridY": -23.0, "elevation": 24.16},
+        {"label": "SE", "gridX": 155.0, "gridY": -25.0, "elevation": 24.16},
+        {"label": "SW", "gridX": 150.0, "gridY": -25.0, "elevation": 24.70}
+      ],
+      "closing_vertices": [
+        {"label": "NW", "gridX": 150.0, "gridY": -20.0, "elevation": 24.14},
+        {"label": "NE", "gridX": 151.0, "gridY": -20.0, "elevation": 24.19},
+        {"label": null, "gridX": 151.0, "gridY": -22.0, "elevation": 24.17},
+        {"label": null, "gridX": 154.0, "gridY": -22.0, "elevation": 24.12},
+        {"label": null, "gridX": 154.0, "gridY": -23.0, "elevation": 24.04},
+        {"label": null, "gridX": 155.0, "gridY": -23.0, "elevation": 24.04},
+        {"label": "SE", "gridX": 155.0, "gridY": -25.0, "elevation": 24.04},
+        {"label": "SW", "gridX": 150.0, "gridY": -25.0, "elevation": 24.12}
+      ],
+      "closing_note": [
+        "These are the day-8 daily closing readings, the last full labelled set",
+        "before Locus 1 closed. The surface AS AT CLOSURE on day 9 is recorded",
+        "in the trench book as Locus 2's opening, not as Locus 1's closing. The",
+        "two sets are one physical surface read a day apart, which is what",
+        "makes them useful: see the repeatability note in _known_problems."
+      ],
+      "materials": {
+        "pottery_sherds": 199,
+        "bone_count": 79, "bone_g": 80,
+        "metal_count": 3, "metal_g": 25,
+        "slag_count": 1, "slag_g": 53,
+        "lithic_count": 0, "lithic_g": 0
+      },
+      "note": [
+        "Covers only the ground not dug in the previous season. The",
+        "northeastern quadrant is not in it, which is why its eastern reading",
+        "is at 151E/20S rather than at the trench's own NE corner at 155E/20S."
+      ]
+    },
+
+    {
+      "locus": 2,
+      "unit_type": "deposit",
+      "summary": "Dark olive brown deposit between the topsoil and the Structure A features",
+      "munsell": "2.5Y 3/3 dark olive brown",
+      "opened": {"date": "2025-06-10", "page": 67},
+      "closed": {"date": "2025-06-17", "page": 93},
+      "vertex_source": "daily log only; the locus form's coordinate table is blank",
+      "opening_vertices": [
+        {"label": "NW", "gridX": 150.0, "gridY": -20.0, "elevation": 24.15},
+        {"label": "NE", "gridX": 151.0, "gridY": -20.0, "elevation": 24.17},
+        {"label": null, "gridX": 151.0, "gridY": -22.0, "elevation": 24.15},
+        {"label": null, "gridX": 154.0, "gridY": -22.0, "elevation": 24.08},
+        {"label": null, "gridX": 154.0, "gridY": -23.0, "elevation": 24.10},
+        {"label": null, "gridX": 155.0, "gridY": -23.0, "elevation": 24.06},
+        {"label": "SE", "gridX": 155.0, "gridY": -25.0, "elevation": 24.03},
+        {"label": "SW", "gridX": 150.0, "gridY": -25.0, "elevation": 24.07},
+        {"label": "A", "gridX": 151.0, "gridY": -22.58, "elevation": 24.27},
+        {"label": "B", "gridX": 152.42, "gridY": -22.67, "elevation": 24.19},
+        {"label": "C", "gridX": 152.36, "gridY": -23.80, "elevation": 24.19},
+        {"label": "D", "gridX": 151.0, "gridY": -23.80, "elevation": 24.21}
+      ],
+      "closing_vertices": [
+        {"label": "NW", "gridX": 150.0, "gridY": -20.0, "elevation": 23.96},
+        {"label": "NE", "gridX": 151.0, "gridY": -20.0, "elevation": 23.96},
+        {"label": "A", "gridX": 151.0, "gridY": -22.58, "elevation": 24.03},
+        {"label": "B", "gridX": 152.42, "gridY": -22.67, "elevation": 23.99},
+        {"label": "C", "gridX": 152.36, "gridY": -23.80, "elevation": 23.93},
+        {"label": "D", "gridX": 151.0, "gridY": -23.80, "elevation": 23.99}
+      ],
+      "closing_unlabelled_elevations": [24.08, 23.91, 23.84, 23.88, 23.94, 24.01],
+      "closing_note": [
+        "The closing list has six further readings written with no point label",
+        "and no coordinates. They sit between NE and A in the book, which is",
+        "where the six intermediate points of the opening list sit, so they",
+        "were probably taken at the same six points in the same order.",
+        "PROBABLY is not a provenance. They are kept here as bare numbers and",
+        "are given no coordinates, which is what the record supports."
+      ],
+      "materials": {
+        "pottery_sherds": 294,
+        "bone_count": 29, "bone_g": 45,
+        "metal_count": 1, "metal_g": 1,
+        "slag_count": 0, "slag_g": 4,
+        "lithic_count": 1, "lithic_g": 1,
+        "tile_g": 7701
+      }
+    },
+
+    {
+      "locus": 3,
+      "unit_type": "deposit",
+      "summary": "The compacted earthen floor surface of Structure A",
+      "munsell": "2.5Y 3/3 dark olive brown",
+      "opened": {"date": "2025-06-17", "page": 97},
+      "closed": {"date": "2025-07-01", "page": 183},
+      "dimensions_m": {"width": 4.0, "length": 5.0},
+      "recorded_thickness_m": 0.20,
+      "vertex_source": "daily log only; the locus form's coordinate table is blank",
+      "opening_vertices": [
+        {"label": "NW", "gridX": 150.0, "gridY": -21.82, "elevation": 24.02},
+        {"label": "NE1", "gridX": 152.65, "gridY": -21.36, "elevation": 24.00},
+        {"label": "NE2", "gridX": 153.20, "gridY": -20.0, "elevation": 24.05},
+        {"label": "NE3", "gridX": 155.0, "gridY": -20.0, "elevation": 23.96},
+        {"label": "SE", "gridX": 155.0, "gridY": -25.0, "elevation": 23.94},
+        {"label": "SW", "gridX": 150.0, "gridY": -25.0, "elevation": 24.01},
+        {"label": "A", "gridX": 151.0, "gridY": -22.58, "elevation": 24.03},
+        {"label": "B", "gridX": 152.42, "gridY": -22.67, "elevation": 23.99},
+        {"label": "C", "gridX": 152.36, "gridY": -23.80, "elevation": 23.93},
+        {"label": "D", "gridX": 151.0, "gridY": -23.80, "elevation": 23.99}
+      ],
+      "closing_vertices": [
+        {"label": "NW", "gridX": 150.0, "gridY": -21.82, "elevation": 24.02},
+        {"label": "NE1", "gridX": 152.65, "gridY": -21.36, "elevation": 24.00},
+        {"label": "NE2", "gridX": 153.20, "gridY": -20.0, "elevation": 24.03},
+        {"label": "NE3", "gridX": 155.0, "gridY": -20.0, "elevation": 23.96},
+        {"label": "SE", "gridX": 155.0, "gridY": -25.0, "elevation": 23.91},
+        {"label": "SW", "gridX": 150.0, "gridY": -25.0, "elevation": 23.87},
+        {"label": "A", "gridX": 151.0, "gridY": -22.58, "elevation": 24.02},
+        {"label": "B", "gridX": 152.42, "gridY": -22.67, "elevation": 23.98},
+        {"label": "C", "gridX": 152.36, "gridY": -23.80, "elevation": 23.81},
+        {"label": "D", "gridX": 151.0, "gridY": -23.80, "elevation": 23.88}
+      ],
+      "materials": {
+        "pottery_sherds": 221,
+        "bone_count": 6, "bone_g": 29,
+        "metal_count": 0, "metal_g": 0,
+        "slag_count": 2, "slag_g": 4,
+        "lithic_count": 0, "lithic_g": 0
+      },
+      "note": [
+        "Left in situ as the exposed floor of Structure A, so most vertices",
+        "read the same at opening and at closing. Only the 2 x 1 m sounding",
+        "(Locus 6) cut through it. That redundancy is what makes point A's",
+        "mistyped coordinate recoverable: it is written '151E/22.58E' at",
+        "opening and '151E/32.58S' at closing, and neither is a point in this",
+        "trench, but the Locus 2 lists give 151E/22.58S at the same place",
+        "twice."
+      ]
+    },
+
+    {
+      "locus": 4,
+      "unit_type": "structure",
+      "summary": "The western foundation wall of Structure A, preserved in a single course",
+      "munsell": "10YR 3/2 very dark greyish brown (soil); 10YR 8/2 very pale brown (stones)",
+      "opened": {"date": "2025-06-17", "page": 97},
+      "closed": {"date": "2025-07-01", "page": 183},
+      "dimensions_m": {"width": 0.36, "length": 2.70},
+      "max_preserved_height_m": 0.19,
+      "vertex_source": "locus form AND daily log, in exact agreement",
+      "opening_vertices": [
+        {"label": "NW", "gridX": 152.84, "gridY": -20.0, "elevation": 24.13},
+        {"label": "NE", "gridX": 153.20, "gridY": -20.0, "elevation": 24.05},
+        {"label": "SE", "gridX": 152.56, "gridY": -22.36, "elevation": 24.00},
+        {"label": "SW", "gridX": 152.23, "gridY": -22.46, "elevation": 23.99}
+      ],
+      "closing_vertices": [
+        {"label": "NW", "gridX": 152.84, "gridY": -20.0, "elevation": 24.04},
+        {"label": "NE", "gridX": 153.20, "gridY": -20.0, "elevation": 24.03},
+        {"label": "SE", "gridX": 152.56, "gridY": -22.36, "elevation": 23.98},
+        {"label": "SW", "gridX": 152.23, "gridY": -22.46, "elevation": 24.04}
+      ],
+      "materials": {
+        "pottery_sherds": 0,
+        "bone_count": 0, "bone_g": 0,
+        "metal_count": 0, "metal_g": 0,
+        "slag_count": 0, "slag_g": 0,
+        "lithic_count": 0, "lithic_g": 0
+      },
+      "note": [
+        "Not excavated: defined, drawn, photographed and left standing. The",
+        "opening and closing readings are the same stone tops measured twice,",
+        "two weeks apart, so their differences measure the reading rather than",
+        "the excavation. They span -0.09 m to +0.05 m."
+      ]
+    },
+
+    {
+      "locus": 5,
+      "unit_type": "structure",
+      "summary": "Cobbled exterior surface west of the Structure A wall",
+      "munsell": "2.5Y 4/4 olive brown (soil); 10YR 8/1 white (stones)",
+      "opened": {"date": "2025-06-17", "page": 97},
+      "closed": {"date": "2025-07-01", "page": 185},
+      "dimensions_m": {"width": 1.0, "length": 2.0},
+      "vertex_source": "daily log only; the locus form's coordinate table is blank",
+      "opening_vertices": [
+        {"label": "NW", "gridX": 150.0, "gridY": -20.0, "elevation": 23.97},
+        {"label": "NE", "gridX": 152.84, "gridY": -20.0, "elevation": 24.13},
+        {"label": "SE", "gridX": 152.65, "gridY": -21.36, "elevation": 24.00},
+        {"label": "SW", "gridX": 150.0, "gridY": -21.82, "elevation": 24.02}
+      ],
+      "closing_vertices": [
+        {"label": "NW", "gridX": 150.0, "gridY": -20.0, "elevation": 23.97},
+        {"label": "NE", "gridX": 152.84, "gridY": -20.0, "elevation": 24.04},
+        {"label": "SE", "gridX": 152.65, "gridY": -21.36, "elevation": 24.00},
+        {"label": "SW", "gridX": 150.0, "gridY": -21.82, "elevation": 24.02}
+      ],
+      "materials": {
+        "pottery_sherds": 0,
+        "bone_count": 0, "bone_g": 0,
+        "metal_count": 0, "metal_g": 0,
+        "slag_count": 0, "slag_g": 0,
+        "lithic_count": 0, "lithic_g": 0
+      },
+      "note": [
+        "Not excavated. Its SW vertex is written '150E/26.82S' in the opening",
+        "list, which is 1.82 m south of the trench's own south baulk. The",
+        "closing list writes the same point '150E/21.82S' with the same",
+        "elevation, and Locus 3's NW is 150E/21.82S at 24.02 in both lists. The",
+        "opening entry is a digit transposition; 21.82S is used here."
+      ]
+    },
+
+    {
+      "locus": 6,
+      "unit_type": "deposit",
+      "summary": "The 2 x 1 m sounding through the Structure A floor; the same deposit as Locus 3",
+      "munsell": "10YR 4/1 dark grey",
+      "opened": {"date": "2025-06-23", "page": 121},
+      "closed": {"date": "2025-06-25", "page": 145},
+      "dimensions_m": {"width": 1.0, "length": 2.0},
+      "recorded_thickness_m": 0.20,
+      "vertex_source": "locus form AND daily log, in exact agreement",
+      "opening_vertices": [
+        {"label": "NW", "gridX": 153.0, "gridY": -22.0, "elevation": 23.99},
+        {"label": "NE", "gridX": 154.0, "gridY": -22.0, "elevation": 23.98},
+        {"label": "SE", "gridX": 154.0, "gridY": -24.0, "elevation": 23.91},
+        {"label": "SW", "gridX": 153.0, "gridY": -24.0, "elevation": 23.87}
+      ],
+      "closing_vertices": [
+        {"label": "NW", "gridX": 153.0, "gridY": -22.0, "elevation": 23.79},
+        {"label": "NE", "gridX": 154.0, "gridY": -22.0, "elevation": 23.77},
+        {"label": "SE", "gridX": 154.0, "gridY": -24.0, "elevation": 23.74},
+        {"label": "SW", "gridX": 153.0, "gridY": -24.0, "elevation": 23.74}
+      ],
+      "materials": {
+        "pottery_sherds": 436,
+        "bone_count": 13, "bone_g": 19,
+        "metal_count": 0, "metal_g": 0,
+        "slag_count": 1, "slag_g": 5,
+        "lithic_count": 0, "lithic_g": 0
+      },
+      "catalogued_finds": ["CAT-0099", "CAT-0125", "CAT-0126"],
+      "note": [
+        "Placed one metre in from the east baulk and one metre in from the",
+        "south baulk, immediately east of the Locus 4 wall, to section the",
+        "floor without destroying the exposed surface."
+      ]
+    },
+
+    {
+      "locus": 7,
+      "unit_type": "deposit",
+      "summary": "Olive brown deposit immediately beneath the Structure A floor",
+      "munsell": "2.5Y 4/4 olive brown",
+      "opened": {"date": "2025-06-25", "page": 145},
+      "closed": {"date": "2025-06-30", "page": 177},
+      "dimensions_m": {"width": 1.0, "length": 2.0},
+      "vertex_source": "locus form AND daily log, in exact agreement",
+      "opening_vertices": [
+        {"label": "NW", "gridX": 153.0, "gridY": -22.0, "elevation": 23.79},
+        {"label": "NE", "gridX": 154.0, "gridY": -22.0, "elevation": 23.77},
+        {"label": "SE", "gridX": 154.0, "gridY": -24.0, "elevation": 23.74},
+        {"label": "SW", "gridX": 153.0, "gridY": -24.0, "elevation": 23.74}
+      ],
+      "closing_vertices": [
+        {"label": "NW", "gridX": 153.0, "gridY": -22.0, "elevation": 23.62},
+        {"label": "NE", "gridX": 154.0, "gridY": -22.0, "elevation": 23.58},
+        {"label": "SE", "gridX": 154.0, "gridY": -24.0, "elevation": 23.51},
+        {"label": "SW", "gridX": 153.0, "gridY": -24.0, "elevation": 23.51}
+      ],
+      "materials": {
+        "pottery_sherds": 450,
+        "bone_count": 33, "bone_g": 65,
+        "metal_count": 0, "metal_g": 0,
+        "slag_count": 0, "slag_g": 0,
+        "lithic_count": 0, "lithic_g": 0,
+        "tile_g": 2985
+      }
+    },
+
+    {
+      "locus": 8,
+      "unit_type": "deposit",
+      "summary": "Light olive brown deposit at the base of the sounding; left unexcavated",
+      "munsell": "2.5Y 5/4 light olive brown",
+      "opened": {"date": "2025-06-30", "page": 177},
+      "closed": {"date": "2025-07-01", "page": 185},
+      "dimensions_m": {"width": 1.0, "length": 2.0},
+      "vertex_source": "locus form AND daily log, in exact agreement",
+      "opening_vertices": [
+        {"label": "NW", "gridX": 153.0, "gridY": -22.0, "elevation": 23.62},
+        {"label": "NE", "gridX": 154.0, "gridY": -22.0, "elevation": 23.58},
+        {"label": "SE", "gridX": 154.0, "gridY": -24.0, "elevation": 23.51},
+        {"label": "SW", "gridX": 153.0, "gridY": -24.0, "elevation": 23.51}
+      ],
+      "closing_vertices": [
+        {"label": "NW", "gridX": 153.0, "gridY": -22.0, "elevation": 23.62},
+        {"label": "NE", "gridX": 154.0, "gridY": -22.0, "elevation": 23.58},
+        {"label": "SE", "gridX": 154.0, "gridY": -24.0, "elevation": 23.51},
+        {"label": "SW", "gridX": 153.0, "gridY": -24.0, "elevation": 23.51}
+      ],
+      "materials": {
+        "pottery_sherds": 0,
+        "bone_count": 0, "bone_g": 0,
+        "metal_count": 0, "metal_g": 0,
+        "slag_count": 0, "slag_g": 0,
+        "lithic_count": 0, "lithic_g": 0
+      },
+      "note": [
+        "Defined and left unexcavated at the end of the season. Its opening",
+        "and closing elevations are identical at all four corners, which is",
+        "what an unexcavated locus should look like and is worth checking."
+      ]
+    }
+  ],
+
+  "stratigraphy": {
+    "relations": [
+      {"younger": 1, "older": 2, "kind": "above",
+       "evidence": "Locus 2 lies below Locus 1 across the whole trench; Locus 2 was opened at Locus 1's closing surface"},
+      {"younger": 2, "older": 3, "kind": "above",
+       "evidence": "Locus 2 underlies the topsoil and overlies the Structure A features; Locus 3's SU form gives previous loci 1, 2"},
+      {"younger": 2, "older": 4, "kind": "above",
+       "evidence": "Locus 4's SU form: UNDERLIES Locus 2"},
+      {"younger": 2, "older": 5, "kind": "above",
+       "evidence": "Locus 5 was revealed by the removal of Locus 2; the season's drawn matrix places 5 directly below 2"},
+      {"younger": 6, "older": 7, "kind": "above",
+       "evidence": "Locus 6's SU form: OVERLIES Loci 7, 8. Locus 7 was opened at Locus 6's closing surface"},
+      {"younger": 6, "older": 8, "kind": "above",
+       "evidence": "Locus 6's SU form: OVERLIES Loci 7, 8",
+       "note": "Redundant: it follows from 6 -> 7 -> 8. Kept because the form asserts it; the renderer drops it from the diagram and warns."},
+      {"younger": 7, "older": 8, "kind": "above",
+       "evidence": "A soil change at the base of Locus 7 prompted a new locus; Locus 8 was opened at Locus 7's closing surface"}
+    ],
+    "correlations": [
+      {"loci": [3, 6],
+       "evidence": "Locus 3's SU form: EQUAL TO Locus 6. Locus 6's SU form: EQUAL TO Locus 3. Both descriptions: Locus 6 was opened as a sounding to excavate through the floor surface of Structure A",
+       "note": "Locus 6 is the part of Locus 3's deposit that was dug away. Same deposit, two numbers, because it was excavated on a different date."}
+    ],
+    "abutments": [
+      {"loci": [3, 4], "record": "Locus 3 SU form: IS BOUND TO Loci 4, 5"},
+      {"loci": [3, 5], "record": "Locus 3 SU form: IS BOUND TO Loci 4, 5"},
+      {"loci": [4, 6], "record": "Locus 6 SU form: IS BOUND TO Locus 4"}
+    ],
+    "abutment_note": [
+      "'IS BOUND TO' asserts that two units abut -- a claim about",
+      "contemporaneity, not about which is younger. Every edge in the Harris",
+      "schema is younger-to-older, and a correlation asserts sameness rather",
+      "than contact, so these three assertions have NO representation in the",
+      "matrix. They are recorded here so that the loss is visible instead of",
+      "silent."
+    ]
+  },
+
+  "_sources": {
+    "vertices_and_elevations": {
+      "record": "invented, in the form of a trench book's daily log entries",
+      "note": [
+        "Page numbers are trench book pages. Loci 4, 6, 7 and 8 additionally",
+        "have their coordinates filled in on their locus forms, and in all four",
+        "cases the two records agree to the centimetre. Loci 1, 2, 3 and 5 have",
+        "blank coordinate tables on their forms, which is the commoner state."
+      ]
+    },
+    "munsell": {
+      "record": "invented, in the form of daily entries and SU forms"
+    },
+    "dimensions": {
+      "record": "invented, in the form of SU form DIMENSIONS and STATE OF CONSERVATION fields"
+    },
+    "materials": {
+      "record": "invented, in the form of a season's Bone, Lithics, Metals, Slag and Pottery summaries and a Bulk Finds Chart",
+      "note": [
+        "The per-locus pottery figures sum to 1,600 sherds, which is the total",
+        "the notional chart gives -- a consistency the real documents do not",
+        "always have."
+      ]
+    },
+    "stratigraphy": {
+      "record": "invented, in the form of SU forms, a drawn season matrix, and the daily entries at each locus change",
+      "note": [
+        "Taken from OVERLIES / UNDERLIES / EQUAL TO, cross-checked against the",
+        "drawn matrix and the daily entries. The forms' PREVIOUS LOCI and",
+        "FOLLOWING LOCI columns are NOT used -- see _known_problems."
+      ]
+    }
+  },
+
+  "_known_problems": [
+    "THE SU FORMS USE 'PREVIOUS' AND 'FOLLOWING' IN OPPOSITE DIRECTIONS. Locus",
+    "3's form gives previous loci 1, 2 and following loci 8, 7 -- previous",
+    "meaning stratigraphically above, that is, later. Locus 4's form gives",
+    "previous loci 6, 7, 8 and following loci 1, 2, exactly the reverse. Locus",
+    "6's form follows Locus 4's convention. Read literally, the two conventions",
+    "together make a cycle. Only OVERLIES, UNDERLIES and EQUAL TO are used",
+    "here, and those are consistent across every form.",
+    "",
+    "LOCUS 6 IS ASSERTED TO OVERLIE BOTH 7 AND 8. Since 7 overlies 8, the 6-8",
+    "edge follows from the 6-7-8 path. It is kept in the fixture because the",
+    "form asserts it, and the transitive reduction drops it from the rendered",
+    "diagram with a redundant-relation warning. This is the documented",
+    "behaviour, exercised by a form that behaves the way forms do.",
+    "",
+    "THE DRAWN MATRIX AND THE SU FORMS DISAGREE ABOUT LOCI 3 AND 6. The season",
+    "matrix stacks Locus 6 one level below Locus 3, as though 3 were younger.",
+    "Both SU forms say EQUAL TO. The forms are right and the drawing is a",
+    "drafting convenience: Locus 6 is the piece of Locus 3 that was dug",
+    "through, so it cannot be younger than itself. Encoded here as a",
+    "correlation, which is what the schema has for exactly this case.",
+    "",
+    "FOUR OF EIGHT LOCUS FORMS HAVE BLANK COORDINATE TABLES (loci 1, 2, 3, 5),",
+    "and the Date Opened, Date Closed and Munsell fields are blank on the forms",
+    "for loci 1 to 5. The season's tracking spreadsheet nonetheless records this",
+    "trench as 'Locus Forms complete? Yes'. The missing values all exist in the",
+    "daily log, so nothing is lost -- but a completeness flag is not a reliable",
+    "indicator of what a form contains.",
+    "",
+    "THE SU FORM CERAMIC COUNTS DO NOT MATCH THE POTTERY CHART. Locus 3's form",
+    "reports 238 ceramic fragments against the chart's 221; Locus 6's reports",
+    "437 against 436. The chart is itemised by fabric and part and is used here.",
+    "",
+    "LOCUS 6'S BONE WEIGHT IS RECORDED TWICE AND DIFFERENTLY: 19 g in the Bone",
+    "Summary table, 16 g in the locus description. The count, 13 fragments,",
+    "agrees in both. The table value is used here.",
+    "",
+    "THE SLAG SUMMARY'S LOCUS 2 ROW IS INTERNALLY INCONSISTENT: 0 fragments,",
+    "100.00% by number, 4 g, 0.00% by weight. Its prose says the majority of",
+    "the slag came from Locus 3, while its own table puts 53 of the 62 g in",
+    "Locus 1. The count and weight are transcribed as printed; neither the",
+    "percentages nor the prose can be reconciled with them.",
+    "",
+    "THE BONE SUMMARY'S PROSE CONTRADICTS ITS TABLE: it says loci 3, 4 and 5",
+    "were not excavated and yielded no bone, but the table gives Locus 3 six",
+    "fragments weighing 29 g. Loci 4, 5 and 8 are the unexcavated ones.",
+    "",
+    "LOCUS 4'S LENGTH IS 2.70 m ON ITS LOCUS FORM AND SU FORM, AND 2.65 m IN",
+    "THE SEASON CONCLUSION. The 2.70 m figure appears twice and is used here.",
+    "",
+    "LOCUS 4 'RISES' 5 cm AT ITS SOUTHWEST VERTEX between opening and closing,",
+    "from 23.99 to 24.04, on a feature that was never excavated. Two of its",
+    "other three vertices fall, by 9 cm and 2 cm. These are the same stone tops",
+    "measured twice; the spread bounds the repeatability of a plumb bob, line",
+    "level and tape at roughly 5 cm on an irregular stone surface."
+  ]
+}
