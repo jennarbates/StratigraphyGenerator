@@ -28,6 +28,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history, not the default shallow clone.
+          # tests/test_schema_source_field.py reads a fixture out of an old
+          # commit with `git show`, which exits 128 when that commit is absent.
+          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:

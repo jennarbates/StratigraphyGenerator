@@ -1,6 +1,6 @@
 """Editor sessions: storage, structural validation, finalization.
 
-Split out of a single 660-line module in Phase 3 of MODULARIZATION_PLAN.md.
+Split out of a single 660-line module during the modularization refactor.
 Every name that module exported is re-exported here, so ``from pipeline import
 editor`` and ``from pipeline.editor import X`` keep working unchanged.
 """

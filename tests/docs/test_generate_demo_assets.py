@@ -225,8 +225,29 @@ def test_main_writes_all_four_assets(tmp_path: Path) -> None:
 
 
 def test_checked_in_assets_match_generator(tmp_path: Path) -> None:
+    """The committed demo assets are what the generator produces today.
+
+    JSON is compared byte for byte. PNGs are compared as pixels instead,
+    because the encoded bytes are not portable: PNG output depends on the zlib
+    build and on the default font bundled with Pillow, so a byte comparison
+    fails on any machine whose Pillow differs from the one that last wrote the
+    files — which is what broke CI rather than any real staleness.
+    """
     generated_paths = write_demo_assets(tmp_path)
 
     for generated_path in generated_paths:
         relative_path = generated_path.relative_to(tmp_path)
-        assert generated_path.read_bytes() == (REPO_ROOT / relative_path).read_bytes()
+        committed_path = REPO_ROOT / relative_path
+
+        if generated_path.suffix == ".png":
+            with Image.open(generated_path) as generated_image:
+                with Image.open(committed_path) as committed_image:
+                    assert generated_image.size == committed_image.size, relative_path
+                    assert generated_image.mode == committed_image.mode, relative_path
+                    assert (
+                        generated_image.tobytes() == committed_image.tobytes()
+                    ), f"{relative_path} is stale: rerun tools/docs/generate_demo_assets.py"
+        else:
+            assert generated_path.read_bytes() == committed_path.read_bytes(), (
+                f"{relative_path} is stale: rerun tools/docs/generate_demo_assets.py"
+            )

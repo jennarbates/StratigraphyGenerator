@@ -1,6 +1,6 @@
 """Drives a finalized editor session through the model-building pipeline.
 
-Moved verbatim out of app.py in Phase 1 of MODULARIZATION_PLAN.md. The chain is
+Moved verbatim out of app.py during the modularization refactor. The chain is
 normalize -> validate -> convert coordinates -> build (async), with meta.json
 updated at each step so a browser polling /api/jobs/<id>/status sees progress
 even across a server restart.

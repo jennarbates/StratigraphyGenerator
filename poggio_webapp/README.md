@@ -15,17 +15,24 @@ The [root README](../README.md) is the illustrated tour of the whole project.
 
 ## Setup
 
-From the repository root:
+From the repository root — not from this folder. The virtual environment
+belongs at the top of the repository, because every `make` target looks for it
+there:
 
 ```bash
-cd poggio_webapp
 python3 -m venv .venv
 source .venv/bin/activate
-python -m pip install -r requirements.txt
+python -m pip install -r poggio_webapp/requirements.txt
 ```
 
-That is everything the supported path needs. Two extras are deliberately left
-out, because most work does not require them.
+That is everything the supported path needs. Three extras are deliberately
+left out, because most work does not require them.
+
+The test and lint targets need their own tools:
+
+```bash
+pip install pytest ruff
+```
 
 The 3D model build needs GemPy — a heavy install kept out of
 `requirements.txt` so the rest of the pipeline works without it:
@@ -47,11 +54,15 @@ apt install poppler-utils
 
 ## Running it
 
+From the repository root:
+
 ```bash
-python app.py
+make run
 ```
 
-Open <http://localhost:5000> and leave the terminal running.
+Open <http://localhost:5000> and leave the terminal running. `make run` is
+`cd poggio_webapp && ../.venv/bin/python app.py` — the app must start with this
+folder as its working directory, which is why the target exists.
 
 | Variable | Effect |
 |---|---|
@@ -89,7 +100,7 @@ them. They are created on import by `storage.py`.
 From the repository root:
 
 ```bash
-python -m pytest tests/ -q
+make test
 ```
 
 ```bash
