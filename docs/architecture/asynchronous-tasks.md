@@ -3,12 +3,14 @@ title: Asynchronous tasks
 audience: developer
 status: current
 source_files:
+  - poggio_webapp/backend/services/editor_pipeline.py
+  - poggio_webapp/backend/routes/editor.py
   - poggio_webapp/backend/tasks.py
   - poggio_webapp/backend/routes/extraction.py
   - poggio_webapp/backend/routes/markers.py
   - poggio_webapp/backend/routes/gempy.py
   - poggio_webapp/backend/routes/task_status.py
-verified_against: a8b58f1
+verified_against: b7a381e
 ---
 
 # Asynchronous tasks
@@ -64,6 +66,7 @@ sequenceDiagram
 ## Failure boundaries
 
 - The task registry lives in memory and is not persisted to disk, so a restart loses the task state.
+- The editor build is the one exception. `backend/services/editor_pipeline.py` records its stage into the job's `meta.json` as it goes, and `GET /api/jobs/<job_id>/status` answers from that file rather than from the registry, so editor progress survives a restart even though the task entry does not.
 - If a task raises an exception, the task record is marked as error and the error is stored in the task entry.
 - The polling endpoint returns 404 for unknown task identifiers, which means a stale or lost task cannot be inspected after a restart.
 - The async model is separate from the durable job metadata and should not be treated as a full job persistence layer.

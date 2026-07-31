@@ -11,8 +11,17 @@ source_files:
   - poggio_webapp/pipeline/convert_coords.py
   - poggio_webapp/pipeline/merge_walls.py
   - poggio_webapp/pipeline/build_gempy.py
-  - poggio_webapp/pipeline/editor.py
-verified_against: a8b58f1
+  - poggio_webapp/pipeline/editor/__init__.py
+  - poggio_webapp/pipeline/editor/session.py
+  - poggio_webapp/pipeline/editor/schema.py
+  - poggio_webapp/pipeline/editor/geometry.py
+  - poggio_webapp/pipeline/editor/validation.py
+  - poggio_webapp/pipeline/editor/errors.py
+  - poggio_webapp/pipeline/editor/finalize.py
+  - poggio_webapp/pipeline/editor/finds.py
+  - poggio_webapp/pipeline/manual_extraction.py
+  - poggio_webapp/pipeline/true_dip.py
+verified_against: b7a381e
 ---
 
 # Pipeline architecture
@@ -205,7 +214,33 @@ rather than resolving to a guess.
   nothing; see
   [combine walls into one trench](../workflows/09-multi-wall-trench.md).
 - `poggio_webapp/pipeline/build_gempy.py`
-- `poggio_webapp/pipeline/editor.py`
+- `poggio_webapp/pipeline/manual_extraction.py` — turns the browser's
+  calibration clicks, boundary polylines, and feature polygons into the same
+  schema the Gemini extractors emit, deterministically and with no model
+  involved.
+- `poggio_webapp/pipeline/editor/` — the editor session package, below.
+
+### The editor package
+
+`pipeline/editor.py` was a single 660-line module. It is now a package, and
+`pipeline/editor/__init__.py` re-exports every name the old module exported, so
+both `from pipeline import editor` and `from pipeline.editor import X` still
+work. Nothing that imported it had to change.
+
+| Module | Responsibility |
+|---|---|
+| `session.py` | Creating, saving, and loading a session on disk |
+| `schema.py` | The allowed schema types and the fields each requires |
+| `geometry.py` | Orientation, segment intersection, self-intersection — plain plane geometry that knows nothing about editors |
+| `validation.py` | Structural checks on saved state, before schema validation |
+| `errors.py` | One error class per structural rule |
+| `finalize.py` | Turning validated state into the extraction document |
+| `finds.py` | Finds logged against a session |
+
+The ordering of `validation.py` before schema validation is deliberate: a
+Pydantic error raised on a half-drawn polygon reads as a schema mismatch, when
+the real problem is that the drawing is not finished. Structural checks run
+first so the message matches the cause.
 
 ## Failure boundaries
 

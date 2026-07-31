@@ -6,7 +6,7 @@ source_files:
   - poggio_webapp/pipeline/extract_fieldwall.py
   - poggio_webapp/pipeline/extract_illustrator.py
   - poggio_webapp/pipeline/convert_coords.py
-  - poggio_webapp/pipeline/editor.py
+  - poggio_webapp/pipeline/editor/schema.py
 verified_against: eac1f51
 ---
 

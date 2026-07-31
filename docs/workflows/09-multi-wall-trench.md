@@ -17,9 +17,11 @@ verified_against: d23b842
 Merge several single-wall drawings into one document and build a single 3D
 model of the whole trench.
 
-!!! warning
+!!! note
 
-    There is no browser control for this workflow. The routes are registered and well covered by tests, but no page in the application calls them, so every step below is an HTTP request you make yourself. See [capability status](../project/capability-status.md) for what that label means.
+    **This workflow has a page, but nothing links to it.** Open <http://localhost:5000/trenches> directly. Like the [finds page](logging-finds.md), it works and is tested, but you have to know the address — no control anywhere else in the application will take you there. See [capability status](../project/capability-status.md).
+
+    The page lists every trench, shows which walls are ready, and runs the build with task polling. The HTTP requests documented below are what it calls, and remain the way to script the workflow or read a response in full.
 
 ![Four separately drawn walls positioned by their registration to enclose one rectangular pit](../assets/diagrams/w09-walls-to-pit.svg)
 

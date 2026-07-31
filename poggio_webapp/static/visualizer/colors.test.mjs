@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { munsellToHex } from "../munsell-color.js";
+import { munsellToHex } from "../shared/munsell-color.js";
 import { colorFor } from "./colors.js";
 
 

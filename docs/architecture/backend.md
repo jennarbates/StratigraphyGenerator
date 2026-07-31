@@ -8,7 +8,14 @@ source_files:
   - poggio_webapp/backend/routes/__init__.py
   - poggio_webapp/backend/routes/pages.py
   - poggio_webapp/backend/routes/jobs.py
-verified_against: a8b58f1
+  - poggio_webapp/backend/routes/editor.py
+  - poggio_webapp/backend/routes/finds.py
+  - poggio_webapp/backend/services/editor_pipeline.py
+  - poggio_webapp/backend/services/harris_workspace.py
+  - poggio_webapp/backend/services/trench_builder.py
+  - poggio_webapp/backend/services/viewer_files.py
+  - poggio_webapp/backend/tasks.py
+verified_against: b7a381e
 ---
 
 # Backend architecture
@@ -24,6 +31,10 @@ flowchart LR
   Reg --> M[markers, features]
   Reg --> H[harris]
   Reg --> T[trenches]
+  Reg --> E[editor, finds]
+  E --> Svc[backend/services/]
+  T --> Svc
+  Svc --> Pipe[pipeline modules]
   J --> Store[(job folders)]
   H --> Mat[(matrix folders)]
   T --> Tr[(trench folders)]
@@ -48,7 +59,7 @@ flowchart LR
 
 - HTML pages and JSON payloads.
 - File URLs and generated files inside each job folder.
-- Task identifiers for long-running operations that are tracked in memory.
+- Task identifiers for long-running operations, tracked in memory except for the editor build, which also records durable progress into the job's `meta.json`.
 
 ## Main source files
 
@@ -57,12 +68,20 @@ flowchart LR
 - `poggio_webapp/backend/routes/__init__.py`
 - `poggio_webapp/backend/routes/pages.py`
 - `poggio_webapp/backend/routes/jobs.py`
+- `poggio_webapp/backend/routes/editor.py`
+- `poggio_webapp/backend/routes/finds.py`
+- `poggio_webapp/backend/services/editor_pipeline.py`
+- `poggio_webapp/backend/services/harris_workspace.py`
+- `poggio_webapp/backend/services/trench_builder.py`
+- `poggio_webapp/backend/services/viewer_files.py`
 
 ## Route and service layers
 
-Routes are being progressively extracted out of `poggio_webapp/app.py` into the
-blueprint package. Two blueprints and one service module are the newest part of
-that move:
+The extraction of routes out of `poggio_webapp/app.py` is complete.
+`app.py` now only builds the application and runs it — it defines no routes at
+all, and its module docstring says that anything you are about to add there
+belongs in a blueprint instead. Two blueprints and four service modules are the
+newest part of that move:
 
 - `poggio_webapp/backend/routes/editor.py` — the manual drawing editor and its
   model-build lifecycle.
@@ -71,6 +90,18 @@ that move:
   editor session through normalize → validate → convert → build. The build is
   asynchronous, and `meta.json` is updated at each step, so a browser polling
   the job's status sees progress even across a server restart.
+- `poggio_webapp/backend/services/harris_workspace.py` — read-modify-write
+  transactions against a stored matrix: load at an expected revision,
+  transform, save at that same revision. The domain work already lived in the
+  pipeline and store modules; what was still inside the view functions was the
+  *sequence*, and both flows are optimistic-concurrency transactions.
+- `poggio_webapp/backend/services/trench_builder.py` — groups per-wall jobs by
+  their shared trench label, runs the merge layer over their normalized
+  extractions, and hands the result to the model builder.
+- `poggio_webapp/backend/services/viewer_files.py` — reads and validates a
+  job's 3D viewer manifest. A manifest that is malformed, points outside the
+  job directory, or names artifacts that are not there degrades to a smaller
+  payload rather than handing the browser a broken reference.
 
 `services/` is a layer the earlier structure did not have. It sits between the
 route layer, which owns request handling and persistence, and the pipeline
@@ -82,7 +113,7 @@ pipeline stages together belongs here rather than in a route.
 - Missing or invalid paths in a request lead to 400 or 404 responses rather than a silent fallback.
 - Import failures for optional dependencies are returned as 400 responses with a clear error message.
 - The app-level error handlers prevent raw traceback leakage and convert unexpected exceptions into JSON errors.
-- The server does not automatically recover from failed background tasks because the task registry is in-memory only.
+- The server does not automatically recover from failed background tasks: the task registry in `backend/tasks.py` is an in-process dictionary. The editor build is the exception, recording its progress into `meta.json` so `GET /api/jobs/<job_id>/status` still answers after a restart.
 
 ## Related tests
 
@@ -98,6 +129,6 @@ pipeline stages together belongs here rather than in a route.
 
 ## Under the hood
 
-The active application factory in `poggio_webapp/backend/__init__.py` creates a Flask instance and registers the current blueprints enumerated in `poggio_webapp/backend/routes/__init__.py`. The repository still contains alternate or historical files such as `poggio_webapp/app.legacy.py` and `poggio_webapp/backend/routes/__init__.py.before_manual_first`, but the current server entry point uses the modern modules above.
+The active application factory in `poggio_webapp/backend/__init__.py` creates a Flask instance and registers the current blueprints enumerated in `poggio_webapp/backend/routes/__init__.py`. The historical `app.legacy.py` and the `.before_manual_first` snapshots have since been removed; the blueprint package is now the only server entry point.
 
 This is also where the distinction between user-facing availability and backend capability matters. A route may be implemented in the backend and still not be presented as a primary beginner feature in the current UI, or it may be surfaced only through a later workflow step.

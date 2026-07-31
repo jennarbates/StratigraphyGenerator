@@ -6,7 +6,8 @@ source_files:
   - poggio_webapp/app.py
   - poggio_webapp/backend/jobs.py
   - poggio_webapp/backend/routes/jobs.py
-  - poggio_webapp/pipeline/editor.py
+  - poggio_webapp/pipeline/editor/session.py
+  - poggio_webapp/pipeline/editor/finalize.py
 verified_against: a8b58f1
 ---
 
@@ -51,8 +52,11 @@ stateDiagram-v2
 
 - `poggio_webapp/backend/routes/jobs.py`
 - `poggio_webapp/backend/jobs.py`
-- `poggio_webapp/app.py`
-- `poggio_webapp/pipeline/editor.py`
+- `poggio_webapp/storage.py`
+- `poggio_webapp/backend/routes/editor.py`
+- `poggio_webapp/pipeline/editor/session.py`
+- `poggio_webapp/pipeline/editor/finalize.py`
+- `poggio_webapp/backend/services/editor_pipeline.py`
 
 ## Failure boundaries
 
@@ -75,6 +79,6 @@ stateDiagram-v2
 
 ## Under the hood
 
-The upload-based route in `poggio_webapp/backend/routes/jobs.py` creates a job folder and writes a minimal meta.json with the job identifier and sheet type. The newer editor workflow in `poggio_webapp/app.py` and `poggio_webapp/pipeline/editor.py` uses the same job workspace but adds editor-specific files and later writes finalized output into the same directory.
+The upload-based route in `poggio_webapp/backend/routes/jobs.py` creates a job folder and writes a minimal meta.json with the job identifier and sheet type. The newer editor workflow in `poggio_webapp/backend/routes/editor.py` and the `poggio_webapp/pipeline/editor/` package uses the same job workspace but adds editor-specific files, and later writes finalized output into the same directory via `poggio_webapp/backend/services/editor_pipeline.py`.
 
 In both paths, the repository treats meta.json as the main state record for the job even though the editor flow also creates editor_meta.json and editor_state.json. That means the documentation should regard job lifecycle as a shared folder-based concept, while remembering that the editor path has its own session metadata.

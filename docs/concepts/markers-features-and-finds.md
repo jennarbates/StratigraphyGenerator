@@ -7,7 +7,7 @@ source_files:
   - poggio_webapp/pipeline/assign_markers.py
   - poggio_webapp/pipeline/detect_features.py
   - poggio_webapp/backend/routes/manual.py
-  - poggio_webapp/pipeline/editor.py
+  - poggio_webapp/pipeline/editor/finds.py
   - poggio_webapp/app.py
   - poggio_webapp/static/app/index.js
 verified_against: c702617

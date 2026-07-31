@@ -3,7 +3,7 @@ title: Log a find
 audience: beginner
 status: current
 source_files:
-  - poggio_webapp/pipeline/editor.py
+  - poggio_webapp/pipeline/editor/finds.py
   - poggio_webapp/templates/finds.html
 verified_against: a8b58f1
 ---

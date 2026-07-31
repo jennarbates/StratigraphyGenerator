@@ -7,7 +7,7 @@ source_files:
   - poggio_webapp/static/visualizer/model3d.js
   - poggio_webapp/static/visualizer/volume3d.js
   - poggio_webapp/static/visualizer/volume3d-core.mjs
-  - poggio_webapp/static/model3d-viewer.js
+  - poggio_webapp/static/shared/model3d-viewer.js
   - poggio_webapp/static/app/stages/visualize.js
   - poggio_webapp/backend/routes/pages.py
 verified_against: 15173f2

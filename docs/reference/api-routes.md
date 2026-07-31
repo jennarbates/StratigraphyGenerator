@@ -16,7 +16,10 @@ source_files:
   - poggio_webapp/backend/routes/pages.py
   - poggio_webapp/backend/routes/harris.py
   - poggio_webapp/backend/routes/trenches.py
-verified_against: 2267711
+  - poggio_webapp/backend/routes/editor.py
+  - poggio_webapp/backend/routes/finds.py
+  - poggio_webapp/backend/routes/text_metadata.py
+verified_against: b7a381e
 ---
 
 # API Routes
@@ -29,12 +32,13 @@ flowchart LR
   U --> U2[processing, gempy, task_status]
   U --> U3[harris]
   E[Needs a key or optional package] --> E1[extraction, text_metadata]
+  P[Page exists, but nothing links to it] --> P1[trenches]
+  P --> P2[finds]
   B[Registered but unreachable] --> B1[markers]
   B --> B2[features]
-  B --> B3[trenches]
 ```
 
-*A registered route is not a user-facing feature. Several here have no control.*
+*A registered route is not a user-facing feature. Some have no control at all; others have a page nobody links to.*
 
 ## Route Reference
 
@@ -71,9 +75,23 @@ flowchart LR
 | `/api/harris-matrices/<matrix_id>/suggestions/<suggestion_id>` | POST | `{action: "accept" \| "reject", revision: int}` | saved matrix | No | supported | Review one proposal and increment revision |
 | `/api/harris-matrices/<matrix_id>/export.json` | GET | none | JSON attachment | No | supported | Download the saved version 1 record |
 | `/api/harris-matrices/<matrix_id>/export.svg` | GET | optional `inline=1` | SVG attachment or inline image | No | supported | Render the deterministic reduced display graph |
-| `/api/trenches` | GET | none | `{trenches: {label: [member, ...]}}` | No | backend-only | Group jobs by their `trench_label`; jobs without one are skipped |
-| `/api/trenches/<label>/build` | POST | JSON: `grid`, optional `correlation`, `series_order` | `{needs_grid, starter, notes}` or `{task_id, notes, grid_warnings}` | **Yes** | backend-only | Merge every wall of a trench and build one model. Omit `grid` to get a starter config back without writing anything |
-| `/api/trenches/<label>/file` | GET | query `path=<rel>` | binary | No | backend-only | Retrieve a file from the trench folder, refusing to escape it |
+| `/api/trenches` | GET | none | `{trenches: {label: [member, ...]}}` | No | experimental | Group jobs by their `trench_label`; jobs without one are skipped |
+| `/api/trenches/<label>/build` | POST | JSON: `grid`, optional `correlation`, `series_order` | `{needs_grid, starter, notes}` or `{task_id, notes, grid_warnings}` | **Yes** | experimental | Merge every wall of a trench and build one model. Omit `grid` to get a starter config back without writing anything |
+| `/api/trenches/<label>/file` | GET | query `path=<rel>` | binary | No | experimental | Retrieve a file from the trench folder, refusing to escape it |
+| `/api/jobs/<job_id>/text-extraction` | POST | JSON: `api_key`, `square_cm`, `max_output_tokens` | `{task_id}` | **Yes** | experimental | Start the field-wall text read; aborts `400` without a key |
+| `/api/jobs/<job_id>/text-extraction` | GET | none | candidate labels, or a not-started marker | No | experimental | Read back the labels the extraction proposed |
+| `/api/jobs/<job_id>/text-verification` | POST | JSON: the reviewed labels | saved verification | No | experimental | Save the human-accepted, corrected, or unreadable labels |
+| `/api/jobs/<job_id>/text-verification/skip` | POST | `{}` | saved marker | No | experimental | Skip the step; automatic geometry is not treated as a human trace |
+| `/api/jobs/<job_id>/status` | GET | none | `{stage, state, ...}` | No | supported | Editor build progress, read from `meta.json` so it survives a restart |
+| `/editor/new` | POST | JSON: schema type, faces | `{editor_url}` | No | supported | Create a blank editor session and return where to open it |
+| `/editor/<job_id>` | GET | none | HTML | No | supported | The drawing canvas for one session |
+| `/editor/<job_id>/state` | GET | none | saved session state | No | supported | Load a session back into the canvas |
+| `/editor/<job_id>/save` | POST | JSON: session state | saved state | No | supported | Persist the drawing without finalizing it |
+| `/editor/<job_id>/finalize` | POST | `{}` | `{task_id}` or validation errors | **Yes** | supported | Structural checks, then normalize → validate → convert → build |
+| `/finds` | GET | none | HTML | No | experimental | The finds page; nothing in the main app links to it |
+| `/finds/<job_id>` | GET | none | find list | No | experimental | Every find logged against one job |
+| `/finds/<job_id>/new` | POST | JSON: the find | saved find | No | experimental | Log a find, including for jobs with no stratigraphy |
+| `/finds/<job_id>/<find_id>` | DELETE | none | `{}` | No | experimental | Remove one find |
 | `/` | GET | none | HTML | No | supported | Render the vanilla JavaScript drawing workflow |
 | `/visualizer` | GET | query `job=<job_id>` (optional) | HTML | No | supported | Interactive 2D extraction and 3D surface viewer |
 | `/harris` | GET | optional `source_job=<job_id>` | HTML | No | supported | Matrix dashboard; a usable source can be preselected without mutation |

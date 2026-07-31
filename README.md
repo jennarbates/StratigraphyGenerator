@@ -143,8 +143,8 @@ parallel walls instead of walls around a pit: a confident-looking model of
 nothing. Full detail:
 [combine walls into one trench](docs/workflows/09-multi-wall-trench.md).
 
-> **No browser control reaches this yet.** The routes are registered and covered
-> by 55 tests, but every step is an HTTP request you make yourself.
+> **The page exists, but nothing links to it.** Open `/trenches` directly —
+> like the finds page, it works and is tested, but you have to know the address.
 
 ### Harris matrices
 

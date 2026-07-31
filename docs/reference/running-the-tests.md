@@ -8,7 +8,9 @@ source_files:
   - tests/docs/test_check_docs.py
   - tools/docs/check_docs.py
   - poggio_webapp/static/canvas/grid.test.mjs
-verified_against: d23b842
+  - tools/docs/check_readme_sync.py
+  - docs/javascripts/coordinate-converter.test.mjs
+verified_against: b7a381e
 ---
 
 # Running the tests
@@ -64,7 +66,11 @@ python tools/docs/check_coverage.py .
 python tools/docs/validate_visual_manifest.py .
 ```
 
-All three should pass with no failures. Exact totals move as tests are added,
+```bash
+python tools/docs/check_readme_sync.py .
+```
+
+All four should pass with no failures. Exact totals move as tests are added,
 so treat a green run rather than a specific count as the signal.
 
 `check_coverage.py` reports any module under `poggio_webapp/pipeline/` or
@@ -75,27 +81,34 @@ coverage floor — it proves a module was named, not that it was explained.
 the pages, in both directions: entries must be well formed, and every embedded
 image must resolve to an `approved` entry.
 
+`check_readme_sync.py` holds the root README against the site's navigation:
+every nav section needs a README heading, every link into `docs/` must reach a
+page that is actually in the navigation, and every embedded image must be an
+approved manifest entry.
+
 ## What each suite covers
 
 ### Python — `tests/`
 
-37 modules. Grouped by area rather than filename:
+41 modules. Grouped by area rather than filename:
 
 | Area | Modules |
 |---|---|
-| Multi-wall trenches | `test_merge_walls`, `test_merge_integration`, `test_trench_routes`, `test_trench_labels` |
+| Multi-wall trenches | `test_merge_walls`, `test_merge_integration`, `test_trench_routes`, `test_trench_labels`, `test_trench_page`, `test_true_dip` |
 | Harris matrices | `test_harris_schema`, `test_harris_graph`, `test_harris_store`, `test_harris_import`, `test_harris_suggestions`, `test_harris_routes`, `test_harris_pages`, `test_harris_render` |
-| Canvas editor | `test_editor_routes`, `test_editor_session`, `test_editor_finalize`, `test_editor_status` |
+| Canvas editor | `test_editor_routes`, `test_editor_session`, `test_editor_finalize`, `test_editor_status`, `test_editor_pipeline_service` |
 | Text extraction | `test_extract_text`, `test_extract_text_contract`, `test_text_metadata_routes`, `test_text_autofill_workflow`, `test_verified_text_manual_integration` |
 | GemPy and visualizer | `test_gempy_mesh_export`, `test_gempy_viewer_manifest`, `test_gempy_volume_export`, `test_visualizer_files_route`, `test_visualizer_calibration_integration`, `test_visualizer_static_dependencies` |
 | Tracing and boundaries | `test_manual_routes`, `test_locus_top_boundaries` |
 | Finds | `test_finds`, `test_finds_routes` |
 | Schema and validation | `test_validator`, `test_schema_source_field` |
 | Markers | `test_markers_calibration` |
+| Tracing and boundaries (cont.) | `test_wall_traces` |
+| Structure and conventions | `test_job_meta`, `test_naming`, `test_url_map` |
 
 `tests/fixtures/` and `tests/fixtures_merge.py` supply shared inputs.
 
-The densest coverage is the merge layer — 55 tests across its four modules —
+The densest coverage is the merge layer — 56 tests across its four modules —
 because it is the part of the pipeline where a silent error produces a
 plausible-looking wrong model rather than a crash.
 
@@ -111,7 +124,7 @@ exists elsewhere.
 
 ### JavaScript — `poggio_webapp/static/`
 
-17 files, colocated with the modules they test rather than gathered into a test
+18 files, colocated with the modules they test rather than gathered into a test
 directory. They cover the pure functions the browser code depends on: grid and
 coordinate maths, Munsell colour handling, boundary labelling, the Harris
 schema core, the 3D surface and volume renderers, and view-mode policy.
@@ -121,7 +134,8 @@ which is why they need no browser and no build step.
 
 ### Documentation — `tests/docs/`
 
-`test_check_docs.py` and `test_generate_demo_assets.py` test the tooling in
+Five modules — `test_check_docs`, `test_check_coverage`, `test_visual_manifest`,
+`test_check_readme_sync`, and `test_generate_demo_assets` — test the tooling in
 `tools/docs/`, not the prose. The prose is checked by running the tool itself.
 
 `check_docs.py` verifies four things across every page in `docs/` and the root
@@ -155,7 +169,7 @@ Run all four. The strict build catches link problems the checker permits,
 because MkDocs rejects links from `docs/` to files outside it:
 
 ```bash
-python tools/docs/check_docs.py . && python tools/docs/check_coverage.py . && python tools/docs/validate_visual_manifest.py . && mkdocs build --strict && python -m pytest tests/docs -q
+python tools/docs/check_docs.py . && python tools/docs/check_coverage.py . && python tools/docs/validate_visual_manifest.py . && python tools/docs/check_readme_sync.py . && mkdocs build --strict && python -m pytest tests/docs -q
 ```
 
 ## What is not covered
