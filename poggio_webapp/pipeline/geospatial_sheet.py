@@ -17,8 +17,8 @@ Three things about the sheet's shape drive the parsing:
 are continuation rows holding the remaining corners and any second supervisor.
 A blank id means "still the previous trench", not "no trench".
 
-**Coordinates arrive already signed.** Cells read ``NW: 190/-53``, not
-``190E/53S``. The cardinal inversion was applied before the number reached the
+**Coordinates arrive already signed.** Cells read ``NW: 100/-20``, not
+``100E/20S``. The cardinal inversion was applied before the number reached the
 sheet, which is the fourth independent confirmation of the rule in
 ``site_grid`` -- and the first from live records rather than documentation. No
 inversion is applied here; that would apply it twice.
@@ -43,7 +43,7 @@ import re
 
 from naming import canonical_trench
 
-# "NW: 190/-53", "212.27/62.84", "SE: 211/-32 ". The corner label is optional:
+# "NW: 100/-20", "130.25/40.75", "SE: 115/-25 ". The corner label is optional:
 # the extra vertices of an extended trench are written without one.
 _CORNER = re.compile(
     r"^\s*(?:(NW|NE|SE|SW|N|S|E|W)\s*:\s*)?"
@@ -102,7 +102,7 @@ def _map_columns(headers):
 
 
 def parse_corner(text):
-    """``"NW: 190/-53"`` -> ``("NW", 190.0, -53.0)``. None when not a corner.
+    """``"NW: 100/-20"`` -> ``("NW", 100.0, -20.0)``. None when not a corner.
 
     The values are taken as written. They are already Grid X and Grid Y with
     South and West negative, so applying the cardinal inversion here would

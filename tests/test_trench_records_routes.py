@@ -122,7 +122,7 @@ def test_a_byte_order_mark_does_not_break_the_header(client):
 
 @pytest.fixture
 def sheet_bytes(repo_root):
-    return (repo_root / "tests" / "fixtures" / "geospatial-2025.csv").read_bytes()
+    return (repo_root / "tests" / "fixtures" / "geospatial-sample.csv").read_bytes()
 
 
 def _post_sheet(client, sheet_bytes, **form):
@@ -138,34 +138,34 @@ def test_a_whole_season_registers_from_one_file(client, sheet_bytes):
 
     assert response.status_code == 200
     body = response.get_json()
-    assert len(body["registered"]) == 18
+    assert len(body["registered"]) == 6
     assert body["needs_wall_names"] == {}
 
-    t104 = body["registered"]["T104"]["grid"]
-    assert t104["source"] == "surveyed"
-    assert t104["faces"]["north wall"]["originX"] == 190.0
-    assert t104["faces"]["north wall"]["bearing_deg"] == 90.0
+    first = body["registered"]["T900"]["grid"]
+    assert first["source"] == "surveyed"
+    assert first["faces"]["north wall"]["originX"] == 100.0
+    assert first["faces"]["north wall"]["bearing_deg"] == 90.0
 
 
 def test_the_registration_carries_its_trenchbook_and_supervisors(
     client, sheet_bytes,
 ):
     body = _post_sheet(client, sheet_bytes).get_json()
-    t104 = body["registered"]["T104"]
+    trench = body["registered"]["T900"]
 
-    assert t104["trenchbook"] == "BTL/HCF I"
-    assert "Brad Thomas Lidge" in t104["supervisors"]
+    assert trench["trenchbook"] == "ABC/DEF I"
+    assert "Supervisor One" in trench["supervisors"]
 
 
 def test_outstanding_elevation_corrections_travel_with_the_trench(
     client, sheet_bytes,
 ):
-    """T104's locus forms are still flagged FALSE, so it has no elevations
+    """A trench whose locus forms are still flagged FALSE has no elevations
     this application can build to yet."""
     body = _post_sheet(client, sheet_bytes).get_json()
 
     assert any("corrected to absolute" in note
-               for note in body["registered"]["T104"]["notes"])
+               for note in body["registered"]["T900"]["notes"])
 
 
 def test_an_extended_trench_is_reported_rather_than_guessed_at(
@@ -173,10 +173,10 @@ def test_an_extended_trench_is_reported_rather_than_guessed_at(
 ):
     body = _post_sheet(client, sheet_bytes, phase="closing").get_json()
 
-    assert set(body["needs_wall_names"]) == {"T114", "T116"}
-    reason = body["needs_wall_names"]["T116"]["reason"]
+    assert set(body["needs_wall_names"]) == {"T904"}
+    reason = body["needs_wall_names"]["T904"]["reason"]
     assert "name its walls explicitly" in reason
-    assert len(body["needs_wall_names"]["T116"]["corners"]) == 8
+    assert len(body["needs_wall_names"]["T904"]["corners"]) == 8
 
 
 def test_the_stray_trench_column_value_is_reported(client, sheet_bytes):

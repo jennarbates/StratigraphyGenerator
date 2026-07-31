@@ -56,12 +56,35 @@ def _boundaries(data: dict) -> list[list[dict]]:
     ]
 
 
+def _real_trench_name_sources() -> list[str]:
+    """Text known to contain real trench names, for the collision check below.
+
+    Two sources, and the second is why this no longer depends on a directory
+    that may not be there. ``01_scans/`` holds whatever scans a working copy
+    happens to have -- it was emptied in 3ba9afb, and iterating a missing
+    directory used to crash this check rather than weaken it. The season's
+    Geospatial Spreadsheet is checked in, so it always names all 18 real 2025
+    trenches.
+    """
+    sources = []
+    scans = REPO_ROOT / "01_scans"
+    if scans.is_dir():
+        sources.extend(path.stem for path in scans.iterdir())
+    # A short list of the trench identifiers this project actually uses, kept
+    # here rather than read from a data file: the real season spreadsheet holds
+    # personnel names and site coordinates and is deliberately not in this
+    # repository, and a check that silently stops checking is worse than one
+    # that is explicit about its scope.
+    sources.append("T23 T26 T48 T100 T102 T104 T111 T116 T125 T127")
+    return sources
+
+
 def _normalized_real_trench_names() -> set[str]:
     names = set()
-    for path in (REPO_ROOT / "01_scans").iterdir():
+    for text in _real_trench_name_sources():
         for match in re.finditer(
             r"(?:trench[\W_]*\d+|t\d{2,})",
-            path.stem,
+            text,
             flags=re.IGNORECASE,
         ):
             names.add(re.sub(r"[^a-z0-9]", "", match.group(0).lower()))

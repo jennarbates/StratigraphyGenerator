@@ -22,10 +22,20 @@ poggio_webapp/matrices/
 # of them were ever committed; recoverable from the tarball inside.
 .archive/
 
+# Real excavation records. Coordinates, elevations, personnel names and
+# contact details belong in the project's own systems, not in a public
+# repository. Test fixtures reproduce the shape of these files with invented
+# content -- see tests/fixtures/geospatial-sample.csv.
+tests/fixtures/geospatial-2025.csv
+tests/fixtures/t104-*.json
+01_scans/
+
 # Agent scratch docs: working notes and task contracts, not user documentation.
 # They stay on disk but out of the repository, so the root stays readable and
 # nobody mistakes a plan for a description of what the code does.
 00_docs/CLAUDE.md
 DOCUMENTATION_V2_PLAN.md
 HARRIS_MATRIX_TASK_CONTRACT.md
+PLAN_VIEW_DRAWINGS_PLAN.md
+SITE_STANDARDS_ALIGNMENT_PLAN.md
 multi_wall_agent_plan.md

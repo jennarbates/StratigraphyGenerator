@@ -1,0 +1,156 @@
+{
+  "_comment": [
+    "REAL EXCAVATION DATA, unlike the invented fixtures under docs/fixtures/.",
+    "Every value below is transcribed from a Poggio Civitate record, and each",
+    "carries the record it came from in _sources. Nothing here is estimated,",
+    "rounded or filled in: a field with no record is absent rather than guessed.",
+    "",
+    "T111 is the second worked example. T104 (t104-2025-layout.json) shows the",
+    "survey-record path succeeding. T111 shows it stopping where the record",
+    "stops -- its NE corner has no opening elevation, because that corner was",
+    "inside T105's 2024 excavation and there was no undisturbed opening surface",
+    "there to measure. See docs/worked-example/registration.md."
+  ],
+
+  "trench": "T111",
+  "season": "2025",
+  "site_grid": "poggio-civitate",
+
+  "vertical": {
+    "frame": "mAE",
+    "entryForm": "absolute",
+    "datumNail": {
+      "absoluteZ": 29.23,
+      "label": "T111 2025, nail in an oak by the southwest corner (corrected value)"
+    }
+  },
+
+  "corners": [
+    {"label": "204E/32S", "corner": "NW", "elevation": 28.28},
+    {"label": "209E/32S", "corner": "NE"},
+    {"label": "209E/37S", "corner": "SE", "elevation": 28.16},
+    {"label": "204E/37S", "corner": "SW", "elevation": 28.70}
+  ],
+
+  "walls": ["north wall", "east wall", "south wall", "west wall"],
+
+  "_sources": {
+    "corners": {
+      "record": "2025 Trenches, Geospatial, and Personnel Information",
+      "column": "Opening Coordinates (X/Y)",
+      "note": [
+        "Stored there already signed, as 'NW: 204/-32'. The site's cardinal",
+        "inversion (South and West negative) was applied before the number",
+        "reached the spreadsheet, so it is not applied again here. The same",
+        "four corners are written out in the trench book's Trench Layout",
+        "section as '204E/32S' and so on, and the two records agree."
+      ]
+    },
+    "elevations": {
+      "record": "T111, 2025, NKD V Trench Book",
+      "entry": "1 July 2025, Locus 1 opening elevations, pg. 33",
+      "note": [
+        "Three of the four corners only. The NE corner at 209E/32S has NO",
+        "opening elevation in any record and is therefore absent here rather",
+        "than filled in.",
+        "",
+        "That is not an oversight. T111 overlaps T105, excavated in 2024, in",
+        "its northeastern meters -- '204E/32S ... T111 overlaps with T105",
+        "(excavated in 2024) in the NE meters of the trench' -- and Locus 1,",
+        "the opening topsoil, 'extends over the entire portion of the trench",
+        "that was not previously excavated in 2024'. The northeast quadrant",
+        "had no opening surface to measure, so the 1 July elevation list stops",
+        "at 205E/32S, the eastern limit of Locus 1.",
+        "",
+        "209E/32S first receives an elevation on 16 July, as Locus 3's NE3 at",
+        "27.96 mAE. That is a floor-surface reading taken 15 days and two loci",
+        "later, not the trench's opening surface, so it is not used here.",
+        "",
+        "The SW corner's 28.70 mAE is NOT natural relief. It is the crest of a",
+        "spoil heap from an earlier season: 'In the southwest corner of the",
+        "locus, a dirt dump from previous excavations was excavated along with",
+        "Locus 1. The dirt dump sloped significantly in this southwest corner",
+        "and was 0.52 m deep.'"
+      ]
+    },
+    "datumNail": {
+      "record": "T111, 2025, NKD V Trench Book",
+      "entry": "Trench Layout section; Methodology section",
+      "note": [
+        "'A datum point with an absolute elevation of 29.73 meters on the",
+        "master grid has been established on a tree outside of the southwest",
+        "corner of the trench.'",
+        "",
+        "CORRECTED on 22 July 2025: 'it was determined that the datum points",
+        "established at the beginning of the season were 0.50 m high due to a",
+        "transit error. The datum points were reshot and all points from 2025",
+        "prior to July 22 were corrected. The datum point for T111 is at an",
+        "elevation of 29.23 m A.E.'",
+        "",
+        "29.23 is the value used here, and the Methodology section states the",
+        "same figure. Every elevation in this fixture and in t111-2025-loci",
+        "and t111-2025-special-finds is on the corrected scale -- see",
+        "_known_problems for the evidence that they are."
+      ]
+    },
+    "site_grid": {
+      "record": "T111, 2025, NKD V Trench Book, Trench Layout section",
+      "note": [
+        "'The trench was triangulated off a longitudinal baseline along grid",
+        "line 42 S and along latitudinal grid line 215 E.' T111 is on the",
+        "Piano del Tesoro, so the hill grid rather than Vescovado di Murlo."
+      ]
+    },
+    "walls": {
+      "record": "derived",
+      "note": [
+        "Named from the corner labels: two corners sharing a cardinal letter",
+        "name the wall between them, so NW to NE is the north wall. All four",
+        "sides come out 5.00 m, which is what the Trench Layout section says:",
+        "'T111 is a 5 meter by 5 meter trench.'"
+      ]
+    }
+  },
+
+  "_known_problems": [
+    "THE EAST WALL CANNOT BE REGISTERED. Its origin corner is NE, which has no",
+    "opening elevation, so its surfaceZ is null and the build refuses it. The",
+    "other three walls register from surveyed values with no placeholders. This",
+    "is the documented refusal working correctly on real data, not a defect in",
+    "the fixture.",
+    "",
+    "THE 2024 AND 2025 BASELINES DISAGREE BY 30 cm. From the 30 June entry:",
+    "'while triangulating, we noticed a 30cm discrepancy between this year's",
+    "baseline and last year's grid; what was projected as 206E in 2024 is 30cm",
+    "to the west of what is projected as 206E this year. To avoid a discrepancy",
+    "in last year's coordinates of ETAP1, we will use 2024's baseline as our",
+    "guide.' So every coordinate here is on the 2024 baseline, deliberately,",
+    "and is offset ~0.30 m from a coordinate shot against the 2025 baseline.",
+    "Anything combining T111 with a trench that used the 2025 baseline has to",
+    "reconcile that offset first.",
+    "",
+    "THE DATUM NAIL'S PLAN POSITION IS RECORDED THREE DIFFERENT WAYS. The",
+    "Trench Layout section puts it 'on a tree outside of the southwest corner",
+    "of the trench'; the 30 June daily entry puts it on 'a large oak tree with",
+    "our datum nail ... in the center of the trench'; the locus descriptions",
+    "refer throughout to 'the tree in the southwest'. Its ELEVATION is",
+    "consistent across the records at 29.23 mAE corrected. Its easting and",
+    "northing are not recorded anywhere, so this fixture states no position",
+    "for it beyond the label.",
+    "",
+    "THE 1 JULY CLOSING ELEVATIONS REPEAT THE OPENING ONES AT SW. Both read",
+    "28.70 mAE, on a day spent lowering the dirt dump in exactly that corner.",
+    "The 2 July closing reads 28.26 mAE there. The 1 July closing figure looks",
+    "carried over rather than freshly measured, so only the opening set is",
+    "used here.",
+    "",
+    "THE ELEVATIONS ARE ON THE CORRECTED (29.23) SCALE, and the sequence proves",
+    "it rather than the record asserting it. The 21 July closing of Locus 3 and",
+    "the 22 July opening of Locus 6 -- the day the datum was reshot -- are",
+    "continuous: Locus 3 closes at 27.87-28.02 mAE and Locus 6 opens at",
+    "27.87-27.99 mAE at points inside it. A 0.50 m step at that boundary would",
+    "be unmistakable and there is none. The 22 July note says the corrections",
+    "were applied retrospectively to 'all points from 2025 prior to July 22',",
+    "and the elevations behave as though they were."
+  ]
+}
