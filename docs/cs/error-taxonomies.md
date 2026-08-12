@@ -75,7 +75,8 @@ if above is not None and y < above - monotonic_tolerance_m:
     report.err(
         where,
         f"bottom at x={x} (depth {y:.2f}) is ABOVE "
-        f"{prev_name}'s bottom (depth {above:.2f}) — layers cross")
+        f"{prev_name}'s bottom (depth {above:.2f}) — layers cross",
+    )
 ```
 
 A gap between one layer's bottom and the next's top is a **warning**:
@@ -86,7 +87,8 @@ if above is not None and abs(y - above) > top_continuity_tolerance_m:
         where,
         f"top at x={x} (depth {y:.2f}) is far from "
         f"{prev_name} bottom (depth {above:.2f}) — "
-        f"possible void/overlap")
+        f"possible void/overlap",
+    )
 ```
 
 Layers crossing is physically impossible. A void is not — it can be real. **The

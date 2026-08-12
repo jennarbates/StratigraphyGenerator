@@ -152,7 +152,9 @@ def test_every_fixture_says_plainly_that_it_is_invented(layout, loci, finds):
 
 
 def test_all_three_fixtures_describe_the_same_trench_and_season(
-    layout, loci, finds,
+    layout,
+    loci,
+    finds,
 ):
     for fixture in (layout, loci, finds):
         assert fixture["trench"] == "T905"
@@ -191,8 +193,7 @@ def test_the_east_wall_has_no_surface_elevation_and_the_build_refuses_it(
     config, notes = registration
 
     assert config["faces"]["east wall"]["surfaceZ"] is None
-    assert any("155E/20S" in note and "no opening elevation" in note
-               for note in notes)
+    assert any("155E/20S" in note and "no opening elevation" in note for note in notes)
 
 
 def test_the_east_wall_still_gets_its_origin_and_bearing(registration):
@@ -216,7 +217,8 @@ def test_each_wall_carries_the_bearing_its_corners_imply(registration):
 
 
 def test_the_registration_puts_the_walls_back_on_the_corner_nails(
-    layout, registration,
+    layout,
+    registration,
 ):
     """End to end: walk each wall its own length along its derived bearing and
     it must arrive at the next nail."""
@@ -227,14 +229,17 @@ def test_the_registration_puts_the_walls_back_on_the_corner_nails(
         face = config["faces"][wall]
         start = corners[index]
         end = corners[(index + 1) % len(corners)]
-        length = math.dist((start["gridX"], start["gridY"]),
-                           (end["gridX"], end["gridY"]))
+        length = math.dist(
+            (start["gridX"], start["gridY"]), (end["gridX"], end["gridY"])
+        )
         theta = math.radians(face["bearing_deg"])
 
         assert face["originX"] + length * math.sin(theta) == pytest.approx(
-            end["gridX"], abs=1e-6), wall
+            end["gridX"], abs=1e-6
+        ), wall
         assert face["originY"] + length * math.cos(theta) == pytest.approx(
-            end["gridY"], abs=1e-6), wall
+            end["gridY"], abs=1e-6
+        ), wall
 
 
 def test_the_corner_labels_parse_to_the_coordinates_a_spreadsheet_stores(
@@ -244,8 +249,7 @@ def test_the_corner_labels_parse_to_the_coordinates_a_spreadsheet_stores(
     nail already signed, as '150/-20'. One is the other read through the site's
     cardinal-inversion rule, and getting that backwards moves a trench."""
     signed = [
-        (c["corner"], *site_grid.label_to_grid(c["label"]))
-        for c in layout["corners"]
+        (c["corner"], *site_grid.label_to_grid(c["label"])) for c in layout["corners"]
     ]
 
     assert signed == [
@@ -280,10 +284,7 @@ def test_every_recorded_corner_sits_below_the_datum_nail(layout):
 
 def test_the_datum_still_clears_the_deepest_point_reached(by_locus):
     """The bottom of the sounding is the lowest surface of the season."""
-    deepest = min(
-        vertex["elevation"]
-        for vertex in _vertices(by_locus[8], "closing")
-    )
+    deepest = min(vertex["elevation"] for vertex in _vertices(by_locus[8], "closing"))
 
     assert deepest == 23.51
     assert DATUM - deepest == pytest.approx(1.72)
@@ -299,7 +300,8 @@ def test_the_recorded_elevations_round_trip_through_the_datum(layout):
         recovered = site_elevation.absolute_from_below_datum(below, DATUM)
         assert recovered == pytest.approx(corner["elevation"])
         assert site_elevation.resolve(corner["elevation"], vertical) == (
-            pytest.approx(corner["elevation"]))
+            pytest.approx(corner["elevation"])
+        )
 
 
 def test_the_southwest_corner_is_high_because_of_a_spoil_heap(layout):
@@ -308,7 +310,8 @@ def test_the_southwest_corner_is_high_because_of_a_spoil_heap(layout):
     surface almost half a metre too high."""
     heights = {
         c["corner"]: c["elevation"]
-        for c in layout["corners"] if c.get("elevation") is not None
+        for c in layout["corners"]
+        if c.get("elevation") is not None
     }
 
     assert max(heights, key=heights.get) == "SW"
@@ -336,23 +339,28 @@ def test_the_sounding_is_one_continuous_column_of_measured_surfaces(by_locus):
     ceiling, at all four corners. This is the geometry the pipeline consumes,
     and it closes without a gap."""
     for younger, older in zip(SOUNDING_LOCI, SOUNDING_LOCI[1:]):
-        closing = {_point(v): v["elevation"]
-                   for v in _vertices(by_locus[younger], "closing")}
-        opening = {_point(v): v["elevation"]
-                   for v in _vertices(by_locus[older], "opening")}
+        closing = {
+            _point(v): v["elevation"] for v in _vertices(by_locus[younger], "closing")
+        }
+        opening = {
+            _point(v): v["elevation"] for v in _vertices(by_locus[older], "opening")
+        }
 
         assert closing == opening, f"loci {younger} and {older}"
 
 
 def test_the_sounding_keeps_the_same_four_corners_throughout(by_locus):
     corners = {
-        (153.0, -22.0), (154.0, -22.0), (154.0, -24.0), (153.0, -24.0),
+        (153.0, -22.0),
+        (154.0, -22.0),
+        (154.0, -24.0),
+        (153.0, -24.0),
     }
     for number in SOUNDING_LOCI:
         for phase in ("opening", "closing"):
-            assert {
-                _point(v) for v in _vertices(by_locus[number], phase)
-            } == corners, f"locus {number} {phase}"
+            assert {_point(v) for v in _vertices(by_locus[number], phase)} == corners, (
+                f"locus {number} {phase}"
+            )
 
 
 def test_every_surface_in_the_sounding_descends(by_locus):
@@ -372,14 +380,17 @@ def test_the_recorded_floor_thickness_recomputes_from_the_elevations(by_locus):
     locus = by_locus[6]
     thicknesses = {
         vertex["label"]: round(
-            vertex["elevation"]
-            - _elevation_at(locus, "closing", vertex["label"]), 2)
+            vertex["elevation"] - _elevation_at(locus, "closing", vertex["label"]), 2
+        )
         for vertex in _vertices(locus, "opening")
     }
 
     assert thicknesses == {"NW": 0.20, "NE": 0.21, "SE": 0.17, "SW": 0.13}
-    assert min(thicknesses.values()) <= locus["recorded_thickness_m"] <= max(
-        thicknesses.values())
+    assert (
+        min(thicknesses.values())
+        <= locus["recorded_thickness_m"]
+        <= max(thicknesses.values())
+    )
 
 
 def test_the_unexcavated_locus_has_no_thickness(by_locus):
@@ -387,8 +398,7 @@ def test_the_unexcavated_locus_has_no_thickness(by_locus):
     locus = by_locus[8]
 
     for vertex in _vertices(locus, "opening"):
-        assert _elevation_at(locus, "closing", vertex["label"]) == (
-            vertex["elevation"])
+        assert _elevation_at(locus, "closing", vertex["label"]) == (vertex["elevation"])
 
 
 def test_the_two_features_left_in_situ_record_no_material(by_locus):
@@ -409,7 +419,8 @@ def test_points_shared_between_loci_carry_the_same_elevation(by_locus):
         for number in SAME_DAY_LOCI:
             for vertex in _vertices(by_locus[number], phase):
                 readings.setdefault(_point(vertex), []).append(
-                    (number, vertex["elevation"]))
+                    (number, vertex["elevation"])
+                )
 
         for point, entries in readings.items():
             if len(entries) < 2:
@@ -418,7 +429,7 @@ def test_points_shared_between_loci_carry_the_same_elevation(by_locus):
             elevations = {elevation for _number, elevation in entries}
             assert len(elevations) == 1, (phase, point, entries)
 
-    assert shared == 8      # four points, opening and closing
+    assert shared == 8  # four points, opening and closing
 
 
 def test_the_same_surface_read_a_day_apart_agrees_to_within_six_centimetres(
@@ -433,16 +444,12 @@ def test_the_same_surface_read_a_day_apart_agrees_to_within_six_centimetres(
     cut soil. Every elevation in these fixtures carries that much uncertainty,
     which is worth knowing before treating a 2 cm difference as a finding.
     """
-    closing = {_point(v): v["elevation"]
-               for v in _vertices(by_locus[1], "closing")}
-    opening = {_point(v): v["elevation"]
-               for v in _vertices(by_locus[2], "opening")}
+    closing = {_point(v): v["elevation"] for v in _vertices(by_locus[1], "closing")}
+    opening = {_point(v): v["elevation"] for v in _vertices(by_locus[2], "opening")}
     shared = set(closing) & set(opening)
 
     assert len(shared) == 8
-    differences = [
-        round(opening[point] - closing[point], 2) for point in shared
-    ]
+    differences = [round(opening[point] - closing[point], 2) for point in shared]
 
     assert len([value for value in differences if value > 0]) == 3
     assert max(abs(value) for value in differences) == 0.06
@@ -455,53 +462,56 @@ def test_the_same_surface_read_a_day_apart_agrees_to_within_six_centimetres(
 
 def _matrix(loci):
     """The fixture's stratigraphy as a HarrisMatrix, one unit per locus."""
+
     def unit_id(number):
         return f"unit-{number:012x}"
 
     strat = loci["stratigraphy"]
-    return HarrisMatrix.model_validate({
-        "schema_version": 1,
-        "matrix_id": "0123456789ab",
-        "revision": 0,
-        "title": "T905 2025",
-        "site": "Poggio Civitate",
-        "trench": "T905",
-        "notes": "",
-        "source_job_ids": [],
-        "units": [
-            {
-                "id": unit_id(entry["locus"]),
-                "label": f"Locus {entry['locus']}",
-                "unit_type": entry["unit_type"],
-                "description": entry["summary"],
-                "source_refs": [],
-            }
-            for entry in loci["loci"]
-        ],
-        "relations": [
-            {
-                "id": f"rel-{index:012x}",
-                "younger_id": unit_id(relation["younger"]),
-                "older_id": unit_id(relation["older"]),
-                "kind": relation["kind"],
-                "evidence": relation["evidence"],
-                "source": "manual",
-                "notes": relation.get("note"),
-            }
-            for index, relation in enumerate(strat["relations"])
-        ],
-        "correlations": [
-            {
-                "id": f"corr-{index:012x}",
-                "unit_ids": [unit_id(number) for number in correlation["loci"]],
-                "notes": correlation["evidence"],
-            }
-            for index, correlation in enumerate(strat["correlations"])
-        ],
-        "suggestions": [],
-        "created_at": "2026-07-31T08:00:00+00:00",
-        "updated_at": "2026-07-31T08:00:00+00:00",
-    })
+    return HarrisMatrix.model_validate(
+        {
+            "schema_version": 1,
+            "matrix_id": "0123456789ab",
+            "revision": 0,
+            "title": "T905 2025",
+            "site": "Poggio Civitate",
+            "trench": "T905",
+            "notes": "",
+            "source_job_ids": [],
+            "units": [
+                {
+                    "id": unit_id(entry["locus"]),
+                    "label": f"Locus {entry['locus']}",
+                    "unit_type": entry["unit_type"],
+                    "description": entry["summary"],
+                    "source_refs": [],
+                }
+                for entry in loci["loci"]
+            ],
+            "relations": [
+                {
+                    "id": f"rel-{index:012x}",
+                    "younger_id": unit_id(relation["younger"]),
+                    "older_id": unit_id(relation["older"]),
+                    "kind": relation["kind"],
+                    "evidence": relation["evidence"],
+                    "source": "manual",
+                    "notes": relation.get("note"),
+                }
+                for index, relation in enumerate(strat["relations"])
+            ],
+            "correlations": [
+                {
+                    "id": f"corr-{index:012x}",
+                    "unit_ids": [unit_id(number) for number in correlation["loci"]],
+                    "notes": correlation["evidence"],
+                }
+                for index, correlation in enumerate(strat["correlations"])
+            ],
+            "suggestions": [],
+            "created_at": "2026-07-31T08:00:00+00:00",
+            "updated_at": "2026-07-31T08:00:00+00:00",
+        }
+    )
 
 
 def test_the_season_matrix_validates_with_no_errors(loci):
@@ -528,7 +538,7 @@ def test_loci_three_and_six_collapse_into_one_node(loci):
     assert components["unit-000000000003"] == components["unit-000000000006"]
 
     report = validate_matrix_graph(matrix)
-    assert len(report["topological_order"]) == 7    # eight loci, seven nodes
+    assert len(report["topological_order"]) == 7  # eight loci, seven nodes
 
 
 def test_the_redundant_edge_from_the_su_form_is_warned_and_not_displayed(loci):
@@ -540,7 +550,8 @@ def test_the_redundant_edge_from_the_su_form_is_warned_and_not_displayed(loci):
     report = validate_matrix_graph(matrix)
 
     redundant = [
-        warning for warning in report["warnings"]
+        warning
+        for warning in report["warnings"]
         if warning["code"] == "redundant-relation"
     ]
     assert len(redundant) == 1
@@ -554,8 +565,7 @@ def test_no_locus_is_left_isolated(loci):
     report = validate_matrix_graph(_matrix(loci))
 
     assert not [
-        warning for warning in report["warnings"]
-        if warning["code"] == "isolated-unit"
+        warning for warning in report["warnings"] if warning["code"] == "isolated-unit"
     ]
 
 
@@ -579,8 +589,7 @@ def test_the_abutments_are_recorded_even_though_the_schema_drops_them(loci):
     assert strat["abutment_note"]
 
     ordered = {
-        (relation["younger"], relation["older"])
-        for relation in strat["relations"]
+        (relation["younger"], relation["older"]) for relation in strat["relations"]
     }
     for abutment in strat["abutments"]:
         pair = tuple(abutment["loci"])
@@ -610,12 +619,9 @@ def test_only_the_wheelbarrow_finds_carry_a_stated_tolerance(finds):
     """A wheelbarrow find's coordinate is where the bucket was filled, not
     where the object lay. A record that does not say so invites the number to
     be read as a findspot."""
-    with_tolerance = {
-        find["sf"] for find in finds["finds"] if "tolerance_xy_m" in find
-    }
+    with_tolerance = {find["sf"] for find in finds["finds"] if "tolerance_xy_m" in find}
     from_wheelbarrow = {
-        find["sf"] for find in finds["finds"]
-        if find["recovery"] == "wheelbarrow"
+        find["sf"] for find in finds["finds"] if find["recovery"] == "wheelbarrow"
     }
 
     assert with_tolerance == from_wheelbarrow == {1, 2, 3}
@@ -624,12 +630,10 @@ def test_only_the_wheelbarrow_finds_carry_a_stated_tolerance(finds):
 def _outside_in_plan(finds):
     outside = set()
     for find in finds["finds"]:
-        if not (_inside(find["gridX"], TRENCH_X)
-                and _inside(find["gridY"], TRENCH_Y)):
+        if not (_inside(find["gridX"], TRENCH_X) and _inside(find["gridY"], TRENCH_Y)):
             outside.add(find["sf"])
         elif find["locus"] in SOUNDING_LOCI and not (
-            _inside(find["gridX"], SOUNDING_X)
-            and _inside(find["gridY"], SOUNDING_Y)
+            _inside(find["gridX"], SOUNDING_X) and _inside(find["gridY"], SOUNDING_Y)
         ):
             outside.add(find["sf"])
     return outside
@@ -641,14 +645,14 @@ def _outside_in_elevation(finds, by_locus):
         locus = by_locus[find["locus"]]
         ceiling = max(v["elevation"] for v in _vertices(locus, "opening"))
         floor = min(v["elevation"] for v in _vertices(locus, "closing"))
-        if not (floor - TOLERANCE_M <= find["elevation"]
-                <= ceiling + TOLERANCE_M):
+        if not (floor - TOLERANCE_M <= find["elevation"] <= ceiling + TOLERANCE_M):
             outside.add(find["sf"])
     return outside
 
 
 def test_four_finds_plot_outside_the_volume_they_are_filed_under(
-    finds, by_locus,
+    finds,
+    by_locus,
 ):
     """SF 8 and SF 9 are recorded 0.52 m and 0.82 m west of the west baulk, in
     a locus that exists only inside the trench. SF 17 is 0.45 m west of the
@@ -676,7 +680,8 @@ def test_neither_check_alone_would_catch_all_of_them(finds, by_locus):
 
 
 def test_twenty_one_of_twenty_six_finds_place_inside_their_locus(
-    finds, by_locus,
+    finds,
+    by_locus,
 ):
     """The headline number. Five finds have a coordinate or an elevation that
     contradicts the locus they are filed under; the other 21 are consistent
@@ -688,26 +693,30 @@ def test_twenty_one_of_twenty_six_finds_place_inside_their_locus(
 
 
 def test_every_find_is_filed_under_a_locus_that_was_open_when_it_was_found(
-    finds, by_locus,
+    finds,
+    by_locus,
 ):
     """A find dated outside its locus's own open-to-close window would mean the
     locus number or the date is wrong. None are: the dates are the part of this
     record that holds together."""
     for find in finds["finds"]:
         locus = by_locus[find["locus"]]
-        assert locus["opened"]["date"] <= find["date"] <= (
-            locus["closed"]["date"]), find["sf"]
+        assert locus["opened"]["date"] <= find["date"] <= (locus["closed"]["date"]), (
+            find["sf"]
+        )
 
 
 def test_the_catalogued_finds_agree_between_the_list_and_the_locus_form(
-    finds, by_locus,
+    finds,
+    by_locus,
 ):
     """Locus 6 is the only locus whose form lists catalogue numbers. All three
     appear in the special finds list against Locus 6 finds -- including
     CAT-0126, which that list's own 'Cataloged?' column says is not
     catalogued."""
     from_list = {
-        find["catalog"] for find in finds["finds"]
+        find["catalog"]
+        for find in finds["finds"]
         if find["locus"] == 6 and find["catalog"]
     }
 
@@ -722,7 +731,8 @@ def test_the_sounding_finds_deepen_as_the_sounding_does(finds, by_locus):
     means = {}
     for number in (6, 7):
         elevations = [
-            find["elevation"] for find in finds["finds"]
+            find["elevation"]
+            for find in finds["finds"]
             if find["locus"] == number and find["sf"] != 16
         ]
         means[number] = sum(elevations) / len(elevations)

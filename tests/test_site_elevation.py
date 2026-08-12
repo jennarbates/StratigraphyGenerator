@@ -15,8 +15,11 @@ from pipeline.site_elevation import (
     resolve,
 )
 
-BELOW_DATUM = {"frame": MAE, "entryForm": "below-datum",
-               "datumNail": {"absoluteZ": 29.34}}
+BELOW_DATUM = {
+    "frame": MAE,
+    "entryForm": "below-datum",
+    "datumNail": {"absoluteZ": 29.34},
+}
 ABSOLUTE = {"frame": MAE, "entryForm": "absolute"}
 
 
@@ -25,9 +28,15 @@ ABSOLUTE = {"frame": MAE, "entryForm": "absolute"}
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize("raw,expected", [
-    ("mAE", MAE), ("mae", MAE), (" MAE ", MAE), ("mASL", MASL),
-])
+@pytest.mark.parametrize(
+    "raw,expected",
+    [
+        ("mAE", MAE),
+        ("mae", MAE),
+        (" MAE ", MAE),
+        ("mASL", MASL),
+    ],
+)
 def test_frames_are_recognised_case_insensitively(raw, expected):
     assert normalize_frame(raw) == expected
 
@@ -65,8 +74,7 @@ def test_an_absolute_elevation_entered_as_below_datum_is_caught():
     assert "implausible" in str(caught.value)
 
 
-@pytest.mark.parametrize("bad", [None, "0.61", True, float("nan"),
-                                 float("inf")])
+@pytest.mark.parametrize("bad", [None, "0.61", True, float("nan"), float("inf")])
 def test_non_numeric_readings_raise(bad):
     with pytest.raises(ElevationError):
         absolute_from_below_datum(bad, 29.34)
@@ -127,8 +135,9 @@ def test_the_documented_ranged_reading_arithmetic():
 
 
 def test_a_reversed_range_is_read_the_same_way():
-    assert midpoint_and_uncertainty_cm(27.50, 27.00) == \
-        midpoint_and_uncertainty_cm(27.00, 27.50)
+    assert midpoint_and_uncertainty_cm(27.50, 27.00) == midpoint_and_uncertainty_cm(
+        27.00, 27.50
+    )
 
 
 def test_a_precise_reading_has_no_uncertainty():
@@ -168,10 +177,13 @@ def _traced(uncertainty=None, **extra):
     if uncertainty is not None:
         top["uncertaintyCm"] = uncertainty
     payload = {
-        "calibration": {"origin_px": [0, 0], "ref_px": [100, 0],
-                        "lowest_px": [0, 100], "ref_meters": 1.0},
-        "boundaries": [top,
-                       {"kind": "base", "points": [[0, 90], [100, 90]]}],
+        "calibration": {
+            "origin_px": [0, 0],
+            "ref_px": [100, 0],
+            "lowest_px": [0, 100],
+            "ref_meters": 1.0,
+        },
+        "boundaries": [top, {"kind": "base", "points": [[0, 90], [100, 90]]}],
     }
     calibration = manual_extraction.make_calibration(payload)
     data, _ = manual_extraction.build_fieldwall(payload, calibration, None)

@@ -119,7 +119,7 @@ def _find_cycle(nodes, edges):
                     path.append(neighbor)
                     stack.append((neighbor, 0))
                 elif state[neighbor] == 1:
-                    return path[path_indexes[neighbor]:] + [neighbor]
+                    return path[path_indexes[neighbor] :] + [neighbor]
                 continue
             stack.pop()
             path.pop()

@@ -236,11 +236,15 @@ def test_correlation_components_collapse_units_deterministically():
     first = correlation_components(graph)
     second = correlation_components(graph)
 
-    assert first == second == {
-        A: A,
-        B: A,
-        C: C,
-    }
+    assert (
+        first
+        == second
+        == {
+            A: A,
+            B: A,
+            C: C,
+        }
+    )
 
 
 def test_overlapping_stored_correlations_produce_stable_error():

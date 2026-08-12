@@ -84,7 +84,8 @@ marginalia.append(
     f"[provenance] boundary coordinates from CV marker detection "
     f"({len(markers)} candidates: {n_boundary} boundary + "
     f"{n_noise + len(missing)} noise); "
-    f"Gemini assigned loci/labels only and generated no geometry")
+    f"Gemini assigned loci/labels only and generated no geometry"
+)
 ```
 
 A sentence, in the data, saying which component produced the geometry and which

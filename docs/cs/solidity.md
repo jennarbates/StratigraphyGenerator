@@ -108,11 +108,7 @@ extent = area / float(width * height)
 if solidity < 0.34 or extent < 0.09:
     continue
 
-score = (
-    0.45 * compactness
-    + 0.35 * min(1.0, solidity)
-    + 0.20 * min(1.0, extent)
-)
+score = 0.45 * compactness + 0.35 * min(1.0, solidity) + 0.20 * min(1.0, extent)
 ```
 
 **0.34, not 0.9** — nearly three times looser, because the target is different.

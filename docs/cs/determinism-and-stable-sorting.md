@@ -104,8 +104,7 @@ comes first, so the tie decides the output.
 # The trench is whichever group of walls is largest; ties go to the
 # group holding the earliest face, so the answer is deterministic.
 order = {name: i for i, name in enumerate(endpoints)}
-trench = max(components,
-             key=lambda g: (len(g), -min(order[n] for n in g)))
+trench = max(components, key=lambda g: (len(g), -min(order[n] for n in g)))
 ```
 
 and `poggio_webapp/pipeline/true_dip.py` documents its own:

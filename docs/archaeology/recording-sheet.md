@@ -85,9 +85,11 @@ instruction. Real sheets contain contradictions — T104 has two entries numbere
 Resolving it happens later, visibly:
 
 ```python
-notes.append(f"locus {num} is listed more than once in loci[] — "
-             f"using the first Munsell reading ({munsell_by_locus[num]}) "
-             f"and ignoring {label!r}")
+notes.append(
+    f"locus {num} is listed more than once in loci[] — "
+    f"using the first Munsell reading ({munsell_by_locus[num]}) "
+    f"and ignoring {label!r}"
+)
 ```
 
 Grid tie labels are transcribed, parsed where they can be, and explicitly

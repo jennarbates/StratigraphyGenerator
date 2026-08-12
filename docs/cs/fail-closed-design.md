@@ -71,7 +71,8 @@ if pair is None:
         f"{min_separation_deg} degrees of parallel "
         f"({', '.join(repr(face) for face in faces)}); a true dip "
         "cannot be solved from them, so the existing apparent dips "
-        "stand")
+        "stand"
+    )
     continue
 ```
 
@@ -90,11 +91,13 @@ order there would invent stratigraphy, so it refuses.
 and the message names what to fix:
 
 ```python
-return ("the walls contradict each other: these surfaces form a "
-        "stratigraphic cycle and cannot be ordered young to old -- "
-        + listed
-        + ". Check the layer order on those walls, or correlate the loci "
-          "explicitly; no order is guessed.")
+return (
+    "the walls contradict each other: these surfaces form a "
+    "stratigraphic cycle and cannot be ordered young to old -- "
+    + listed
+    + ". Check the layer order on those walls, or correlate the loci "
+    "explicitly; no order is guessed."
+)
 ```
 
 "No order is guessed" is stated *to the user*, not just in a comment.

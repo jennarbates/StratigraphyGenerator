@@ -229,9 +229,7 @@ def run_checks(repo_root: Path) -> list[Issue]:
         checked_files.append(readme_path)
 
     for markdown_path in checked_files:
-        issues.extend(
-            find_broken_relative_links(markdown_path, docs_dir, repo_root)
-        )
+        issues.extend(find_broken_relative_links(markdown_path, docs_dir, repo_root))
         issues.extend(find_missing_image_alt_text(markdown_path))
 
     markdown_file_set = set(markdown_files)

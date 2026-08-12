@@ -62,9 +62,9 @@ all, because metres are already metres.
 ```python
 def convert(self, point):
     px, py = float(point[0]), float(point[1])
-    dx, dy = px - self.origin_x, py - self.origin_y          # translate
-    x_m = (dx * self.ux + dy * self.uy) / self.px_per_m       # rotate, scale
-    depth_m = (dx * self.vx + dy * self.vy) / self.px_per_m   # rotate, scale
+    dx, dy = px - self.origin_x, py - self.origin_y  # translate
+    x_m = (dx * self.ux + dy * self.uy) / self.px_per_m  # rotate, scale
+    depth_m = (dx * self.vx + dy * self.vy) / self.px_per_m  # rotate, scale
     return round(x_m, 4), round(depth_m, 4)
 ```
 
@@ -81,6 +81,7 @@ X0, Y0 = cfg["originX"], cfg["originY"]
 Z0 = cfg["surfaceZ"]
 th = math.radians(cfg["bearing_deg"])
 sin_t, cos_t = math.sin(th), math.cos(th)
+
 
 def to_site(x, depth, X0=X0, Y0=Y0, Z0=Z0, sin_t=sin_t, cos_t=cos_t):
     X = X0 + x * sin_t
@@ -118,9 +119,9 @@ See [closure late-binding capture](closure-late-binding-capture.md).
 
 ```python
 M = cv2.getRotationMatrix2D((w / 2, h / 2), angle, 1.0)
-rot = cv2.warpAffine(gray, M, (w, h),
-                      flags=cv2.INTER_CUBIC,
-                      borderMode=cv2.BORDER_REPLICATE)
+rot = cv2.warpAffine(
+    gray, M, (w, h), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE
+)
 ```
 
 The `1.0` is the scale factor — rotation only. And unlike the coordinate

@@ -22,7 +22,8 @@ def _merged():
     """Merged under the wall labels GRID_T900 registers, so the same document
     can be converted as well as inspected."""
     return merge_walls.merge_extractions(
-        [("north wall", NORTH_WALL), ("east wall", EAST_WALL)])
+        [("north wall", NORTH_WALL), ("east wall", EAST_WALL)]
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -40,7 +41,8 @@ def test_a_colour_disagreement_no_longer_splits_one_deposit(tmp_path):
     old naming that produced two surfaces from one deposit."""
     merged, _ = _merged()
     rows, _orient, _missing, _notes = convert_coords.convert(
-        merged, GRID_T900, str(tmp_path / "points.csv"))
+        merged, GRID_T900, str(tmp_path / "points.csv")
+    )
 
     surfaces = {row["surface"] for row in rows}
     assert surfaces == {"Locus 1", "Locus 2"}
@@ -54,7 +56,8 @@ def test_a_colour_disagreement_no_longer_splits_one_deposit(tmp_path):
 def test_no_surface_name_contains_a_munsell_reading(tmp_path):
     merged, _ = _merged()
     rows, _o, _m, _n = convert_coords.convert(
-        merged, GRID_T900, str(tmp_path / "points.csv"))
+        merged, GRID_T900, str(tmp_path / "points.csv")
+    )
     for row in rows:
         assert "YR" not in row["surface"]
 
@@ -106,8 +109,7 @@ def test_a_locus_with_no_colour_has_no_label_entry():
 
 def test_run_convert_returns_labels_beside_the_csv(tmp_path):
     merged, _ = _merged()
-    result = convert_coords.run_convert(
-        merged, GRID_T900, str(tmp_path / "points.csv"))
+    result = convert_coords.run_convert(merged, GRID_T900, str(tmp_path / "points.csv"))
 
     assert result["surface_labels"]["Locus 1"] == "Locus 1 (10YR 5/3 brown)"
 
@@ -134,7 +136,8 @@ def _manifest(tmp_path, **kwargs):
 
 def test_the_manifest_carries_both_identity_and_label(tmp_path):
     manifest = _manifest(
-        tmp_path, surface_labels={"Locus 1": "Locus 1 (10YR 5/3 brown)"})
+        tmp_path, surface_labels={"Locus 1": "Locus 1 (10YR 5/3 brown)"}
+    )
 
     assert manifest["schema_version"] == 2
     assert manifest["surfaces"][0]["name"] == "Locus 1"
@@ -150,7 +153,8 @@ def test_series_order_holds_identities(tmp_path):
     """series_order is matched against the CSV's surface column, so it must be
     identities. run_build rejects an order naming anything absent from it."""
     manifest = _manifest(
-        tmp_path, surface_labels={"Locus 1": "Locus 1 (10YR 5/3 brown)"})
+        tmp_path, surface_labels={"Locus 1": "Locus 1 (10YR 5/3 brown)"}
+    )
     assert manifest["series_order"] == ["Locus 1"]
 
 
@@ -187,8 +191,10 @@ def test_canonicalization_helpers_are_gone():
 @pytest.mark.parametrize("locus", ["6", "12", "1"])
 def test_identity_is_stable_regardless_of_recorded_colour(locus):
     sheets = [
-        {"loci": [{"locusNumber": locus, "munsell": colour}],
-         "layers": [{"locusNumber": locus, "topBoundary": []}]}
+        {
+            "loci": [{"locusNumber": locus, "munsell": colour}],
+            "layers": [{"locusNumber": locus, "topBoundary": []}],
+        }
         for colour in ("10YR 5/3 brown", "7.5YR 4/2 dark brown", None)
     ]
     produced = set()

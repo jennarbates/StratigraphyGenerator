@@ -72,17 +72,16 @@ def _segments_cross(a, b, c, d):
     Shared endpoints do not count: consecutive walls of a trench meet at a
     corner by design.
     """
+
     def side(p, q, r):
-        value = ((q[0] - p[0]) * (r[1] - p[1])
-                 - (q[1] - p[1]) * (r[0] - p[0]))
+        value = (q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0])
         if abs(value) < 1e-12:
             return 0
         return 1 if value > 0 else -1
 
     if len({a, b, c, d}) < 4:
         return False
-    return (side(a, b, c) != side(a, b, d)
-            and side(c, d, a) != side(c, d, b))
+    return side(a, b, c) != side(a, b, d) and side(c, d, a) != side(c, d, b)
 
 
 def _self_intersects(points):
@@ -115,8 +114,10 @@ def _corner(entry, index):
             raise LayoutError(f"corner {index + 1}: {error}") from error
     else:
         grid_x, grid_y = entry.get("gridX"), entry.get("gridY")
-        if not all(isinstance(v, (int, float)) and not isinstance(v, bool)
-                   for v in (grid_x, grid_y)):
+        if not all(
+            isinstance(v, (int, float)) and not isinstance(v, bool)
+            for v in (grid_x, grid_y)
+        ):
             raise LayoutError(
                 f"corner {index + 1} needs either a grid label like "
                 "'190E/53S' or numeric gridX and gridY"
@@ -131,7 +132,8 @@ def _elevation(value, vertical, index):
         return None
     try:
         return site_elevation.resolve(
-            value, vertical, what=f"corner {index + 1} elevation")
+            value, vertical, what=f"corner {index + 1} elevation"
+        )
     except site_elevation.ElevationError as error:
         raise LayoutError(str(error)) from error
 
@@ -165,12 +167,14 @@ def read_layout(layout):
     corners = []
     for index, entry in enumerate(raw_corners):
         label, grid_x, grid_y, raw_elevation = _corner(entry, index)
-        corners.append({
-            "label": label,
-            "gridX": grid_x,
-            "gridY": grid_y,
-            "elevation": _elevation(raw_elevation, vertical, index),
-        })
+        corners.append(
+            {
+                "label": label,
+                "gridX": grid_x,
+                "gridY": grid_y,
+                "elevation": _elevation(raw_elevation, vertical, index),
+            }
+        )
 
     positions = [(c["gridX"], c["gridY"]) for c in corners]
     if len(set(positions)) != len(positions):
@@ -198,7 +202,8 @@ def read_layout(layout):
         raise LayoutError("every wall in a trench layout needs a name")
     if len(set(name.lower() for name in cleaned_walls)) != len(cleaned_walls):
         raise LayoutError(
-            "two walls of this trench share a name; each face needs its own")
+            "two walls of this trench share a name; each face needs its own"
+        )
 
     missing_elevations = [
         corner["label"] or f"corner {i + 1}"
@@ -221,7 +226,8 @@ def read_layout(layout):
         if length > _IMPLAUSIBLE_WALL_M:
             notes.append(
                 f"wall {name!r} is {length:.1f} m long, which is longer than "
-                "any trench at this site. Check its two corner labels")
+                "any trench at this site. Check its two corner labels"
+            )
 
     return {
         "corners": corners,
@@ -253,7 +259,8 @@ def build_grid_config(layout):
     if not grid_name:
         notes.append(
             "this layout names no site grid. Poggio Civitate runs two, so "
-            "record which one these coordinates belong to")
+            "record which one these coordinates belong to"
+        )
 
     faces = {}
     for index, name in enumerate(walls):
@@ -271,7 +278,8 @@ def build_grid_config(layout):
         notes.append(
             f"wall {name!r}: {length:.2f} m from "
             f"{_describe(start)} to {_describe(end)}, "
-            f"bearing {faces[name]['bearing_deg']:g} degrees from Grid North")
+            f"bearing {faces[name]['bearing_deg']:g} degrees from Grid North"
+        )
 
     config = {
         "_comment": (
@@ -283,7 +291,8 @@ def build_grid_config(layout):
         ),
         "site_grid": grid_name or None,
         "source": "surveyed",
-        "vertical": layout.get("vertical") or {
+        "vertical": layout.get("vertical")
+        or {
             "frame": site_elevation.MAE,
             "entryForm": "absolute",
             "datumNail": {"absoluteZ": None, "label": None},

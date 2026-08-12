@@ -23,11 +23,13 @@ def _create_fieldwall_job(route_context):
     scan_path.parent.mkdir()
     scan_path.write_bytes(b"scan")
     (directory / "meta.json").write_text(
-        json.dumps({
-            "job_id": "verified-manual-job",
-            "sheet_type": "fieldwall",
-            "scan_path": str(scan_path),
-        }),
+        json.dumps(
+            {
+                "job_id": "verified-manual-job",
+                "sheet_type": "fieldwall",
+                "scan_path": str(scan_path),
+            }
+        ),
         encoding="utf-8",
     )
     return directory

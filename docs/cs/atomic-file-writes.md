@@ -17,7 +17,7 @@ steps that turn "the power went out mid-save" from data loss into a no-op.
 The obvious way to save is to open the file and write:
 
 ```python
-path.write_text(serialized)          # ← truncates first
+path.write_text(serialized)  # ← truncates first
 ```
 
 That truncates the file, then writes. Between those two moments the file is

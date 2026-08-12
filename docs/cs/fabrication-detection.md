@@ -63,7 +63,7 @@ of the mechanism:
 # irregular vertex spacing (Trench 23 sits around cv 0.20); fabricated ones
 # come out at cv 0.00.
 
-UNIFORM_SPACING_CV = 0.02      # coefficient of variation below this = suspicious
+UNIFORM_SPACING_CV = 0.02  # coefficient of variation below this = suspicious
 PARALLEL_OFFSET_TOLERANCE_M = 0.005
 ```
 
@@ -88,14 +88,16 @@ def check_uniform_spacing(points, where, report):
     if mean <= 0:
         return
     var = sum((d - mean) ** 2 for d in dx) / len(dx)
-    cv = (var ** 0.5) / mean
+    cv = (var**0.5) / mean
     if cv < UNIFORM_SPACING_CV:
-        report.warn(where,
-                    f"boundary vertices are evenly spaced every {mean:.3g} m "
-                    f"({len(pts)} points, spacing variation {cv:.3f}) — this is "
-                    "the signature of points estimated at a fixed interval "
-                    "rather than read off the recorder's marked vertices. "
-                    "Re-extract, or detect the markers computationally.")
+        report.warn(
+            where,
+            f"boundary vertices are evenly spaced every {mean:.3g} m "
+            f"({len(pts)} points, spacing variation {cv:.3f}) — this is "
+            "the signature of points estimated at a fixed interval "
+            "rather than read off the recorder's marked vertices. "
+            "Re-extract, or detect the markers computationally.",
+        )
 ```
 
 The [coefficient of variation](coefficient-of-variation.md) is scale-free, so one
@@ -110,7 +112,7 @@ def check_parallel_layers(layers, where, report):
     constant depth — a copy-paste artifact, not real stratigraphy."""
     ...
     if any(abs(a[0] - b[0]) > 1e-9 for a, b in zip(pa, pb)):
-        continue          # different x stations — not comparable
+        continue  # different x stations — not comparable
     diffs = [b[1] - a[1] for a, b in zip(pa, pb)]
     spread = max(diffs) - min(diffs)
     if spread <= PARALLEL_OFFSET_TOLERANCE_M:

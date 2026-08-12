@@ -87,8 +87,12 @@ def points_key(pts):
     for p in pts:
         x = p.get("xCoordinateMeters")
         y = p.get("yCoordinateMeters")
-        out.append((round(x, 3) if x is not None else None,
-                    round(y, 3) if y is not None else None))
+        out.append(
+            (
+                round(x, 3) if x is not None else None,
+                round(y, 3) if y is not None else None,
+            )
+        )
     return tuple(out)
 ```
 
@@ -103,7 +107,7 @@ that differ in the last bit hash differently.
 record insertion order as a value:
 
 ```python
-order_index = {}       # surface -> first-seen position (the tie-breaker)
+order_index = {}  # surface -> first-seen position (the tie-breaker)
 ...
 if name not in order_index:
     order_index[name] = len(order_index)

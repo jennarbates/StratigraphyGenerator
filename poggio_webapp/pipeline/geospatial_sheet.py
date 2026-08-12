@@ -95,8 +95,7 @@ def _map_columns(headers):
                 break
 
     adjusted = [
-        header for header in headers
-        if _normalize(header).startswith(_ADJUSTED_PREFIX)
+        header for header in headers if _normalize(header).startswith(_ADJUSTED_PREFIX)
     ]
     return mapping, adjusted
 
@@ -136,10 +135,14 @@ def wall_names(corners):
             continue
         shared = set(here) & set(following) & set("NSEW")
         if len(shared) == 1:
-            names.append({
-                "N": "north wall", "S": "south wall",
-                "E": "east wall", "W": "west wall",
-            }[shared.pop()])
+            names.append(
+                {
+                    "N": "north wall",
+                    "S": "south wall",
+                    "E": "east wall",
+                    "W": "west wall",
+                }[shared.pop()]
+            )
         else:
             names.append("")
     return names
@@ -199,7 +202,8 @@ def read_sheet(text):
                 notes.append(
                     f"row {line}: {raw_id!r} in the trench column is not a "
                     "trench identifier; ignored, and the row is read as part "
-                    f"of {current or 'no trench'}")
+                    f"of {current or 'no trench'}"
+                )
 
         if current is None:
             continue
@@ -255,8 +259,7 @@ def elevation_readiness(record):
     """
     flags = record.get("adjusted_elevations") or {}
     outstanding = [
-        header for header, value in flags.items()
-        if value.strip().upper() == "FALSE"
+        header for header, value in flags.items() if value.strip().upper() == "FALSE"
     ]
     if not flags:
         return []
@@ -265,16 +268,14 @@ def elevation_readiness(record):
     return [
         "elevations have not been corrected to absolute for "
         + ", ".join(
-            header.split(":", 1)[-1].strip() or header
-            for header in outstanding
+            header.split(":", 1)[-1].strip() or header for header in outstanding
         )
         + ". Until they are, this trench has no elevations this application "
         "can build a model to"
     ]
 
 
-def layout_for(record, phase=OPENING, *, walls=None, site_grid=None,
-               vertical=None):
+def layout_for(record, phase=OPENING, *, walls=None, site_grid=None, vertical=None):
     """A ``trench_layout`` layout for one trench of this sheet.
 
     ``walls`` overrides the names derived from the corner labels, and is
@@ -285,15 +286,15 @@ def layout_for(record, phase=OPENING, *, walls=None, site_grid=None,
 
     corners = [dict(corner) for corner in record.get(phase) or []]
     if not corners:
-        raise SheetError(
-            f"this trench has no {phase} coordinates in the spreadsheet")
+        raise SheetError(f"this trench has no {phase} coordinates in the spreadsheet")
 
     derived = wall_names(corners)
     resolved = list(walls) if walls else derived
     if len(resolved) != len(corners):
         raise SheetError(
             f"this trench has {len(corners)} {phase} corners, so it needs "
-            f"{len(corners)} wall names; {len(resolved)} were given")
+            f"{len(corners)} wall names; {len(resolved)} were given"
+        )
     unnamed = [index + 1 for index, name in enumerate(resolved) if not name]
     if unnamed:
         raise SheetError(

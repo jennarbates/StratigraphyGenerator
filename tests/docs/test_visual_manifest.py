@@ -228,9 +228,7 @@ def test_screenshot_needs_capture_metadata(tmp_path: Path, key: str) -> None:
     del bad[key]
     repo = make_repository(tmp_path, [bad])
 
-    assert f"screenshots need {key}" in messages(
-        validate_manifest_entries([bad], repo)
-    )
+    assert f"screenshots need {key}" in messages(validate_manifest_entries([bad], repo))
 
 
 # ------------------------------------------------------- the reverse direction

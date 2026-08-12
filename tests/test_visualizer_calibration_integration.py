@@ -32,10 +32,13 @@ def test_manual_route_calibration_flows_to_visualizer(client):
     job_dir.mkdir()
     scan_path = job_dir / "scan.png"
     scan_path.write_bytes(b"scan")
-    _write_meta(job_dir, {
-        "scan_path": str(scan_path),
-        "sheet_type": "illustrator",
-    })
+    _write_meta(
+        job_dir,
+        {
+            "scan_path": str(scan_path),
+            "sheet_type": "illustrator",
+        },
+    )
 
     manual_response = client.post(
         f"/api/jobs/{job_id}/boundaries/manual",
@@ -78,16 +81,19 @@ def test_marker_calibration_flows_to_visualizer(client):
     extraction_dir.mkdir(parents=True)
     rotated_path = extraction_dir / "marker_source_rotated.png"
     rotated_path.write_bytes(b"image")
-    _write_meta(job_dir, {
-        "marker_calib": {
-            "kind": "manual",
-            "origin_px": [100, 200],
-            "ref_px": [500, 195],
-            "lowest_px": [100, 650.0],
-            "ref_meters": 4.0,
-            "px_per_m": 100.5,
+    _write_meta(
+        job_dir,
+        {
+            "marker_calib": {
+                "kind": "manual",
+                "origin_px": [100, 200],
+                "ref_px": [500, 195],
+                "lowest_px": [100, 650.0],
+                "ref_meters": 4.0,
+                "px_per_m": 100.5,
+            },
         },
-    })
+    )
 
     visualizer_response = client.get(
         f"/api/jobs/{job_id}/visualizer-files",

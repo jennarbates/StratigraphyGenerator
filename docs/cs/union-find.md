@@ -96,15 +96,17 @@ def _endpoint_components(endpoints, tolerance_m):
 
     def find(name):
         while parent[name] != name:
-            parent[name] = parent[parent[name]]   # path halving
+            parent[name] = parent[parent[name]]  # path halving
             name = parent[name]
         return name
 
     for i, a in enumerate(names):
-        for b in names[i + 1:]:
+        for b in names[i + 1 :]:
             touching = any(
                 math.dist(pa, pb) <= tolerance_m
-                for pa in endpoints[a] for pb in endpoints[b])
+                for pa in endpoints[a]
+                for pb in endpoints[b]
+            )
             if touching:
                 parent[find(a)] = find(b)
 ```
@@ -117,7 +119,8 @@ trench = max(components, key=lambda g: (len(g), -min(order[n] for n in g)))
 for name in endpoints:
     if name not in trench:
         warnings.append(
-            f"face {name!r} is not connected to the rest of the trench: ...")
+            f"face {name!r} is not connected to the rest of the trench: ..."
+        )
 ```
 
 Note the tie-break. When two groups are the same size, the one containing the
@@ -143,7 +146,7 @@ def correlation_components(matrix: HarrisMatrix) -> dict[str, str]:
         first_root, second_root = find(first_id), find(second_id)
         if first_root == second_root:
             return
-        representative = min(first_root, second_root)   # deterministic
+        representative = min(first_root, second_root)  # deterministic
         parent[max(first_root, second_root)] = representative
 ```
 

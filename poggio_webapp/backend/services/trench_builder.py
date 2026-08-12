@@ -80,28 +80,32 @@ def grouped_members():
         wall_label = meta.get("wall_label")
         season = meta.get("season")
         locus_epoch = meta.get("locus_epoch")
-        grouped.setdefault(label, []).append({
-            "job_id": meta.get("job_id") or job_directory.name,
-            "wall_label": wall_label if isinstance(wall_label, str) else None,
-            "sheet_type": meta.get("sheet_type"),
-            "season": season if isinstance(season, str) else None,
-            "locus_epoch": (
-                locus_epoch if isinstance(locus_epoch, str) else None),
-            # What the operator actually typed. Kept so the canonicalization
-            # can be seen rather than inferred: a job that was grouped under a
-            # label it does not literally carry should be able to say so.
-            "recorded_label": meta.get("trench_label"),
-            "site_grid": (
-                meta["site_grid"] if isinstance(meta.get("site_grid"), str)
-                else None),
-            "has_normalized": bool(
-                normalized and Path(normalized).is_file()),
-            # Demonstration provenance, if this job has any. The trenches page
-            # needs it to badge a seeded trench; without it a demo trench is
-            # indistinguishable on screen from the operator's own.
-            "demo": meta.get("demo") if isinstance(meta.get("demo"), dict) else None,
-            "_normalized_path": normalized,
-        })
+        grouped.setdefault(label, []).append(
+            {
+                "job_id": meta.get("job_id") or job_directory.name,
+                "wall_label": wall_label if isinstance(wall_label, str) else None,
+                "sheet_type": meta.get("sheet_type"),
+                "season": season if isinstance(season, str) else None,
+                "locus_epoch": (locus_epoch if isinstance(locus_epoch, str) else None),
+                # What the operator actually typed. Kept so the canonicalization
+                # can be seen rather than inferred: a job that was grouped under a
+                # label it does not literally carry should be able to say so.
+                "recorded_label": meta.get("trench_label"),
+                "site_grid": (
+                    meta["site_grid"]
+                    if isinstance(meta.get("site_grid"), str)
+                    else None
+                ),
+                "has_normalized": bool(normalized and Path(normalized).is_file()),
+                # Demonstration provenance, if this job has any. The trenches page
+                # needs it to badge a seeded trench; without it a demo trench is
+                # indistinguishable on screen from the operator's own.
+                "demo": meta.get("demo")
+                if isinstance(meta.get("demo"), dict)
+                else None,
+                "_normalized_path": normalized,
+            }
+        )
     for members in grouped.values():
         members.sort(key=lambda m: (m["wall_label"] or "", m["job_id"]))
     return grouped
@@ -126,7 +130,8 @@ def label_variants(members):
     """
     canonical = {canonical_trench(m.get("recorded_label")) for m in members}
     recorded = {
-        m["recorded_label"] for m in members
+        m["recorded_label"]
+        for m in members
         if isinstance(m.get("recorded_label"), str) and m["recorded_label"].strip()
     }
     if len(recorded) < 2 and recorded <= canonical:
@@ -145,7 +150,8 @@ def resolve_wall_labels(members, notes):
             notes.append(
                 f"job {member['job_id']} has no wall_label; using {derived!r} "
                 "as its face name. Set a wall label so the face names match "
-                "your survey and the grid config")
+                "your survey and the grid config"
+            )
 
     by_label = {}
     for member in members:
@@ -153,12 +159,13 @@ def resolve_wall_labels(members, notes):
     clashes = [group for group in by_label.values() if len(group) > 1]
     if clashes:
         described = "; ".join(
-            f"{group[0]['wall_label']!r}: "
-            + ", ".join(m["job_id"] for m in group)
-            for group in clashes)
+            f"{group[0]['wall_label']!r}: " + ", ".join(m["job_id"] for m in group)
+            for group in clashes
+        )
         raise TrenchBuildError(
             "two or more sheets claim the same wall of this trench "
-            f"({described}). Each job must describe a different wall")
+            f"({described}). Each job must describe a different wall"
+        )
 
 
 def check_locus_epochs(members, notes):
@@ -192,13 +199,15 @@ def check_locus_epochs(members, notes):
             + ", ".join(repr(e) for e in epochs)
             + "). Locus numbers restart at each epoch, so the same number "
             "means different deposits on either side of one. Build each epoch "
-            "as its own trench")
+            "as its own trench"
+        )
     if epochs:
         undeclared = [m["job_id"] for m in members if not m["locus_epoch"]]
         if undeclared:
             notes.append(
                 f"jobs {', '.join(undeclared)} declare no locus epoch; taking "
-                f"them as part of {epochs[0]!r}, the only one declared")
+                f"them as part of {epochs[0]!r}, the only one declared"
+            )
         return
 
     seasons = sorted({m["season"] for m in members if m["season"]})
@@ -213,12 +222,14 @@ def check_locus_epochs(members, notes):
             "not a 4-digit year ("
             + ", ".join(repr(s) for s in unparsed)
             + "), so whether their locus numbering continues cannot be "
-            "determined. Set a locus_epoch on each job")
+            "determined. Set a locus_epoch on each job"
+        )
     if years == list(range(years[0], years[-1] + 1)):
         notes.append(
             f"sheets span consecutive seasons {years[0]}-{years[-1]}; locus "
             "numbering continues across those, so their locus numbers are "
-            "being read as one sequence")
+            "being read as one sequence"
+        )
         return
 
     missing = [y for y in range(years[0], years[-1] + 1) if y not in years]
@@ -228,7 +239,8 @@ def check_locus_epochs(members, notes):
         + f"; nothing from {', '.join(str(y) for y in missing)}). A trench "
         "reopened after a gap may restart its locus numbering, so the same "
         "locus number need not mean the same deposit. Set a locus_epoch on "
-        "each job to say which numbering sequence it belongs to")
+        "each job to say which numbering sequence it belongs to"
+    )
 
 
 def check_site_grid(members, grid, notes):
@@ -250,7 +262,8 @@ def check_site_grid(members, grid, notes):
             "these sheets are recorded against different site grids ("
             + ", ".join(repr(name) for name in declared)
             + "). The two local grids have origins about 1.5 million metres "
-            "apart, so their coordinates cannot be combined into one trench")
+            "apart, so their coordinates cannot be combined into one trench"
+        )
 
     from_sheets = declared[0] if declared else ""
     from_config = ""
@@ -264,14 +277,16 @@ def check_site_grid(members, grid, notes):
         raise TrenchBuildError(
             f"the grid config is for site grid {from_config!r} but these "
             f"sheets were recorded against {from_sheets!r}. One of the two is "
-            "wrong, and the difference is not a rounding error")
+            "wrong, and the difference is not a rounding error"
+        )
 
     agreed = from_config or from_sheets
     if not agreed:
         notes.append(
             "no site grid is declared on these sheets or in the grid config. "
             "Poggio Civitate runs two local grids, so record which one these "
-            "coordinates belong to")
+            "coordinates belong to"
+        )
     return agreed
 
 
@@ -294,14 +309,17 @@ def check_vertical_frame(grid, notes):
     except site_elevation.ElevationError as error:
         raise TrenchBuildError(str(error)) from error
 
-    if (vertical.get("entryForm") == "below-datum"
-            and site_elevation.datum_absolute_z(vertical) is None):
+    if (
+        vertical.get("entryForm") == "below-datum"
+        and site_elevation.datum_absolute_z(vertical) is None
+    ):
         raise TrenchBuildError(
             "this trench's elevations are recorded below datum and the datum "
             "nail's own absolute elevation is not recorded, so they cannot be "
             "resolved. Enter the datum elevation before building -- treating "
             "a missing datum as zero would place the model tens of metres "
-            "from the trench without anything downstream noticing")
+            "from the trench without anything downstream noticing"
+        )
     notes.append(description)
 
 
@@ -313,7 +331,8 @@ def _load_sheets(members):
         except (OSError, UnicodeError, json.JSONDecodeError) as error:
             raise TrenchBuildError(
                 f"could not read the normalized extraction for job "
-                f"{member['job_id']}: {error}") from error
+                f"{member['job_id']}: {error}"
+            ) from error
         sheets.append((member["wall_label"], data))
     return sheets
 
@@ -323,15 +342,19 @@ def _check_registration(grid, merged):
     already proved every one of them is present), so a stale entry left in the
     operator's config cannot block an otherwise valid build."""
     faces_cfg = (grid or {}).get("faces") or {}
-    placeholders = [name for name in merge_walls.face_names(merged)
-                    if merge_walls.is_placeholder(faces_cfg[name], grid)]
+    placeholders = [
+        name
+        for name in merge_walls.face_names(merged)
+        if merge_walls.is_placeholder(faces_cfg[name], grid)
+    ]
     if placeholders:
         raise TrenchBuildError(
             "these faces still carry the starter placeholder registration: "
             + ", ".join(repr(name) for name in sorted(placeholders))
             + ". Fill in real survey values (originX, originY, surfaceZ, "
-              "bearing_deg) before building; placeholders would place the "
-              "walls in a row instead of around the pit")
+            "bearing_deg) before building; placeholders would place the "
+            "walls in a row instead of around the pit"
+        )
 
 
 def _modelled_surfaces(points_csv):
@@ -355,16 +378,15 @@ def _harris_order(label, surfaces, notes):
     """
     from .. import harris_store
 
-    candidates = series_order.matrices_for_trench(
-        label, harris_store.list_matrices())
+    candidates = series_order.matrices_for_trench(label, harris_store.list_matrices())
     if not candidates:
         return None
     if len(candidates) > 1:
-        titles = ", ".join(
-            f"{c['title']!r} ({c['matrix_id']})" for c in candidates)
+        titles = ", ".join(f"{c['title']!r} ({c['matrix_id']})" for c in candidates)
         raise TrenchBuildError(
             f"more than one Harris matrix is recorded for this trench: "
-            f"{titles}. Keep one, or pass an explicit series_order")
+            f"{titles}. Keep one, or pass an explicit series_order"
+        )
 
     summary = candidates[0]
     try:
@@ -376,14 +398,16 @@ def _harris_order(label, surfaces, notes):
 
     try:
         order, arbitrary, order_notes = series_order.from_harris(
-            matrix, available_surfaces=surfaces)
+            matrix, available_surfaces=surfaces
+        )
     except series_order.SeriesOrderError as error:
         raise TrenchBuildError(str(error)) from error
 
     notes.append(
         f"using the Harris matrix {summary['title']!r} "
         f"({summary['matrix_id']}, revision {summary['revision']}) for "
-        "stratigraphic order")
+        "stratigraphic order"
+    )
     notes.extend(order_notes)
     return order, arbitrary
 
@@ -437,14 +461,16 @@ def build(label, body):
     if not members:
         raise TrenchBuildError(
             f"no jobs are labelled trench {canonical or label!r}; set a trench "
-            "label on each wall's job first")
+            "label on each wall's job first"
+        )
 
     unready = [m["job_id"] for m in members if not m["has_normalized"]]
     if unready:
         raise TrenchBuildError(
             "these jobs have no normalized extraction yet: "
             + ", ".join(unready)
-            + ". Finalize or normalize each wall before building the trench")
+            + ". Finalize or normalize each wall before building the trench"
+        )
 
     notes = []
     check_locus_epochs(members, notes)
@@ -453,7 +479,8 @@ def build(label, body):
 
     try:
         merged, merge_notes = merge_walls.merge_extractions(
-            sheets, correlation=body.get("correlation"))
+            sheets, correlation=body.get("correlation")
+        )
     except ValueError as error:
         raise TrenchBuildError(str(error)) from error
     notes.extend(merge_notes)
@@ -489,22 +516,28 @@ def build(label, body):
         raise TrenchBuildError(
             "the grid config has no entry for these faces: "
             + ", ".join(repr(name) for name in conversion["missing_faces"])
-            + " -- they would be dropped from the model")
+            + " -- they would be dropped from the model"
+        )
     if not conversion["n_points"]:
         raise TrenchBuildError(
             "conversion produced no interface points; check that the walls' "
-            "layers have boundary points")
+            "layers have boundary points"
+        )
 
     # Only merged trenches can do this: one wall alone can measure the dip in
     # its own plane and nothing more, and an apparent dip is always shallower
     # than the true one. With two walls the plane is determined, so every seed
     # for a surface can carry the same real orientation instead of two
     # disagreeing shadows of it. Single-sheet builds never come through here.
-    notes.extend(true_dip.apply_true_dip(
-        conversion["points_csv"], conversion["orientations_csv"], grid))
+    notes.extend(
+        true_dip.apply_true_dip(
+            conversion["points_csv"], conversion["orientations_csv"], grid
+        )
+    )
 
     series_order, order_source, arbitrary_pairs = resolve_series_order(
-        label, body, merged, conversion["points_csv"], notes)
+        label, body, merged, conversion["points_csv"], notes
+    )
 
     # Imported here, not at module scope: gempy is an optional extra and every
     # refusal above must work without it installed.
@@ -532,4 +565,3 @@ def build(label, body):
         "notes": notes,
         "grid_warnings": grid_warnings,
     }
-

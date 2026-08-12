@@ -1,5 +1,5 @@
 """
-detectFieldWallMarkers.py — find the artist's actual circle-marked vertex
+detect_field_wall_markers.py — find the artist's actual circle-marked vertex
 points on a field-wall photo (like T104's), computationally, instead of
 asking an LLM to invent boundary coordinates.
 
@@ -24,7 +24,7 @@ Coordinate convention (matches extractFieldWall.py / convertCoords.py):
     depth = downward from the ground surface, meters, positive down.
 
 Usage:
-    python detectFieldWallMarkers.py T104_southern_baulk_wall.jpeg \\
+    python detect_field_wall_markers.py T104_southern_baulk_wall.jpeg \\
         --rotate 90 \\
         --square-cm 20 \\
         --origin-px 1148 823 \\
@@ -71,6 +71,7 @@ def find_grid_px_per_cm(gray, redness, sample_box, square_cm):
     colsum = strip.sum(axis=0)
     colsum = colsum - colsum.min()
     from scipy.signal import find_peaks
+
     peaks, props = find_peaks(colsum, height=colsum.max() * 0.3, distance=5)
     heights = props["peak_heights"]
     bold = [p for p, h in zip(peaks, heights) if h > np.median(heights) * 1.3]
@@ -78,7 +79,8 @@ def find_grid_px_per_cm(gray, redness, sample_box, square_cm):
         raise SystemExit(
             "Couldn't find at least 2 bold grid lines in --grid-sample-box "
             "to measure spacing — pick a cleaner blank patch of the grid "
-            "(no ink/text) via --grid-sample-box y0 y1 x0 x1.")
+            "(no ink/text) via --grid-sample-box y0 y1 x0 x1."
+        )
     bold_spacing_px = float(np.mean(np.diff(bold)))
     return bold_spacing_px / square_cm
 
@@ -101,9 +103,14 @@ def find_circle_markers(ink_mask, min_diam_px, max_diam_px, min_circularity=0.55
             continue
         (cx, cy), radius = cv2.minEnclosingCircle(c)
         diam = radius * 2
-        circularity = 4 * math.pi * area / (perim ** 2)
-        entry = {"cx": cx, "cy": cy, "diam": diam, "circularity": circularity,
-                 "area": area}
+        circularity = 4 * math.pi * area / (perim**2)
+        entry = {
+            "cx": cx,
+            "cy": cy,
+            "diam": diam,
+            "circularity": circularity,
+            "area": area,
+        }
         if min_diam_px <= diam <= max_diam_px and circularity >= min_circularity:
             accepted.append(entry)
         else:
@@ -114,48 +121,92 @@ def find_circle_markers(ink_mask, min_diam_px, max_diam_px, min_circularity=0.55
 def draw_debug_image(img, accepted, rejected, origin_px, px_per_cm, path):
     dbg = img.copy()
     for e in rejected:
-        cv2.circle(dbg, (int(e["cx"]), int(e["cy"])), max(int(e["diam"] / 2), 3),
-                    (0, 0, 255), 2)   # red = rejected
+        cv2.circle(
+            dbg,
+            (int(e["cx"]), int(e["cy"])),
+            max(int(e["diam"] / 2), 3),
+            (0, 0, 255),
+            2,
+        )  # red = rejected
     for e in accepted:
-        cv2.circle(dbg, (int(e["cx"]), int(e["cy"])), max(int(e["diam"] / 2), 3),
-                    (0, 255, 0), 3)   # green = accepted marker
+        cv2.circle(
+            dbg,
+            (int(e["cx"]), int(e["cy"])),
+            max(int(e["diam"] / 2), 3),
+            (0, 255, 0),
+            3,
+        )  # green = accepted marker
     ox, oy = origin_px
-    cv2.drawMarker(dbg, (int(ox), int(oy)), (255, 0, 255),
-                    markerType=cv2.MARKER_CROSS, markerSize=40, thickness=4)
+    cv2.drawMarker(
+        dbg,
+        (int(ox), int(oy)),
+        (255, 0, 255),
+        markerType=cv2.MARKER_CROSS,
+        markerSize=40,
+        thickness=4,
+    )
     cv2.imwrite(path, dbg)
 
 
 def main():
-    ap = argparse.ArgumentParser(description=__doc__,
-                                  formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     ap.add_argument("image")
-    ap.add_argument("--square-cm", type=float, required=True,
-                    help="real-world size of one BOLD grid square, in cm")
-    ap.add_argument("--origin-px", type=float, nargs=2, metavar=("X", "Y"),
-                    required=True,
-                    help="pixel coords of the wall's x=0/depth=0 corner "
-                         "(top-left of the drawn box), read off by eye in "
-                         "an image viewer")
-    ap.add_argument("--grid-sample-box", type=int, nargs=4,
-                    metavar=("Y0", "Y1", "X0", "X1"), default=None,
-                    help="a clean/blank patch of grid (no ink) used to "
-                         "re-measure px/cm; defaults to a patch near the "
-                         "image's top-left corner if not given")
-    ap.add_argument("--min-marker-cm", type=float, default=0.15,
-                    help="smallest real diameter (cm) counted as a vertex "
-                         "marker, not noise (default 0.15)")
-    ap.add_argument("--max-marker-cm", type=float, default=0.6,
-                    help="largest real diameter (cm) counted as a vertex "
-                         "marker before it's probably a stone/letter "
-                         "instead (default 0.6)")
+    ap.add_argument(
+        "--square-cm",
+        type=float,
+        required=True,
+        help="real-world size of one BOLD grid square, in cm",
+    )
+    ap.add_argument(
+        "--origin-px",
+        type=float,
+        nargs=2,
+        metavar=("X", "Y"),
+        required=True,
+        help="pixel coords of the wall's x=0/depth=0 corner "
+        "(top-left of the drawn box), read off by eye in "
+        "an image viewer",
+    )
+    ap.add_argument(
+        "--grid-sample-box",
+        type=int,
+        nargs=4,
+        metavar=("Y0", "Y1", "X0", "X1"),
+        default=None,
+        help="a clean/blank patch of grid (no ink) used to "
+        "re-measure px/cm; defaults to a patch near the "
+        "image's top-left corner if not given",
+    )
+    ap.add_argument(
+        "--min-marker-cm",
+        type=float,
+        default=0.15,
+        help="smallest real diameter (cm) counted as a vertex "
+        "marker, not noise (default 0.15)",
+    )
+    ap.add_argument(
+        "--max-marker-cm",
+        type=float,
+        default=0.6,
+        help="largest real diameter (cm) counted as a vertex "
+        "marker before it's probably a stone/letter "
+        "instead (default 0.6)",
+    )
     ap.add_argument("--out", default="markers.csv")
     ap.add_argument("--debug-image", default="markers_debug.png")
-    ap.add_argument("--rotate", type=int, choices=[0, 90, 180, 270], default=0,
-                     help="degrees to rotate the source photo clockwise "
-                          "before processing, e.g. 90 if it was shot "
-                          "sideways (default 0). All other arguments "
-                          "(--origin-px, --grid-sample-box) refer to pixel "
-                          "coordinates AFTER this rotation is applied.")
+    ap.add_argument(
+        "--rotate",
+        type=int,
+        choices=[0, 90, 180, 270],
+        default=0,
+        help="degrees to rotate the source photo clockwise "
+        "before processing, e.g. 90 if it was shot "
+        "sideways (default 0). All other arguments "
+        "(--origin-px, --grid-sample-box) refer to pixel "
+        "coordinates AFTER this rotation is applied.",
+    )
     args = ap.parse_args()
 
     img = cv2.imread(args.image, cv2.IMREAD_IGNORE_ORIENTATION | cv2.IMREAD_COLOR)
@@ -177,38 +228,52 @@ def main():
     min_diam_px = args.min_marker_cm * px_per_cm
     max_diam_px = args.max_marker_cm * px_per_cm
     accepted, rejected = find_circle_markers(ink_mask, min_diam_px, max_diam_px)
-    print(f"found {len(accepted)} candidate markers "
-          f"({len(rejected)} shapes rejected by size/circularity)")
+    print(
+        f"found {len(accepted)} candidate markers "
+        f"({len(rejected)} shapes rejected by size/circularity)"
+    )
 
     ox, oy = args.origin_px
     rows = []
     for e in accepted:
         x_m = (e["cx"] - ox) / px_per_cm / 100.0
         depth_m = (e["cy"] - oy) / px_per_cm / 100.0
-        rows.append({
-            "pixel_x": round(e["cx"], 1), "pixel_y": round(e["cy"], 1),
-            "x_m": round(x_m, 3), "depth_m": round(depth_m, 3),
-            "diam_px": round(e["diam"], 1),
-            "circularity": round(e["circularity"], 3),
-        })
+        rows.append(
+            {
+                "pixel_x": round(e["cx"], 1),
+                "pixel_y": round(e["cy"], 1),
+                "x_m": round(x_m, 3),
+                "depth_m": round(depth_m, 3),
+                "diam_px": round(e["diam"], 1),
+                "circularity": round(e["circularity"], 3),
+            }
+        )
     rows.sort(key=lambda r: r["x_m"])
 
     with open(args.out, "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=list(rows[0].keys()) if rows else
-                                 ["pixel_x", "pixel_y", "x_m", "depth_m",
-                                  "diam_px", "circularity"])
+        writer = csv.DictWriter(
+            f,
+            fieldnames=list(rows[0].keys())
+            if rows
+            else ["pixel_x", "pixel_y", "x_m", "depth_m", "diam_px", "circularity"],
+        )
         writer.writeheader()
         writer.writerows(rows)
     print(f"wrote {args.out}")
 
-    draw_debug_image(img, accepted, rejected, args.origin_px, px_per_cm,
-                      args.debug_image)
-    print(f"wrote {args.debug_image} — ALWAYS check this before trusting "
-          f"{args.out}. Green circles = accepted markers, red = rejected "
-          f"candidates, magenta cross = the origin you gave.")
-    print("\nNOTE: this only finds marker points, it does not know which "
-          "locus/boundary each one belongs to. That assignment step is "
-          "still open — see the file's module docstring.")
+    draw_debug_image(
+        img, accepted, rejected, args.origin_px, px_per_cm, args.debug_image
+    )
+    print(
+        f"wrote {args.debug_image} — ALWAYS check this before trusting "
+        f"{args.out}. Green circles = accepted markers, red = rejected "
+        f"candidates, magenta cross = the origin you gave."
+    )
+    print(
+        "\nNOTE: this only finds marker points, it does not know which "
+        "locus/boundary each one belongs to. That assignment step is "
+        "still open — see the file's module docstring."
+    )
 
 
 if __name__ == "__main__":

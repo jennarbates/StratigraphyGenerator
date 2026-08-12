@@ -53,7 +53,8 @@ _KOBO_RECORD = re.compile(
 
 # "p. 17", "17", "17-19", "pp. 17-19".
 _TRENCHBOOK_PAGE = re.compile(
-    r"^(?:pp?\.?\s*)?(\d+)(?:\s*[-–]\s*(\d+))?$", re.IGNORECASE)
+    r"^(?:pp?\.?\s*)?(\d+)(?:\s*[-–]\s*(\d+))?$", re.IGNORECASE
+)
 
 
 class ProvenanceError(ValueError):
@@ -151,18 +152,19 @@ def read(payload):
     record = {}
     notes = []
 
-    uri = open_context_uri(source.get("open_context_uri")
-                           or source.get("openContextUri"))
+    uri = open_context_uri(
+        source.get("open_context_uri") or source.get("openContextUri")
+    )
     if uri:
         record["open_context_uri"] = uri
 
-    kobo = kobo_record_id(source.get("kobo_record_id")
-                          or source.get("koboRecordId"))
+    kobo = kobo_record_id(source.get("kobo_record_id") or source.get("koboRecordId"))
     if kobo:
         record["kobo_record_id"] = kobo
 
-    page, page_notes = trenchbook_page(source.get("trenchbook_page")
-                                       or source.get("trenchbookPage"))
+    page, page_notes = trenchbook_page(
+        source.get("trenchbook_page") or source.get("trenchbookPage")
+    )
     if page:
         record["trenchbook_page"] = page
     notes.extend(page_notes)

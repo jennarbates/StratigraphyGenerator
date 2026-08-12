@@ -58,7 +58,7 @@ def _xml_text(value) -> str:
             or 0xE000 <= ord(character) <= 0xFFFD
             or 0x10000 <= ord(character) <= 0x10FFFF
         )
-        else "\uFFFD"
+        else "\ufffd"
         for character in str(value)
     )
 
@@ -90,13 +90,15 @@ def _display_nodes(matrix, components, ranks):
             key=lambda unit: (_normalized_label(unit.label), unit.id),
         )
         label = " = ".join(unit.label for unit in ordered_units)
-        nodes.append(_DisplayNode(
-            representative_id=representative_id,
-            unit_ids=tuple(unit.id for unit in ordered_units),
-            label=label,
-            rank=ranks[representative_id],
-            width=_node_width(label),
-        ))
+        nodes.append(
+            _DisplayNode(
+                representative_id=representative_id,
+                unit_ids=tuple(unit.id for unit in ordered_units),
+                label=label,
+                rank=ranks[representative_id],
+                width=_node_width(label),
+            )
+        )
     return nodes
 
 
@@ -136,10 +138,7 @@ def _ranked_nodes(nodes):
 def _rank_width(nodes):
     if not nodes:
         return 0
-    return (
-        sum(node.width for node in nodes)
-        + _NODE_GAP * (len(nodes) - 1)
-    )
+    return sum(node.width for node in nodes) + _NODE_GAP * (len(nodes) - 1)
 
 
 def _header_width(matrix, warning_text):
@@ -178,8 +177,7 @@ def _append_text(
         "y": str(y),
         "fill": "#252c27",
         "font-family": (
-            "Inter, system-ui, -apple-system, BlinkMacSystemFont, "
-            "Segoe UI, sans-serif"
+            "Inter, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif"
         ),
         "font-size": str(size),
         "font-weight": weight,
@@ -216,13 +214,9 @@ def render_harris_svg(matrix: HarrisMatrix) -> str:
 
     report = validate_matrix_graph(matrix)
     if not report["ok"]:
-        error_codes = sorted({
-            issue["code"]
-            for issue in report["errors"]
-        })
+        error_codes = sorted({issue["code"] for issue in report["errors"]})
         raise HarrisRenderError(
-            "Cannot render a matrix with graph errors: "
-            f"{', '.join(error_codes)}."
+            f"Cannot render a matrix with graph errors: {', '.join(error_codes)}."
         )
 
     edges = [tuple(edge) for edge in report["display_edges"]]
@@ -262,29 +256,35 @@ def render_harris_svg(matrix: HarrisMatrix) -> str:
             "aria-labelledby": "harris-svg-title harris-svg-description",
         },
     )
-    root.append(_svg_element(
-        "title",
-        {"id": "harris-svg-title"},
-        text=matrix.title or "Untitled Harris Matrix",
-    ))
-    root.append(_svg_element(
-        "desc",
-        {"id": "harris-svg-description"},
-        text=(
-            "Harris Matrix with younger units at the top and older units "
-            "at the bottom."
-        ),
-    ))
-    root.append(_svg_element(
-        "rect",
-        {
-            "x": "0",
-            "y": "0",
-            "width": str(width),
-            "height": str(height),
-            "fill": "#fffdf8",
-        },
-    ))
+    root.append(
+        _svg_element(
+            "title",
+            {"id": "harris-svg-title"},
+            text=matrix.title or "Untitled Harris Matrix",
+        )
+    )
+    root.append(
+        _svg_element(
+            "desc",
+            {"id": "harris-svg-description"},
+            text=(
+                "Harris Matrix with younger units at the top and older units "
+                "at the bottom."
+            ),
+        )
+    )
+    root.append(
+        _svg_element(
+            "rect",
+            {
+                "x": "0",
+                "y": "0",
+                "width": str(width),
+                "height": str(height),
+                "fill": "#fffdf8",
+            },
+        )
+    )
 
     header = _svg_element("g", {"class": "harris-header"})
     _append_text(
@@ -315,10 +315,7 @@ def render_harris_svg(matrix: HarrisMatrix) -> str:
     )
     _append_text(
         header,
-        (
-            "Relationships: above • cuts • fills • precedes • other  |  "
-            f"{warning_text}"
-        ),
+        (f"Relationships: above • cuts • fills • precedes • other  |  {warning_text}"),
         x=_PAGE_MARGIN,
         y=114,
         size=12,
@@ -333,17 +330,19 @@ def render_harris_svg(matrix: HarrisMatrix) -> str:
         size=11,
         css_class="harris-generation-time",
     )
-    header.append(_svg_element(
-        "line",
-        {
-            "x1": str(_PAGE_MARGIN),
-            "x2": str(width - _PAGE_MARGIN),
-            "y1": "150",
-            "y2": "150",
-            "stroke": "#d6cebd",
-            "stroke-width": "1",
-        },
-    ))
+    header.append(
+        _svg_element(
+            "line",
+            {
+                "x1": str(_PAGE_MARGIN),
+                "x2": str(width - _PAGE_MARGIN),
+                "y1": "150",
+                "y2": "150",
+                "stroke": "#d6cebd",
+                "stroke-width": "1",
+            },
+        )
+    )
     root.append(header)
 
     if not nodes:
@@ -394,10 +393,12 @@ def render_harris_svg(matrix: HarrisMatrix) -> str:
                 "stroke-linecap": "round",
             },
         )
-        line.append(_svg_element(
-            "title",
-            text=f"Younger {younger_id} to older {older_id}",
-        ))
+        line.append(
+            _svg_element(
+                "title",
+                text=f"Younger {younger_id} to older {older_id}",
+            )
+        )
         edge_group.append(line)
     root.append(edge_group)
 
@@ -414,19 +415,21 @@ def render_harris_svg(matrix: HarrisMatrix) -> str:
                     "data-rank": str(rank),
                 },
             )
-            group.append(_svg_element(
-                "rect",
-                {
-                    "x": str(x),
-                    "y": str(y),
-                    "width": str(node_width),
-                    "height": str(_NODE_HEIGHT),
-                    "rx": "7",
-                    "fill": "#fffdf8",
-                    "stroke": "#7a3428",
-                    "stroke-width": "2",
-                },
-            ))
+            group.append(
+                _svg_element(
+                    "rect",
+                    {
+                        "x": str(x),
+                        "y": str(y),
+                        "width": str(node_width),
+                        "height": str(_NODE_HEIGHT),
+                        "rx": "7",
+                        "fill": "#fffdf8",
+                        "stroke": "#7a3428",
+                        "stroke-width": "2",
+                    },
+                )
+            )
             _append_text(
                 group,
                 node.label,

@@ -160,7 +160,9 @@ def _mock_successful_extraction(monkeypatch):
 
 
 def test_text_metadata_blueprint_registers_all_endpoints(route_context):
-    rules = {rule.rule for rule in route_context.client.application.url_map.iter_rules()}
+    rules = {
+        rule.rule for rule in route_context.client.application.url_map.iter_rules()
+    }
 
     assert "/api/jobs/<job_id>/text-extraction" in rules
     assert "/api/jobs/<job_id>/text-verification" in rules
@@ -358,9 +360,7 @@ def test_get_returns_candidates_when_available(route_context):
     )
     (directory / "meta.json").write_text(json.dumps(meta), encoding="utf-8")
 
-    response = route_context.client.get(
-        "/api/jobs/fieldwall-job/text-extraction"
-    )
+    response = route_context.client.get("/api/jobs/fieldwall-job/text-extraction")
 
     assert response.status_code == 200
     assert response.get_json() == {
@@ -383,9 +383,7 @@ def test_get_returns_verified_text_when_available(route_context):
     )
     (directory / "meta.json").write_text(json.dumps(meta), encoding="utf-8")
 
-    response = route_context.client.get(
-        "/api/jobs/fieldwall-job/text-extraction"
-    )
+    response = route_context.client.get("/api/jobs/fieldwall-job/text-extraction")
 
     assert response.status_code == 200
     assert response.get_json() == {

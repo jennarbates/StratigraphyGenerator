@@ -19,8 +19,7 @@ from pipeline.merge_walls import (
 
 
 def merge_t900(**kwargs):
-    return merge_extractions(
-        [("north", NORTH_WALL), ("east", EAST_WALL)], **kwargs)
+    return merge_extractions([("north", NORTH_WALL), ("east", EAST_WALL)], **kwargs)
 
 
 def face_names(merged):
@@ -56,8 +55,9 @@ def test_same_locus_shares_surface_string_across_faces():
 def test_munsell_disagreement_noted_and_first_reading_wins():
     merged, notes = merge_t900()
     assert SURFACE_L2 in surfaces_of(merged, "east")  # north's reading
-    disagreement = [n for n in notes
-                    if "disagrees" in n and "north" in n and "east" in n]
+    disagreement = [
+        n for n in notes if "disagrees" in n and "north" in n and "east" in n
+    ]
     assert len(disagreement) == 1
     assert "2" in disagreement[0]
 
@@ -125,8 +125,7 @@ def test_layer_locus_missing_from_loci_still_shares_one_surface():
     reading. Identity no longer depends on colour, so the two walls fuse with
     nothing rewritten and nothing to warn about."""
     east = copy.deepcopy(EAST_WALL)
-    east["loci"] = [entry for entry in east["loci"]
-                    if entry["locusNumber"] != "2"]
+    east["loci"] = [entry for entry in east["loci"] if entry["locusNumber"] != "2"]
     merged, notes = merge_extractions([("north", NORTH_WALL), ("east", east)])
     assert surfaces_of(merged, "east") == [SURFACE_L1, SURFACE_L2]
     assert surfaces_of(merged, "north") == [SURFACE_L1, SURFACE_L2]
@@ -137,12 +136,17 @@ def test_layer_locus_missing_from_loci_still_shares_one_surface():
 # CHUNK 2: merged_series_order
 # --------------------------------------------------------------------------
 
+
 def wall(face_name, *surfaces):
     """A merged-document face whose layers are the given surfaces, in order
     (top to bottom = young to old)."""
-    return {"face": face_name,
-            "layers": [{"layerName": s, "inferredMaterial": s,
-                        "bottomBoundary": []} for s in surfaces]}
+    return {
+        "face": face_name,
+        "layers": [
+            {"layerName": s, "inferredMaterial": s, "bottomBoundary": []}
+            for s in surfaces
+        ],
+    }
 
 
 def doc(*faces):
@@ -158,8 +162,7 @@ def test_series_order_of_merged_fixture():
 
 # 2. Constraints from two walls chain together: (P, Q) + (Q, R) -> P, Q, R.
 def test_series_order_chains_across_walls():
-    order, _ = merged_series_order(
-        doc(wall("A", "P", "Q"), wall("B", "Q", "R")))
+    order, _ = merged_series_order(doc(wall("A", "P", "Q"), wall("B", "Q", "R")))
     assert order == ["P", "Q", "R"]
 
 
@@ -174,7 +177,8 @@ def test_contradicting_walls_raise():
 # 4. A surface seen on only one wall is allowed, and noted with its face.
 def test_single_wall_surface_is_noted():
     order, notes = merged_series_order(
-        doc(wall("A", "P", "Q"), wall("B", "P", "Q", "R")))
+        doc(wall("A", "P", "Q"), wall("B", "P", "Q", "R"))
+    )
     assert order == ["P", "Q", "R"]
     single = [n for n in notes if "'R'" in n]
     assert len(single) == 1
@@ -194,8 +198,7 @@ def test_series_order_is_deterministic():
     # independent second wall cannot reshuffle the first.
     independent = doc(wall("A", "P", "Q"), wall("B", "M", "N"))
     assert merged_series_order(independent)[0] == ["P", "Q", "M", "N"]
-    assert merged_series_order(independent)[0] == \
-        merged_series_order(independent)[0]
+    assert merged_series_order(independent)[0] == merged_series_order(independent)[0]
 
 
 # Extra: the order names exactly the surfaces present, so it can be handed to
@@ -203,9 +206,11 @@ def test_series_order_is_deterministic():
 def test_series_order_covers_every_surface_once():
     merged, _ = merge_t900()
     order, _ = merged_series_order(merged)
-    present = {layer["inferredMaterial"]
-               for face in merged["trenchProfiles"]
-               for layer in face["layers"]}
+    present = {
+        layer["inferredMaterial"]
+        for face in merged["trenchProfiles"]
+        for layer in face["layers"]
+    }
     assert set(order) == present
     assert len(order) == len(set(order))
 
@@ -214,18 +219,19 @@ def test_series_order_covers_every_surface_once():
 def test_empty_document_yields_empty_order():
     order, notes = merged_series_order({"trenchProfiles": []})
     assert order == []
-    assert any("no stratigraphic order" in n or "no named layers" in n
-               for n in notes)
+    assert any("no stratigraphic order" in n or "no named layers" in n for n in notes)
 
 
 # --------------------------------------------------------------------------
 # CHUNK 3: trench grid config helpers
 # --------------------------------------------------------------------------
 
+
 # GRID_T900 is keyed by the full wall names, so merge with those labels.
 def merge_t900_grid_labels():
     merged, _ = merge_extractions(
-        [("north wall", NORTH_WALL), ("east wall", EAST_WALL)])
+        [("north wall", NORTH_WALL), ("east wall", EAST_WALL)]
+    )
     return merged
 
 
@@ -346,8 +352,12 @@ def test_pointless_face_is_skipped_with_a_warning(merged_t900):
     merged = copy.deepcopy(merged_t900)
     merged["trenchProfiles"].append({"face": "plan", "layers": []})
     grid = copy.deepcopy(GRID_T900)
-    grid["faces"]["plan"] = {"originX": 0.0, "originY": 3.0,
-                             "surfaceZ": 100.0, "bearing_deg": 0.0}
+    grid["faces"]["plan"] = {
+        "originX": 0.0,
+        "originY": 3.0,
+        "surfaceZ": 100.0,
+        "bearing_deg": 0.0,
+    }
     warnings = check_trench_grid_config(grid, merged)
     skipped = warnings_about(warnings, "plan")
     assert len(skipped) == 1
@@ -358,6 +368,5 @@ def test_pointless_face_is_skipped_with_a_warning(merged_t900):
 # way; the datum check needs two faces too.
 def test_single_face_has_no_adjacency_or_datum_warnings():
     merged, _ = merge_extractions([("north wall", NORTH_WALL)])
-    grid = {"faces": {"north wall": copy.deepcopy(
-        GRID_T900["faces"]["north wall"])}}
+    grid = {"faces": {"north wall": copy.deepcopy(GRID_T900["faces"]["north wall"])}}
     assert check_trench_grid_config(grid, merged) == []

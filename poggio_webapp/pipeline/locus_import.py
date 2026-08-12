@@ -38,11 +38,15 @@ FIELDS = {
     "munsell": ("munsell", "munsell_colour", "munsell_color", "soil_colour"),
     "description": ("description", "locus_description", "notes"),
     "opening_elevation": (
-        "opening_elevation", "elevation_opening", "opening elevation",
+        "opening_elevation",
+        "elevation_opening",
+        "opening elevation",
         "top_elevation",
     ),
     "closing_elevation": (
-        "closing_elevation", "elevation_closing", "closing elevation",
+        "closing_elevation",
+        "elevation_closing",
+        "closing elevation",
         "bottom_elevation",
     ),
     "open_context_uri": ("open_context_uri", "opencontext", "uri", "ark"),
@@ -71,10 +75,10 @@ def suggest_column_map(headers):
     "Locus Number" and "locus_number" both land. Anything it cannot place is
     returned for the operator to map, not filled in with a nearby column.
     """
+
     def normalize(value):
         return "".join(
-            character.lower() for character in str(value)
-            if character.isalnum()
+            character.lower() for character in str(value) if character.isalnum()
         )
 
     by_normalized = {}
@@ -154,10 +158,13 @@ def read_export(text, column_map=None, *, vertical=None, trench=None):
     suggested, unmatched = suggest_column_map(headers)
     mapping = dict(suggested)
     if column_map:
-        mapping.update({
-            field: header for field, header in column_map.items()
-            if field in FIELDS and header
-        })
+        mapping.update(
+            {
+                field: header
+                for field, header in column_map.items()
+                if field in FIELDS and header
+            }
+        )
     _require_columns(mapping, headers)
 
     wanted_trench = canonical_trench(trench) if trench else ""
@@ -181,7 +188,8 @@ def read_export(text, column_map=None, *, vertical=None, trench=None):
         if number in seen:
             notes.append(
                 f"row {index}: locus {number} was already read from row "
-                f"{seen[number]}; keeping the first and ignoring this one")
+                f"{seen[number]}; keeping the first and ignoring this one"
+            )
             continue
         seen[number] = index
 
@@ -203,11 +211,17 @@ def read_export(text, column_map=None, *, vertical=None, trench=None):
             "munsell": cell(row, "munsell") or None,
             "description": cell(row, "description") or None,
             "openingElevation": _elevation(
-                cell(row, "opening_elevation"), vertical,
-                f"row {index} opening elevation", notes),
+                cell(row, "opening_elevation"),
+                vertical,
+                f"row {index} opening elevation",
+                notes,
+            ),
             "closingElevation": _elevation(
-                cell(row, "closing_elevation"), vertical,
-                f"row {index} closing elevation", notes),
+                cell(row, "closing_elevation"),
+                vertical,
+                f"row {index} closing elevation",
+                notes,
+            ),
             "confidence": "imported-from-locus-record",
         }
         if uri:
@@ -224,7 +238,8 @@ def read_export(text, column_map=None, *, vertical=None, trench=None):
 
     if unmatched:
         notes.append(
-            "no column was matched for: " + ", ".join(sorted(unmatched))
+            "no column was matched for: "
+            + ", ".join(sorted(unmatched))
             + ". Those fields are empty on every imported locus"
         )
 
@@ -265,8 +280,10 @@ def merge_into_sheet(sheet, imported, *, overwrite=False):
         source = by_number.get(number)
         if source is None:
             continue
-        for target_key, source_key in (("munsell", "munsell"),
-                                       ("description", "description")):
+        for target_key, source_key in (
+            ("munsell", "munsell"),
+            ("description", "description"),
+        ):
             value = source.get(source_key)
             if not value:
                 continue
@@ -276,12 +293,17 @@ def merge_into_sheet(sheet, imported, *, overwrite=False):
                         f"locus {number}: the sheet records "
                         f"{target_key} {entry[target_key]!r} and the locus "
                         f"record says {value!r}; the sheet's own reading is "
-                        "kept")
+                        "kept"
+                    )
                 continue
             entry[target_key] = value
             filled += 1
-        for key in ("openingElevation", "closingElevation",
-                    "openContextUri", "koboRecordId"):
+        for key in (
+            "openingElevation",
+            "closingElevation",
+            "openContextUri",
+            "koboRecordId",
+        ):
             if source.get(key) is not None and entry.get(key) is None:
                 entry[key] = source[key]
 
@@ -290,7 +312,8 @@ def merge_into_sheet(sheet, imported, *, overwrite=False):
             existing.append({k: v for k, v in source.items() if v is not None})
             notes.append(
                 f"locus {number} was in the locus record but not on this "
-                "sheet; added without boundary geometry")
+                "sheet; added without boundary geometry"
+            )
 
     if filled:
         notes.append(f"filled {filled} empty field(s) from the locus record")

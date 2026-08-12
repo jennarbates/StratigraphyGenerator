@@ -22,13 +22,48 @@ SMALL_FONT = ImageFont.load_default(size=13)
 def build_fieldwall_fixture() -> dict:
     """Return a synthetic fixture matching the current FieldWallProfile."""
     shared_boundary = [
-        {"xMeters": 0.0, "depthMeters": 0.62, "confidence": "synthetic", "uncertaintyCm": None},
-        {"xMeters": 0.47, "depthMeters": 0.58, "confidence": "synthetic", "uncertaintyCm": None},
-        {"xMeters": 1.36, "depthMeters": 0.72, "confidence": "synthetic", "uncertaintyCm": None},
-        {"xMeters": 2.14, "depthMeters": 0.67, "confidence": "synthetic", "uncertaintyCm": None},
-        {"xMeters": 3.29, "depthMeters": 0.81, "confidence": "synthetic", "uncertaintyCm": None},
-        {"xMeters": 3.91, "depthMeters": 0.76, "confidence": "synthetic", "uncertaintyCm": None},
-        {"xMeters": 4.8, "depthMeters": 0.86, "confidence": "synthetic", "uncertaintyCm": None},
+        {
+            "xMeters": 0.0,
+            "depthMeters": 0.62,
+            "confidence": "synthetic",
+            "uncertaintyCm": None,
+        },
+        {
+            "xMeters": 0.47,
+            "depthMeters": 0.58,
+            "confidence": "synthetic",
+            "uncertaintyCm": None,
+        },
+        {
+            "xMeters": 1.36,
+            "depthMeters": 0.72,
+            "confidence": "synthetic",
+            "uncertaintyCm": None,
+        },
+        {
+            "xMeters": 2.14,
+            "depthMeters": 0.67,
+            "confidence": "synthetic",
+            "uncertaintyCm": None,
+        },
+        {
+            "xMeters": 3.29,
+            "depthMeters": 0.81,
+            "confidence": "synthetic",
+            "uncertaintyCm": None,
+        },
+        {
+            "xMeters": 3.91,
+            "depthMeters": 0.76,
+            "confidence": "synthetic",
+            "uncertaintyCm": None,
+        },
+        {
+            "xMeters": 4.8,
+            "depthMeters": 0.86,
+            "confidence": "synthetic",
+            "uncertaintyCm": None,
+        },
     ]
     return {
         "trenchLabel": "DEMO-ASTER",
@@ -428,8 +463,7 @@ def _fieldwall_points(points: list[dict] | None) -> list[tuple[int, int]]:
     return [
         _plot_point(point["xMeters"], point["depthMeters"])
         for point in (points or [])
-        if point.get("xMeters") is not None
-        and point.get("depthMeters") is not None
+        if point.get("xMeters") is not None and point.get("depthMeters") is not None
     ]
 
 

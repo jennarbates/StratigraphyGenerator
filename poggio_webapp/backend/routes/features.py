@@ -24,12 +24,14 @@ def features_detect(job_id):
     if not image_path:
         abort(400, description="upload a scan first")
     if image_path.lower().endswith(".pdf"):
-        return jsonify({"error": "feature detection works on image scans, "
-                                  "not PDFs"}), 400
+        return jsonify(
+            {"error": "feature detection works on image scans, not PDFs"}
+        ), 400
     if not Path(image_path).exists():
         abort(400, description="the job's scan is missing on disk")
 
     from pipeline import detect_features as p_detect_features
+
     out_dir = job_dir(job_id) / "03_extraction"
     try:
         result = p_detect_features.run_detect(image_path, str(out_dir))
@@ -47,15 +49,17 @@ def features_detect(job_id):
     meta["feature_candidates_path"] = str(candidates_path)
     save_meta(job_id, meta)
 
-    return jsonify({
-        "features": result["features"],
-        "candidate_count": result["candidate_count"],
-        "image_url": rel_url(job_id, Path(image_path)),
-        "image_kind": image_kind,
-        "image_width": result["image_width"],
-        "image_height": result["image_height"],
-        "debug_image_url": rel_url(job_id, Path(result["debug_image"])),
-    })
+    return jsonify(
+        {
+            "features": result["features"],
+            "candidate_count": result["candidate_count"],
+            "image_url": rel_url(job_id, Path(image_path)),
+            "image_kind": image_kind,
+            "image_width": result["image_width"],
+            "image_height": result["image_height"],
+            "debug_image_url": rel_url(job_id, Path(result["debug_image"])),
+        }
+    )
 
 
 @bp.route("/api/jobs/<job_id>/features/confirm", methods=["POST"])
@@ -80,17 +84,21 @@ def features_confirm(job_id):
             width, height = float(f["width"]), float(f["height"])
         except (KeyError, TypeError, ValueError):
             return jsonify({"error": f"feature {i} is missing x/y/width/height"}), 400
-        out.append({
-            "id": i,
-            "display_id": i + 1,
-            "x": round(x, 1), "y": round(y, 1),
-            "width": round(width, 1), "height": round(height, 1),
-            "feature_type": f.get("feature_type") or "other feature",
-            "description": f.get("description") or "",
-            "points": f.get("points") or None,
-            "manual": bool(f.get("manual", False)),
-            "status": "approved",
-        })
+        out.append(
+            {
+                "id": i,
+                "display_id": i + 1,
+                "x": round(x, 1),
+                "y": round(y, 1),
+                "width": round(width, 1),
+                "height": round(height, 1),
+                "feature_type": f.get("feature_type") or "other feature",
+                "description": f.get("description") or "",
+                "points": f.get("points") or None,
+                "manual": bool(f.get("manual", False)),
+                "status": "approved",
+            }
+        )
 
     out_dir = job_dir(job_id) / "03_extraction"
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -100,6 +108,7 @@ def features_confirm(job_id):
     review_url = None
     if out:
         from pipeline import detect_features as p_detect_features
+
         review_path = out_dir / "features_reviewed.png"
         try:
             p_detect_features.write_review_overlay(image_path, out, str(review_path))

@@ -100,18 +100,25 @@ impossibility:
 
 ```python
 if relation.younger_id == relation.older_id:
-    errors.append(_issue(
-        "self-relation",
-        f"Relation {relation.id} connects unit "
-        f"{relation.younger_id} to itself.", ...))
+    errors.append(
+        _issue(
+            "self-relation",
+            f"Relation {relation.id} connects unit {relation.younger_id} to itself.",
+            ...,
+        )
+    )
 ```
 
 ```python
 for (younger, older), relation_ids in sorted(relations_by_pair.items()):
     if len(relation_ids) > 1:
-        errors.append(_issue(
-            "duplicate-relation",
-            f"Multiple relations assert {younger} -> {older}.", ...))
+        errors.append(
+            _issue(
+                "duplicate-relation",
+                f"Multiple relations assert {younger} -> {older}.",
+                ...,
+            )
+        )
 ```
 
 ```python
@@ -133,13 +140,15 @@ individually reasonable assertions.
 
 ```python
 for edge in sorted(edges - reduced_edges):
-    warnings.append(_issue(
-        "redundant-relation",
-        f"Saved relation {edge[0]} -> {edge[1]} is implied by "
-        "a longer path and is omitted from display edges.",
-        list(edge),
-        relation_ids_by_edge[edge],
-    ))
+    warnings.append(
+        _issue(
+            "redundant-relation",
+            f"Saved relation {edge[0]} -> {edge[1]} is implied by "
+            "a longer path and is omitted from display edges.",
+            list(edge),
+            relation_ids_by_edge[edge],
+        )
+    )
 ```
 
 A **warning**, and the relation stays in the data. The archaeologist observed
@@ -153,9 +162,7 @@ relationships, any of which might later be corrected. See
 consecutive layers in one source share a recorded boundary within tolerance:
 
 ```python
-_ORDERING_REASON = (
-    "Consecutive source layers share a recorded boundary."
-)
+_ORDERING_REASON = "Consecutive source layers share a recorded boundary."
 ```
 
 and always as `kind="above"` — never `cuts` or `fills`, which require judgement

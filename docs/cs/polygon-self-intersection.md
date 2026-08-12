@@ -83,8 +83,7 @@ def _polygon_self_intersects(vertices: list[dict]) -> bool:
         for second_edge in range(first_edge + 1, len(points)):
             second_edge_end = (second_edge + 1) % len(points)
             edges_are_adjacent = (
-                first_edge_end == second_edge
-                or second_edge_end == first_edge
+                first_edge_end == second_edge or second_edge_end == first_edge
             )
             if edges_are_adjacent:
                 continue
@@ -120,8 +119,7 @@ refusal:
 ```python
 if _polygon_self_intersects(vertices):
     raise SelfIntersectingPolygonError(
-        f'Face "{face_name}" polygon {polygon_id} '
-        "self-intersects."
+        f'Face "{face_name}" polygon {polygon_id} self-intersects.'
     )
 ```
 

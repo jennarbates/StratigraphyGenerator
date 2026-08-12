@@ -83,7 +83,7 @@ while stack:
             ...
             stack.append((neighbor, 0))
         elif state[neighbor] == 1:
-            return path[path_indexes[neighbor]:] + [neighbor]
+            return path[path_indexes[neighbor] :] + [neighbor]
         continue
     stack.pop()
     path.pop()
@@ -132,7 +132,7 @@ def clean_null_strings(obj, log, path="root"):
         for k, v in list(obj.items()):
             if isinstance(v, str) and v.strip().lower() in NULLISH:
                 obj[k] = None
-                log.append(f'nulled string at {path}.{k}')
+                log.append(f"nulled string at {path}.{k}")
             else:
                 clean_null_strings(v, log, f"{path}.{k}")
     elif isinstance(obj, list):

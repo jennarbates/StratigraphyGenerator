@@ -70,6 +70,7 @@ contour detection runs at a predictable scale:
 ```python
 MAX_ANALYSIS_DIM = 2200
 
+
 def _analysis_copy(img: np.ndarray) -> tuple[np.ndarray, float]:
     """Return a resized analysis image and its scale relative to the original."""
     height, width = img.shape[:2]
@@ -94,9 +95,10 @@ not. See [multi-scale analysis](multi-scale-analysis.md).
 
 ```python
 inverse_scale = 1.0 / scale
-points = [[round(float(p[0][0]) * inverse_scale, 1),
-           round(float(p[0][1]) * inverse_scale, 1)]
-          for p in approximated_contour[:80]]
+points = [
+    [round(float(p[0][0]) * inverse_scale, 1), round(float(p[0][1]) * inverse_scale, 1)]
+    for p in approximated_contour[:80]
+]
 ```
 
 The extraction modules cap dimensions for a different reason — request size
@@ -146,7 +148,8 @@ if mm_px < 2:
     raise RuntimeError(
         "photo resolution too low for marker detection "
         f"({mm_px:.1f} px per paper mm) — retake closer or "
-        "at higher resolution")
+        "at higher resolution"
+    )
 ```
 
 Two detectors, two different precision requirements, two different decisions

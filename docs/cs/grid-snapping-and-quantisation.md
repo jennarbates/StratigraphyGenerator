@@ -144,15 +144,17 @@ traced points does not justify more.
 resolution:
 
 ```python
-markers.append({
-    "id": marker_id,
-    "pixel_x": round(entry["cx"], 1),
-    "pixel_y": round(entry["cy"], 1),
-    "x_m": round(x_m, 3),
-    "depth_m": round(depth_m, 3),
-    "diam_px": round(entry["diam"], 1),
-    "circularity": round(entry["circularity"], 3),
-})
+markers.append(
+    {
+        "id": marker_id,
+        "pixel_x": round(entry["cx"], 1),
+        "pixel_y": round(entry["cy"], 1),
+        "x_m": round(x_m, 3),
+        "depth_m": round(depth_m, 3),
+        "diam_px": round(entry["diam"], 1),
+        "circularity": round(entry["circularity"], 3),
+    }
+)
 ```
 
 Pixels to a tenth, metres to a millimetre, a dimensionless ratio to three

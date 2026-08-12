@@ -68,11 +68,13 @@ def build_manual_extraction(job_id):
     meta.pop("normalized_path", None)
     save_meta(job_id, meta)
 
-    return jsonify({
-        "raw_json": raw,
-        "warnings": warnings,
-        "file_url": rel_url(job_id, Path(out_path)),
-        "px_per_m": round(calib.px_per_m, 3),
-        "n_boundaries": len(payload.get("boundaries") or []),
-        "n_features": len(payload.get("features") or []),
-    })
+    return jsonify(
+        {
+            "raw_json": raw,
+            "warnings": warnings,
+            "file_url": rel_url(job_id, Path(out_path)),
+            "px_per_m": round(calib.px_per_m, 3),
+            "n_boundaries": len(payload.get("boundaries") or []),
+            "n_features": len(payload.get("features") or []),
+        }
+    )

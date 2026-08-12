@@ -70,7 +70,7 @@ def flatten_background(gray):
     """Divide out large-scale illumination/paper tone so faint ink is even."""
     bg = cv2.GaussianBlur(gray, (0, 0), sigmaX=25)
     bg = np.where(bg == 0, 1, bg)
-    norm = (gray.astype(np.float32) / bg.astype(np.float32))
+    norm = gray.astype(np.float32) / bg.astype(np.float32)
     norm = np.clip(norm * 200.0, 0, 255).astype(np.uint8)
     return norm
 ```

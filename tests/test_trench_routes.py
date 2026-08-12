@@ -74,7 +74,8 @@ def _expected_series_order():
     """The order the route should derive. Members are merged in listing order
     (wall_label, then job_id), so the east wall comes first here."""
     merged, _notes = merge_extractions(
-        [("east wall", EAST_WALL), ("north wall", NORTH_WALL)])
+        [("east wall", EAST_WALL), ("north wall", NORTH_WALL)]
+    )
     order, _order_notes = merged_series_order(merged)
     return order
 
@@ -123,9 +124,7 @@ def test_listing_reports_missing_normalized_output(client):
     assert members[0]["has_normalized"] is False
 
 
-def test_build_without_grid_returns_starter_and_starts_no_task(
-    client, monkeypatch
-):
+def test_build_without_grid_returns_starter_and_starts_no_task(client, monkeypatch):
     http, jobs_dir, trenches_dir = client
     _t900(jobs_dir)
 
@@ -155,21 +154,21 @@ def test_build_refuses_the_untouched_starter_config(client):
     assert "placeholder" in response.get_json()["error"]
 
 
-def test_build_with_real_grid_starts_task_and_writes_outputs(
-    client, monkeypatch
-):
+def test_build_with_real_grid_starts_task_and_writes_outputs(client, monkeypatch):
     http, jobs_dir, trenches_dir = client
     _t900(jobs_dir)
 
     calls = []
 
     def stub_run_build(points_csv, orientations_csv, out_prefix, **kwargs):
-        calls.append({
-            "points_csv": points_csv,
-            "orientations_csv": orientations_csv,
-            "out_prefix": out_prefix,
-            "kwargs": kwargs,
-        })
+        calls.append(
+            {
+                "points_csv": points_csv,
+                "orientations_csv": orientations_csv,
+                "out_prefix": out_prefix,
+                "kwargs": kwargs,
+            }
+        )
         return {"series_order": kwargs.get("series_order"), "outputs": {}}
 
     monkeypatch.setattr(build_gempy, "run_build", stub_run_build)
@@ -225,14 +224,13 @@ def test_build_hands_gempy_true_dips_solved_from_both_walls(client, monkeypatch)
 
     by_surface = {}
     for row in rows:
-        by_surface.setdefault(row["surface"], set()).add(
-            (row["dip"], row["azimuth"]))
+        by_surface.setdefault(row["surface"], set()).add((row["dip"], row["azimuth"]))
     assert len(by_surface) == 2
     # Both walls' seeds for a surface now agree, and neither still carries the
     # wall-locked azimuth convert() gave it.
     for values in by_surface.values():
         assert len(values) == 1
-        (_dip, azimuth), = values
+        ((_dip, azimuth),) = values
         assert azimuth not in {"90.0", "180.0"}
     assert any(
         "replaced the per-wall apparent dips" in note

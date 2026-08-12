@@ -67,13 +67,14 @@ instead:
 
 ```python
 # detect_markers.py
-ad = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C,
-                           cv2.THRESH_BINARY_INV, block_px, C)
+ad = cv2.adaptiveThreshold(
+    gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, block_px, C
+)
 
 # preprocess.py — high_contrast()
 binimg = cv2.adaptiveThreshold(
-    flat, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-    cv2.THRESH_BINARY, blockSize=25, C=10)
+    flat, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, blockSize=25, C=10
+)
 ```
 
 `preprocess.py` is the near-miss worth noticing. It calls

@@ -140,7 +140,8 @@ def supplied_corner_elevation(layout: dict, loci_document: dict, corner: dict):
     absent; this one exists to show what it does when the number is there.
     """
     numbered = [
-        locus for locus in (loci_document.get("loci") or [])
+        locus
+        for locus in (loci_document.get("loci") or [])
         if isinstance(locus.get("locus"), int)
     ]
     opening_locus = min(numbered, key=lambda locus: locus["locus"], default=None)
@@ -181,7 +182,8 @@ def complete_layout(layout: dict, loci_document: dict):
     by_label = {c["label"]: c for c in read["corners"]}
     for corner in missing:
         elevation, note = supplied_corner_elevation(
-            layout, loci_document, by_label[corner["label"]])
+            layout, loci_document, by_label[corner["label"]]
+        )
         notes.append(note)
         for entry in filled["corners"]:
             if str(entry.get("label")) == corner["label"]:
@@ -326,11 +328,13 @@ def _write_harris_matrix(dataset, trench_label, source_job_ids):
         if isinstance(locus.get("locus"), int)
     }
 
-    matrix = harris_store.create_matrix({
-        "title": f"{trench_label} {dataset.season} stratigraphy",
-        "site": site_grid.POGGIO_CIVITATE,
-        "trench": trench_label,
-    })
+    matrix = harris_store.create_matrix(
+        {
+            "title": f"{trench_label} {dataset.season} stratigraphy",
+            "site": site_grid.POGGIO_CIVITATE,
+            "trench": trench_label,
+        }
+    )
 
     unit_ids = {}
     units = []
@@ -339,25 +343,27 @@ def _write_harris_matrix(dataset, trench_label, source_job_ids):
         unit_id = f"unit-{number:012x}"
         unit_ids[number] = unit_id
         unit_type = record.get("unit_type")
-        units.append({
-            "id": unit_id,
-            # The converter's own surface name, not the bare locus number.
-            # ``series_order._unit_surface`` only expands a bare number for a
-            # unit carrying a FieldWallProfile source_ref, and these units
-            # cannot carry one: SourceRef.job_id must be twelve hex digits and
-            # the demo's job ids are readable names. Labelling them the way the
-            # converter names surfaces is the documented alternative, and it
-            # is what makes the matrix order this model rather than refuse it.
-            "label": convert_coords.surface_id(number),
-            "unit_type": (
-                unit_type
-                if unit_type in {"deposit", "cut", "structure", "interface",
-                                 "natural"}
-                else "unknown"
-            ),
-            "description": record.get("summary"),
-            "source_refs": [],
-        })
+        units.append(
+            {
+                "id": unit_id,
+                # The converter's own surface name, not the bare locus number.
+                # ``series_order._unit_surface`` only expands a bare number for a
+                # unit carrying a FieldWallProfile source_ref, and these units
+                # cannot carry one: SourceRef.job_id must be twelve hex digits and
+                # the demo's job ids are readable names. Labelling them the way the
+                # converter names surfaces is the documented alternative, and it
+                # is what makes the matrix order this model rather than refuse it.
+                "label": convert_coords.surface_id(number),
+                "unit_type": (
+                    unit_type
+                    if unit_type
+                    in {"deposit", "cut", "structure", "interface", "natural"}
+                    else "unknown"
+                ),
+                "description": record.get("summary"),
+                "source_refs": [],
+            }
+        )
 
     relations = []
     for index, relation in enumerate(stratigraphy.get("relations") or []):
@@ -365,42 +371,50 @@ def _write_harris_matrix(dataset, trench_label, source_job_ids):
         older = unit_ids.get(relation.get("older"))
         if younger is None or older is None:
             continue
-        relations.append({
-            "id": f"rel-{index:012x}",
-            "younger_id": younger,
-            "older_id": older,
-            "kind": relation.get("kind") if relation.get("kind") in {
-                "above", "cuts", "fills", "precedes", "other"} else "other",
-            "evidence": relation.get("evidence") or "",
-            "source": "manual",
-            "notes": None,
-        })
+        relations.append(
+            {
+                "id": f"rel-{index:012x}",
+                "younger_id": younger,
+                "older_id": older,
+                "kind": relation.get("kind")
+                if relation.get("kind")
+                in {"above", "cuts", "fills", "precedes", "other"}
+                else "other",
+                "evidence": relation.get("evidence") or "",
+                "source": "manual",
+                "notes": None,
+            }
+        )
 
     correlations = []
     for index, correlation in enumerate(stratigraphy.get("correlations") or []):
-        members = [unit_ids[n] for n in (correlation.get("loci") or [])
-                   if n in unit_ids]
+        members = [
+            unit_ids[n] for n in (correlation.get("loci") or []) if n in unit_ids
+        ]
         if len(set(members)) < 2:
             continue
-        correlations.append({
-            "id": f"corr-{index:012x}",
-            "unit_ids": members,
-            "notes": correlation.get("note") or correlation.get("evidence"),
-        })
+        correlations.append(
+            {
+                "id": f"corr-{index:012x}",
+                "unit_ids": members,
+                "notes": correlation.get("note") or correlation.get("evidence"),
+            }
+        )
 
     candidate = matrix.model_dump(mode="python")
-    candidate.update({
-        "units": units,
-        "relations": relations,
-        "correlations": correlations,
-        "source_job_ids": [],
-        "notes": (
-            f"Seeded by the {trench_label} demonstration from "
-            f"{dataset.label} {dataset.season}. {dataset.provenance}."
-        ),
-    })
-    saved = harris_store.save_matrix(
-        matrix.matrix_id, candidate, matrix.revision)
+    candidate.update(
+        {
+            "units": units,
+            "relations": relations,
+            "correlations": correlations,
+            "source_job_ids": [],
+            "notes": (
+                f"Seeded by the {trench_label} demonstration from "
+                f"{dataset.label} {dataset.season}. {dataset.provenance}."
+            ),
+        }
+    )
+    saved = harris_store.save_matrix(matrix.matrix_id, candidate, matrix.revision)
 
     dropped = len(stratigraphy.get("abutments") or [])
     return saved.matrix_id, dropped
@@ -418,21 +432,25 @@ def _write_finds(dataset, job_id, wall_label):
     written = 0
     skipped = []
     for find in dataset.finds().get("finds") or []:
-        if any(find.get(key) is None
-               for key in ("gridX", "gridY", "elevation", "locus")):
+        if any(
+            find.get(key) is None for key in ("gridX", "gridY", "elevation", "locus")
+        ):
             skipped.append(find.get("sf"))
             continue
-        editor_pipeline.add_find(job_id, {
-            "face_id": wall_label,
-            "x": find["gridX"],
-            "y": find["gridY"],
-            "elevation": find["elevation"],
-            "locus": str(find["locus"]),
-            "description": find.get("description") or "",
-            "find_id": f"demo-sf-{find['sf']:03d}",
-            "catalog": find.get("catalog"),
-            "recorded_date": find.get("date"),
-        })
+        editor_pipeline.add_find(
+            job_id,
+            {
+                "face_id": wall_label,
+                "x": find["gridX"],
+                "y": find["gridY"],
+                "elevation": find["elevation"],
+                "locus": str(find["locus"]),
+                "description": find.get("description") or "",
+                "find_id": f"demo-sf-{find['sf']:03d}",
+                "catalog": find.get("catalog"),
+                "recorded_date": find.get("date"),
+            },
+        )
         written += 1
     return written, skipped
 
@@ -496,21 +514,21 @@ def seed(scenario_name: str, *, dataset_label: str | None = None) -> dict:
                 length_m=lengths[wall_label],
                 phase_index=index,
             )
-            job_ids.append(_write_wall_job(
-                dataset,
-                trench_label=trench_label,
-                wall_label=wall_label,
-                profile=profile,
-                scenario_name=scenario.name,
-            ))
+            job_ids.append(
+                _write_wall_job(
+                    dataset,
+                    trench_label=trench_label,
+                    wall_label=wall_label,
+                    profile=profile,
+                    scenario_name=scenario.name,
+                )
+            )
 
-    matrix_id, dropped_abutments = _write_harris_matrix(
-        dataset, trench_label, job_ids)
+    matrix_id, dropped_abutments = _write_harris_matrix(dataset, trench_label, job_ids)
 
     finds_written, finds_skipped = (0, [])
     if job_ids:
-        finds_written, finds_skipped = _write_finds(
-            dataset, job_ids[0], wall_names[0])
+        finds_written, finds_skipped = _write_finds(dataset, job_ids[0], wall_names[0])
 
     unregistered = [c["label"] for c in unregistered_corners(layout)]
 
@@ -553,7 +571,8 @@ def _drawing_surfaces(grid, wall_names, layout, loci_document):
             continue
         corner = read["corners"][index]
         elevation, _ = supplied_corner_elevation(
-            layout, loci_document, by_label[corner["label"]])
+            layout, loci_document, by_label[corner["label"]]
+        )
         surfaces[name] = elevation
     return surfaces
 
@@ -576,15 +595,19 @@ def _format(summary: dict) -> str:
         f"({summary['dropped_abutments']} abutment(s) dropped: a "
         f"younger-to-older graph has nowhere to put them)",
         f"  Finds          {summary['finds']} logged"
-        + (f", {len(summary['finds_skipped'])} skipped for missing values"
-           if summary["finds_skipped"] else ""),
+        + (
+            f", {len(summary['finds_skipped'])} skipped for missing values"
+            if summary["finds_skipped"]
+            else ""
+        ),
         f"  Registration   {summary['grid_config']}",
     ]
     if summary["unregistered_corners"]:
         lines.append(
             "  Unregistered   "
             + ", ".join(summary["unregistered_corners"])
-            + "  <- the build will refuse on the wall this corner registers")
+            + "  <- the build will refuse on the wall this corner registers"
+        )
     if summary["notes"]:
         lines.append("")
         lines.append("  Notes from the layout:")
@@ -600,17 +623,22 @@ def _format(summary: dict) -> str:
 def main(argv=None):
     parser = argparse.ArgumentParser(
         prog="python -m demo.seed",
-        description="Seed a demonstration trench into the application.")
+        description="Seed a demonstration trench into the application.",
+    )
     parser.add_argument(
-        "scenario", nargs="?", choices=sorted(SCENARIOS),
-        help="which demonstration to seed")
+        "scenario",
+        nargs="?",
+        choices=sorted(SCENARIOS),
+        help="which demonstration to seed",
+    )
     parser.add_argument(
-        "--dataset", default=None,
-        help="trench label of the record set to use "
-             "(default: the scenario's own)")
+        "--dataset",
+        default=None,
+        help="trench label of the record set to use (default: the scenario's own)",
+    )
     parser.add_argument(
-        "--list", action="store_true",
-        help="list the available record sets and exit")
+        "--list", action="store_true", help="list the available record sets and exit"
+    )
     args = parser.parse_args(argv)
 
     if args.list:

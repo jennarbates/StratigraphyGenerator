@@ -102,10 +102,7 @@ def _suggestion_id(suggestion_type: str, *unit_ids: str) -> str:
 Which produces the property that matters most on this page:
 
 ```python
-existing_by_id = {
-    suggestion.id: suggestion
-    for suggestion in matrix.suggestions
-}
+existing_by_id = {suggestion.id: suggestion for suggestion in matrix.suggestions}
 ...
 for suggestion in generated:
     previous = existing_by_id.get(suggestion.id)

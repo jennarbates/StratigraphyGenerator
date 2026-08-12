@@ -59,10 +59,12 @@ def test_trenches_page_renders_the_trench_container(client):
     assert len(container) == 1
     assert container[0]["id"] == "trench-list"
     assert container[0]["aria-live"] == "polite"
-    assert page.scripts == [{
-        "type": "module",
-        "src": "/static/trenches.js",
-    }]
+    assert page.scripts == [
+        {
+            "type": "module",
+            "src": "/static/trenches.js",
+        }
+    ]
     assert any(link.get("href") == "/" for link in page.links)
     assert str(REPO_ROOT).encode() not in response.data
 

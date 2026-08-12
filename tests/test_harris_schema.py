@@ -70,9 +70,7 @@ def section_7_example():
                 "older_id": "unit-fedcba987654",
                 "relation_kind": "above",
                 "correlation_unit_ids": [],
-                "reason": (
-                    "Consecutive source layers share a recorded boundary."
-                ),
+                "reason": ("Consecutive source layers share a recorded boundary."),
                 "source_refs": [],
             }
         ],
@@ -91,15 +89,9 @@ def test_complete_section_7_example_validates_and_round_trips_through_json():
     serialized_data = json.loads(serialized)
     assert set(serialized_data) == set(example)
     assert set(serialized_data["units"][0]) == set(example["units"][0])
-    assert set(serialized_data["relations"][0]) == set(
-        example["relations"][0]
-    )
-    assert set(serialized_data["correlations"][0]) == set(
-        example["correlations"][0]
-    )
-    assert set(serialized_data["suggestions"][0]) == set(
-        example["suggestions"][0]
-    )
+    assert set(serialized_data["relations"][0]) == set(example["relations"][0])
+    assert set(serialized_data["correlations"][0]) == set(example["correlations"][0])
+    assert set(serialized_data["suggestions"][0]) == set(example["suggestions"][0])
 
 
 def test_schema_version_other_than_one_is_rejected():
@@ -360,9 +352,7 @@ def test_nullable_fields_remain_nullable():
 def test_each_public_model_validates_its_section_7_shape():
     example = section_7_example()
 
-    assert SourceRef.model_validate(
-        example["units"][0]["source_refs"][0]
-    )
+    assert SourceRef.model_validate(example["units"][0]["source_refs"][0])
     assert HarrisUnit.model_validate(example["units"][0])
     assert HarrisRelation.model_validate(example["relations"][0])
     assert HarrisCorrelation.model_validate(example["correlations"][0])

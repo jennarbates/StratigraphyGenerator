@@ -166,9 +166,9 @@ def test_load_source_document_uses_every_discovery_order_branch(
     if create_conventional:
         write_json(
             job_dir / "04_normalize_validate/output_clean.json",
-            field_document(marker=candidates[
-                "04_normalize_validate/output_clean.json"
-            ]),
+            field_document(
+                marker=candidates["04_normalize_validate/output_clean.json"]
+            ),
         )
     if expected_relative_path in meta_fields.values():
         write_json(
@@ -214,9 +214,7 @@ def test_outside_job_metadata_paths_are_ignored(tmp_path):
     document, path = load_source_document(FIELD_JOB, jobs_dir)
 
     assert document["marker"] == "inside"
-    assert path == (
-        job_dir / "04_normalize_validate/output_clean.json"
-    ).resolve()
+    assert path == (job_dir / "04_normalize_validate/output_clean.json").resolve()
 
 
 def test_malformed_json_and_unsupported_shape_give_focused_errors(tmp_path):
@@ -248,11 +246,7 @@ def test_field_wall_units_include_labels_context_and_exact_source_refs():
         "2.5Y 4/3 olive brown",
     ]
     assert [unit.unit_type for unit in units] == ["deposit", "deposit"]
-    assert [
-        ref.model_dump()
-        for unit in units
-        for ref in unit.source_refs
-    ] == [
+    assert [ref.model_dump() for unit in units for ref in unit.source_refs] == [
         {
             "job_id": FIELD_JOB,
             "schema_type": "FieldWallProfile",
@@ -315,11 +309,7 @@ def test_two_job_import_keeps_equal_labels_as_exact_separate_source_units(
         [FIELD_JOB, ILLUSTRATOR_JOB],
         jobs_dir,
     )
-    label_seven_units = [
-        unit
-        for unit in imported.units
-        if unit.label == "7"
-    ]
+    label_seven_units = [unit for unit in imported.units if unit.label == "7"]
 
     assert len(label_seven_units) == 2
     assert label_seven_units[0].id != label_seven_units[1].id

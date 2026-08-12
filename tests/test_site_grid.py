@@ -35,12 +35,15 @@ def test_the_documented_worked_example():
     assert label_to_grid("170.56E/64.26S") == (170.56, -64.26)
 
 
-@pytest.mark.parametrize("label,expected", [
-    ("190E/53S", (190.0, -53.0)),      # T104 north-west corner
-    ("194E/53S", (194.0, -53.0)),
-    ("190E/56S", (190.0, -56.0)),
-    ("194E/56S", (194.0, -56.0)),      # south-east corner
-])
+@pytest.mark.parametrize(
+    "label,expected",
+    [
+        ("190E/53S", (190.0, -53.0)),  # T104 north-west corner
+        ("194E/53S", (194.0, -53.0)),
+        ("190E/56S", (190.0, -56.0)),
+        ("194E/56S", (194.0, -56.0)),  # south-east corner
+    ],
+)
 def test_the_t104_sheet_corners(label, expected):
     assert label_to_grid(label) == expected
 
@@ -59,21 +62,34 @@ def test_the_t104_trench_is_four_by_three_metres():
     assert north - south == pytest.approx(3.0)
 
 
-@pytest.mark.parametrize("label,expected", [
-    ("190e/53s", (190.0, -53.0)),
-    ("  190E / 53S  ", (190.0, -53.0)),
-    ("190E,53S", (190.0, -53.0)),
-    ("190E53S", (190.0, -53.0)),
-])
+@pytest.mark.parametrize(
+    "label,expected",
+    [
+        ("190e/53s", (190.0, -53.0)),
+        ("  190E / 53S  ", (190.0, -53.0)),
+        ("190E,53S", (190.0, -53.0)),
+        ("190E53S", (190.0, -53.0)),
+    ],
+)
 def test_transcription_variants_read_the_same(label, expected):
     assert label_to_grid(label) == expected
 
 
-@pytest.mark.parametrize("bad", [
-    "", "   ", None, 190, "190/53", "190E", "53S", "E190/S53",
-    "190N/53E",                       # axes swapped: easting must come first
-    "190E/53S/12",
-])
+@pytest.mark.parametrize(
+    "bad",
+    [
+        "",
+        "   ",
+        None,
+        190,
+        "190/53",
+        "190E",
+        "53S",
+        "E190/S53",
+        "190N/53E",  # axes swapped: easting must come first
+        "190E/53S/12",
+    ],
+)
 def test_unreadable_labels_raise_rather_than_guess(bad):
     with pytest.raises(GridError):
         label_to_grid(bad)
@@ -105,9 +121,15 @@ def test_both_local_grids_are_named():
     assert set(GRIDS) == {POGGIO_CIVITATE, VESCOVADO_DI_MURLO}
 
 
-@pytest.mark.parametrize("raw", [
-    "poggio-civitate", "Poggio Civitate", "POGGIO_CIVITATE", " poggio-civitate ",
-])
+@pytest.mark.parametrize(
+    "raw",
+    [
+        "poggio-civitate",
+        "Poggio Civitate",
+        "POGGIO_CIVITATE",
+        " poggio-civitate ",
+    ],
+)
 def test_grid_names_are_recognised_however_they_are_spelled(raw):
     assert normalize_grid_name(raw) == POGGIO_CIVITATE
 
@@ -165,19 +187,20 @@ def test_grid_north_is_about_two_and_a_half_degrees_off_projected_north():
 
 def test_a_model_footprint_projects_its_four_corners():
     footprint = project_model_footprint(
-        [190, 194, -56, -53, 28.0, 29.5], POGGIO_CIVITATE)
+        [190, 194, -56, -53, 28.0, 29.5], POGGIO_CIVITATE
+    )
 
     assert footprint["crs"] == "EPSG:3003"
     assert footprint["site_grid"] == POGGIO_CIVITATE
     assert len(footprint["corners"]) == 4
-    assert footprint["corners"][0] == list(
-        to_epsg3003(190, -56, POGGIO_CIVITATE))
+    assert footprint["corners"][0] == list(to_epsg3003(190, -56, POGGIO_CIVITATE))
 
 
 def test_a_footprint_keeps_elevation_untouched():
     """The projection is horizontal; mAE is already absolute metres."""
     footprint = project_model_footprint(
-        [190, 194, -56, -53, 28.0, 29.5], POGGIO_CIVITATE)
+        [190, 194, -56, -53, 28.0, 29.5], POGGIO_CIVITATE
+    )
 
     assert footprint["z_range"] == [28.0, 29.5]
     assert footprint["z_frame"] == "mAE"

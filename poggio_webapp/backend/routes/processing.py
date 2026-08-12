@@ -43,11 +43,20 @@ def run_validate(job_id):
     try:
         report = p_validator.run_validate(
             path,
-            monotonic_tolerance=float(body.get("monotonic_tolerance",
-                                                p_validator.DEFAULT_MONOTONIC_TOLERANCE_M)),
-            top_continuity_tolerance=float(body.get("top_continuity_tolerance",
-                                                     p_validator.DEFAULT_TOP_CONTINUITY_TOLERANCE_M)),
-            max_depth=float(body.get("max_depth", p_validator.DEFAULT_MAX_PLAUSIBLE_DEPTH_M)),
+            monotonic_tolerance=float(
+                body.get(
+                    "monotonic_tolerance", p_validator.DEFAULT_MONOTONIC_TOLERANCE_M
+                )
+            ),
+            top_continuity_tolerance=float(
+                body.get(
+                    "top_continuity_tolerance",
+                    p_validator.DEFAULT_TOP_CONTINUITY_TOLERANCE_M,
+                )
+            ),
+            max_depth=float(
+                body.get("max_depth", p_validator.DEFAULT_MAX_PLAUSIBLE_DEPTH_M)
+            ),
         )
     except Exception as e:
         return jsonify({"error": _friendly_error(e)}), 400
@@ -63,9 +72,13 @@ def gridconfig_starter(job_id):
         abort(400, description="run extraction first")
     data = json.loads(Path(path).read_text())
     if "trenchProfiles" not in data and not p_convert_coords.is_field_wall(data):
-        return jsonify({"error": "this extraction is neither an illustrator sheet "
-                                  "(trenchProfiles) nor a field-wall sheet (loci/layers) — "
-                                  "nothing to register"}), 400
+        return jsonify(
+            {
+                "error": "this extraction is neither an illustrator sheet "
+                "(trenchProfiles) nor a field-wall sheet (loci/layers) — "
+                "nothing to register"
+            }
+        ), 400
     cfg = p_convert_coords.make_starter_config(data)
     return jsonify(cfg)
 
@@ -91,10 +104,14 @@ def run_convert(job_id):
         return jsonify({"error": str(e)}), 400
 
     if result["n_points"] == 0:
-        return jsonify({"error": "conversion produced 0 points. Either no face in the "
-                                  "extraction matched a name in the grid config "
-                                  f"(unmatched: {', '.join(result['missing_faces']) or 'none'}), "
-                                  "or the layers carry no usable boundary coordinates."}), 400
+        return jsonify(
+            {
+                "error": "conversion produced 0 points. Either no face in the "
+                "extraction matched a name in the grid config "
+                f"(unmatched: {', '.join(result['missing_faces']) or 'none'}), "
+                "or the layers carry no usable boundary coordinates."
+            }
+        ), 400
 
     meta["points_csv"] = result["points_csv"]
     meta["orientations_csv"] = result["orientations_csv"]

@@ -67,15 +67,10 @@ def test_create_returns_valid_id_and_writes_version_one_json(matrix_storage):
 
     assert isinstance(matrix, HarrisMatrix)
     assert len(matrix.matrix_id) == 12
-    assert all(
-        character in "0123456789abcdef"
-        for character in matrix.matrix_id
-    )
+    assert all(character in "0123456789abcdef" for character in matrix.matrix_id)
     assert matrix.revision == 0
 
-    matrix_path = (
-        matrix_storage["matrices_dir"] / matrix.matrix_id / "matrix.json"
-    )
+    matrix_path = matrix_storage["matrices_dir"] / matrix.matrix_id / "matrix.json"
     assert matrix_path.is_file()
     persisted = HarrisMatrix.model_validate_json(matrix_path.read_text())
     assert persisted == matrix
@@ -221,9 +216,7 @@ def test_stale_expected_revision_raises_dedicated_conflict(matrix_storage):
 )
 def test_invalid_schema_is_not_written(matrix_storage, field, value):
     created = harris_store.create_matrix()
-    matrix_path = (
-        matrix_storage["matrices_dir"] / created.matrix_id / "matrix.json"
-    )
+    matrix_path = matrix_storage["matrices_dir"] / created.matrix_id / "matrix.json"
     before = matrix_path.read_bytes()
     candidate = candidate_from(created)
     candidate[field] = value
@@ -240,15 +233,11 @@ def test_invalid_schema_is_not_written(matrix_storage, field, value):
 
 def test_graph_errors_are_not_written(matrix_storage):
     created = harris_store.create_matrix()
-    matrix_path = (
-        matrix_storage["matrices_dir"] / created.matrix_id / "matrix.json"
-    )
+    matrix_path = matrix_storage["matrices_dir"] / created.matrix_id / "matrix.json"
     before = matrix_path.read_bytes()
     candidate = candidate_from(created)
     candidate["units"] = [unit(UNIT_A)]
-    candidate["relations"] = [
-        relation("rel-000000000001", UNIT_A, UNIT_B)
-    ]
+    candidate["relations"] = [relation("rel-000000000001", UNIT_A, UNIT_B)]
 
     with pytest.raises(harris_store.InvalidMatrixError) as error:
         harris_store.save_matrix(
@@ -281,9 +270,7 @@ def test_save_atomically_replaces_from_same_matrix_directory(
     monkeypatch,
 ):
     created = harris_store.create_matrix()
-    destination = (
-        matrix_storage["matrices_dir"] / created.matrix_id / "matrix.json"
-    )
+    destination = matrix_storage["matrices_dir"] / created.matrix_id / "matrix.json"
     real_replace = harris_store.os.replace
     replace_call = {}
 

@@ -62,14 +62,21 @@ def start_task(fn, *args, **kwargs):
     accepts_log = _accepts(fn, "log_cb")
 
     with _TASKS_LOCK:
-        TASKS[task_id] = {"status": "running", "result": None, "error": None,
-                          "log": [], "started_at": time.time()}
+        TASKS[task_id] = {
+            "status": "running",
+            "result": None,
+            "error": None,
+            "log": [],
+            "started_at": time.time(),
+        }
         _evict_finished()
 
     def runner():
         try:
+
             def log_cb(msg):
                 TASKS[task_id]["log"].append(str(msg))
+
             if accepts_progress:
                 kwargs["progress_cb"] = log_cb
             if accepts_log:

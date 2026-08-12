@@ -84,7 +84,8 @@ if prev_bottom and bottom:
             report.err(
                 where,
                 f"bottom at x={x} (depth {y:.2f}) is ABOVE "
-                f"{prev_name}'s bottom (depth {above:.2f}) — layers cross")
+                f"{prev_name}'s bottom (depth {above:.2f}) — layers cross",
+            )
 ```
 
 An **error**, not a warning. Layers crossing is not unusual — it is impossible,
@@ -109,12 +110,14 @@ contradiction:
 ```python
 cycle = _find_cycle(nodes, edges)
 if cycle is not None:
-    errors.append(_issue(
-        "cycle",
-        f"Chronological cycle detected: {' -> '.join(cycle)}.",
-        cycle,
-        _cycle_relation_ids(cycle, relation_ids_by_edge),
-    ))
+    errors.append(
+        _issue(
+            "cycle",
+            f"Chronological cycle detected: {' -> '.join(cycle)}.",
+            cycle,
+            _cycle_relation_ids(cycle, relation_ids_by_edge),
+        )
+    )
     order = []
     display_edges = []
 ```
@@ -139,11 +142,13 @@ and [topologically sorts](../cs/topological-sorting.md) the union. Contradictory
 walls produce a cycle, and it refuses:
 
 ```python
-return ("the walls contradict each other: these surfaces form a "
-        "stratigraphic cycle and cannot be ordered young to old -- "
-        + listed
-        + ". Check the layer order on those walls, or correlate the loci "
-          "explicitly; no order is guessed.")
+return (
+    "the walls contradict each other: these surfaces form a "
+    "stratigraphic cycle and cannot be ordered young to old -- "
+    + listed
+    + ". Check the layer order on those walls, or correlate the loci "
+    "explicitly; no order is guessed."
+)
 ```
 
 The message names the surfaces **and which wall each is on**, because resolving

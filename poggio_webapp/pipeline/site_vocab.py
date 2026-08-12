@@ -82,34 +82,103 @@ SURVEY_POINT_CODES = {
 # a tree stump is modern root disturbance, and filing it as either a find or a
 # deposit would misrepresent it.
 DRAWN_FEATURE_TYPES = (
-    {"key": "stone", "label": "Stone", "kind": "material",
-     "material": "S", "surveyCode": "STONE"},
-    {"key": "terracotta", "label": "Terracotta (tile)", "kind": "material",
-     "material": "T", "surveyCode": None},
-    {"key": "bone", "label": "Bone", "kind": "material",
-     "material": "B", "surveyCode": None},
-    {"key": "pottery", "label": "Pottery/Ceramic", "kind": "material",
-     "material": "C", "surveyCode": None},
-    {"key": "architectural", "label": "Architectural terracotta",
-     "kind": "material", "material": "A", "surveyCode": None},
-    {"key": "plaster", "label": "Plaster", "kind": "material",
-     "material": "P", "surveyCode": None},
-    {"key": "metal", "label": "Metal", "kind": "material",
-     "material": "M", "surveyCode": None},
-    {"key": "wall", "label": "Wall", "kind": "unit",
-     "unitType": "structure", "surveyCode": "WALL"},
-    {"key": "cut", "label": "Cut", "kind": "unit",
-     "unitType": "cut", "surveyCode": None},
-    {"key": "interface", "label": "Interface / surface", "kind": "unit",
-     "unitType": "interface", "surveyCode": None},
-    {"key": "natural", "label": "Natural", "kind": "unit",
-     "unitType": "natural", "surveyCode": None},
-    {"key": "void", "label": "Void", "kind": "unit",
-     "unitType": "interface", "surveyCode": None},
-    {"key": "tree-stump", "label": "Tree stump", "kind": "intrusion",
-     "surveyCode": None},
-    {"key": "other", "label": "Other", "kind": "other",
-     "material": "O", "surveyCode": None},
+    {
+        "key": "stone",
+        "label": "Stone",
+        "kind": "material",
+        "material": "S",
+        "surveyCode": "STONE",
+    },
+    {
+        "key": "terracotta",
+        "label": "Terracotta (tile)",
+        "kind": "material",
+        "material": "T",
+        "surveyCode": None,
+    },
+    {
+        "key": "bone",
+        "label": "Bone",
+        "kind": "material",
+        "material": "B",
+        "surveyCode": None,
+    },
+    {
+        "key": "pottery",
+        "label": "Pottery/Ceramic",
+        "kind": "material",
+        "material": "C",
+        "surveyCode": None,
+    },
+    {
+        "key": "architectural",
+        "label": "Architectural terracotta",
+        "kind": "material",
+        "material": "A",
+        "surveyCode": None,
+    },
+    {
+        "key": "plaster",
+        "label": "Plaster",
+        "kind": "material",
+        "material": "P",
+        "surveyCode": None,
+    },
+    {
+        "key": "metal",
+        "label": "Metal",
+        "kind": "material",
+        "material": "M",
+        "surveyCode": None,
+    },
+    {
+        "key": "wall",
+        "label": "Wall",
+        "kind": "unit",
+        "unitType": "structure",
+        "surveyCode": "WALL",
+    },
+    {
+        "key": "cut",
+        "label": "Cut",
+        "kind": "unit",
+        "unitType": "cut",
+        "surveyCode": None,
+    },
+    {
+        "key": "interface",
+        "label": "Interface / surface",
+        "kind": "unit",
+        "unitType": "interface",
+        "surveyCode": None,
+    },
+    {
+        "key": "natural",
+        "label": "Natural",
+        "kind": "unit",
+        "unitType": "natural",
+        "surveyCode": None,
+    },
+    {
+        "key": "void",
+        "label": "Void",
+        "kind": "unit",
+        "unitType": "interface",
+        "surveyCode": None,
+    },
+    {
+        "key": "tree-stump",
+        "label": "Tree stump",
+        "kind": "intrusion",
+        "surveyCode": None,
+    },
+    {
+        "key": "other",
+        "label": "Other",
+        "kind": "other",
+        "material": "O",
+        "surveyCode": None,
+    },
 )
 
 # The Harris unit vocabulary already modelled in pipeline/harris_matrix.py.
@@ -224,14 +293,10 @@ def catalogued_id(prefix, year, number) -> str:
     """``pc20240001`` -- catalogued object, number zero-padded to four."""
     prefix = str(prefix).strip().lower()
     if prefix not in ("pc", "vdm"):
-        raise VocabError(
-            f"catalogue prefix {prefix!r} must be 'pc' or 'vdm'"
-        )
+        raise VocabError(f"catalogue prefix {prefix!r} must be 'pc' or 'vdm'")
     text = str(number).strip()
     if not text.isdigit() or len(text) > 4:
-        raise VocabError(
-            f"catalogue number {number!r} must be at most four digits"
-        )
+        raise VocabError(f"catalogue number {number!r} must be at most four digits")
     return f"{prefix}{_year(year)}{int(text):04d}"
 
 

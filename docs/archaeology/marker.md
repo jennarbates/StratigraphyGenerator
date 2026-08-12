@@ -115,7 +115,8 @@ if mm_px < 2:
     raise RuntimeError(
         "photo resolution too low for marker detection "
         f"({mm_px:.1f} px per paper mm) — retake closer or "
-        "at higher resolution")
+        "at higher resolution"
+    )
 ```
 
 An honest refusal rather than unreliable output.
@@ -139,8 +140,7 @@ untouched:
 
 ```python
 def pt(m):
-    return {"xMeters": m["x_m"], "depthMeters": m["depth_m"],
-            "confidence": None}
+    return {"xMeters": m["x_m"], "depthMeters": m["depth_m"], "confidence": None}
 ```
 
 reading only from `m`, a detected marker. The model's response schema has no
@@ -154,7 +154,8 @@ marginalia.append(
     f"[provenance] boundary coordinates from CV marker detection "
     f"({len(markers)} candidates: {n_boundary} boundary + "
     f"{n_noise + len(missing)} noise); "
-    f"Gemini assigned loci/labels only and generated no geometry")
+    f"Gemini assigned loci/labels only and generated no geometry"
+)
 ```
 
 ## What it is not

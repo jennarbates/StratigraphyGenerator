@@ -66,9 +66,8 @@ segment intersection and self-intersection on lists of points.
 
 ```python
 def _direction(start, end, point):
-    return (
-        (end[0] - start[0]) * (point[1] - start[1])
-        - (end[1] - start[1]) * (point[0] - start[0])
+    return (end[0] - start[0]) * (point[1] - start[1]) - (end[1] - start[1]) * (
+        point[0] - start[0]
     )
 ```
 
@@ -97,7 +96,8 @@ would need a logger; returning them as data means the caller decides:
 
 ```python
 merged, merge_notes = merge_walls.merge_extractions(
-    sheets, correlation=body.get("correlation"))
+    sheets, correlation=body.get("correlation")
+)
 ...
 notes.extend(merge_notes)
 ```

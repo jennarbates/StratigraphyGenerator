@@ -137,9 +137,8 @@ The header states the reading convention on the diagram itself:
 
 ```python
 _append_text(
-    header,
-    "Chronology flows downward: younger units are above older units.",
-    ...)
+    header, "Chronology flows downward: younger units are above older units.", ...
+)
 ```
 
 ## What it is not

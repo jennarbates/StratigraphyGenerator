@@ -76,9 +76,7 @@ def editor_page(job_id):
         abort(404, description="unknown editor session")
 
     try:
-        editor_meta = json.loads(
-            (session_directory / "editor_meta.json").read_text()
-        )
+        editor_meta = json.loads((session_directory / "editor_meta.json").read_text())
     except (OSError, UnicodeError, json.JSONDecodeError):
         abort(404, description="invalid editor session metadata")
 
@@ -144,18 +142,22 @@ def finalize_editor(job_id):
         except editor_pipeline.EditorStructuralValidationError as error:
             return jsonify({"error": str(error)}), 400
         except ValidationError:
-            return jsonify({
-                "error": "The saved editor data is not valid.",
-            }), 400
+            return jsonify(
+                {
+                    "error": "The saved editor data is not valid.",
+                }
+            ), 400
         except FileNotFoundError:
             abort(404, description="unknown editor session")
 
         output = finalized.model_dump(mode="json")
-        meta.update({
-            "status": "finalizing",
-            "stage": "finalizing",
-            "message": STATUS_MESSAGES["finalizing"],
-        })
+        meta.update(
+            {
+                "status": "finalizing",
+                "stage": "finalizing",
+                "message": STATUS_MESSAGES["finalizing"],
+            }
+        )
         meta.pop("pipeline_error", None)
         write_meta(job_directory, meta)
 
@@ -163,16 +165,16 @@ def finalize_editor(job_id):
         task_id = run_editor_pipeline(job_id)
     except Exception:
         meta = read_meta(job_directory)
-        meta.update({
-            "status": "error",
-            "stage": meta.get("stage", "finalizing"),
-            "message": "Model processing could not be started.",
-            "pipeline_error": "Pipeline startup failed.",
-        })
-        write_meta(job_directory, meta)
-        current_app.logger.exception(
-            "Editor pipeline failed for job %s", job_id
+        meta.update(
+            {
+                "status": "error",
+                "stage": meta.get("stage", "finalizing"),
+                "message": "Model processing could not be started.",
+                "pipeline_error": "Pipeline startup failed.",
+            }
         )
+        write_meta(job_directory, meta)
+        current_app.logger.exception("Editor pipeline failed for job %s", job_id)
         payload = finalization_payload(
             job_id,
             job_directory,
@@ -184,16 +186,20 @@ def finalize_editor(job_id):
 
     meta = read_meta(job_directory)
     if task_id is not None:
-        meta.update({
-            "task_id": task_id,
-            "gempy_task_id": task_id,
-        })
+        meta.update(
+            {
+                "task_id": task_id,
+                "gempy_task_id": task_id,
+            }
+        )
         if meta.get("status") not in {"complete", "error"}:
-            meta.update({
-                "status": "building",
-                "stage": "building",
-                "message": STATUS_MESSAGES["building"],
-            })
+            meta.update(
+                {
+                    "status": "building",
+                    "stage": "building",
+                    "message": STATUS_MESSAGES["building"],
+                }
+            )
         write_meta(job_directory, meta)
     payload = finalization_payload(job_id, job_directory, meta, output)
     return jsonify(payload), finalization_status_code(payload["status"])

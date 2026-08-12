@@ -66,15 +66,13 @@ plausible dot. The separation is not marginal.
 `poggio_webapp/pipeline/detect_markers.py`:
 
 ```python
-circularity = (
-    4 * math.pi * area / (perimeter ** 2)
-)
+circularity = 4 * math.pi * area / (perimeter**2)
 
 entry["circularity"] = float(circularity)
 
 if (
     min_d <= diameter <= max_d
-    and circularity >= min_circularity        # default 0.65
+    and circularity >= min_circularity  # default 0.65
     and solidity >= min_solidity
     and fill >= 0.5
 ):
@@ -94,7 +92,8 @@ Circularity is also the ranking key for what gets offered back to the reviewer:
 
 ```python
 near_misses = [
-    entry for entry in rejected
+    entry
+    for entry in rejected
     if 0.5 * min_d <= entry["diam"] <= 1.5 * max_d
     and entry.get("circularity", 0.0) >= 0.4
 ]
@@ -111,17 +110,11 @@ person can rescue a real vertex the filter dropped — see
 `poggio_webapp/pipeline/detect_features.py`:
 
 ```python
-circularity = (
-    4.0 * math.pi * area / (perimeter * perimeter)
-)
+circularity = 4.0 * math.pi * area / (perimeter * perimeter)
 
 compactness = min(1.0, max(0.0, circularity))
 
-score = (
-    0.45 * compactness
-    + 0.35 * min(1.0, solidity)
-    + 0.20 * min(1.0, extent)
-)
+score = 0.45 * compactness + 0.35 * min(1.0, solidity) + 0.20 * min(1.0, extent)
 
 if score < 0.28:
     continue

@@ -51,8 +51,7 @@ def test_build_marker_calib_passes_frontend_validation():
         isinstance(pair, list)
         and len(pair) == 2
         and all(
-            isinstance(value, (int, float)) and math.isfinite(value)
-            for value in pair
+            isinstance(value, (int, float)) and math.isfinite(value) for value in pair
         )
         for pair in pixel_pairs
     )

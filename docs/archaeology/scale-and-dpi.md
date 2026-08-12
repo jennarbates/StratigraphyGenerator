@@ -75,7 +75,7 @@ pixel_span = math.hypot(dx, dy)
 if pixel_span < 2:
     raise ValueError("the two top calibration points are too close together")
 ...
-px_per_m=pixel_span / ref_meters,
+px_per_m = (pixel_span / ref_meters,)
 ```
 
 One division. The `ref_meters` comes from the user — read off a
@@ -109,7 +109,8 @@ if mm_px < 2:
     raise RuntimeError(
         "photo resolution too low for marker detection "
         f"({mm_px:.1f} px per paper mm) — retake closer or "
-        "at higher resolution")
+        "at higher resolution"
+    )
 ```
 
 and the module explains the units choice:
@@ -149,12 +150,14 @@ and the recommendation says which case you are in:
 
 ```python
 if max_dim < 1500:
-    reason = ("low-resolution scan -- a higher upscale helps keep thin "
-               "boundary lines from vanishing before extraction.")
+    reason = (
+        "low-resolution scan -- a higher upscale helps keep thin "
+        "boundary lines from vanishing before extraction."
+    )
 elif max_dim < target_dim:
     reason = "moderate resolution -- a modest upscale can help a bit."
 else:
-    reason = ("already high-resolution -- little upscale needed; ...")
+    reason = "already high-resolution -- little upscale needed; ..."
 ```
 
 Upscaling **cannot add detail that was not captured**. It redistributes what is

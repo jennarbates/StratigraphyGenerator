@@ -105,8 +105,7 @@ A cut is also drawable. `poggio_webapp/pipeline/site_vocab.py` includes it in th
 vocabulary a recorder can mark on a section, and types it correctly:
 
 ```python
-{"key": "cut", "label": "Cut", "kind": "unit",
- "unitType": "cut", "surveyCode": None},
+({"key": "cut", "label": "Cut", "kind": "unit", "unitType": "cut", "surveyCode": None},)
 ```
 
 Note `"kind": "unit"` rather than `"material"`. The comment above the list draws

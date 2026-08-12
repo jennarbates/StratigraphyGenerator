@@ -83,7 +83,7 @@ if field_wall:
     # not applied: which end of a face a label marks is a site-records
     # question this module cannot answer.
     ties = []
-    for tie in (data.get("gridTiePoints") or []):
+    for tie in data.get("gridTiePoints") or []:
         raw = tie.get("rawText")
         if not raw:
             continue
@@ -99,7 +99,8 @@ if field_wall:
 and the comment appended to the config says what that offer is worth:
 
 ```python
-" This is a single-wall field sheet, so there is one face. The "
+"This is a single-wall field sheet, so there is one face. The"
+
 "labels transcribed off the drawing are listed in "
 "_tiePointsFromSheet, with their grid coordinates where the label "
 "could be read. They are NOT applied here: which end of the face "
@@ -129,8 +130,11 @@ interpretation rather than to computation.
 # Tie-point labels: transcribed verbatim on purpose, but if their spacing
 # on the sheet disagrees with the drawn wall's own extent, the extraction's
 # scale is probably wrong.
-ties = [t for t in (data.get("gridTiePoints") or [])
-        if isinstance(t.get("approxXMeters"), (int, float))]
+ties = [
+    t
+    for t in (data.get("gridTiePoints") or [])
+    if isinstance(t.get("approxXMeters"), (int, float))
+]
 numeric = []
 for t in ties:
     raw = str(t.get("rawText", "")).strip().rstrip("m").strip()
@@ -145,11 +149,13 @@ if len(numeric) >= 2:
     if drawn_span > 0 and label_span > 0:
         ratio = label_span / drawn_span
         if ratio > 1.5 or ratio < 0.67:
-            report.warn(where,
-                        f"tie-point labels span {label_span:g} units but "
-                        f"were placed across only {drawn_span:g} m of the "
-                        f"drawing ({ratio:.1f}x apart). If those labels are "
-                        "metre marks, the extracted scale is wrong.")
+            report.warn(
+                where,
+                f"tie-point labels span {label_span:g} units but "
+                f"were placed across only {drawn_span:g} m of the "
+                f"drawing ({ratio:.1f}x apart). If those labels are "
+                "metre marks, the extracted scale is wrong.",
+            )
 ```
 
 Clever, and carefully hedged. If labels reading 194 and 190 sit only 1 m apart on

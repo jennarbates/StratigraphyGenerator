@@ -100,10 +100,10 @@ cand.sort(key=lambda entry: -entry["diam"])
 kept = []
 for entry in cand:
     is_separate = all(
-        ((entry["cx"] - existing["cx"]) ** 2
-         + (entry["cy"] - existing["cy"]) ** 2)
+        ((entry["cx"] - existing["cx"]) ** 2 + (entry["cy"] - existing["cy"]) ** 2)
         > (0.5 * min_d) ** 2
-        for existing in kept)
+        for existing in kept
+    )
     if is_separate:
         kept.append(entry)
 ```
@@ -147,9 +147,9 @@ There is a second, quieter reason: geometric suppression is **ranked**.
 survives:
 
 ```python
-ordered = sorted(candidates,
-                 key=lambda c: (float(c["score"]), float(c["area_px"])),
-                 reverse=True)
+ordered = sorted(
+    candidates, key=lambda c: (float(c["score"]), float(c["area_px"])), reverse=True
+)
 ```
 
 Hierarchy has no notion of quality — it would keep the parent whether or not

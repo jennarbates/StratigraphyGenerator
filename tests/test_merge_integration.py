@@ -33,7 +33,8 @@ WALL_LABELS = ("north wall", "east wall")
 @pytest.fixture
 def merged():
     doc, _notes = merge_extractions(
-        [(WALL_LABELS[0], NORTH_WALL), (WALL_LABELS[1], EAST_WALL)])
+        [(WALL_LABELS[0], NORTH_WALL), (WALL_LABELS[1], EAST_WALL)]
+    )
     return doc
 
 

@@ -68,8 +68,9 @@ flowchart LR
 Phase 1 is explicit about writing nothing:
 
 ```python
-def classify_markers(image_path, markers, square_cm, api_key,
-                     max_output_tokens=65536, progress_cb=None):
+def classify_markers(
+    image_path, markers, square_cm, api_key, max_output_tokens=65536, progress_cb=None
+):
     """Phase 1 (calls Gemini): classify each detected marker
     (top of locus N / final base / noise) and read the sheet's labels.
     Generates no geometry and writes nothing to disk. ...

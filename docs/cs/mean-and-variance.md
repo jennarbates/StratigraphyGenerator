@@ -83,7 +83,7 @@ def check_uniform_spacing(points, where, report):
     if mean <= 0:
         return
     var = sum((d - mean) ** 2 for d in dx) / len(dx)
-    cv = (var ** 0.5) / mean
+    cv = (var**0.5) / mean
     if cv < UNIFORM_SPACING_CV:
         report.warn(where, ...)
 ```

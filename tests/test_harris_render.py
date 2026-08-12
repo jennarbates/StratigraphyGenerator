@@ -92,9 +92,7 @@ def display_nodes(root):
 
 def node_y(group):
     rect = next(
-        child
-        for child in group
-        if child.tag == "{http://www.w3.org/2000/svg}rect"
+        child for child in group if child.tag == "{http://www.w3.org/2000/svg}rect"
     )
     return float(rect.attrib["y"])
 
@@ -154,23 +152,22 @@ def test_disconnected_components_render_in_stable_label_order():
     )
 
     first = render_harris_svg(graph)
-    second = render_harris_svg(graph.model_copy(
-        update={"units": list(reversed(graph.units))}
-    ))
+    second = render_harris_svg(
+        graph.model_copy(update={"units": list(reversed(graph.units))})
+    )
 
     assert first == second
     root = parse(first)
     rank_zero = sorted(
         (
-            float(next(child for child in group if child.tag.endswith("rect"))
-                  .attrib["x"]),
+            float(
+                next(child for child in group if child.tag.endswith("rect")).attrib["x"]
+            ),
             representative,
         )
         for representative, group in display_nodes(root).items()
-        if node_y(group) == min(
-            node_y(candidate)
-            for candidate in display_nodes(root).values()
-        )
+        if node_y(group)
+        == min(node_y(candidate) for candidate in display_nodes(root).values())
     )
     assert [representative for _x, representative in rank_zero] == [A, C]
 
@@ -217,11 +214,16 @@ def test_transitive_redundant_edge_is_not_drawn():
 
     root = parse(render_harris_svg(graph))
 
-    assert len([
-        line
-        for line in elements(root, "line")
-        if line.attrib.get("class") == "harris-edge"
-    ]) == 2
+    assert (
+        len(
+            [
+                line
+                for line in elements(root, "line")
+                if line.attrib.get("class") == "harris-edge"
+            ]
+        )
+        == 2
+    )
     assert len(graph.relations) == 3
 
 
@@ -294,10 +296,7 @@ def test_width_height_and_viewbox_are_positive(graph):
 
 def test_more_than_250_units_gives_focused_error():
     graph = matrix(
-        units=[
-            unit(f"unit-{number:012x}", f"Unit {number}")
-            for number in range(251)
-        ]
+        units=[unit(f"unit-{number:012x}", f"Unit {number}") for number in range(251)]
     )
 
     with pytest.raises(

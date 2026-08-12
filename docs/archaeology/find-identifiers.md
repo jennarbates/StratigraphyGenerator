@@ -112,7 +112,8 @@ if material_name(material) is None:
     allowed = ", ".join(sorted(BULK_MATERIALS))
     raise VocabError(
         f"material {material!r} is not a bulk-find code (expected one of "
-        f"{allowed}, optionally suffixed like 'O-Slag')")
+        f"{allowed}, optionally suffixed like 'O-Slag')"
+    )
 ```
 
 and a bad year says what the format is and why:
@@ -120,7 +121,8 @@ and a bad year says what the format is and why:
 ```python
 raise VocabError(
     f"year must be four digits, got {value!r} -- the identifier "
-    "formats use a 4-digit season (e.g. 2025)")
+    "formats use a 4-digit season (e.g. 2025)"
+)
 ```
 
 ### Parsing is permissive, construction is canonical
@@ -168,7 +170,8 @@ raise VocabError(
     f"{raw!r} is not a recognised site identifier. Expected "
     "'sf-<trench>-<year>-<locus>-<n>', "
     "'bf-<trench>-<year>-<locus>-<material letter>', "
-    "or a catalogue number like 'pc20240001'")
+    "or a catalogue number like 'pc20240001'"
+)
 ```
 
 ## What it is not

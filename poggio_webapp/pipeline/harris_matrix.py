@@ -94,9 +94,7 @@ class HarrisCorrelation(_HarrisModel):
     @model_validator(mode="after")
     def require_distinct_units(self):
         if len(set(self.unit_ids)) < 2:
-            raise ValueError(
-                "A correlation requires at least two distinct unit IDs."
-            )
+            raise ValueError("A correlation requires at least two distinct unit IDs.")
         return self
 
 
@@ -140,8 +138,7 @@ class HarrisSuggestion(_HarrisModel):
             )
         if len(set(self.correlation_unit_ids)) < 2:
             raise ValueError(
-                "A correlation suggestion requires at least two distinct "
-                "unit IDs."
+                "A correlation suggestion requires at least two distinct unit IDs."
             )
         return self
 
@@ -201,18 +198,13 @@ def correlation_components(matrix: HarrisMatrix) -> dict[str, str]:
         parent[other] = representative
 
     for correlation in sorted(matrix.correlations, key=lambda item: item.id):
-        members = sorted({
-            unit_id
-            for unit_id in correlation.unit_ids
-            if unit_id in parent
-        })
+        members = sorted(
+            {unit_id for unit_id in correlation.unit_ids if unit_id in parent}
+        )
         for member in members[1:]:
             union(members[0], member)
 
-    return {
-        unit_id: find(unit_id)
-        for unit_id in unit_ids
-    }
+    return {unit_id: find(unit_id) for unit_id in unit_ids}
 
 
 def _collapsed_graph(matrix, components):
@@ -284,7 +276,7 @@ def _find_cycle(nodes, edges):
                     path.append(neighbor)
                     stack.append((neighbor, 0))
                 elif state[neighbor] == 1:
-                    return path[path_indexes[neighbor]:] + [neighbor]
+                    return path[path_indexes[neighbor] :] + [neighbor]
                 continue
             stack.pop()
             path.pop()
@@ -300,11 +292,7 @@ def _topological_sort(nodes, edges):
     for _, older in edges:
         indegree[older] += 1
 
-    ready = [
-        node
-        for node in nodes
-        if indegree[node] == 0
-    ]
+    ready = [node for node in nodes if indegree[node] == 0]
     heapq.heapify(ready)
     order = []
 
@@ -339,11 +327,7 @@ def _path_exists(start, target, edges, excluded_edge):
 
 
 def _transitive_reduction_edges(edges):
-    return {
-        edge
-        for edge in edges
-        if not _path_exists(edge[0], edge[1], edges, edge)
-    }
+    return {edge for edge in edges if not _path_exists(edge[0], edge[1], edges, edge)}
 
 
 def topological_order(matrix: HarrisMatrix) -> list[str]:
@@ -385,57 +369,63 @@ def validate_matrix_graph(matrix: HarrisMatrix) -> dict:
     components = correlation_components(matrix)
 
     for relation in sorted(matrix.relations, key=lambda item: item.id):
-        missing_ids = sorted({
-            unit_id
-            for unit_id in (relation.younger_id, relation.older_id)
-            if unit_id not in unit_ids
-        })
+        missing_ids = sorted(
+            {
+                unit_id
+                for unit_id in (relation.younger_id, relation.older_id)
+                if unit_id not in unit_ids
+            }
+        )
         if missing_ids:
-            errors.append(_issue(
-                "missing-unit",
-                f"Relation {relation.id} references missing unit(s): "
-                f"{', '.join(missing_ids)}.",
-                missing_ids,
-                [relation.id],
-            ))
+            errors.append(
+                _issue(
+                    "missing-unit",
+                    f"Relation {relation.id} references missing unit(s): "
+                    f"{', '.join(missing_ids)}.",
+                    missing_ids,
+                    [relation.id],
+                )
+            )
 
     for correlation in sorted(matrix.correlations, key=lambda item: item.id):
         missing_ids = sorted(
-            unit_id
-            for unit_id in correlation.unit_ids
-            if unit_id not in unit_ids
+            unit_id for unit_id in correlation.unit_ids if unit_id not in unit_ids
         )
         if missing_ids:
-            errors.append(_issue(
-                "missing-unit",
-                f"Correlation {correlation.id} references missing unit(s): "
-                f"{', '.join(missing_ids)}.",
-                missing_ids,
-            ))
+            errors.append(
+                _issue(
+                    "missing-unit",
+                    f"Correlation {correlation.id} references missing unit(s): "
+                    f"{', '.join(missing_ids)}.",
+                    missing_ids,
+                )
+            )
 
     for relation in sorted(matrix.relations, key=lambda item: item.id):
         if relation.younger_id == relation.older_id:
-            errors.append(_issue(
-                "self-relation",
-                f"Relation {relation.id} connects unit "
-                f"{relation.younger_id} to itself.",
-                [relation.younger_id],
-                [relation.id],
-            ))
+            errors.append(
+                _issue(
+                    "self-relation",
+                    f"Relation {relation.id} connects unit "
+                    f"{relation.younger_id} to itself.",
+                    [relation.younger_id],
+                    [relation.id],
+                )
+            )
 
     relations_by_pair = defaultdict(list)
     for relation in matrix.relations:
-        relations_by_pair[
-            (relation.younger_id, relation.older_id)
-        ].append(relation.id)
+        relations_by_pair[(relation.younger_id, relation.older_id)].append(relation.id)
     for (younger, older), relation_ids in sorted(relations_by_pair.items()):
         if len(relation_ids) > 1:
-            errors.append(_issue(
-                "duplicate-relation",
-                f"Multiple relations assert {younger} -> {older}.",
-                sorted({younger, older}),
-                sorted(relation_ids),
-            ))
+            errors.append(
+                _issue(
+                    "duplicate-relation",
+                    f"Multiple relations assert {younger} -> {older}.",
+                    sorted({younger, older}),
+                    sorted(relation_ids),
+                )
+            )
 
     correlation_memberships = defaultdict(list)
     for correlation in matrix.correlations:
@@ -444,39 +434,44 @@ def validate_matrix_graph(matrix: HarrisMatrix) -> dict:
     for unit_id, correlation_ids in sorted(correlation_memberships.items()):
         if len(correlation_ids) > 1:
             sorted_ids = sorted(correlation_ids)
-            errors.append(_issue(
-                "overlapping-correlation",
-                f"Unit {unit_id} appears in overlapping correlation groups: "
-                f"{', '.join(sorted_ids)}.",
-                [unit_id],
-            ))
+            errors.append(
+                _issue(
+                    "overlapping-correlation",
+                    f"Unit {unit_id} appears in overlapping correlation groups: "
+                    f"{', '.join(sorted_ids)}.",
+                    [unit_id],
+                )
+            )
 
     for relation in sorted(matrix.relations, key=lambda item: item.id):
         if (
             relation.younger_id in unit_ids
             and relation.older_id in unit_ids
             and relation.younger_id != relation.older_id
-            and components[relation.younger_id]
-            == components[relation.older_id]
+            and components[relation.younger_id] == components[relation.older_id]
         ):
-            errors.append(_issue(
-                "relation-within-correlation",
-                f"Relation {relation.id} connects units in the same "
-                "correlation component.",
-                sorted({relation.younger_id, relation.older_id}),
-                [relation.id],
-            ))
+            errors.append(
+                _issue(
+                    "relation-within-correlation",
+                    f"Relation {relation.id} connects units in the same "
+                    "correlation component.",
+                    sorted({relation.younger_id, relation.older_id}),
+                    [relation.id],
+                )
+            )
 
     nodes, relation_ids_by_edge = _collapsed_graph(matrix, components)
     edges = set(relation_ids_by_edge)
     cycle = _find_cycle(nodes, edges)
     if cycle is not None:
-        errors.append(_issue(
-            "cycle",
-            f"Chronological cycle detected: {' -> '.join(cycle)}.",
-            cycle,
-            _cycle_relation_ids(cycle, relation_ids_by_edge),
-        ))
+        errors.append(
+            _issue(
+                "cycle",
+                f"Chronological cycle detected: {' -> '.join(cycle)}.",
+                cycle,
+                _cycle_relation_ids(cycle, relation_ids_by_edge),
+            )
+        )
         order = []
         display_edges = []
     else:
@@ -485,37 +480,39 @@ def validate_matrix_graph(matrix: HarrisMatrix) -> dict:
         display_edges = sorted(reduced_edges)
 
         for edge in sorted(edges - reduced_edges):
-            warnings.append(_issue(
-                "redundant-relation",
-                f"Saved relation {edge[0]} -> {edge[1]} is implied by "
-                "a longer path and is omitted from display edges.",
-                list(edge),
-                relation_ids_by_edge[edge],
-            ))
+            warnings.append(
+                _issue(
+                    "redundant-relation",
+                    f"Saved relation {edge[0]} -> {edge[1]} is implied by "
+                    "a longer path and is omitted from display edges.",
+                    list(edge),
+                    relation_ids_by_edge[edge],
+                )
+            )
 
-    connected_components = {
-        component
-        for edge in edges
-        for component in edge
-    }
+    connected_components = {component for edge in edges for component in edge}
     members_by_component = defaultdict(list)
     for unit_id, component in components.items():
         members_by_component[component].append(unit_id)
     for component in sorted(nodes - connected_components):
         members = sorted(members_by_component[component])
-        warnings.append(_issue(
-            "isolated-unit",
-            f"Unit component {component} has no chronological relations.",
-            members,
-        ))
+        warnings.append(
+            _issue(
+                "isolated-unit",
+                f"Unit component {component} has no chronological relations.",
+                members,
+            )
+        )
 
     for unit in sorted(matrix.units, key=lambda item: item.id):
         if _GENERIC_LABEL.fullmatch(unit.label):
-            warnings.append(_issue(
-                "generic-label",
-                f"Unit {unit.id} still has generic label {unit.label!r}.",
-                [unit.id],
-            ))
+            warnings.append(
+                _issue(
+                    "generic-label",
+                    f"Unit {unit.id} still has generic label {unit.label!r}.",
+                    [unit.id],
+                )
+            )
 
     return {
         "ok": not errors,

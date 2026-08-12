@@ -72,11 +72,13 @@ The same file:
 ```python
 with META_LOCK:
     meta = read_meta(job_directory)
-    meta.update({
-        "status": "complete",
-        "stage": "complete",
-        "message": STATUS_MESSAGES["complete"],
-    })
+    meta.update(
+        {
+            "status": "complete",
+            "stage": "complete",
+            "message": STATUS_MESSAGES["complete"],
+        }
+    )
     ...
     write_meta(job_directory, meta)
 ```

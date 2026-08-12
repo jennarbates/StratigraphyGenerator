@@ -82,10 +82,7 @@ Structural first, schema second — and only when the payload *is* an envelope:
 
 ```python
 def _is_editor_envelope(state) -> bool:
-    return (
-        isinstance(state, dict)
-        and bool(EDITOR_ENVELOPE_KEYS.intersection(state))
-    )
+    return isinstance(state, dict) and bool(EDITOR_ENVELOPE_KEYS.intersection(state))
 ```
 
 Sessions saved before the envelope existed are schema-only, and still finalize.
@@ -96,8 +93,7 @@ See [schema versioning](schema-versioning.md).
 ```python
 def _validate_editor_structure(state, schema_type) -> dict:
     if not isinstance(state, dict):
-        raise EditorStateStructureError(
-            "Assembled editor state must be an object.")
+        raise EditorStateStructureError("Assembled editor state must be an object.")
 
     finalize_state = state.get("finalizeState")
     editor_state = state.get("editorState")
@@ -105,15 +101,14 @@ def _validate_editor_structure(state, schema_type) -> dict:
     if saved_schema_type != schema_type:
         raise EditorSchemaMismatchError(
             f'Saved schemaType "{saved_schema_type}" conflicts with '
-            f'session schema "{schema_type}".')
+            f'session schema "{schema_type}".'
+        )
     ...
     faces = editor_state.get("faces")
     if not isinstance(faces, list) or not faces:
-        raise EmptyEditorError(
-            "Set up at least one face before finalizing.")
+        raise EmptyEditorError("Set up at least one face before finalizing.")
     if schema_type == "FieldWallProfile" and len(faces) != 1:
-        raise FieldWallFaceCountError(
-            "A FieldWallProfile must have exactly one face.")
+        raise FieldWallFaceCountError("A FieldWallProfile must have exactly one face.")
 
     _validate_face_names(faces)
     _validate_polygons(state, editor_state, schema_type)
@@ -133,8 +128,8 @@ Each raises [its own class](error-taxonomies.md):
 ```python
 if _polygon_self_intersects(vertices):
     raise SelfIntersectingPolygonError(
-        f'Face "{face_name}" polygon {polygon_id} '
-        "self-intersects.")
+        f'Face "{face_name}" polygon {polygon_id} self-intersects.'
+    )
 ```
 
 The message names the face and the polygon, so it maps to something on screen.
@@ -151,7 +146,8 @@ if (
 ):
     raise UnclosedPolygonError(
         f'Face "{face_name}" polygon {polygon_id} is not closed '
-        "with at least three distinct vertices.")
+        "with at least three distinct vertices."
+    )
 ```
 
 `_distinct_valid_vertex_count` counts **distinct** coordinates, so a polygon
@@ -164,27 +160,27 @@ Nor this, in `_validate_polygon_stacking`:
 if has_explicit_order and explicit_orders != list(range(len(polygons))):
     raise PolygonStackingError(
         f'Face "{face_name}" polygon stack order must be unique, '
-        "contiguous, and match the saved polygon order.")
+        "contiguous, and match the saved polygon order."
+    )
 ```
 
 Or the registration check, which combines presence, finiteness, and range:
 
 ```python
 missing_fields = [
-    field for field in GRID_REGISTRATION_FIELDS
+    field
+    for field in GRID_REGISTRATION_FIELDS
     if not _is_finite_number(registration.get(field))
 ]
 bearing = registration.get("bearing_deg")
-if (
-    "bearing_deg" not in missing_fields
-    and not 0 <= bearing <= 360
-):
+if "bearing_deg" not in missing_fields and not 0 <= bearing <= 360:
     missing_fields.append("bearing_deg")
 
 if missing_fields:
     raise IncompleteGridRegistrationError(
         f'Face "{face_name}" grid registration is incomplete: '
-        f'{", ".join(missing_fields)}.')
+        f"{', '.join(missing_fields)}."
+    )
 ```
 
 An out-of-range bearing is folded into the *same* "incomplete" message rather
@@ -198,9 +194,9 @@ errors.
 reason:
 
 ```python
-matrix = HarrisMatrix.model_validate(candidate)     # schema
+matrix = HarrisMatrix.model_validate(candidate)  # schema
 ...
-report = validate_matrix_graph(matrix)              # semantic
+report = validate_matrix_graph(matrix)  # semantic
 ```
 
 Schema first here because the *graph* checks need typed objects to run at all.

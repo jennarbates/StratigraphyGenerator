@@ -32,11 +32,7 @@ def _is_within(path, directory):
 
 def find_viewer_manifest(job_directory, meta):
     outputs = meta.get("model_outputs")
-    configured = (
-        outputs.get("viewer_manifest")
-        if isinstance(outputs, dict)
-        else None
-    )
+    configured = outputs.get("viewer_manifest") if isinstance(outputs, dict) else None
     if isinstance(configured, str) and configured:
         candidate = Path(configured)
         if not candidate.is_absolute():
@@ -46,9 +42,7 @@ def find_viewer_manifest(job_directory, meta):
             return candidate
 
     conventional = (
-        job_directory
-        / "06_gempy_model"
-        / "trench_model_viewer.json"
+        job_directory / "06_gempy_model" / "trench_model_viewer.json"
     ).resolve()
     if _is_within(conventional, job_directory) and conventional.is_file():
         return conventional
@@ -87,16 +81,10 @@ def _has_valid_manifest_fields(manifest):
         and extent[4] < extent[5]
         and isinstance(resolution, list)
         and len(resolution) == 3
-        and all(
-            type(value) is int and value > 0
-            for value in resolution
-        )
+        and all(type(value) is int and value > 0 for value in resolution)
         and isinstance(series_order, list)
         and all(isinstance(name, str) for name in series_order)
-        and (
-            single_face_note is None
-            or isinstance(single_face_note, str)
-        )
+        and (single_face_note is None or isinstance(single_face_note, str))
         and isinstance(surfaces, list)
         and isinstance(lith_block_path, str)
         and bool(lith_block_path)
@@ -155,10 +143,12 @@ def _validated_volume_metadata(volume, resolution):
         ):
             return None
         seen_ids.add(lithology_id)
-        normalized_lithologies.append({
-            "id": lithology_id,
-            "name": name,
-        })
+        normalized_lithologies.append(
+            {
+                "id": lithology_id,
+                "name": name,
+            }
+        )
 
     return {
         "schema_version": volume["schema_version"],
@@ -218,11 +208,13 @@ def _validated_wall_traces(raw):
         if points is None or len(points) < 2:
             dropped += 1
             continue
-        traces.append({
-            "face": face,
-            "surface": surface,
-            "points": points,
-        })
+        traces.append(
+            {
+                "face": face,
+                "surface": surface,
+                "points": points,
+            }
+        )
     return traces, dropped
 
 
@@ -237,9 +229,7 @@ def model3d_from_manifest(job_id, job_directory, manifest_path):
         return None
 
     if not isinstance(manifest, dict) or not _has_valid_manifest_fields(manifest):
-        logger.warning(
-            "Ignoring unsupported or malformed 3D viewer manifest."
-        )
+        logger.warning("Ignoring unsupported or malformed 3D viewer manifest.")
         return None
 
     warnings = []
@@ -262,20 +252,18 @@ def model3d_from_manifest(job_id, job_directory, manifest_path):
         if mesh_path is None:
             warnings.append(f"Surface {name!r} mesh is unavailable.")
             continue
-        surfaces.append({
-            "name": name,
-            "url": rel_url(job_id, mesh_path),
-        })
+        surfaces.append(
+            {
+                "name": name,
+                "url": rel_url(job_id, mesh_path),
+            }
+        )
 
     if not surfaces:
-        logger.warning(
-            "Ignoring 3D viewer manifest with no available surfaces."
-        )
+        logger.warning("Ignoring 3D viewer manifest with no available surfaces.")
         return None
 
-    wall_traces, dropped_traces = _validated_wall_traces(
-        manifest.get("wallTraces")
-    )
+    wall_traces, dropped_traces = _validated_wall_traces(manifest.get("wallTraces"))
     if dropped_traces:
         warnings.append(
             f"{dropped_traces} wall trace(s) were malformed and were omitted."

@@ -51,10 +51,19 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements-docs.txt
           python -m pip install -r poggio_webapp/requirements.txt
-          python -m pip install pytest
+          # ruff is pinned because the formatting check must run the version
+          # the tree was formatted with; a formatter release would fail CI.
+          python -m pip install pytest ruff==0.16.0
 
       # Each check is its own step so a failure names itself in the UI rather
-      # than hiding inside a chained command.
+      # than hiding inside a chained command. Lint and formatting come first,
+      # in the same order as `make check`.
+      - name: Lint
+        run: ruff check .
+
+      - name: Formatting
+        run: ruff format --check .
+
       - name: Links, front matter, and orphan pages
         run: python tools/docs/check_docs.py .
 

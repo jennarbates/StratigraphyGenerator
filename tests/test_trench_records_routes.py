@@ -84,8 +84,7 @@ def test_an_explicit_column_map_is_honoured(client):
         "/api/trenches/T104/loci/import",
         data={
             "file": (io.BytesIO(text.encode()), "loci.csv"),
-            "column_map": json.dumps({"locus_number": "ctx",
-                                      "trench": "unit"}),
+            "column_map": json.dumps({"locus_number": "ctx", "trench": "unit"}),
         },
         content_type="multipart/form-data",
     )
@@ -96,8 +95,8 @@ def test_an_explicit_column_map_is_honoured(client):
 
 def test_a_missing_file_is_refused(client):
     response = client.post(
-        "/api/trenches/T104/loci/import",
-        data={}, content_type="multipart/form-data")
+        "/api/trenches/T104/loci/import", data={}, content_type="multipart/form-data"
+    )
 
     assert response.status_code == 400
 
@@ -106,8 +105,7 @@ def test_a_byte_order_mark_does_not_break_the_header(client):
     """Spreadsheet exports routinely carry one."""
     response = client.post(
         "/api/trenches/T104/loci/import",
-        data={"file": (io.BytesIO(b"\xef\xbb\xbf" + EXPORT.encode()),
-                       "loci.csv")},
+        data={"file": (io.BytesIO(b"\xef\xbb\xbf" + EXPORT.encode()), "loci.csv")},
         content_type="multipart/form-data",
     )
 
@@ -128,13 +126,13 @@ def sheet_bytes(repo_root):
 def _post_sheet(client, sheet_bytes, **form):
     data = {"file": (io.BytesIO(sheet_bytes), "geospatial.csv")}
     data.update(form)
-    return client.post("/api/trenches/geospatial-sheet", data=data,
-                       content_type="multipart/form-data")
+    return client.post(
+        "/api/trenches/geospatial-sheet", data=data, content_type="multipart/form-data"
+    )
 
 
 def test_a_whole_season_registers_from_one_file(client, sheet_bytes):
-    response = _post_sheet(client, sheet_bytes,
-                           site_grid=site_grid.POGGIO_CIVITATE)
+    response = _post_sheet(client, sheet_bytes, site_grid=site_grid.POGGIO_CIVITATE)
 
     assert response.status_code == 200
     body = response.get_json()
@@ -148,7 +146,8 @@ def test_a_whole_season_registers_from_one_file(client, sheet_bytes):
 
 
 def test_the_registration_carries_its_trenchbook_and_supervisors(
-    client, sheet_bytes,
+    client,
+    sheet_bytes,
 ):
     body = _post_sheet(client, sheet_bytes).get_json()
     trench = body["registered"]["T900"]
@@ -158,18 +157,21 @@ def test_the_registration_carries_its_trenchbook_and_supervisors(
 
 
 def test_outstanding_elevation_corrections_travel_with_the_trench(
-    client, sheet_bytes,
+    client,
+    sheet_bytes,
 ):
     """A trench whose locus forms are still flagged FALSE has no elevations
     this application can build to yet."""
     body = _post_sheet(client, sheet_bytes).get_json()
 
-    assert any("corrected to absolute" in note
-               for note in body["registered"]["T900"]["notes"])
+    assert any(
+        "corrected to absolute" in note for note in body["registered"]["T900"]["notes"]
+    )
 
 
 def test_an_extended_trench_is_reported_rather_than_guessed_at(
-    client, sheet_bytes,
+    client,
+    sheet_bytes,
 ):
     body = _post_sheet(client, sheet_bytes, phase="closing").get_json()
 
@@ -192,7 +194,8 @@ def test_a_file_that_is_not_the_geospatial_sheet_is_refused(client):
     response = client.post(
         "/api/trenches/geospatial-sheet",
         data={"file": (io.BytesIO(b"a,b\n1,2\n"), "other.csv")},
-        content_type="multipart/form-data")
+        content_type="multipart/form-data",
+    )
 
     assert response.status_code == 400
     assert "Geospatial Spreadsheet" in response.get_json()["error"]

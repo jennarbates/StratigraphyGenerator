@@ -1,5 +1,5 @@
 """
-detect_markers.py — importable adaptation of tools/detectFieldWallMarkers.py
+detect_markers.py — importable adaptation of tools/detect_field_wall_markers.py
 for the web GUI.
 
 Finds the recorder's circle-marked vertex points on a field-wall photo with
@@ -140,19 +140,16 @@ def pixel_to_section_coordinates(
     relative_y = float(pixel_y) - transform.origin_y
 
     horizontal_px = (
-        relative_x * transform.horizontal_x
-        + relative_y * transform.horizontal_y
+        relative_x * transform.horizontal_x + relative_y * transform.horizontal_y
     )
 
-    depth_px = (
-        relative_x * transform.downward_x
-        + relative_y * transform.downward_y
-    )
+    depth_px = relative_x * transform.downward_x + relative_y * transform.downward_y
 
     return (
         horizontal_px / transform.pixels_per_meter,
         depth_px / transform.pixels_per_meter,
     )
+
 
 def load_rotated(image_path, rotate=0):
     """Read the photo with EXIF auto-rotation explicitly DISABLED (so
@@ -187,16 +184,28 @@ def _ink_mask(img, block_px, C=10):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     b, g, r = cv2.split(img.astype(np.int32))
     redness = r - (g + b) / 2.0
-    ad = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C,
-                               cv2.THRESH_BINARY_INV, block_px, C)
+    ad = cv2.adaptiveThreshold(
+        gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, block_px, C
+    )
     return cv2.bitwise_and(ad, (redness < 25).astype(np.uint8) * 255)
 
 
-def run_detect(image_path, origin_px, ref_px, ref_meters, bottom_px_y,
-               square_cm, out_dir, rotate=0,
-               min_marker_paper_mm=0.5, max_marker_paper_mm=2.5,
-               line_kill_paper_mm=0.35, min_circularity=0.65,
-               min_solidity=0.9, box_margin_paper_mm=2.0):
+def run_detect(
+    image_path,
+    origin_px,
+    ref_px,
+    ref_meters,
+    bottom_px_y,
+    square_cm,
+    out_dir,
+    rotate=0,
+    min_marker_paper_mm=0.5,
+    max_marker_paper_mm=2.5,
+    line_kill_paper_mm=0.35,
+    min_circularity=0.65,
+    min_solidity=0.9,
+    box_margin_paper_mm=2.0,
+):
     """Detect circle markers inside the wall box.
 
     origin_px    : (x, y) pixel of the wall's top-LEFT corner (x=0/depth=0),
@@ -321,32 +330,17 @@ def run_detect(image_path, origin_px, ref_px, ref_meters, bottom_px_y,
             "diam": float(diameter),
         }
 
-        if not (
-            x_lo <= cx <= x_hi
-            and y_lo <= cy <= y_hi
-        ):
+        if not (x_lo <= cx <= x_hi and y_lo <= cy <= y_hi):
             # Outside the selected wall area.
             continue
 
-        circularity = (
-            4 * math.pi * area / (perimeter ** 2)
-        )
+        circularity = 4 * math.pi * area / (perimeter**2)
 
-        hull_area = cv2.contourArea(
-            cv2.convexHull(contour)
-        )
+        hull_area = cv2.contourArea(cv2.convexHull(contour))
 
-        solidity = (
-            area / hull_area
-            if hull_area > 0
-            else 0
-        )
+        solidity = area / hull_area if hull_area > 0 else 0
 
-        fill = (
-            area / (math.pi * radius * radius)
-            if radius > 0
-            else 0
-        )
+        fill = area / (math.pi * radius * radius) if radius > 0 else 0
 
         entry["circularity"] = float(circularity)
 
@@ -362,18 +356,13 @@ def run_detect(image_path, origin_px, ref_px, ref_meters, bottom_px_y,
 
     # Remove nested-contour duplicates. Keep the largest contour from each
     # group whose centers are closer than half the minimum marker diameter.
-    cand.sort(
-        key=lambda entry: -entry["diam"]
-    )
+    cand.sort(key=lambda entry: -entry["diam"])
 
     kept = []
 
     for entry in cand:
         is_separate = all(
-            (
-                (entry["cx"] - existing["cx"]) ** 2
-                + (entry["cy"] - existing["cy"]) ** 2
-            )
+            ((entry["cx"] - existing["cx"]) ** 2 + (entry["cy"] - existing["cy"]) ** 2)
             > (0.5 * min_d) ** 2
             for existing in kept
         )
@@ -390,31 +379,29 @@ def run_detect(image_path, origin_px, ref_px, ref_meters, bottom_px_y,
             transform=section_transform,
         )
 
-        projected.append(
-            (x_m, depth_m, entry)
-        )
+        projected.append((x_m, depth_m, entry))
 
     # Sort by the corrected section-local x coordinate rather than raw image
     # x. This remains left-to-right even when the photograph is tilted.
-    projected.sort(
-        key=lambda item: item[0]
-    )
+    projected.sort(key=lambda item: item[0])
 
     markers = []
 
     for marker_id, (x_m, depth_m, entry) in enumerate(projected):
-        markers.append({
-            "id": marker_id,
-            "pixel_x": round(entry["cx"], 1),
-            "pixel_y": round(entry["cy"], 1),
-            "x_m": round(x_m, 3),
-            "depth_m": round(depth_m, 3),
-            "diam_px": round(entry["diam"], 1),
-            "circularity": round(
-                entry["circularity"],
-                3,
-            ),
-        })
+        markers.append(
+            {
+                "id": marker_id,
+                "pixel_x": round(entry["cx"], 1),
+                "pixel_y": round(entry["cy"], 1),
+                "x_m": round(x_m, 3),
+                "depth_m": round(depth_m, 3),
+                "diam_px": round(entry["diam"], 1),
+                "circularity": round(
+                    entry["circularity"],
+                    3,
+                ),
+            }
+        )
 
     debug_image = img.copy()
 
@@ -527,7 +514,8 @@ def run_detect(image_path, origin_px, ref_px, ref_meters, bottom_px_y,
     # the most circular 300. x_m/depth_m are deliberately absent:
     # /markers/confirm recomputes them from pixel coordinates.
     near_misses = [
-        entry for entry in rejected
+        entry
+        for entry in rejected
         if 0.5 * min_d <= entry["diam"] <= 1.5 * max_d
         and entry.get("circularity", 0.0) >= 0.4
     ]

@@ -63,8 +63,9 @@ def clean(gray, upscale=2):
     """The recommended pipeline: flatten -> upscale -> CLAHE -> mild sharpen."""
     flat = flatten_background(gray)
     if upscale and upscale != 1:
-        flat = cv2.resize(flat, None, fx=upscale, fy=upscale,
-                          interpolation=cv2.INTER_LANCZOS4)
+        flat = cv2.resize(
+            flat, None, fx=upscale, fy=upscale, interpolation=cv2.INTER_LANCZOS4
+        )
     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
     eq = clahe.apply(flat)
     blur = cv2.GaussianBlur(eq, (0, 0), sigmaX=1.2)

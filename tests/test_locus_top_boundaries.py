@@ -28,9 +28,7 @@ def _manual_payload(include_base=True):
         {"kind": "top", "name": "1", "points": [[0, 10], [10, 10]]},
     ]
     if include_base:
-        boundaries.append(
-            {"kind": "base", "name": None, "points": [[0, 30], [10, 30]]}
-        )
+        boundaries.append({"kind": "base", "name": None, "points": [[0, 30], [10, 30]]})
     return {
         "boundaries": boundaries,
         "loci": [

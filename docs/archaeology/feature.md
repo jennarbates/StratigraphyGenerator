@@ -92,7 +92,8 @@ validator warns when neither is present:
 report.warn(
     fwhere,
     "no shapePoints and no approx* coords — geometry may be "
-    "trapped in the description string")
+    "trapped in the description string",
+)
 ```
 
 "Trapped in the description string" is a good diagnosis of a real problem —

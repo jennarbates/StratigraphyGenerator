@@ -65,7 +65,12 @@ what marks it:
 
 ```python
 UnitType = Literal[
-    "deposit", "cut", "structure", "interface", "natural", "unknown",
+    "deposit",
+    "cut",
+    "structure",
+    "interface",
+    "natural",
+    "unknown",
 ]
 
 RelationKind = Literal["above", "cuts", "fills", "precedes", "other"]

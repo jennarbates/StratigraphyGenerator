@@ -148,9 +148,9 @@ def _wall_direction(points):
     if variance == 0.0:
         return None, ordered
 
-    slope = sum(
-        (s - s_mean) * (z - z_mean) for s, z in zip(s_values, z_values)
-    ) / variance
+    slope = (
+        sum((s - s_mean) * (z - z_mean) for s, z in zip(s_values, z_values)) / variance
+    )
     return slope, ordered
 ```
 
@@ -163,7 +163,8 @@ caller turns it into a note:
 notes.append(
     f"surface {surface!r} on face {face!r} has too few "
     "distinct points along the wall to measure a slope; it "
-    "was left out of the true-dip solve")
+    "was left out of the true-dip solve"
+)
 ```
 
 Two call sites, two different degenerate answers, each chosen for what consumes

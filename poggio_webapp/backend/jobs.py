@@ -171,11 +171,7 @@ def finalization_payload(job_id, job_directory, meta, output=None):
         "status": status,
         "results_url": f"/jobs/{job_id}",
         "visualizer_url": f"/visualizer?job={job_id}",
-        "output": (
-            load_finalized_output(job_directory)
-            if output is None
-            else output
-        ),
+        "output": (load_finalized_output(job_directory) if output is None else output),
     }
     task_id = meta.get("task_id") or meta.get("gempy_task_id")
     if task_id is not None:
@@ -222,24 +218,18 @@ def job_record(job_directory):
     job_id = meta.get("job_id", job_directory.name)
     source = meta.get("source", "extraction")
     status = job_status(job_directory, meta)
-    model_paths = sorted(
-        (job_directory / "06_gempy_model").glob("*.gempy")
-    )
+    model_paths = sorted((job_directory / "06_gempy_model").glob("*.gempy"))
     section_paths = sorted(
         path
         for path in (job_directory / "06_gempy_model").glob("*section*.png")
         if "zoom" not in path.name
     )
-    mesh_paths = sorted(
-        (job_directory / "06_gempy_model").glob("*_meshes/*.obj")
-    )
+    mesh_paths = sorted((job_directory / "06_gempy_model").glob("*_meshes/*.obj"))
     return {
         "job_id": job_id,
         "source": source,
         "source_label": (
-            "Created from scratch"
-            if source == "manual_editor"
-            else "Extraction"
+            "Created from scratch" if source == "manual_editor" else "Extraction"
         ),
         # Carried through verbatim so the interface can label demonstration
         # data as such. The seeder distinguishes synthetic records from real
@@ -248,9 +238,7 @@ def job_record(job_directory):
         "demo": meta.get("demo") if isinstance(meta.get("demo"), dict) else None,
         "status": status,
         "results_url": (
-            f"/editor/{job_id}"
-            if status == "editing"
-            else f"/jobs/{job_id}"
+            f"/editor/{job_id}" if status == "editing" else f"/jobs/{job_id}"
         ),
         "created_at": meta.get("created_at"),
         "updated_at": meta.get("updated_at"),
@@ -297,9 +285,7 @@ def job_list():
     return sorted(
         jobs,
         key=lambda job: (
-            _timestamp_sort_value(
-                job.get("updated_at") or job.get("created_at")
-            ),
+            _timestamp_sort_value(job.get("updated_at") or job.get("created_at")),
             _timestamp_sort_value(job.get("created_at")),
             job["job_id"],
         ),

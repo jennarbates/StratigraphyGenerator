@@ -32,7 +32,8 @@ def test_links_are_canonicalized_rather_than_stored_twice():
     """One reference, one spelling: http upgrades and a trailing slash goes."""
     assert open_context_uri(T104_2025.replace("https", "http") + "/") == T104_2025
     assert open_context_uri("https://www.opencontext.org/subjects/abc12345") == (
-        "https://opencontext.org/subjects/abc12345")
+        "https://opencontext.org/subjects/abc12345"
+    )
 
 
 def test_an_absent_link_is_empty_not_an_error():
@@ -40,13 +41,16 @@ def test_an_absent_link_is_empty_not_an_error():
     assert open_context_uri("   ") == ""
 
 
-@pytest.mark.parametrize("bad", [
-    "https://example.com/subjects/abc12345",
-    "https://opencontext.org/",
-    "javascript:alert(1)",
-    "opencontext.org/subjects/abc12345",
-    42,
-])
+@pytest.mark.parametrize(
+    "bad",
+    [
+        "https://example.com/subjects/abc12345",
+        "https://opencontext.org/",
+        "javascript:alert(1)",
+        "opencontext.org/subjects/abc12345",
+        42,
+    ],
+)
 def test_links_outside_the_projects_hosts_are_refused(bad):
     with pytest.raises(ProvenanceError):
         open_context_uri(bad)
@@ -63,10 +67,16 @@ def test_a_non_uuid_kobo_id_is_refused():
         kobo_record_id("submission-17")
 
 
-@pytest.mark.parametrize("raw,expected", [
-    ("17", "17"), ("p. 17", "17"), ("pp. 17-19", "17-19"),
-    ("17 - 19", "17-19"), (17, "17"),
-])
+@pytest.mark.parametrize(
+    "raw,expected",
+    [
+        ("17", "17"),
+        ("p. 17", "17"),
+        ("pp. 17-19", "17-19"),
+        ("17 - 19", "17-19"),
+        (17, "17"),
+    ],
+)
 def test_trenchbook_pages_normalize(raw, expected):
     assert trenchbook_page(raw)[0] == expected
 

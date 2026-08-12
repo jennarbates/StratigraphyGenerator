@@ -104,12 +104,14 @@ A contradiction is an error, and the message names the units on the
 [cycle](../cs/cycle-detection.md):
 
 ```python
-errors.append(_issue(
-    "cycle",
-    f"Chronological cycle detected: {' -> '.join(cycle)}.",
-    cycle,
-    _cycle_relation_ids(cycle, relation_ids_by_edge),
-))
+errors.append(
+    _issue(
+        "cycle",
+        f"Chronological cycle detected: {' -> '.join(cycle)}.",
+        cycle,
+        _cycle_relation_ids(cycle, relation_ids_by_edge),
+    )
+)
 ```
 
 ### As geometry the validator checks
@@ -121,7 +123,8 @@ Crossing layers are physically impossible, so
 report.err(
     where,
     f"bottom at x={x} (depth {y:.2f}) is ABOVE "
-    f"{prev_name}'s bottom (depth {above:.2f}) — layers cross")
+    f"{prev_name}'s bottom (depth {above:.2f}) — layers cross",
+)
 ```
 
 while a gap is only a **warning**, because a void can be real. That severity

@@ -106,7 +106,8 @@ def resolve_wall_labels(members, notes):
             notes.append(
                 f"job {member['job_id']} has no wall_label; using {derived!r} "
                 "as its face name. Set a wall label so the face names match "
-                "your survey and the grid config")
+                "your survey and the grid config"
+            )
 ```
 
 A missing label is **derived and reported**; a duplicate is **fatal**:
@@ -114,7 +115,8 @@ A missing label is **derived and reported**; a duplicate is **fatal**:
 ```python
 raise TrenchBuildError(
     "two or more sheets claim the same wall of this trench "
-    f"({described}). Each job must describe a different wall")
+    f"({described}). Each job must describe a different wall"
+)
 ```
 
 Two drawings of the same wall is either a mistake or a decision the operator must
@@ -131,7 +133,8 @@ warnings.append(
     f"face {name!r} is not connected to the rest of the "
     f"trench: neither of its ends lands within "
     f"{tolerance_m} m of another wall's end. Adjacent "
-    "walls must share corner coordinates")
+    "walls must share corner coordinates"
+)
 ```
 
 An open end is fine — an unexcavated side is normal. A wall joining *nothing* is

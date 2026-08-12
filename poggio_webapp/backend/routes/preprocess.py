@@ -20,7 +20,8 @@ def run_preprocess(job_id):
 
     try:
         result = p_preprocess.run_preprocess(
-            meta["scan_path"], str(outdir),
+            meta["scan_path"],
+            str(outdir),
             upscale=float(body.get("upscale", 2.0)),
             deskew_flag=bool(body.get("deskew", False)),
             highcontrast=bool(body.get("highcontrast", False)),

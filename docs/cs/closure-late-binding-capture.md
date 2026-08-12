@@ -24,7 +24,7 @@ functions = []
 for i in range(3):
     functions.append(lambda: i)
 
-[f() for f in functions]        # [2, 2, 2] — not [0, 1, 2]
+[f() for f in functions]  # [2, 2, 2] — not [0, 1, 2]
 ```
 
 All three closures share the same `i`, which is 2 by the time any of them runs.
@@ -33,7 +33,7 @@ The standard fix is a **default argument**, which is evaluated at definition
 time:
 
 ```python
-functions.append(lambda i=i: i)   # [0, 1, 2]
+functions.append(lambda i=i: i)  # [0, 1, 2]
 ```
 
 The trap only bites when the closure **outlives the iteration** — stored in a

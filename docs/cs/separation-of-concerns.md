@@ -51,7 +51,7 @@ flowchart TB
 `poggio_webapp/pipeline/assign_markers.py` opens by stating the division:
 
 ```python
-"""assign_markers.py — close the gap detectFieldWallMarkers left open: decide
+"""assign_markers.py — close the gap detect_field_wall_markers left open: decide
 which locus/boundary each CV-detected marker belongs to.
 
 Division of labor, per the note at the bottom of the original tool:
@@ -79,8 +79,7 @@ def _assemble(markers, result_dict):
 
 ```python
 def pt(m):
-    return {"xMeters": m["x_m"], "depthMeters": m["depth_m"],
-            "confidence": None}
+    return {"xMeters": m["x_m"], "depthMeters": m["depth_m"], "confidence": None}
 ```
 
 `pt` reads only from `m`, a CV-detected marker. There is no code path by which
@@ -138,8 +137,8 @@ The domain layer sits above and adds meaning:
 ```python
 if _polygon_self_intersects(vertices):
     raise SelfIntersectingPolygonError(
-        f'Face "{face_name}" polygon {polygon_id} '
-        "self-intersects.")
+        f'Face "{face_name}" polygon {polygon_id} self-intersects.'
+    )
 ```
 
 Geometry decides *whether*; the validator decides *what it means* and *how to

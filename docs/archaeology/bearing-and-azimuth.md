@@ -102,6 +102,7 @@ with the starter config defining it:
 th = math.radians(cfg["bearing_deg"])
 sin_t, cos_t = math.sin(th), math.cos(th)
 
+
 def to_site(x, depth, X0=X0, Y0=Y0, Z0=Z0, sin_t=sin_t, cos_t=cos_t):
     X = X0 + x * sin_t
     Y = Y0 + x * cos_t
@@ -162,10 +163,7 @@ solving badly.
 
 ```python
 bearing = registration.get("bearing_deg")
-if (
-    "bearing_deg" not in missing_fields
-    and not 0 <= bearing <= 360
-):
+if "bearing_deg" not in missing_fields and not 0 <= bearing <= 360:
     missing_fields.append("bearing_deg")
 ```
 

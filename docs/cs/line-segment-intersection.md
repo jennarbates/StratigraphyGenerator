@@ -84,10 +84,9 @@ def _segments_intersect(first_start, first_end, second_start, second_end):
     fourth_direction = _direction(second_start, second_end, first_end)
 
     if (
-        (first_direction > 0 > second_direction
-         or first_direction < 0 < second_direction)
-        and (third_direction > 0 > fourth_direction
-             or third_direction < 0 < fourth_direction)
+        first_direction > 0 > second_direction or first_direction < 0 < second_direction
+    ) and (
+        third_direction > 0 > fourth_direction or third_direction < 0 < fourth_direction
     ):
         return True
 

@@ -63,10 +63,14 @@ disjoint boxes                     IoU = 0.00
 ```python
 def _iou(a: dict[str, Any], b: dict[str, Any]) -> float:
     """Calculate intersection-over-union for two feature bounding boxes."""
-    ax1 = float(a["x"]); ay1 = float(a["y"])
-    ax2 = ax1 + float(a["width"]); ay2 = ay1 + float(a["height"])
-    bx1 = float(b["x"]); by1 = float(b["y"])
-    bx2 = bx1 + float(b["width"]); by2 = by1 + float(b["height"])
+    ax1 = float(a["x"])
+    ay1 = float(a["y"])
+    ax2 = ax1 + float(a["width"])
+    ay2 = ay1 + float(a["height"])
+    bx1 = float(b["x"])
+    by1 = float(b["y"])
+    bx2 = bx1 + float(b["width"])
+    by2 = by1 + float(b["height"])
 
     intersection_x1 = max(ax1, bx1)
     intersection_y1 = max(ay1, by1)

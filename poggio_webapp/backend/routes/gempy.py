@@ -20,8 +20,12 @@ def run_gempy(job_id):
     try:
         from pipeline import build_gempy as p_build_gempy
     except Exception as e:
-        return jsonify({"error": f"gempy import failed: {e}. Install with "
-                                  f"`pip install gempy gempy_viewer --break-system-packages`."}), 400
+        return jsonify(
+            {
+                "error": f"gempy import failed: {e}. Install with "
+                f"`pip install gempy gempy_viewer --break-system-packages`."
+            }
+        ), 400
 
     kwargs = dict(
         project_name=body.get("project_name", "trench_model"),
@@ -43,7 +47,9 @@ def run_gempy(job_id):
 
     task_id = start_task(
         p_build_gempy.run_build,
-        meta["points_csv"], meta["orientations_csv"], out_prefix,
+        meta["points_csv"],
+        meta["orientations_csv"],
+        out_prefix,
         **kwargs,
     )
     return jsonify({"task_id": task_id})
@@ -62,12 +68,14 @@ def gempy_result_urls(job_id, task_id):
             urls[k] = [rel_url(job_id, p) for p in v]
         else:
             urls[k] = rel_url(job_id, v)
-    return jsonify({
-        "extent": t["result"].get("extent"),
-        "series_order": t["result"].get("series_order"),
-        "series_order_source": t["result"].get("series_order_source"),
-        "series_order_note": t["result"].get("series_order_note"),
-        "arbitrary_order_pairs": t["result"].get("arbitrary_order_pairs") or [],
-        "single_face_note": t["result"].get("single_face_note"),
-        "outputs": urls,
-    })
+    return jsonify(
+        {
+            "extent": t["result"].get("extent"),
+            "series_order": t["result"].get("series_order"),
+            "series_order_source": t["result"].get("series_order_source"),
+            "series_order_note": t["result"].get("series_order_note"),
+            "arbitrary_order_pairs": t["result"].get("arbitrary_order_pairs") or [],
+            "single_face_note": t["result"].get("single_face_note"),
+            "outputs": urls,
+        }
+    )

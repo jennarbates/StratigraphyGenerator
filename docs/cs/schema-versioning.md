@@ -149,14 +149,11 @@ and `harris_import._schema_type`:
 def _schema_type(document: dict) -> str:
     if isinstance(document.get("trenchProfiles"), list):
         return "ArchaeologicalDiagram"
-    if (
-        isinstance(document.get("layers"), list)
-        and _FIELD_WALL_FIELDS.intersection(document)
+    if isinstance(document.get("layers"), list) and _FIELD_WALL_FIELDS.intersection(
+        document
     ):
         return "FieldWallProfile"
-    raise HarrisImportError(
-        "Source document has an unsupported extraction schema."
-    )
+    raise HarrisImportError("Source document has an unsupported extraction schema.")
 ```
 
 No `schemaType` field is required in the payload. The extraction documents
@@ -185,7 +182,8 @@ and tells the user:
 if using_legacy_bottoms:
     warnings.append(
         "finalized a classification made with the old bottom-of-locus "
-        "convention; re-run marker assignment to use named locus tops")
+        "convention; re-run marker assignment to use named locus tops"
+    )
 ```
 
 Saved work is not lost, **and** the user is told the data is in an old shape and

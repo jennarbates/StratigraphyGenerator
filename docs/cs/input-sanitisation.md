@@ -155,7 +155,7 @@ def _xml_text(value) -> str:
             or 0xE000 <= ord(character) <= 0xFFFD
             or 0x10000 <= ord(character) <= 0x10FFFF
         )
-        else "\uFFFD"
+        else "\ufffd"
         for character in str(value)
     )
 ```

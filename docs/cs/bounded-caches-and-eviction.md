@@ -145,7 +145,8 @@ _MAX_UNITS = 250
 if len(matrix.units) > _MAX_UNITS:
     raise HarrisRenderError(
         "Harris Matrix SVG rendering supports at most "
-        f"{_MAX_UNITS} units; this matrix contains {len(matrix.units)}.")
+        f"{_MAX_UNITS} units; this matrix contains {len(matrix.units)}."
+    )
 ```
 
 Four bounds, three different responses: evict, truncate-by-rank, and refuse. Each

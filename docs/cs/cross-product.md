@@ -119,7 +119,8 @@ notes.append(
     f"surface {surface!r} appears only on walls that are within "
     f"{min_separation_deg} degrees of parallel "
     f"...; a true dip cannot be solved from them, so the existing apparent "
-    "dips stand")
+    "dips stand"
+)
 ```
 
 ### The 2D scalar form
@@ -128,9 +129,8 @@ notes.append(
 
 ```python
 def _direction(start, end, point):
-    return (
-        (end[0] - start[0]) * (point[1] - start[1])
-        - (end[1] - start[1]) * (point[0] - start[0])
+    return (end[0] - start[0]) * (point[1] - start[1]) - (end[1] - start[1]) * (
+        point[0] - start[0]
     )
 ```
 

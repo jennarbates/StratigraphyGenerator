@@ -167,7 +167,9 @@ def _depth_at_x(points: list[dict[str, Any]], x: float) -> float:
     return rows[-1][1]
 
 
-def _feature_geometry(calib: Calibration, row: dict[str, Any], fieldwall: bool) -> dict[str, Any]:
+def _feature_geometry(
+    calib: Calibration, row: dict[str, Any], fieldwall: bool
+) -> dict[str, Any]:
     points_px = _clean_polyline(row.get("points"), "feature polygon", 3)
     converted = [calib.convert(p) for p in points_px]
     xs = [p[0] for p in converted]
@@ -177,14 +179,22 @@ def _feature_geometry(calib: Calibration, row: dict[str, Any], fieldwall: bool) 
 
     if fieldwall:
         shape = [
-            {"xMeters": round(x, 4), "depthMeters": round(max(0.0, d), 4),
-             "confidence": "human-traced", "sourcePixel": [pixel_x, pixel_y]}
+            {
+                "xMeters": round(x, 4),
+                "depthMeters": round(max(0.0, d), 4),
+                "confidence": "human-traced",
+                "sourcePixel": [pixel_x, pixel_y],
+            }
             for (pixel_x, pixel_y), (x, d) in zip(points_px, converted)
         ]
     else:
         shape = [
-            {"xCoordinateMeters": round(x, 4), "yCoordinateMeters": round(max(0.0, d), 4),
-             "confidence": "human-traced", "sourcePixel": [pixel_x, pixel_y]}
+            {
+                "xCoordinateMeters": round(x, 4),
+                "yCoordinateMeters": round(max(0.0, d), 4),
+                "confidence": "human-traced",
+                "sourcePixel": [pixel_x, pixel_y],
+            }
             for (pixel_x, pixel_y), (x, d) in zip(points_px, converted)
         ]
 
@@ -245,14 +255,18 @@ def _manual_boundaries(payload: dict[str, Any], calib: Calibration, fieldwall: b
             continue
         points_px = _clean_polyline(boundary.get("points"), f"boundary {i + 1}", 2)
         converted = _converted_points(
-            calib, points_px, fieldwall,
+            calib,
+            points_px,
+            fieldwall,
             _uncertainty_cm(boundary.get("uncertaintyCm")),
         )
         if kind == "surface":
             if surface is None:
                 surface = converted
             else:
-                warnings.append("More than one surface line was supplied; only the first was used.")
+                warnings.append(
+                    "More than one surface line was supplied; only the first was used."
+                )
         else:
             name = str(boundary.get("name") or "").strip()
             if not name:
@@ -266,7 +280,9 @@ def _manual_boundaries(payload: dict[str, Any], calib: Calibration, fieldwall: b
             [[calib.origin_x, calib.origin_y], [calib.ref_x, calib.ref_y]],
             fieldwall,
         )
-        warnings.append("No surface line was drawn, so the top calibration edge was used as the surface.")
+        warnings.append(
+            "No surface line was drawn, so the top calibration edge was used as the surface."
+        )
 
     if not bottoms:
         raise ValueError("draw at least one bottom boundary")
@@ -274,7 +290,9 @@ def _manual_boundaries(payload: dict[str, Any], calib: Calibration, fieldwall: b
     original_order = [b["name"] for b in bottoms]
     bottoms.sort(key=lambda b: _average_depth(b["points"]))
     if [b["name"] for b in bottoms] != original_order:
-        warnings.append("Bottom boundaries were reordered from shallowest to deepest before building layers.")
+        warnings.append(
+            "Bottom boundaries were reordered from shallowest to deepest before building layers."
+        )
 
     return surface, bottoms, warnings
 
@@ -299,7 +317,9 @@ def _manual_fieldwall_boundaries(payload: dict[str, Any], calib: Calibration):
             continue
         points_px = _clean_polyline(boundary.get("points"), f"boundary {i + 1}", 2)
         converted = _converted_points(
-            calib, points_px, fieldwall=True,
+            calib,
+            points_px,
+            fieldwall=True,
             uncertainty_cm=_uncertainty_cm(boundary.get("uncertaintyCm")),
         )
         if kind == "top":
@@ -310,7 +330,9 @@ def _manual_fieldwall_boundaries(payload: dict[str, Any], calib: Calibration):
         elif base is None:
             base = converted
         else:
-            warnings.append("More than one final bottom line was supplied; only the first was used.")
+            warnings.append(
+                "More than one final bottom line was supplied; only the first was used."
+            )
 
     if not tops:
         raise ValueError("draw the top boundary of at least one locus")
@@ -328,7 +350,9 @@ def _manual_fieldwall_boundaries(payload: dict[str, Any], calib: Calibration):
     original_order = names
     tops.sort(key=lambda top: _average_depth(top["points"]))
     if [top["name"] for top in tops] != original_order:
-        warnings.append("Locus top boundaries were reordered from shallowest to deepest.")
+        warnings.append(
+            "Locus top boundaries were reordered from shallowest to deepest."
+        )
 
     if _average_depth(base) <= _average_depth(tops[-1]["points"]):
         raise ValueError("the final bottom line must be below the deepest locus top")
@@ -350,11 +374,7 @@ def _readable_text(value: Any) -> str | None:
 def _readable_text_list(value: Any) -> list[str]:
     if not isinstance(value, list):
         return []
-    return [
-        text
-        for item in value
-        if (text := _readable_text(item)) is not None
-    ]
+    return [text for item in value if (text := _readable_text(item)) is not None]
 
 
 def _positive_number(value: Any) -> float | None:
@@ -369,7 +389,9 @@ def _positive_number(value: Any) -> float | None:
     return number
 
 
-def _verified_fieldwall_text(payload: dict[str, Any]) -> tuple[
+def _verified_fieldwall_text(
+    payload: dict[str, Any],
+) -> tuple[
     dict[str, Any],
     dict[str, dict[str, Any]],
 ]:
@@ -391,7 +413,9 @@ def _verified_fieldwall_text(payload: dict[str, Any]) -> tuple[
     return document, loci_by_number
 
 
-def build_fieldwall(payload: dict[str, Any], calib: Calibration, source_path: str | None):
+def build_fieldwall(
+    payload: dict[str, Any], calib: Calibration, source_path: str | None
+):
     tops, base, warnings = _manual_fieldwall_boundaries(payload, calib)
     loci_rows = payload.get("loci") or []
     loci_meta = {
@@ -423,47 +447,44 @@ def build_fieldwall(payload: dict[str, Any], calib: Calibration, source_path: st
         name = top["name"]
         info = loci_meta.get(name, {})
         verified_info = verified_loci.get(name, {})
-        munsell_raw = (
-            _readable_text(info.get("munsellRaw"))
-            or _readable_text(verified_info.get("munsellRaw"))
+        munsell_raw = _readable_text(info.get("munsellRaw")) or _readable_text(
+            verified_info.get("munsellRaw")
         )
-        description = (
-            _readable_text(info.get("description"))
-            or _readable_text(verified_info.get("description"))
+        description = _readable_text(info.get("description")) or _readable_text(
+            verified_info.get("description")
         )
-        loci.append({
-            "locusNumber": name,
-            "munsell": {"raw": munsell_raw, "colorName": None} if munsell_raw else None,
-            "description": description,
-            "confidence": (
-                "human-verified" if verified_info else "human-entered"
-            ),
-        })
-        layers.append({
-            "locusNumber": name,
-            "topBoundary": bands[i][0],
-            "bottomBoundary": bands[i][1],
-            "featuresInLayer": assigned[i] or None,
-        })
+        loci.append(
+            {
+                "locusNumber": name,
+                "munsell": {"raw": munsell_raw, "colorName": None}
+                if munsell_raw
+                else None,
+                "description": description,
+                "confidence": ("human-verified" if verified_info else "human-entered"),
+            }
+        )
+        layers.append(
+            {
+                "locusNumber": name,
+                "topBoundary": bands[i][0],
+                "bottomBoundary": bands[i][1],
+                "featuresInLayer": assigned[i] or None,
+            }
+        )
 
-    trench_label = (
-        _readable_text(payload.get("trenchLabel"))
-        or _readable_text(verified_document.get("trenchLabel"))
+    trench_label = _readable_text(payload.get("trenchLabel")) or _readable_text(
+        verified_document.get("trenchLabel")
     )
-    face_label = (
-        _readable_text(payload.get("faceLabel"))
-        or _readable_text(verified_document.get("faceLabel"))
+    face_label = _readable_text(payload.get("faceLabel")) or _readable_text(
+        verified_document.get("faceLabel")
     )
-    square_cm = (
-        _positive_number(payload.get("square_cm"))
-        or _positive_number(verified_document.get("gridSquareCm"))
+    square_cm = _positive_number(payload.get("square_cm")) or _positive_number(
+        verified_document.get("gridSquareCm")
     )
     illustrators = _readable_text_list(verified_document.get("illustrators"))
     grid_tie_points = [
         {"rawText": raw_text, "approxXMeters": None}
-        for raw_text in _readable_text_list(
-            verified_document.get("gridTiePoints")
-        )
+        for raw_text in _readable_text_list(verified_document.get("gridTiePoints"))
     ]
     marginalia = [
         "Boundary and feature geometry was manually traced by a user.",
@@ -471,9 +492,7 @@ def build_fieldwall(payload: dict[str, Any], calib: Calibration, source_path: st
         "the locus above, and the separate final line closes the deepest locus.",
         f"Source image: {source_path}" if source_path else "Source image unavailable.",
     ]
-    marginalia.extend(
-        _readable_text_list(verified_document.get("marginalia"))
-    )
+    marginalia.extend(_readable_text_list(verified_document.get("marginalia")))
     marginalia.extend(
         f"Other readable text: {text}"
         for text in _readable_text_list(verified_document.get("otherText"))
@@ -498,7 +517,9 @@ def build_fieldwall(payload: dict[str, Any], calib: Calibration, source_path: st
     return data, warnings
 
 
-def build_illustrator(payload: dict[str, Any], calib: Calibration, source_path: str | None):
+def build_illustrator(
+    payload: dict[str, Any], calib: Calibration, source_path: str | None
+):
     surface, bottoms, warnings = _manual_boundaries(payload, calib, fieldwall=False)
     layer_info = payload.get("layerInfo") or {}
 
@@ -521,19 +542,23 @@ def build_illustrator(payload: dict[str, Any], calib: Calibration, source_path: 
         info = layer_info.get(name) or {}
         material = str(info.get("inferredMaterial") or "").strip() or name
         description = str(info.get("description") or "").strip() or None
-        layers.append({
-            "layerName": name,
-            "inferredMaterial": material,
-            "description": description,
-            "visualPattern": None,
-            "featuresInLayer": assigned[i] or None,
-            "topBoundary": bands[i][0],
-            "bottomBoundary": bands[i][1],
-        })
+        layers.append(
+            {
+                "layerName": name,
+                "inferredMaterial": material,
+                "description": description,
+                "visualPattern": None,
+                "featuresInLayer": assigned[i] or None,
+                "topBoundary": bands[i][0],
+                "bottomBoundary": bands[i][1],
+            }
+        )
 
-    face = (str(payload.get("faceLabel") or "").strip()
-            or str(payload.get("trenchLabel") or "").strip()
-            or "manual trace")
+    face = (
+        str(payload.get("faceLabel") or "").strip()
+        or str(payload.get("trenchLabel") or "").strip()
+        or "manual trace"
+    )
     data = {
         "metadata": {
             "currentFilePath": source_path,
@@ -546,14 +571,18 @@ def build_illustrator(payload: dict[str, Any], calib: Calibration, source_path: 
                 "confidence": "human-confirmed",
             },
             "credits": None,
-            "marginalia": ["Boundary and feature geometry was manually traced by a user."],
+            "marginalia": [
+                "Boundary and feature geometry was manually traced by a user."
+            ],
         },
-        "trenchProfiles": [{
-            "face": face,
-            "gridLabels": None,
-            "gridLabelXMeters": None,
-            "layers": layers,
-        }],
+        "trenchProfiles": [
+            {
+                "face": face,
+                "gridLabels": None,
+                "gridLabelXMeters": None,
+                "layers": layers,
+            }
+        ],
         "legend": None,
         "inferred_notes": ["No model generated or altered the traced geometry."],
         "rawTranscription": None,

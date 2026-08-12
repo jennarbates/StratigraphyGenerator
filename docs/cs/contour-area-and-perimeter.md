@@ -139,7 +139,7 @@ bias is squared — a perfect digital circle measures around 0.9 rather than 1.0
 Hence the threshold in `detect_markers.py`:
 
 ```python
-min_circularity=0.65
+min_circularity = 0.65
 ```
 
 0.65 rather than something near 1.0 is not laxness; it is calibration against a

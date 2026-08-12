@@ -67,9 +67,9 @@ class HarrisRelation(_HarrisModel):
     younger_id: UnitId
     older_id: UnitId
     kind: RelationKind
-    evidence: HumanText          # ← required
+    evidence: HumanText  # ← required
     source: RelationSource
-    notes: HumanText | None      # ← optional
+    notes: HumanText | None  # ← optional
 ```
 
 `evidence` is not optional. A chronological assertion without a reason is not
@@ -91,8 +91,7 @@ missing required one. `extract_text._ContractModel` does the same.
 ```python
 MatrixId = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{12}$")]
 UnitId = Annotated[str, StringConstraints(pattern=r"^unit-[0-9a-f]{12}$")]
-UnitLabel = Annotated[
-    str, StringConstraints(strip_whitespace=True, min_length=1)]
+UnitLabel = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
 NonNegativeInteger = Annotated[int, Field(strict=True, ge=0)]
 ```
 
@@ -104,7 +103,12 @@ sneak past.
 
 ```python
 UnitType = Literal[
-    "deposit", "cut", "structure", "interface", "natural", "unknown",
+    "deposit",
+    "cut",
+    "structure",
+    "interface",
+    "natural",
+    "unknown",
 ]
 RelationKind = Literal["above", "cuts", "fills", "precedes", "other"]
 ```
@@ -117,6 +121,7 @@ stages later.
 ```python
 class HarrisSuggestion(_HarrisModel):
     ...
+
     @model_validator(mode="after")
     def enforce_suggestion_shape(self):
         if self.suggestion_type == "ordering":

@@ -78,7 +78,7 @@ def _dip_from_normal(normal):
     For an upward normal the downhill horizontal direction is (n_x, n_y), and a
     compass bearing is atan2(east, north) -- not the mathematical atan2(y, x).
     """
-    length = math.sqrt(sum(component ** 2 for component in normal))
+    length = math.sqrt(sum(component**2 for component in normal))
     if length == 0.0:
         return None
     x, y, z = (component / length for component in normal)

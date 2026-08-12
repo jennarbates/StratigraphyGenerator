@@ -138,7 +138,8 @@ if len(elevations) > 1:
             f"surfaceZ spreads {spread:.2f} m across the faces "
             f"({min(elevations):.2f} to {max(elevations):.2f}); the walls "
             "may not share a datum -- confirm all elevations come from the "
-            "same benchmark")
+            "same benchmark"
+        )
 ```
 
 The reasoning behind the threshold: the four walls of one trench are metres

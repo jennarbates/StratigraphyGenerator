@@ -48,9 +48,7 @@ def test_create_editor_session_writes_draft_meta():
 def test_create_editor_session_maps_archaeological_schema_to_illustrator():
     job_id = editor.create_editor_session("ArchaeologicalDiagram")
 
-    metadata = json.loads(
-        (storage.JOBS_DIR / job_id / "meta.json").read_text()
-    )
+    metadata = json.loads((storage.JOBS_DIR / job_id / "meta.json").read_text())
     assert metadata["schema_type"] == "ArchaeologicalDiagram"
     assert metadata["sheet_type"] == "illustrator"
 
@@ -58,9 +56,7 @@ def test_create_editor_session_maps_archaeological_schema_to_illustrator():
 def test_create_editor_session_maps_fieldwall_schema_to_fieldwall():
     job_id = editor.create_editor_session("FieldWallProfile")
 
-    metadata = json.loads(
-        (storage.JOBS_DIR / job_id / "meta.json").read_text()
-    )
+    metadata = json.loads((storage.JOBS_DIR / job_id / "meta.json").read_text())
     assert metadata["schema_type"] == "FieldWallProfile"
     assert metadata["sheet_type"] == "fieldwall"
 
@@ -68,9 +64,7 @@ def test_create_editor_session_maps_fieldwall_schema_to_fieldwall():
 def test_create_editor_session_writes_parseable_created_and_updated_timestamps():
     job_id = editor.create_editor_session("FieldWallProfile")
 
-    metadata = json.loads(
-        (storage.JOBS_DIR / job_id / "meta.json").read_text()
-    )
+    metadata = json.loads((storage.JOBS_DIR / job_id / "meta.json").read_text())
     created_at = datetime.fromisoformat(metadata["created_at"])
     updated_at = datetime.fromisoformat(metadata["updated_at"])
 

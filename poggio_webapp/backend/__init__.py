@@ -19,10 +19,12 @@ def create_app() -> Flask:
 
     @app.errorhandler(HTTPException)
     def handle_http_error(error: HTTPException):
-        return jsonify({
-            "error": error.description or error.name,
-            "status": error.code,
-        }), error.code
+        return jsonify(
+            {
+                "error": error.description or error.name,
+                "status": error.code,
+            }
+        ), error.code
 
     @app.errorhandler(Exception)
     def handle_unexpected_error(error: Exception):

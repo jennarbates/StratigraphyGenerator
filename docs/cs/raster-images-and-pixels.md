@@ -61,7 +61,7 @@ The transition from grid to geometry happens in exactly one place per path. In
 def convert(self, point):
     px, py = float(point[0]), float(point[1])
     dx, dy = px - self.origin_x, py - self.origin_y
-    x_m    = (dx * self.ux + dy * self.uy) / self.px_per_m
+    x_m = (dx * self.ux + dy * self.uy) / self.px_per_m
     depth_m = (dx * self.vx + dy * self.vy) / self.px_per_m
     return round(x_m, 4), round(depth_m, 4)
 ```
@@ -78,7 +78,7 @@ point = {
     "xMeters": x,
     "depthMeters": max(0.0, depth),
     "confidence": "human-traced",
-    "sourcePixel": [pixel_x, pixel_y],     # the grid position it came from
+    "sourcePixel": [pixel_x, pixel_y],  # the grid position it came from
 }
 ```
 

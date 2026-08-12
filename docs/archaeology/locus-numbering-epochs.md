@@ -118,7 +118,8 @@ raise TrenchBuildError(
     + ", ".join(repr(e) for e in epochs)
     + "). Locus numbers restart at each epoch, so the same number "
     "means different deposits on either side of one. Build each epoch "
-    "as its own trench")
+    "as its own trench"
+)
 ```
 
 **Consecutive seasons, no epoch declared → allow, with a note.**
@@ -128,7 +129,8 @@ if years == list(range(years[0], years[-1] + 1)):
     notes.append(
         f"sheets span consecutive seasons {years[0]}-{years[-1]}; locus "
         "numbering continues across those, so their locus numbers are "
-        "being read as one sequence")
+        "being read as one sequence"
+    )
     return
 ```
 
@@ -144,7 +146,8 @@ raise TrenchBuildError(
     + f"; nothing from {', '.join(str(y) for y in missing)}). A trench "
     "reopened after a gap may restart its locus numbering, so the same "
     "locus number need not mean the same deposit. Set a locus_epoch on "
-    "each job to say which numbering sequence it belongs to")
+    "each job to say which numbering sequence it belongs to"
+)
 ```
 
 The message names the **missing years**, so an operator can see exactly which gap
@@ -157,7 +160,8 @@ run:
 raise TrenchBuildError(
     "these sheets span more than one season and at least one season is "
     "not a 4-digit year (...), so whether their locus numbering continues "
-    "cannot be determined. Set a locus_epoch on each job")
+    "cannot be determined. Set a locus_epoch on each job"
+)
 ```
 
 And a partially-declared set is allowed with a note rather than refused:
@@ -165,7 +169,8 @@ And a partially-declared set is allowed with a note rather than refused:
 ```python
 notes.append(
     f"jobs {', '.join(undeclared)} declare no locus epoch; taking "
-    f"them as part of {epochs[0]!r}, the only one declared")
+    f"them as part of {epochs[0]!r}, the only one declared"
+)
 ```
 
 ## What it is not

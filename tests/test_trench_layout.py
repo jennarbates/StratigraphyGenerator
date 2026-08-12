@@ -22,10 +22,10 @@ from pipeline.trench_layout import (
 )
 
 T104_CORNERS = [
-    {"label": "190E/53S", "elevation": 29.10},   # NW
-    {"label": "194E/53S", "elevation": 29.02},   # NE
-    {"label": "194E/56S", "elevation": 28.55},   # SE -- the low corner
-    {"label": "190E/56S", "elevation": 28.94},   # SW
+    {"label": "190E/53S", "elevation": 29.10},  # NW
+    {"label": "194E/53S", "elevation": 29.02},  # NE
+    {"label": "194E/56S", "elevation": 28.55},  # SE -- the low corner
+    {"label": "190E/56S", "elevation": 28.94},  # SW
 ]
 T104_WALLS = ["north wall", "east wall", "south wall", "west wall"]
 
@@ -45,12 +45,15 @@ def t104(**overrides):
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize("start,end,expected", [
-    ((0, 0), (0, 1), 0.0),      # due Grid North
-    ((0, 0), (1, 0), 90.0),     # due Grid East
-    ((0, 0), (0, -1), 180.0),   # South
-    ((0, 0), (-1, 0), 270.0),   # West
-])
+@pytest.mark.parametrize(
+    "start,end,expected",
+    [
+        ((0, 0), (0, 1), 0.0),  # due Grid North
+        ((0, 0), (1, 0), 90.0),  # due Grid East
+        ((0, 0), (0, -1), 180.0),  # South
+        ((0, 0), (-1, 0), 270.0),  # West
+    ],
+)
 def test_bearings_match_the_total_station_convention(start, end, expected):
     """HA 0 Grid North, 90 East, 180 South, 270 West -- and the same
     convention convert_coords already computes in."""
@@ -76,12 +79,16 @@ def test_corner_labels_are_read_through_the_site_grid_rule():
 
 
 def test_numeric_corners_are_accepted_without_a_label():
-    read = read_layout(t104(corners=[
-        {"gridX": 190.0, "gridY": -53.0, "elevation": 29.1},
-        {"gridX": 194.0, "gridY": -53.0, "elevation": 29.0},
-        {"gridX": 194.0, "gridY": -56.0, "elevation": 28.6},
-        {"gridX": 190.0, "gridY": -56.0, "elevation": 28.9},
-    ]))
+    read = read_layout(
+        t104(
+            corners=[
+                {"gridX": 190.0, "gridY": -53.0, "elevation": 29.1},
+                {"gridX": 194.0, "gridY": -53.0, "elevation": 29.0},
+                {"gridX": 194.0, "gridY": -56.0, "elevation": 28.6},
+                {"gridX": 190.0, "gridY": -56.0, "elevation": 28.9},
+            ]
+        )
+    )
     assert [c["gridY"] for c in read["corners"]] == [-53.0, -53.0, -56.0, -56.0]
 
 
@@ -151,10 +158,16 @@ def test_missing_corner_elevations_are_reported():
 
 def test_below_datum_corner_elevations_are_resolved():
     corners = [{**c, "elevation": 0.5} for c in T104_CORNERS]
-    read = read_layout(t104(corners=corners, vertical={
-        "frame": "mAE", "entryForm": "below-datum",
-        "datumNail": {"absoluteZ": 29.6},
-    }))
+    read = read_layout(
+        t104(
+            corners=corners,
+            vertical={
+                "frame": "mAE",
+                "entryForm": "below-datum",
+                "datumNail": {"absoluteZ": 29.6},
+            },
+        )
+    )
 
     assert read["corners"][0]["elevation"] == pytest.approx(29.1)
 
@@ -162,8 +175,9 @@ def test_below_datum_corner_elevations_are_resolved():
 def test_below_datum_without_a_datum_refuses():
     corners = [{**c, "elevation": 0.5} for c in T104_CORNERS]
     with pytest.raises(LayoutError, match="no datum nail elevation"):
-        read_layout(t104(corners=corners,
-                         vertical={"frame": "mAE", "entryForm": "below-datum"}))
+        read_layout(
+            t104(corners=corners, vertical={"frame": "mAE", "entryForm": "below-datum"})
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -177,20 +191,18 @@ def test_each_wall_is_registered_from_its_start_corner():
 
     assert north["originX"] == 190.0
     assert north["originY"] == -53.0
-    assert north["bearing_deg"] == pytest.approx(90.0)   # runs east
+    assert north["bearing_deg"] == pytest.approx(90.0)  # runs east
     assert north["surfaceZ"] == pytest.approx(29.10)
 
 
 def test_every_wall_gets_the_bearing_of_its_own_edge():
     config, _notes = build_grid_config(t104())
-    bearings = {
-        name: config["faces"][name]["bearing_deg"] for name in T104_WALLS
-    }
+    bearings = {name: config["faces"][name]["bearing_deg"] for name in T104_WALLS}
 
-    assert bearings["north wall"] == pytest.approx(90.0)    # east
-    assert bearings["east wall"] == pytest.approx(180.0)    # south
-    assert bearings["south wall"] == pytest.approx(270.0)   # west
-    assert bearings["west wall"] == pytest.approx(0.0)      # north
+    assert bearings["north wall"] == pytest.approx(90.0)  # east
+    assert bearings["east wall"] == pytest.approx(180.0)  # south
+    assert bearings["south wall"] == pytest.approx(270.0)  # west
+    assert bearings["west wall"] == pytest.approx(0.0)  # north
 
 
 def test_the_derived_config_declares_itself_surveyed():
@@ -235,8 +247,9 @@ def test_the_derived_registration_reproduces_the_corners():
         face = config["faces"][name]
         start = corners[index]
         end = corners[(index + 1) % len(corners)]
-        length = math.dist((start["gridX"], start["gridY"]),
-                           (end["gridX"], end["gridY"]))
+        length = math.dist(
+            (start["gridX"], start["gridY"]), (end["gridX"], end["gridY"])
+        )
         theta = math.radians(face["bearing_deg"])
         x = face["originX"] + length * math.sin(theta)
         y = face["originY"] + length * math.cos(theta)

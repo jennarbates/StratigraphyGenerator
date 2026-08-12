@@ -65,7 +65,7 @@ if pixel_span < 2:
 
 ux, uy = dx / pixel_span, dy / pixel_span
 ...
-px_per_m=pixel_span / ref_meters,
+px_per_m = (pixel_span / ref_meters,)
 ```
 
 `math.hypot` rather than `math.sqrt(dx*dx + dy*dy)` — it is written to avoid
@@ -82,7 +82,8 @@ ref_dist_px = math.hypot(rx - ox, ry - oy)
 if ref_dist_px < 20:
     raise RuntimeError(
         "the top-left and top-right clicks are almost the "
-        "same pixel — click the wall's two top corners")
+        "same pixel — click the wall's two top corners"
+    )
 ```
 
 ### Comparing distances without square roots
@@ -92,10 +93,7 @@ if ref_dist_px < 20:
 
 ```python
 is_separate = all(
-    (
-        (entry["cx"] - existing["cx"]) ** 2
-        + (entry["cy"] - existing["cy"]) ** 2
-    )
+    ((entry["cx"] - existing["cx"]) ** 2 + (entry["cy"] - existing["cy"]) ** 2)
     > (0.5 * min_d) ** 2
     for existing in kept
 )
@@ -111,8 +109,8 @@ no loss of exactness — and it is *more* exact, since no rounding is introduced
 
 ```python
 touching = any(
-    math.dist(pa, pb) <= tolerance_m
-    for pa in endpoints[a] for pb in endpoints[b])
+    math.dist(pa, pb) <= tolerance_m for pa in endpoints[a] for pb in endpoints[b]
+)
 ```
 
 Here `math.dist` is used directly, because the threshold is a **survey
@@ -147,8 +145,7 @@ direction from a difference guards against it first — the `pixel_span < 2` and
 
 ```python
 if reference_width_px <= 1e-9:
-    raise ValueError(
-        "The top-left and top-right calibration points must be different")
+    raise ValueError("The top-left and top-right calibration points must be different")
 ```
 
 **Points and vectors are different things.** Adding two positions is

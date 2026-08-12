@@ -163,8 +163,6 @@ class FieldWallProfile(BaseModel):
     finds: SkipJsonSchema[list[dict]] = []
 
 
-
-
 def build_prompt(square_cm: float) -> str:
     return f"""
 You are transcribing a MODERN FIELD RECORDING SHEET of a single trench wall
@@ -313,8 +311,14 @@ Emit ONLY the JSON conforming to the schema.
 """
 
 
-def run_extraction(image_path: str, square_cm: float, out_path: str,
-                    api_key: str, max_output_tokens: int = 65536, progress_cb=None):
+def run_extraction(
+    image_path: str,
+    square_cm: float,
+    out_path: str,
+    api_key: str,
+    max_output_tokens: int = 65536,
+    progress_cb=None,
+):
     """Runs the field-wall extraction. Returns (raw_json_text, warning_or_None)."""
     if not os.path.exists(image_path):
         raise RuntimeError(f"file not found: {image_path}")
@@ -322,13 +326,16 @@ def run_extraction(image_path: str, square_cm: float, out_path: str,
     if progress_cb:
         progress_cb("analyzing field wall drawing...")
 
-    client = genai.Client(api_key=api_key,
-                           http_options=types.HttpOptions(timeout=240_000))  # 4 min
+    client = genai.Client(
+        api_key=api_key, http_options=types.HttpOptions(timeout=240_000)
+    )  # 4 min
     img = Image.open(image_path)
     orig_size = img.size
     img = _cap_for_sending(img)
     if img.size != orig_size and progress_cb:
-        progress_cb(f"resized {orig_size[0]}x{orig_size[1]} -> {img.size[0]}x{img.size[1]} before sending to Gemini")
+        progress_cb(
+            f"resized {orig_size[0]}x{orig_size[1]} -> {img.size[0]}x{img.size[1]} before sending to Gemini"
+        )
     prompt = build_prompt(square_cm)
 
     response = generate_with_retry(
@@ -355,6 +362,7 @@ def run_extraction(image_path: str, square_cm: float, out_path: str,
         f.write(raw_json)
 
     from pipeline._extract_common import check_response
+
     warning = check_response(response, raw_json)
 
     if progress_cb:

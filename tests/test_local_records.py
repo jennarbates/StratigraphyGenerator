@@ -113,7 +113,7 @@ def record(request):
     """One trench's layout, and its loci and finds where they exist."""
     stem = request.param
     layout = _read(stem, "layout")
-    if layout is None:                              # pragma: no cover - guarded
+    if layout is None:  # pragma: no cover - guarded
         pytest.skip(f"{stem} has no layout")
     return {
         "stem": stem,
@@ -178,7 +178,8 @@ def _datum(layout):
 
 def _recorded_elevations(layout):
     return [
-        corner["elevation"] for corner in layout["corners"]
+        corner["elevation"]
+        for corner in layout["corners"]
         if corner.get("elevation") is not None
     ]
 
@@ -244,14 +245,17 @@ def test_walking_each_wall_arrives_at_the_next_corner(record):
         face = config["faces"][wall]
         start = corners[index]
         end = corners[(index + 1) % len(corners)]
-        length = math.dist((start["gridX"], start["gridY"]),
-                           (end["gridX"], end["gridY"]))
+        length = math.dist(
+            (start["gridX"], start["gridY"]), (end["gridX"], end["gridY"])
+        )
         theta = math.radians(face["bearing_deg"])
 
         assert face["originX"] + length * math.sin(theta) == pytest.approx(
-            end["gridX"], abs=1e-6), wall
+            end["gridX"], abs=1e-6
+        ), wall
         assert face["originY"] + length * math.cos(theta) == pytest.approx(
-            end["gridY"], abs=1e-6), wall
+            end["gridY"], abs=1e-6
+        ), wall
 
 
 def test_a_wall_gets_a_surface_elevation_exactly_when_its_corner_has_one(
@@ -275,8 +279,7 @@ def test_a_wall_without_an_elevation_is_flagged_in_the_notes(record):
     layout = record["layout"]
     config, notes = build_grid_config(layout)
     missing = [
-        wall for wall, face in config["faces"].items()
-        if face["surfaceZ"] is None
+        wall for wall, face in config["faces"].items() if face["surfaceZ"] is None
     ]
     if not missing:
         pytest.skip("every corner of this trench has an opening elevation")
@@ -322,13 +325,16 @@ def test_the_elevations_round_trip_through_the_datum(record):
     for elevation in _recorded_elevations(layout):
         below = datum - elevation
         assert site_elevation.absolute_from_below_datum(below, datum) == (
-            pytest.approx(elevation))
+            pytest.approx(elevation)
+        )
         assert site_elevation.resolve(elevation, layout["vertical"]) == (
-            pytest.approx(elevation))
+            pytest.approx(elevation)
+        )
 
 
 def test_no_locus_surface_lies_above_the_datum_or_absurdly_below_it(
-    record, by_locus,
+    record,
+    by_locus,
 ):
     datum = _datum(record["layout"])
     if datum is None:
@@ -380,7 +386,10 @@ def test_no_locus_closes_meaningfully_above_where_it_opened(loci):
         for label in set(opening) & set(closing):
             rise = closing[label] - opening[label]
             assert rise <= MEASUREMENT_SCATTER_M + 1e-9, (
-                entry["locus"], label, round(rise, 3))
+                entry["locus"],
+                label,
+                round(rise, 3),
+            )
 
 
 def test_an_unexcavated_locus_records_no_material(loci):
@@ -391,8 +400,7 @@ def test_an_unexcavated_locus_records_no_material(loci):
         opening = _by_label(entry, "opening")
         closing = _by_label(entry, "closing")
         shared = set(opening) & set(closing)
-        untouched = shared and all(
-            closing[label] == opening[label] for label in shared)
+        untouched = shared and all(closing[label] == opening[label] for label in shared)
         if not untouched:
             continue
         materials = entry.get("materials")
@@ -419,10 +427,8 @@ def test_loci_dug_one_below_another_share_the_surface_between_them(loci):
             continue
         members.sort(key=lambda entry: entry["opened"]["date"])
         for younger, older in zip(members, members[1:]):
-            closing = {_point(v): v["elevation"]
-                       for v in _vertices(younger, "closing")}
-            opening = {_point(v): v["elevation"]
-                       for v in _vertices(older, "opening")}
+            closing = {_point(v): v["elevation"] for v in _vertices(younger, "closing")}
+            opening = {_point(v): v["elevation"] for v in _vertices(older, "opening")}
             assert closing == opening, (younger["locus"], older["locus"])
             checked += 1
 
@@ -447,7 +453,8 @@ def test_loci_opened_together_agree_where_their_edges_meet(loci):
             for entry in members:
                 for vertex in _vertices(entry, phase):
                     readings.setdefault(_point(vertex), []).append(
-                        (entry["locus"], vertex["elevation"]))
+                        (entry["locus"], vertex["elevation"])
+                    )
             for point, entries in readings.items():
                 if len(entries) < 2:
                     continue
@@ -466,49 +473,51 @@ def _matrix(loci):
         return f"unit-{number:012x}"
 
     strat = loci["stratigraphy"]
-    return HarrisMatrix.model_validate({
-        "schema_version": 1,
-        "matrix_id": "0123456789ab",
-        "revision": 0,
-        "title": f"{loci['trench']} {loci['season']}",
-        "site": "Poggio Civitate",
-        "trench": loci["trench"],
-        "notes": "",
-        "source_job_ids": [],
-        "units": [
-            {
-                "id": unit_id(entry["locus"]),
-                "label": f"Locus {entry['locus']}",
-                "unit_type": entry["unit_type"],
-                "description": entry["summary"],
-                "source_refs": [],
-            }
-            for entry in loci["loci"]
-        ],
-        "relations": [
-            {
-                "id": f"rel-{index:012x}",
-                "younger_id": unit_id(relation["younger"]),
-                "older_id": unit_id(relation["older"]),
-                "kind": relation["kind"],
-                "evidence": relation["evidence"],
-                "source": "manual",
-                "notes": relation.get("note"),
-            }
-            for index, relation in enumerate(strat["relations"])
-        ],
-        "correlations": [
-            {
-                "id": f"corr-{index:012x}",
-                "unit_ids": [unit_id(n) for n in correlation["loci"]],
-                "notes": correlation["evidence"],
-            }
-            for index, correlation in enumerate(strat["correlations"])
-        ],
-        "suggestions": [],
-        "created_at": "2026-07-31T08:00:00+00:00",
-        "updated_at": "2026-07-31T08:00:00+00:00",
-    })
+    return HarrisMatrix.model_validate(
+        {
+            "schema_version": 1,
+            "matrix_id": "0123456789ab",
+            "revision": 0,
+            "title": f"{loci['trench']} {loci['season']}",
+            "site": "Poggio Civitate",
+            "trench": loci["trench"],
+            "notes": "",
+            "source_job_ids": [],
+            "units": [
+                {
+                    "id": unit_id(entry["locus"]),
+                    "label": f"Locus {entry['locus']}",
+                    "unit_type": entry["unit_type"],
+                    "description": entry["summary"],
+                    "source_refs": [],
+                }
+                for entry in loci["loci"]
+            ],
+            "relations": [
+                {
+                    "id": f"rel-{index:012x}",
+                    "younger_id": unit_id(relation["younger"]),
+                    "older_id": unit_id(relation["older"]),
+                    "kind": relation["kind"],
+                    "evidence": relation["evidence"],
+                    "source": "manual",
+                    "notes": relation.get("note"),
+                }
+                for index, relation in enumerate(strat["relations"])
+            ],
+            "correlations": [
+                {
+                    "id": f"corr-{index:012x}",
+                    "unit_ids": [unit_id(n) for n in correlation["loci"]],
+                    "notes": correlation["evidence"],
+                }
+                for index, correlation in enumerate(strat["correlations"])
+            ],
+            "suggestions": [],
+            "created_at": "2026-07-31T08:00:00+00:00",
+            "updated_at": "2026-07-31T08:00:00+00:00",
+        }
+    )
 
 
 @pytest.fixture
@@ -535,7 +544,8 @@ def test_every_relation_carries_its_evidence(stratigraphy):
 
 
 def test_every_relation_and_correlation_names_a_locus_that_exists(
-    stratigraphy, by_locus,
+    stratigraphy,
+    by_locus,
 ):
     strat = stratigraphy["stratigraphy"]
     for relation in strat["relations"]:
@@ -561,8 +571,7 @@ def test_correlated_loci_collapse_to_one_node(stratigraphy):
         assert len({components[unit_id] for unit_id in ids}) == 1
         collapsed += len(ids) - 1
 
-    assert len(report["topological_order"]) == len(
-        stratigraphy["loci"]) - collapsed
+    assert len(report["topological_order"]) == len(stratigraphy["loci"]) - collapsed
 
 
 def test_an_abutment_never_leaks_in_as_an_ordering(stratigraphy):
@@ -577,8 +586,7 @@ def test_an_abutment_never_leaks_in_as_an_ordering(stratigraphy):
 
     assert strat.get("abutment_note")
     ordered = {
-        (relation["younger"], relation["older"])
-        for relation in strat["relations"]
+        (relation["younger"], relation["older"]) for relation in strat["relations"]
     }
     for abutment in abutments:
         pair = tuple(abutment["loci"])
@@ -608,11 +616,10 @@ def test_a_stated_tolerance_appears_exactly_on_the_indirect_recoveries(finds):
     """A find sorted out of a wheelbarrow has a coordinate that says where the
     bucket was filled, not where the object lay. A record that does not mark
     that invites the number to be used as a findspot."""
-    with_tolerance = {
-        find["sf"] for find in finds["finds"] if "tolerance_xy_m" in find
-    }
+    with_tolerance = {find["sf"] for find in finds["finds"] if "tolerance_xy_m" in find}
     indirect = {
-        find["sf"] for find in finds["finds"]
+        find["sf"]
+        for find in finds["finds"]
         if find.get("recovery") not in (None, "in situ")
     }
     if not indirect and not with_tolerance:
@@ -626,8 +633,9 @@ def test_every_find_was_made_while_its_locus_was_open(finds, by_locus):
     locus number or the date is wrong."""
     for find in finds["finds"]:
         locus = by_locus[find["locus"]]
-        assert locus["opened"]["date"] <= find["date"] <= (
-            locus["closed"]["date"]), find["sf"]
+        assert locus["opened"]["date"] <= find["date"] <= (locus["closed"]["date"]), (
+            find["sf"]
+        )
 
 
 def _misplaced(finds, by_locus):
@@ -643,24 +651,28 @@ def _misplaced(finds, by_locus):
         points = [_point(v) for v in _vertices(locus, "opening")]
         x_bounds, y_bounds = _bounds(points)
         slack = find.get("tolerance_xy_m", 0.0)
-        if not (_within(find["gridX"], (x_bounds[0] - slack,
-                                        x_bounds[1] + slack))
-                and _within(find["gridY"], (y_bounds[0] - slack,
-                                            y_bounds[1] + slack))):
+        if not (
+            _within(find["gridX"], (x_bounds[0] - slack, x_bounds[1] + slack))
+            and _within(find["gridY"], (y_bounds[0] - slack, y_bounds[1] + slack))
+        ):
             plan.add(find["sf"])
 
         ceiling = max(v["elevation"] for v in _vertices(locus, "opening"))
         floor = min(v["elevation"] for v in _vertices(locus, "closing"))
         drop = find.get("tolerance_z_m", 0.0)
-        if not (floor - TOLERANCE_M - drop <= find["elevation"]
-                <= ceiling + TOLERANCE_M + drop):
+        if not (
+            floor - TOLERANCE_M - drop
+            <= find["elevation"]
+            <= ceiling + TOLERANCE_M + drop
+        ):
             vertical.add(find["sf"])
 
     return plan, vertical
 
 
 def test_the_findspots_that_do_not_place_are_the_ones_the_record_declares(
-    finds, by_locus,
+    finds,
+    by_locus,
 ):
     """The two-way check. The fixture names the findspots known to contradict
     their loci; this recomputes that set from the coordinates and the locus
@@ -673,7 +685,8 @@ def test_the_findspots_that_do_not_place_are_the_ones_the_record_declares(
     if declared is None:
         pytest.skip(
             "this finds fixture declares no expected failures; add "
-            "'expected_findspot_failures' to pin them")
+            "'expected_findspot_failures' to pin them"
+        )
 
     plan, vertical = _misplaced(finds, by_locus)
 

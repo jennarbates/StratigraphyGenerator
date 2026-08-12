@@ -82,12 +82,8 @@ def test_delete_find_removes_only_matching_entry(find_data):
     editor.delete_find(job_id, first["find_id"])
 
     assert editor.get_finds(job_id) == [second]
-    assert not (
-        storage.JOBS_DIR / job_id / "editor_state.json"
-    ).exists()
-    assert not (
-        storage.JOBS_DIR / job_id / "extraction_output.json"
-    ).exists()
+    assert not (storage.JOBS_DIR / job_id / "editor_state.json").exists()
+    assert not (storage.JOBS_DIR / job_id / "extraction_output.json").exists()
 
 
 def test_delete_find_with_unknown_id_raises_value_error(find_data):
@@ -105,9 +101,7 @@ def test_sync_finds_without_extraction_output_does_nothing(find_data):
     editor.sync_finds_to_output(job_id)
 
     assert editor.get_finds(job_id) == [stored_find]
-    assert not (
-        storage.JOBS_DIR / job_id / "extraction_output.json"
-    ).exists()
+    assert not (storage.JOBS_DIR / job_id / "extraction_output.json").exists()
 
 
 def test_sync_finds_updates_existing_extraction_output(find_data):

@@ -30,9 +30,7 @@ def write_test_manifest(
     volume_path = model_dir / "trench_model_lith_block.bin"
     names = series_order or ["Topsoil", "Fill"]
     filenames = (
-        mesh_filenames
-        if mesh_filenames is not None
-        else ["Topsoil.obj", "Fill.obj"]
+        mesh_filenames if mesh_filenames is not None else ["Topsoil.obj", "Fill.obj"]
     )
     mesh_paths = [mesh_dir / filename for filename in filenames]
 
@@ -129,13 +127,10 @@ def test_manifest_paths_are_relative_portable_and_match_mesh_files(tmp_path):
             "mesh_path": "trench_model_meshes/Layer_B.obj",
         },
     ]
-    assert (
+    assert manifest["lith_block_path"] == "trench_model_lith_block.npz"
+    stored_paths = [surface["mesh_path"] for surface in manifest["surfaces"]] + [
         manifest["lith_block_path"]
-        == "trench_model_lith_block.npz"
-    )
-    stored_paths = [
-        surface["mesh_path"] for surface in manifest["surfaces"]
-    ] + [manifest["lith_block_path"]]
+    ]
     assert all(not Path(path).is_absolute() for path in stored_paths)
     assert all("\\" not in path for path in stored_paths)
     assert str(tmp_path) not in json.dumps(manifest)
@@ -205,20 +200,20 @@ def fake_gempy():
     solution = SimpleNamespace(
         raw_arrays=SimpleNamespace(
             vertices=[
-                np.asarray([
-                    [0.0, 0.0, 0.0],
-                    [1.0, 0.0, 0.0],
-                    [0.0, 1.0, 0.0],
-                ])
+                np.asarray(
+                    [
+                        [0.0, 0.0, 0.0],
+                        [1.0, 0.0, 0.0],
+                        [0.0, 1.0, 0.0],
+                    ]
+                )
             ],
             edges=[np.asarray([[0, 1, 2]])],
             lith_block=np.asarray([1, 1, 1, 1]),
         )
     )
     return SimpleNamespace(
-        data=SimpleNamespace(
-            ImporterHelper=lambda **kwargs: SimpleNamespace(**kwargs)
-        ),
+        data=SimpleNamespace(ImporterHelper=lambda **kwargs: SimpleNamespace(**kwargs)),
         create_geomodel=lambda **kwargs: geo_model,
         map_stack_to_surfaces=lambda *args, **kwargs: None,
         compute_model=lambda model: solution,
@@ -234,9 +229,7 @@ def test_builder_writes_absolute_manifest_output_with_known_artifacts(
     surface_name = "Layer / A? (north)"
     points_path = tmp_path / "points.csv"
     points_path.write_text(
-        "X,Y,Z,surface,face\n"
-        f"0,0,0,{surface_name},north\n"
-        f"1,1,1,{surface_name},north\n"
+        f"X,Y,Z,surface,face\n0,0,0,{surface_name},north\n1,1,1,{surface_name},north\n"
     )
     orientations_path = tmp_path / "orientations.csv"
     orientations_path.write_text("X,Y,Z,surface\n")
@@ -280,9 +273,7 @@ def test_builder_writes_absolute_manifest_output_with_known_artifacts(
             {
                 "name": surface_name,
                 "label": surface_name,
-                "mesh_path": (
-                    "trench_model_meshes/Layer_A_north.obj"
-                ),
+                "mesh_path": ("trench_model_meshes/Layer_A_north.obj"),
             }
         ]
         if make_meshes

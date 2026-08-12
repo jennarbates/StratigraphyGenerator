@@ -64,8 +64,9 @@ def _ink_mask(img, block_px, C=10):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     b, g, r = cv2.split(img.astype(np.int32))
     redness = r - (g + b) / 2.0
-    ad = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C,
-                               cv2.THRESH_BINARY_INV, block_px, C)
+    ad = cv2.adaptiveThreshold(
+        gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, block_px, C
+    )
     return cv2.bitwise_and(ad, (redness < 25).astype(np.uint8) * 255)
 ```
 

@@ -95,8 +95,7 @@ def _field_document(labels=("Shared", "Lower")):
         "trenchLabel": "T123",
         "faceLabel": "North baulk",
         "loci": [
-            {"locusNumber": label, "description": f"Locus {label}"}
-            for label in labels
+            {"locusNumber": label, "description": f"Locus {label}"} for label in labels
         ],
         "layers": [
             {
@@ -189,9 +188,7 @@ def _suggestion(matrix, suggestion_type):
 
 
 def _matrix_bytes(route_context, matrix_id):
-    return (
-        route_context.matrices_dir / matrix_id / "matrix.json"
-    ).read_bytes()
+    return (route_context.matrices_dir / matrix_id / "matrix.json").read_bytes()
 
 
 def test_empty_list(route_context):
@@ -247,9 +244,7 @@ def test_list_returns_safe_summaries_newest_first(
     _create(route_context.client, title="Older")
     _create(route_context.client, title="Newer")
 
-    summaries = route_context.client.get(
-        "/api/harris-matrices"
-    ).get_json()
+    summaries = route_context.client.get("/api/harris-matrices").get_json()
 
     assert [summary["title"] for summary in summaries] == [
         "Newer",
@@ -282,12 +277,8 @@ def test_get_returns_full_matrix_after_app_recreation(route_context):
 
 
 def test_invalid_and_missing_ids_differ(route_context):
-    invalid = route_context.client.get(
-        "/api/harris-matrices/not-a-matrix"
-    )
-    missing = route_context.client.get(
-        "/api/harris-matrices/aaaaaaaaaaaa"
-    )
+    invalid = route_context.client.get("/api/harris-matrices/not-a-matrix")
+    missing = route_context.client.get("/api/harris-matrices/aaaaaaaaaaaa")
 
     assert invalid.status_code == 400
     assert invalid.get_json()["code"] == "invalid_matrix_id"
@@ -308,9 +299,7 @@ def test_put_increments_revision(route_context):
     saved = response.get_json()
     assert saved["revision"] == 1
     assert saved["title"] == "Revised title"
-    loaded = route_context.client.get(
-        f"/api/harris-matrices/{created['matrix_id']}"
-    )
+    loaded = route_context.client.get(f"/api/harris-matrices/{created['matrix_id']}")
     assert loaded.get_json() == saved
 
 
@@ -357,11 +346,7 @@ def test_put_rejects_graph_cycle_without_altering_stored_bytes(
     route_context,
 ):
     created = _create(route_context.client)
-    matrix_path = (
-        route_context.matrices_dir
-        / created["matrix_id"]
-        / "matrix.json"
-    )
+    matrix_path = route_context.matrices_dir / created["matrix_id"] / "matrix.json"
     before = matrix_path.read_bytes()
     created["units"] = [_unit(UNIT_A), _unit(UNIT_B)]
     created["relations"] = [
@@ -411,9 +396,7 @@ def test_no_response_contains_temporary_absolute_path(route_context):
     responses = [
         created_response,
         route_context.client.get("/api/harris-matrices"),
-        route_context.client.get(
-            f"/api/harris-matrices/{created['matrix_id']}"
-        ),
+        route_context.client.get(f"/api/harris-matrices/{created['matrix_id']}"),
         route_context.client.get("/api/harris-matrices/not-a-matrix"),
     ]
 
@@ -504,9 +487,7 @@ def test_imports_field_wall_and_multiface_jobs_atomically(
     assert imported["source_job_ids"] == [FIELD_JOB, ILLUSTRATOR_JOB]
     assert len(imported["units"]) == 4
     assert {
-        ref["schema_type"]
-        for unit in imported["units"]
-        for ref in unit["source_refs"]
+        ref["schema_type"] for unit in imported["units"] for ref in unit["source_refs"]
     } == {"FieldWallProfile", "ArchaeologicalDiagram"}
     assert {
         ref["face"]
@@ -517,8 +498,7 @@ def test_imports_field_wall_and_multiface_jobs_atomically(
     assert imported["import_warnings"] == []
     assert imported["suggestions"]
     assert all(
-        suggestion["status"] == "pending"
-        for suggestion in imported["suggestions"]
+        suggestion["status"] == "pending" for suggestion in imported["suggestions"]
     )
     assert imported["relations"] == []
     assert imported["correlations"] == []
@@ -609,10 +589,7 @@ def test_accept_ordering_suggestion_saves_one_revision(route_context):
     suggestion = _suggestion(imported, "ordering")
 
     response = route_context.client.post(
-        (
-            f"/api/harris-matrices/{created['matrix_id']}"
-            f"/suggestions/{suggestion['id']}"
-        ),
+        (f"/api/harris-matrices/{created['matrix_id']}/suggestions/{suggestion['id']}"),
         json={"action": "accept", "revision": imported["revision"]},
     )
 
@@ -642,10 +619,7 @@ def test_reject_correlation_saves_once_without_adding_group(
     suggestion = _suggestion(imported, "correlation")
 
     response = route_context.client.post(
-        (
-            f"/api/harris-matrices/{created['matrix_id']}"
-            f"/suggestions/{suggestion['id']}"
-        ),
+        (f"/api/harris-matrices/{created['matrix_id']}/suggestions/{suggestion['id']}"),
         json={"action": "reject", "revision": imported["revision"]},
     )
 
@@ -668,10 +642,7 @@ def test_suggestion_review_rejects_invalid_action_and_unknown_id(
     ).get_json()
     suggestion = _suggestion(imported, "ordering")
     before = _matrix_bytes(route_context, created["matrix_id"])
-    url = (
-        f"/api/harris-matrices/{created['matrix_id']}"
-        f"/suggestions/{suggestion['id']}"
-    )
+    url = f"/api/harris-matrices/{created['matrix_id']}/suggestions/{suggestion['id']}"
 
     invalid = route_context.client.post(
         url,
@@ -718,10 +689,7 @@ def test_cycle_producing_acceptance_leaves_stored_bytes_unchanged(
     before = _matrix_bytes(route_context, created["matrix_id"])
 
     response = route_context.client.post(
-        (
-            f"/api/harris-matrices/{created['matrix_id']}"
-            f"/suggestions/{suggestion['id']}"
-        ),
+        (f"/api/harris-matrices/{created['matrix_id']}/suggestions/{suggestion['id']}"),
         json={"action": "accept", "revision": saved["revision"]},
     )
 
@@ -757,9 +725,7 @@ def _save_export_matrix(route_context, *, hostile_label=None):
     ]
     matrix["units"][0]["label"] = hostile_label or "Young"
     matrix["units"][1]["label"] = "Old"
-    matrix["relations"] = [
-        _relation("rel-000000000001", UNIT_A, UNIT_B)
-    ]
+    matrix["relations"] = [_relation("rel-000000000001", UNIT_A, UNIT_B)]
     response = route_context.client.put(
         f"/api/harris-matrices/{matrix['matrix_id']}",
         json=matrix,

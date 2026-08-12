@@ -56,8 +56,7 @@ def upload_scan(job_id):
     season = clean_label(request.form.get("season"))
     locus_epoch = clean_label(request.form.get("locus_epoch"))
     try:
-        site_grid_name = p_site_grid.normalize_grid_name(
-            request.form.get("site_grid"))
+        site_grid_name = p_site_grid.normalize_grid_name(request.form.get("site_grid"))
     except p_site_grid.GridError as error:
         abort(400, description=str(error))
     try:

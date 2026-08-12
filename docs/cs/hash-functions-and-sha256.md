@@ -59,10 +59,7 @@ def _hash_suffix(*parts: str) -> str:
 
 
 def _suggestion_id(suggestion_type: str, *unit_ids: str) -> str:
-    return (
-        "suggestion-"
-        f"{_hash_suffix(suggestion_type, *unit_ids)}"
-    )
+    return f"suggestion-{_hash_suffix(suggestion_type, *unit_ids)}"
 
 
 def _relation_id(suggestion_id: str) -> str:

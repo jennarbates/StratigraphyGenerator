@@ -96,8 +96,15 @@ down.
 ### The output
 
 ```python
-rows.append({"X": round(X, 4), "Y": round(Y, 4), "Z": round(Z, 4),
-             "surface": surface, "face": fname})
+rows.append(
+    {
+        "X": round(X, 4),
+        "Y": round(Y, 4),
+        "Z": round(Z, 4),
+        "surface": surface,
+        "face": fname,
+    }
+)
 ```
 
 Written to `points.csv`, four decimal places — 0.1 mm, which is as much as the

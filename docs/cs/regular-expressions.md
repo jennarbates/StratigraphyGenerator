@@ -80,10 +80,7 @@ A regex is also the filter for *discovery*, so a stray directory cannot be
 mistaken for a matrix:
 
 ```python
-if (
-    not matrix_directory.is_dir()
-    or _MATRIX_ID.fullmatch(matrix_directory.name) is None
-):
+if not matrix_directory.is_dir() or _MATRIX_ID.fullmatch(matrix_directory.name) is None:
     continue
 ```
 

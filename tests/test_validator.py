@@ -68,13 +68,15 @@ def test_copy_pasted_layers_warning_depends_on_source(fabricated_geometry):
     extraction_report = validate(fabricated_geometry)
 
     assert not any(
-        "identical boundary shapes" in warning
-        for warning in manual_report.warnings
+        "identical boundary shapes" in warning for warning in manual_report.warnings
     )
-    assert sum(
-        "identical boundary shapes" in warning
-        for warning in extraction_report.warnings
-    ) == 1
+    assert (
+        sum(
+            "identical boundary shapes" in warning
+            for warning in extraction_report.warnings
+        )
+        == 1
+    )
 
 
 def test_manual_editor_still_reports_unrelated_bad_geometry(fabricated_geometry):

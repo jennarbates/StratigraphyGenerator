@@ -143,13 +143,9 @@ imported_matrix = matrix.model_copy(deep=True)
 ```python
 def _unique_source_refs(source_refs) -> list[SourceRef]:
     refs_by_key = {
-        _source_ref_key(source_ref): source_ref
-        for source_ref in source_refs
+        _source_ref_key(source_ref): source_ref for source_ref in source_refs
     }
-    return [
-        refs_by_key[key].model_copy(deep=True)
-        for key in sorted(refs_by_key)
-    ]
+    return [refs_by_key[key].model_copy(deep=True) for key in sorted(refs_by_key)]
 ```
 
 A shallow list copy would share the `SourceRef` objects with the input. Copying

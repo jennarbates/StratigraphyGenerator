@@ -139,9 +139,7 @@ def _validate_entry(entry: Any, index: int, repo_root: Path) -> list[Issue]:
     issues.extend(_validate_path(entry, where, asset_type, status, repo_root))
 
     if asset_type == "generated" and not entry.get("regenerate"):
-        issues.append(
-            Issue(where, "generated assets need a regenerate command")
-        )
+        issues.append(Issue(where, "generated assets need a regenerate command"))
     if asset_type == "screenshot":
         for key in ("fixture", "ui_state"):
             if not entry.get(key):
@@ -185,8 +183,7 @@ def _validate_path(
         )
     elif path.suffix.lower() == ".svg" and (repo_root / path).is_file():
         issues.extend(
-            Issue(where, problem)
-            for problem in check_svg_contract(repo_root / path)
+            Issue(where, problem) for problem in check_svg_contract(repo_root / path)
         )
     return issues
 
@@ -253,9 +250,7 @@ def find_unmanifested_images(
                     )
                 )
             else:
-                issues.append(
-                    Issue(where, f"image has no manifest entry: {relative}")
-                )
+                issues.append(Issue(where, f"image has no manifest entry: {relative}"))
     return issues
 
 

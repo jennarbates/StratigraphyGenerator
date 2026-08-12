@@ -90,14 +90,10 @@ def pixel_to_section_coordinates(pixel_x, pixel_y, transform):
     relative_y = float(pixel_y) - transform.origin_y
 
     horizontal_px = (
-        relative_x * transform.horizontal_x
-        + relative_y * transform.horizontal_y
+        relative_x * transform.horizontal_x + relative_y * transform.horizontal_y
     )
 
-    depth_px = (
-        relative_x * transform.downward_x
-        + relative_y * transform.downward_y
-    )
+    depth_px = relative_x * transform.downward_x + relative_y * transform.downward_y
 
     return (
         horizontal_px / transform.pixels_per_meter,

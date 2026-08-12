@@ -26,14 +26,15 @@ change the copy.
 JOBS_DIR = Path("/real/jobs")
 
 # consumer_a.py
-from storage import JOBS_DIR        # a private copy, bound now
+from storage import JOBS_DIR  # a private copy, bound now
 
 # consumer_b.py
-import storage                      # a reference to the module
-storage.JOBS_DIR                    # read at call time
+import storage  # a reference to the module
+
+storage.JOBS_DIR  # read at call time
 
 # a test
-storage.JOBS_DIR = tmp_path         # consumer_b follows; consumer_a does not
+storage.JOBS_DIR = tmp_path  # consumer_b follows; consumer_a does not
 ```
 
 Same source, two different behaviours. The `from` form is **import-time
@@ -81,7 +82,10 @@ Every consumer obeys it. `backend/jobs.py`:
 All paths resolve through ``storage.JOBS_DIR``, read at call time so a single
 assignment redirects every consumer.
 """
+
 ...
+
+
 def job_dir(job_id):
     d = storage.JOBS_DIR / job_id
 ```
@@ -119,7 +123,7 @@ ALLOWED_SCAN_EXT = {...}
 A re-export is a `from` import wearing a different hat:
 
 ```python
-from storage import JOBS_DIR        # ← would reintroduce the problem
+from storage import JOBS_DIR  # ← would reintroduce the problem
 ```
 
 The docstring exists to stop a well-meant tidy-up from doing that.

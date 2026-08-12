@@ -145,7 +145,7 @@ And the fabrication detectors use tolerances that encode an *empirical*
 observation:
 
 ```python
-UNIFORM_SPACING_CV = 0.02      # coefficient of variation below this = suspicious
+UNIFORM_SPACING_CV = 0.02  # coefficient of variation below this = suspicious
 PARALLEL_OFFSET_TOLERANCE_M = 0.005
 ```
 

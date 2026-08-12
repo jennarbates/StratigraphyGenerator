@@ -128,9 +128,7 @@ def test_pycache_is_ignored(tmp_path: Path) -> None:
     assert iter_watched_modules(repo) == []
 
 
-def test_main_returns_one_when_a_module_is_undocumented(
-    tmp_path: Path, capsys
-) -> None:
+def test_main_returns_one_when_a_module_is_undocumented(tmp_path: Path, capsys) -> None:
     repo = make_repository(
         tmp_path,
         "Nothing here.\n",

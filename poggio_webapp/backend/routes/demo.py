@@ -34,7 +34,8 @@ def _seeded_trenches():
         return found
     for directory in sorted(storage.JOBS_DIR.iterdir()):
         if not directory.is_dir() or not directory.name.startswith(
-                demo_seed.JOB_PREFIX):
+            demo_seed.JOB_PREFIX
+        ):
             continue
         meta = read_meta(directory, None)
         if not isinstance(meta, dict):
@@ -55,38 +56,40 @@ def describe_demo():
     """The scenarios, the record sets behind them, and what is already seeded."""
     available = datasets.discover()
     seeded = _seeded_trenches()
-    return jsonify({
-        "scenarios": [
-            {
-                "name": scenario.name,
-                "headline": scenario.headline,
-                "dataset": scenario.dataset_label,
-                # A scenario that draws walls cannot run on a real record set,
-                # so say up front whether this one can run at all rather than
-                # letting the operator find out from a 400.
-                "available": scenario.dataset_label in available and not (
-                    scenario.needs_walls
-                    and available[scenario.dataset_label].real_records
-                ),
-                "seeded": seeded.get(scenario.name),
-            }
-            # Declaration order, not alphabetical. The pair tells a story --
-            # the trench that refuses, then the same trench that builds -- and
-            # sorting the names put 'complete' first, which reads as a demo
-            # that works followed by one that is broken.
-            for scenario in demo_seed.SCENARIOS.values()
-        ],
-        "datasets": [
-            {
-                "label": dataset.label,
-                "season": dataset.season,
-                "provenance": dataset.provenance,
-                "real_records": dataset.real_records,
-            }
-            for dataset in sorted(
-                available.values(), key=lambda d: d.label)
-        ],
-    })
+    return jsonify(
+        {
+            "scenarios": [
+                {
+                    "name": scenario.name,
+                    "headline": scenario.headline,
+                    "dataset": scenario.dataset_label,
+                    # A scenario that draws walls cannot run on a real record set,
+                    # so say up front whether this one can run at all rather than
+                    # letting the operator find out from a 400.
+                    "available": scenario.dataset_label in available
+                    and not (
+                        scenario.needs_walls
+                        and available[scenario.dataset_label].real_records
+                    ),
+                    "seeded": seeded.get(scenario.name),
+                }
+                # Declaration order, not alphabetical. The pair tells a story --
+                # the trench that refuses, then the same trench that builds -- and
+                # sorting the names put 'complete' first, which reads as a demo
+                # that works followed by one that is broken.
+                for scenario in demo_seed.SCENARIOS.values()
+            ],
+            "datasets": [
+                {
+                    "label": dataset.label,
+                    "season": dataset.season,
+                    "provenance": dataset.provenance,
+                    "real_records": dataset.real_records,
+                }
+                for dataset in sorted(available.values(), key=lambda d: d.label)
+            ],
+        }
+    )
 
 
 @bp.route("/api/demo/seed", methods=["POST"])
@@ -94,10 +97,9 @@ def seed_demo():
     body = request.get_json(force=True, silent=True) or {}
     scenario = body.get("scenario")
     if not isinstance(scenario, str) or not scenario.strip():
-        abort(400, description="which scenario? Send {\"scenario\": \"stops\"}")
+        abort(400, description='which scenario? Send {"scenario": "stops"}')
     try:
-        summary = demo_seed.seed(
-            scenario.strip(), dataset_label=body.get("dataset"))
+        summary = demo_seed.seed(scenario.strip(), dataset_label=body.get("dataset"))
     except demo_seed.DemoError as error:
         abort(400, description=str(error))
     return jsonify(summary)
@@ -118,8 +120,7 @@ def remove_demo():
     # Plus whatever is actually on disk, which differs from the defaults when a
     # scenario was seeded against an overridden record set.
     labels.update(
-        entry["trench"] for entry in _seeded_trenches().values()
-        if entry.get("trench")
+        entry["trench"] for entry in _seeded_trenches().values() if entry.get("trench")
     )
 
     removed = []

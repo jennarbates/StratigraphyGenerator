@@ -74,7 +74,7 @@ is `uint8` and silently wrong. See
 cannot be done in integers at all:
 
 ```python
-norm = (gray.astype(np.float32) / bg.astype(np.float32))
+norm = gray.astype(np.float32) / bg.astype(np.float32)
 norm = np.clip(norm * 200.0, 0, 255).astype(np.uint8)
 ```
 

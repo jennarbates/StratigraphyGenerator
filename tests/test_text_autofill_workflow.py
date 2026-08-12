@@ -54,9 +54,7 @@ def _candidate_payload():
                     "medium",
                 )
             ],
-            "otherText": [
-                candidate("Datum checked 08:30", "Datum checked at 08:30")
-            ],
+            "otherText": [candidate("Datum checked 08:30", "Datum checked at 08:30")],
         },
         "loci": [
             {
@@ -243,9 +241,7 @@ def test_text_autofill_to_manual_fieldwall_json_is_network_free(
         json={"api_key": api_key, "square_cm": 20},
     )
     assert extraction_response.status_code == 200
-    assert extraction_response.get_json() == {
-        "task_id": "network-free-text-task"
-    }
+    assert extraction_response.get_json() == {"task_id": "network-free-text-task"}
 
     candidates_path = job_dir / "03_extraction" / "text_candidates.json"
     assert json.loads(candidates_path.read_text(encoding="utf-8")) == candidates
@@ -277,9 +273,7 @@ def test_text_autofill_to_manual_fieldwall_json_is_network_free(
     assert fieldwall["illustrators"] == ["A. Recorder"]
     assert fieldwall["date"] == "27 July 2026"
     assert fieldwall["northArrowPresent"] is True
-    assert fieldwall["gridTiePoints"] == [
-        {"rawText": "194 m", "approxXMeters": None}
-    ]
+    assert fieldwall["gridTiePoints"] == [{"rawText": "194 m", "approxXMeters": None}]
     assert "Section continued on reverse" in fieldwall["marginalia"]
     assert "Other readable text: Datum checked at 08:30" in fieldwall["marginalia"]
 
@@ -317,8 +311,7 @@ def test_text_autofill_to_manual_fieldwall_json_is_network_free(
         [110.0, 70.0],
     ]
     assert [
-        point["sourcePixel"]
-        for point in fieldwall["layers"][-1]["bottomBoundary"]
+        point["sourcePixel"] for point in fieldwall["layers"][-1]["bottomBoundary"]
     ] == [[10.0, 90.0], [110.0, 90.0]]
     assert [
         [point["xMeters"], point["depthMeters"]]

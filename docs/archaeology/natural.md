@@ -73,8 +73,15 @@ and one of the drawable unit types —
 `poggio_webapp/pipeline/site_vocab.py`:
 
 ```python
-{"key": "natural", "label": "Natural", "kind": "unit",
- "unitType": "natural", "surveyCode": None},
+(
+    {
+        "key": "natural",
+        "label": "Natural",
+        "kind": "unit",
+        "unitType": "natural",
+        "surveyCode": None,
+    },
+)
 ```
 
 `"kind": "unit"` rather than `"material"`, because natural is a stratigraphic
@@ -109,8 +116,9 @@ both a feature and the deepest layer's bottom:
 def dedupe_floor(face, log):
     ...
     if "floor" in name and points_key(f.get("shapePoints")) == bkey and bkey:
-        log.append(f'{face.get("face")}: dropped trench-floor feature '
-                   f'(duplicates ... bottom)')
+        log.append(
+            f"{face.get('face')}: dropped trench-floor feature (duplicates ... bottom)"
+        )
 ```
 
 The trench floor and the base of the deepest deposit are the same line drawn

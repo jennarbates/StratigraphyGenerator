@@ -116,7 +116,8 @@ if mm_px < 2:
     raise RuntimeError(
         "photo resolution too low for marker detection "
         f"({mm_px:.1f} px per paper mm) — retake closer or "
-        "at higher resolution")
+        "at higher resolution"
+    )
 ```
 
 A limit on the other end of the scale, for a domain reason.

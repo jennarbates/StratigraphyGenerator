@@ -76,7 +76,7 @@ for contour in contours:
     perimeter = cv2.arcLength(contour, True)
     (cx, cy), radius = cv2.minEnclosingCircle(contour)
     ...
-    circularity = 4 * math.pi * area / (perimeter ** 2)
+    circularity = 4 * math.pi * area / (perimeter**2)
     hull_area = cv2.contourArea(cv2.convexHull(contour))
     solidity = area / hull_area if hull_area > 0 else 0
 ```

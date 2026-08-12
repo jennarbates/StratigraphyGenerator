@@ -100,11 +100,7 @@ solidity = area / hull_area if hull_area > 0 else 0.0
 if solidity < 0.34 or extent < 0.09:
     continue
 
-score = (
-    0.45 * compactness
-    + 0.35 * min(1.0, solidity)
-    + 0.20 * min(1.0, extent)
-)
+score = 0.45 * compactness + 0.35 * min(1.0, solidity) + 0.20 * min(1.0, extent)
 ```
 
 **0.34 rather than 0.9**, because the target is different: a stone is a compact

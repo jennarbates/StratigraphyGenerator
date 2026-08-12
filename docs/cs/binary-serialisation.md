@@ -54,8 +54,7 @@ flowchart LR
 `poggio_webapp/pipeline/build_gempy.py`:
 
 ```python
-def write_lithology_binary(lith_block, resolution, output_path,
-                           lithology_names=None):
+def write_lithology_binary(lith_block, resolution, output_path, lithology_names=None):
     resolution_array = np.asarray(resolution)
     if (
         resolution_array.shape != (3,)

@@ -66,8 +66,13 @@ _TASKS_LOCK = threading.Lock()
 
 ```python
 with _TASKS_LOCK:
-    TASKS[task_id] = {"status": "running", "result": None, "error": None,
-                      "log": [], "started_at": time.time()}
+    TASKS[task_id] = {
+        "status": "running",
+        "result": None,
+        "error": None,
+        "log": [],
+        "started_at": time.time(),
+    }
     _evict_finished()
 ```
 
@@ -112,11 +117,13 @@ The worker's completion path is a read-modify-write on a file:
 ```python
 with META_LOCK:
     meta = read_meta(job_directory)
-    meta.update({
-        "status": "complete",
-        "stage": "complete",
-        "message": STATUS_MESSAGES["complete"],
-    })
+    meta.update(
+        {
+            "status": "complete",
+            "stage": "complete",
+            "message": STATUS_MESSAGES["complete"],
+        }
+    )
     if isinstance(result, dict) and isinstance(result.get("outputs"), dict):
         meta["model_outputs"] = result["outputs"]
     meta.pop("pipeline_error", None)
@@ -132,8 +139,12 @@ The same pattern brackets task registration:
 ```python
 with META_LOCK:
     task_id = start_task(
-        run_editor_build, job_directory, build_gempy.run_build,
-        meta["points_csv"], meta["orientations_csv"], output_prefix,
+        run_editor_build,
+        job_directory,
+        build_gempy.run_build,
+        meta["points_csv"],
+        meta["orientations_csv"],
+        output_prefix,
     )
     meta = read_meta(job_directory)
     meta.update({"task_id": task_id, "gempy_task_id": task_id})

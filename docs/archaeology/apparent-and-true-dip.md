@@ -157,7 +157,8 @@ A surface on one wall keeps its apparent dip, and is told so:
 notes.append(
     f"surface {surface!r} is only on face {faces[0]!r}; its "
     "dip stays the apparent dip measured on that one wall, "
-    "which is always shallower than the true dip")
+    "which is always shallower than the true dip"
+)
 ```
 
 ### And it records what it changed
@@ -167,7 +168,8 @@ notes.append(
     f"surface {surface!r}: replaced the per-wall apparent dips "
     f"({'; '.join(before)}) with one true dip of "
     f"{round(solved['dip'], 2)} toward {round(solved['azimuth'], 2)}, "
-    f"solved from {' and '.join(solved['faces'])}")
+    f"solved from {' and '.join(solved['faces'])}"
+)
 ```
 
 "so a reader can see the change rather than discovering the numbers moved."
@@ -182,8 +184,11 @@ notes.append(
 # than the true one. With two walls the plane is determined, so every seed
 # for a surface can carry the same real orientation instead of two
 # disagreeing shadows of it. Single-sheet builds never come through here.
-notes.extend(true_dip.apply_true_dip(
-    conversion["points_csv"], conversion["orientations_csv"], grid))
+notes.extend(
+    true_dip.apply_true_dip(
+        conversion["points_csv"], conversion["orientations_csv"], grid
+    )
+)
 ```
 
 ## What it is not

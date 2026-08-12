@@ -53,13 +53,15 @@ reduced_edges = _transitive_reduction_edges(edges)
 display_edges = sorted(reduced_edges)
 
 for edge in sorted(edges - reduced_edges):
-    warnings.append(_issue(
-        "redundant-relation",
-        f"Saved relation {edge[0]} -> {edge[1]} is implied by "
-        "a longer path and is omitted from display edges.",
-        list(edge),
-        relation_ids_by_edge[edge],
-    ))
+    warnings.append(
+        _issue(
+            "redundant-relation",
+            f"Saved relation {edge[0]} -> {edge[1]} is implied by "
+            "a longer path and is omitted from display edges.",
+            list(edge),
+            relation_ids_by_edge[edge],
+        )
+    )
 ```
 
 `edges - reduced_edges` is the entire computation. With lists it would be a
@@ -71,8 +73,10 @@ correlation keys that matched nothing:
 
 ```python
 for num in sorted(set(renames) - applied):
-    notes.append(f"correlation key {label}:{num} matched no locus on "
-                 f"wall {label!r} -- check the map for typos")
+    notes.append(
+        f"correlation key {label}:{num} matched no locus on "
+        f"wall {label!r} -- check the map for typos"
+    )
 ```
 
 The `applied` set was built during the rename pass; the difference is exactly
@@ -83,7 +87,7 @@ And in `merge_walls._report_munsell_disagreements`, a per-sheet set enforces
 
 ```python
 seen_here = set()
-for entry in (sheet.get("loci") or []):
+for entry in sheet.get("loci") or []:
     ...
     if not num or num in seen_here:
         continue
@@ -114,7 +118,11 @@ and `poggio_webapp/pipeline/editor/schema.py`:
 ```python
 ALLOWED_SCHEMA_TYPES = {"ArchaeologicalDiagram", "FieldWallProfile"}
 EDITOR_ENVELOPE_KEYS = {
-    "schemaType", "finalizeState", "gridConfig", "editorState", "resumeState",
+    "schemaType",
+    "finalizeState",
+    "gridConfig",
+    "editorState",
+    "resumeState",
 }
 ```
 
@@ -125,10 +133,7 @@ and membership is the check. See [input sanitisation](input-sanitisation.md).
 
 ```python
 def _is_editor_envelope(state) -> bool:
-    return (
-        isinstance(state, dict)
-        and bool(EDITOR_ENVELOPE_KEYS.intersection(state))
-    )
+    return isinstance(state, dict) and bool(EDITOR_ENVELOPE_KEYS.intersection(state))
 ```
 
 "Does this payload carry any of the envelope keys?" — one intersection, no loop.
@@ -158,9 +163,7 @@ operation [idempotent](idempotency.md).
 `poggio_webapp/pipeline/harris_import.py`:
 
 ```python
-_FIELD_WALL_FIELDS = frozenset(
-    {"faceLabel", "gridSquareCm", "loci", "trenchLabel"}
-)
+_FIELD_WALL_FIELDS = frozenset({"faceLabel", "gridSquareCm", "loci", "trenchLabel"})
 ```
 
 `frozenset` is immutable and hashable — the right type for a module-level

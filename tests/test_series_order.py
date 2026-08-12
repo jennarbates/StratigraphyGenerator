@@ -25,13 +25,15 @@ def unit(unit_id, label, schema_type="FieldWallProfile", face="north wall"):
         "label": label,
         "unit_type": "deposit",
         "description": None,
-        "source_refs": [{
-            "job_id": "0123456789ab",
-            "schema_type": schema_type,
-            "face": face,
-            "layer_index": 0,
-            "source_label": label,
-        }],
+        "source_refs": [
+            {
+                "job_id": "0123456789ab",
+                "schema_type": schema_type,
+                "face": face,
+                "layer_index": 0,
+                "source_label": label,
+            }
+        ],
     }
 
 
@@ -52,22 +54,24 @@ def correlation(number, unit_ids):
 
 
 def matrix(*, units=(), relations=(), correlations=(), trench="T123"):
-    return HarrisMatrix.model_validate({
-        "schema_version": 1,
-        "matrix_id": "0123456789ab",
-        "revision": 0,
-        "title": "Order test",
-        "site": "Poggio Civitate",
-        "trench": trench,
-        "notes": "",
-        "source_job_ids": [],
-        "units": list(units),
-        "relations": list(relations),
-        "correlations": list(correlations),
-        "suggestions": [],
-        "created_at": "2026-07-28T08:00:00+00:00",
-        "updated_at": "2026-07-28T08:00:00+00:00",
-    })
+    return HarrisMatrix.model_validate(
+        {
+            "schema_version": 1,
+            "matrix_id": "0123456789ab",
+            "revision": 0,
+            "title": "Order test",
+            "site": "Poggio Civitate",
+            "trench": trench,
+            "notes": "",
+            "source_job_ids": [],
+            "units": list(units),
+            "relations": list(relations),
+            "correlations": list(correlations),
+            "suggestions": [],
+            "created_at": "2026-07-28T08:00:00+00:00",
+            "updated_at": "2026-07-28T08:00:00+00:00",
+        }
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -79,25 +83,33 @@ def test_a_field_sheet_unit_becomes_the_surface_the_converter_emits():
     """Harris labels field units with the bare locus number; the converter
     emits 'Locus 6'. They must match as strings or GemPy fuses nothing."""
     order, _arbitrary, _notes = series_order.from_harris(
-        matrix(units=[unit(A, "6"), unit(B, "7")],
-               relations=[relation(1, A, B)]))
+        matrix(units=[unit(A, "6"), unit(B, "7")], relations=[relation(1, A, B)])
+    )
 
     assert order == ["Locus 6", "Locus 7"]
 
 
 def test_an_illustrator_unit_keeps_its_layer_name():
     order, _a, _n = series_order.from_harris(
-        matrix(units=[unit(A, "Topsoil", schema_type="ArchaeologicalDiagram"),
-                      unit(B, "Fill", schema_type="ArchaeologicalDiagram")],
-               relations=[relation(1, A, B)]))
+        matrix(
+            units=[
+                unit(A, "Topsoil", schema_type="ArchaeologicalDiagram"),
+                unit(B, "Fill", schema_type="ArchaeologicalDiagram"),
+            ],
+            relations=[relation(1, A, B)],
+        )
+    )
 
     assert order == ["Topsoil", "Fill"]
 
 
 def test_order_runs_young_to_old():
     order, _a, _n = series_order.from_harris(
-        matrix(units=[unit(A, "1"), unit(B, "2"), unit(C, "3")],
-               relations=[relation(1, A, B), relation(2, B, C)]))
+        matrix(
+            units=[unit(A, "1"), unit(B, "2"), unit(C, "3")],
+            relations=[relation(1, A, B), relation(2, B, C)],
+        )
+    )
 
     assert order == ["Locus 1", "Locus 2", "Locus 3"]
 
@@ -124,7 +136,8 @@ def test_unrelated_deposits_are_reported_as_arbitrarily_ordered():
     by having no edge. GemPy's stack still needs a total order, so one is
     imposed -- and recorded as imposed."""
     order, arbitrary, notes = series_order.from_harris(
-        matrix(units=[unit(A, "1"), unit(B, "2")]))
+        matrix(units=[unit(A, "1"), unit(B, "2")])
+    )
 
     assert len(order) == 2
     assert arbitrary == [(order[0], order[1])]
@@ -134,8 +147,8 @@ def test_unrelated_deposits_are_reported_as_arbitrarily_ordered():
 
 def test_a_fully_ordered_matrix_reports_nothing_arbitrary():
     _order, arbitrary, notes = series_order.from_harris(
-        matrix(units=[unit(A, "1"), unit(B, "2")],
-               relations=[relation(1, A, B)]))
+        matrix(units=[unit(A, "1"), unit(B, "2")], relations=[relation(1, A, B)])
+    )
 
     assert arbitrary == []
     assert notes == []
@@ -144,8 +157,11 @@ def test_a_fully_ordered_matrix_reports_nothing_arbitrary():
 def test_an_order_implied_through_a_chain_is_not_arbitrary():
     """A relates to B and B to C, so A before C is recorded, not invented."""
     _order, arbitrary, _notes = series_order.from_harris(
-        matrix(units=[unit(A, "1"), unit(B, "2"), unit(C, "3")],
-               relations=[relation(1, A, B), relation(2, B, C)]))
+        matrix(
+            units=[unit(A, "1"), unit(B, "2"), unit(C, "3")],
+            relations=[relation(1, A, B), relation(2, B, C)],
+        )
+    )
 
     assert arbitrary == []
 
@@ -158,8 +174,11 @@ def test_an_order_implied_through_a_chain_is_not_arbitrary():
 def test_a_cycle_in_the_matrix_refuses_with_its_own_message():
     with pytest.raises(series_order.SeriesOrderError) as caught:
         series_order.from_harris(
-            matrix(units=[unit(A, "1"), unit(B, "2")],
-                   relations=[relation(1, A, B), relation(2, B, A)]))
+            matrix(
+                units=[unit(A, "1"), unit(B, "2")],
+                relations=[relation(1, A, B), relation(2, B, A)],
+            )
+        )
     assert "cannot be ordered" in str(caught.value)
 
 
@@ -168,7 +187,8 @@ def test_a_modelled_surface_absent_from_the_matrix_refuses():
     with pytest.raises(series_order.SeriesOrderError) as caught:
         series_order.from_harris(
             matrix(units=[unit(A, "1")], relations=[]),
-            available_surfaces={"Locus 1", "Locus 9"})
+            available_surfaces={"Locus 1", "Locus 9"},
+        )
     message = str(caught.value)
     assert "'Locus 9'" in message
     assert "silently drop" in message
@@ -178,9 +198,12 @@ def test_matrix_units_the_model_does_not_cover_are_dropped_quietly():
     """run_build rejects an order naming a surface the points CSV lacks, and a
     matrix legitimately covers more of a trench than one model does."""
     order, _a, _n = series_order.from_harris(
-        matrix(units=[unit(A, "1"), unit(B, "2"), unit(C, "3")],
-               relations=[relation(1, A, B), relation(2, B, C)]),
-        available_surfaces={"Locus 1", "Locus 3"})
+        matrix(
+            units=[unit(A, "1"), unit(B, "2"), unit(C, "3")],
+            relations=[relation(1, A, B), relation(2, B, C)],
+        ),
+        available_surfaces={"Locus 1", "Locus 3"},
+    )
 
     assert order == ["Locus 1", "Locus 3"]
 
@@ -203,12 +226,16 @@ def test_the_elevation_description_says_it_is_an_assumption():
     assert "lower elevations" in text
 
 
-@pytest.mark.parametrize("source", [
-    series_order.HARRIS, series_order.RECORDED, series_order.SUPPLIED,
-])
+@pytest.mark.parametrize(
+    "source",
+    [
+        series_order.HARRIS,
+        series_order.RECORDED,
+        series_order.SUPPLIED,
+    ],
+)
 def test_every_source_describes_itself(source):
-    assert series_order.describe(source).startswith(
-        "stratigraphic order came from")
+    assert series_order.describe(source).startswith("stratigraphic order came from")
 
 
 # ---------------------------------------------------------------------------
@@ -227,8 +254,12 @@ def test_matrices_are_matched_on_the_canonical_trench_label():
 
 
 def test_no_trench_label_matches_nothing():
-    assert series_order.matrices_for_trench(
-        "", [{"matrix_id": "a" * 12, "trench": "T104"}]) == []
+    assert (
+        series_order.matrices_for_trench(
+            "", [{"matrix_id": "a" * 12, "trench": "T104"}]
+        )
+        == []
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -239,18 +270,24 @@ def test_no_trench_label_matches_nothing():
 def _points_csv(tmp_path, *surfaces):
     path = tmp_path / "points.csv"
     rows = "\n".join(
-        f"0,0,{index},{name},north wall"
-        for index, name in enumerate(surfaces))
+        f"0,0,{index},{name},north wall" for index, name in enumerate(surfaces)
+    )
     path.write_text("X,Y,Z,surface,face\n" + rows + "\n")
     return path
 
 
 def _merged(*surfaces):
-    return {"trenchProfiles": [{
-        "face": "north wall",
-        "layers": [{"layerName": name, "inferredMaterial": name,
-                    "bottomBoundary": []} for name in surfaces],
-    }]}
+    return {
+        "trenchProfiles": [
+            {
+                "face": "north wall",
+                "layers": [
+                    {"layerName": name, "inferredMaterial": name, "bottomBoundary": []}
+                    for name in surfaces
+                ],
+            }
+        ]
+    }
 
 
 def test_a_supplied_order_wins_over_everything(tmp_path):
@@ -258,9 +295,12 @@ def test_a_supplied_order_wins_over_everything(tmp_path):
 
     notes = []
     order, source, arbitrary = resolve_series_order(
-        "T123", {"series_order": ["Locus 2", "Locus 1"]},
+        "T123",
+        {"series_order": ["Locus 2", "Locus 1"]},
         _merged("Locus 1", "Locus 2"),
-        _points_csv(tmp_path, "Locus 1", "Locus 2"), notes)
+        _points_csv(tmp_path, "Locus 1", "Locus 2"),
+        notes,
+    )
 
     assert order == ["Locus 2", "Locus 1"]
     assert source == series_order.SUPPLIED
@@ -272,8 +312,12 @@ def test_the_recorded_wall_sequence_is_used_when_no_matrix_exists(tmp_path):
 
     notes = []
     order, source, _arbitrary = resolve_series_order(
-        "T123", {}, _merged("Locus 1", "Locus 2"),
-        _points_csv(tmp_path, "Locus 1", "Locus 2"), notes)
+        "T123",
+        {},
+        _merged("Locus 1", "Locus 2"),
+        _points_csv(tmp_path, "Locus 1", "Locus 2"),
+        notes,
+    )
 
     assert order == ["Locus 1", "Locus 2"]
     assert source == series_order.RECORDED
@@ -288,24 +332,30 @@ def _store_matrix(trench, *, units, relations):
     payload["units"] = list(units)
     payload["relations"] = list(relations)
     return harris_store.save_matrix(
-        created.matrix_id, payload, expected_revision=created.revision)
+        created.matrix_id, payload, expected_revision=created.revision
+    )
 
 
 def test_a_trenchs_harris_matrix_is_preferred_to_the_wall_sequence(
-    tmp_path, storage_dirs,
+    tmp_path,
+    storage_dirs,
 ):
     """The walls list Locus 1 then Locus 2; the matrix records the reverse.
     The excavation's own record wins."""
     from backend.services.trench_builder import resolve_series_order
 
-    _store_matrix("T123",
-                  units=[unit(A, "2"), unit(B, "1")],
-                  relations=[relation(1, A, B)])
+    _store_matrix(
+        "T123", units=[unit(A, "2"), unit(B, "1")], relations=[relation(1, A, B)]
+    )
 
     notes = []
     order, source, _arbitrary = resolve_series_order(
-        "T123", {}, _merged("Locus 1", "Locus 2"),
-        _points_csv(tmp_path, "Locus 1", "Locus 2"), notes)
+        "T123",
+        {},
+        _merged("Locus 1", "Locus 2"),
+        _points_csv(tmp_path, "Locus 1", "Locus 2"),
+        notes,
+    )
 
     assert order == ["Locus 2", "Locus 1"]
     assert source == series_order.HARRIS
@@ -313,24 +363,30 @@ def test_a_trenchs_harris_matrix_is_preferred_to_the_wall_sequence(
 
 
 def test_a_matrix_recorded_under_another_trench_is_not_used(
-    tmp_path, storage_dirs,
+    tmp_path,
+    storage_dirs,
 ):
     from backend.services.trench_builder import resolve_series_order
 
-    _store_matrix("T900",
-                  units=[unit(A, "2"), unit(B, "1")],
-                  relations=[relation(1, A, B)])
+    _store_matrix(
+        "T900", units=[unit(A, "2"), unit(B, "1")], relations=[relation(1, A, B)]
+    )
 
     notes = []
     _order, source, _arbitrary = resolve_series_order(
-        "T123", {}, _merged("Locus 1", "Locus 2"),
-        _points_csv(tmp_path, "Locus 1", "Locus 2"), notes)
+        "T123",
+        {},
+        _merged("Locus 1", "Locus 2"),
+        _points_csv(tmp_path, "Locus 1", "Locus 2"),
+        notes,
+    )
 
     assert source == series_order.RECORDED
 
 
 def test_two_matrices_for_one_trench_refuse_rather_than_pick(
-    tmp_path, storage_dirs,
+    tmp_path,
+    storage_dirs,
 ):
     from backend.services.trench_builder import (
         TrenchBuildError,
@@ -338,14 +394,18 @@ def test_two_matrices_for_one_trench_refuse_rather_than_pick(
     )
 
     for _ in range(2):
-        _store_matrix("T123",
-                      units=[unit(A, "2"), unit(B, "1")],
-                      relations=[relation(1, A, B)])
+        _store_matrix(
+            "T123", units=[unit(A, "2"), unit(B, "1")], relations=[relation(1, A, B)]
+        )
 
     with pytest.raises(TrenchBuildError) as caught:
         resolve_series_order(
-            "T123", {}, _merged("Locus 1", "Locus 2"),
-            _points_csv(tmp_path, "Locus 1", "Locus 2"), [])
+            "T123",
+            {},
+            _merged("Locus 1", "Locus 2"),
+            _points_csv(tmp_path, "Locus 1", "Locus 2"),
+            [],
+        )
 
     assert "more than one Harris matrix" in str(caught.value)
 
@@ -355,10 +415,10 @@ def test_no_evidence_at_all_falls_back_to_elevation_with_a_warning(tmp_path):
 
     notes = []
     order, source, _arbitrary = resolve_series_order(
-        "T123", {}, {"trenchProfiles": []},
-        _points_csv(tmp_path, "Locus 1"), notes)
+        "T123", {}, {"trenchProfiles": []}, _points_csv(tmp_path, "Locus 1"), notes
+    )
 
-    assert order is None          # run_build infers it, and labels it
+    assert order is None  # run_build infers it, and labels it
     assert source == series_order.ELEVATION
     assert any(note.startswith("WARNING:") for note in notes)
     assert any("assumption" in note for note in notes)

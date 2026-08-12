@@ -67,12 +67,14 @@ Wired into validation as the gate on everything else:
 ```python
 cycle = _find_cycle(nodes, edges)
 if cycle is not None:
-    errors.append(_issue(
-        "cycle",
-        f"Chronological cycle detected: {' -> '.join(cycle)}.",
-        cycle,
-        _cycle_relation_ids(cycle, relation_ids_by_edge),
-    ))
+    errors.append(
+        _issue(
+            "cycle",
+            f"Chronological cycle detected: {' -> '.join(cycle)}.",
+            cycle,
+            _cycle_relation_ids(cycle, relation_ids_by_edge),
+        )
+    )
     order = []
     display_edges = []
 else:
@@ -120,8 +122,7 @@ sort's failure:
 
 ```python
 if len(order) < len(order_index):
-    raise ValueError(_cycle_message(order, order_index, successors,
-                                    faces_by_surface))
+    raise ValueError(_cycle_message(order, order_index, successors, faces_by_surface))
 ```
 
 and then does the work Kahn does not — isolating the surfaces actually on the
@@ -138,8 +139,7 @@ def _cycle_message(order, order_index, successors, faces_by_surface):
         changed = False
         for name in sorted(remaining, key=lambda n: order_index[n]):
             has_successor = bool(successors[name] & remaining)
-            has_predecessor = any(name in successors[other]
-                                  for other in remaining)
+            has_predecessor = any(name in successors[other] for other in remaining)
             if not (has_successor and has_predecessor):
                 remaining.discard(name)
                 changed = True
@@ -154,12 +154,15 @@ The message then names each surface **and the wall it came from**:
 ```python
 listed = ", ".join(
     f"{name!r} (on {', '.join(faces_by_surface[name])})"
-    for name in sorted(cycle, key=lambda n: order_index[n]))
-return ("the walls contradict each other: these surfaces form a "
-        "stratigraphic cycle and cannot be ordered young to old -- "
-        + listed
-        + ". Check the layer order on those walls, or correlate the loci "
-          "explicitly; no order is guessed.")
+    for name in sorted(cycle, key=lambda n: order_index[n])
+)
+return (
+    "the walls contradict each other: these surfaces form a "
+    "stratigraphic cycle and cannot be ordered young to old -- "
+    + listed
+    + ". Check the layer order on those walls, or correlate the loci "
+    "explicitly; no order is guessed."
+)
 ```
 
 Both modules reach the same standard by different routes: **name the specific

@@ -22,17 +22,17 @@ def fake_model(transform=None):
 
 
 def fake_solution(vertices, faces):
-    return SimpleNamespace(
-        raw_arrays=SimpleNamespace(vertices=vertices, edges=faces)
-    )
+    return SimpleNamespace(raw_arrays=SimpleNamespace(vertices=vertices, edges=faces))
 
 
 def triangle(z=0.0):
-    return np.asarray([
-        [0.0, 0.0, z],
-        [1.0, 0.0, z],
-        [0.0, 1.0, z],
-    ])
+    return np.asarray(
+        [
+            [0.0, 0.0, z],
+            [1.0, 0.0, z],
+            [0.0, 1.0, z],
+        ]
+    )
 
 
 def test_export_meshes_inverse_transforms_each_surface_without_mutating_input(
@@ -168,7 +168,6 @@ def test_export_meshes_preserves_surface_order(tmp_path):
         "First_surface.obj",
         "Third_surface.obj",
     ]
-    assert [
-        Path(path).read_text().splitlines()[0]
-        for path in paths
-    ] == [f"# {name}" for name in surface_order]
+    assert [Path(path).read_text().splitlines()[0] for path in paths] == [
+        f"# {name}" for name in surface_order
+    ]

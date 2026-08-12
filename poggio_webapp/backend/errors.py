@@ -6,10 +6,13 @@ def _friendly_error(e):
     The raw exception + traceback still travels alongside as error_detail;
     this string is the one shown in the red banner."""
     import json as _json
+
     if isinstance(e, _json.JSONDecodeError):
-        return (f"{e} — this is almost always a truncated Gemini response "
-                 "(cut off by the output-token limit). Go back to the "
-                 "Extraction step, raise max_output_tokens, and re-run.")
+        return (
+            f"{e} — this is almost always a truncated Gemini response "
+            "(cut off by the output-token limit). Go back to the "
+            "Extraction step, raise max_output_tokens, and re-run."
+        )
 
     # Gemini API errors, matched by status code so this works whether the
     # SDK raises ServerError or ClientError.

@@ -71,12 +71,14 @@ nodes, relation_ids_by_edge = _collapsed_graph(matrix, components)
 edges = set(relation_ids_by_edge)
 cycle = _find_cycle(nodes, edges)
 if cycle is not None:
-    errors.append(_issue(
-        "cycle",
-        f"Chronological cycle detected: {' -> '.join(cycle)}.",
-        cycle,
-        _cycle_relation_ids(cycle, relation_ids_by_edge),
-    ))
+    errors.append(
+        _issue(
+            "cycle",
+            f"Chronological cycle detected: {' -> '.join(cycle)}.",
+            cycle,
+            _cycle_relation_ids(cycle, relation_ids_by_edge),
+        )
+    )
     order = []
     display_edges = []
 else:
@@ -135,8 +137,7 @@ constraints and refuses on a cycle:
 
 ```python
 if len(order) < len(order_index):
-    raise ValueError(_cycle_message(order, order_index, successors,
-                                    faces_by_surface))
+    raise ValueError(_cycle_message(order, order_index, successors, faces_by_surface))
 ```
 
 `_cycle_message` then does something careful — it isolates the surfaces actually
@@ -152,11 +153,13 @@ def _cycle_message(order, order_index, successors, faces_by_surface):
 and names which wall each is on:
 
 ```python
-return ("the walls contradict each other: these surfaces form a "
-        "stratigraphic cycle and cannot be ordered young to old -- "
-        + listed
-        + ". Check the layer order on those walls, or correlate the loci "
-          "explicitly; no order is guessed.")
+return (
+    "the walls contradict each other: these surfaces form a "
+    "stratigraphic cycle and cannot be ordered young to old -- "
+    + listed
+    + ". Check the layer order on those walls, or correlate the loci "
+    "explicitly; no order is guessed."
+)
 ```
 
 The message tells the operator *what* contradicts, *where*, and *what to do* —

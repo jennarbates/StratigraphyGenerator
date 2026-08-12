@@ -13,14 +13,17 @@ from backend import create_app
 from naming import canonical_locus, canonical_trench, clean_label, safe_filename
 
 
-@pytest.mark.parametrize("raw,expected", [
-    ("T104", "T104"),
-    ("T104 south", "T104_south"),
-    ("T104 / south!!", "T104_south"),
-    ("T104.2", "T104.2"),          # dots inside a name are legal
-    ("east-wall", "east-wall"),
-    ("  padded  ", "padded"),
-])
+@pytest.mark.parametrize(
+    "raw,expected",
+    [
+        ("T104", "T104"),
+        ("T104 south", "T104_south"),
+        ("T104 / south!!", "T104_south"),
+        ("T104.2", "T104.2"),  # dots inside a name are legal
+        ("east-wall", "east-wall"),
+        ("  padded  ", "padded"),
+    ],
+)
 def test_safe_filename_preserves_legal_names(raw, expected):
     assert safe_filename(raw) == expected
 
@@ -63,9 +66,19 @@ def test_clean_label_is_not_path_safe_only_tidy():
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize("raw", [
-    "T104", "T-104", "T 104", "t104", "t-104", "  T104  ", "T_104", "T.104",
-])
+@pytest.mark.parametrize(
+    "raw",
+    [
+        "T104",
+        "T-104",
+        "T 104",
+        "t104",
+        "t-104",
+        "  T104  ",
+        "T_104",
+        "T.104",
+    ],
+)
 def test_every_spelling_of_one_trench_canonicalizes_to_one_string(raw):
     assert canonical_trench(raw) == "T104"
 
@@ -84,12 +97,15 @@ def test_canonical_trench_preserves_digits_exactly():
     assert canonical_trench("T7") == "T7"
 
 
-@pytest.mark.parametrize("raw,expected", [
-    ("north wall", "north wall"),      # a wall label must survive untouched
-    ("Piano del Tesoro", "Piano del Tesoro"),
-    ("", ""),
-    ("   ", ""),
-])
+@pytest.mark.parametrize(
+    "raw,expected",
+    [
+        ("north wall", "north wall"),  # a wall label must survive untouched
+        ("Piano del Tesoro", "Piano del Tesoro"),
+        ("", ""),
+        ("   ", ""),
+    ],
+)
 def test_canonical_trench_leaves_labels_it_does_not_recognise_alone(raw, expected):
     assert canonical_trench(raw) == expected
 
@@ -99,15 +115,18 @@ def test_canonical_trench_rejects_non_strings():
     assert canonical_trench(104) == ""
 
 
-@pytest.mark.parametrize("raw,expected", [
-    ("5", "5"),
-    (" 5 ", "5"),
-    ("5 ", "5"),
-    ("Locus 5", "5"),
-    ("locus5", "5"),
-    (5, "5"),
-    ("", ""),
-])
+@pytest.mark.parametrize(
+    "raw,expected",
+    [
+        ("5", "5"),
+        (" 5 ", "5"),
+        ("5 ", "5"),
+        ("Locus 5", "5"),
+        ("locus5", "5"),
+        (5, "5"),
+        ("", ""),
+    ],
+)
 def test_canonical_locus_reduces_to_the_bare_number(raw, expected):
     assert canonical_locus(raw) == expected
 

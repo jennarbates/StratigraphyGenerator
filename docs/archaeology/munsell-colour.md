@@ -87,7 +87,9 @@ def _munsell_label(entry):
         return m.strip() or None
     if isinstance(m, dict):
         parts = [m.get("raw"), m.get("colorName")]
-        parts = [str(p).strip() for p in parts if p and str(p).strip().lower() != "none"]
+        parts = [
+            str(p).strip() for p in parts if p and str(p).strip().lower() != "none"
+        ]
         return " ".join(parts) or None
     return None
 ```
@@ -154,7 +156,8 @@ notes.append(
     f"locus {num}: Munsell disagrees between wall "
     f"{first_wall!r} ({first_reading!r}) and wall "
     f"{wall_label!r} ({reading!r}). Both walls still model one "
-    f"surface; {first_reading!r} is used as its label")
+    f"surface; {first_reading!r} is used as its label"
+)
 ```
 
 The module docstring records the size of the removal: taking the colour out of

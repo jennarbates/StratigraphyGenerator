@@ -103,7 +103,8 @@ def test_seeding_without_a_scenario_is_refused(client):
 def test_removing_clears_the_demonstration_only(seeded):
     (storage.JOBS_DIR / "mine").mkdir()
     (storage.JOBS_DIR / "mine" / "meta.json").write_text(
-        json.dumps({"job_id": "mine", "trench_label": "T104"}))
+        json.dumps({"job_id": "mine", "trench_label": "T104"})
+    )
 
     response = seeded.delete("/api/demo")
     assert response.status_code == 200
@@ -197,8 +198,10 @@ def test_seeded_drawings_are_named_rather_than_truncated(seeded):
 def test_an_ordinary_job_carries_no_marker(client, jobs_dir):
     (jobs_dir / "ordinary").mkdir()
     (jobs_dir / "ordinary" / "meta.json").write_text(
-        json.dumps({"job_id": "ordinary", "trench_label": "T104",
-                    "wall_label": "north wall"}))
+        json.dumps(
+            {"job_id": "ordinary", "trench_label": "T104", "wall_label": "north wall"}
+        )
+    )
     payload = client.get("/api/trenches").get_json()
     assert payload["trenches"]["T104"][0]["demo"] is None
     assert "demo-flag" not in client.get("/").get_data(as_text=True)

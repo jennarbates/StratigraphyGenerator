@@ -69,7 +69,8 @@ Uploaded to `POST /api/trenches/<label>/loci/import`:
 
 ```python
 result = locus_import.read_export(
-    text, column_map or None, vertical=vertical or None, trench=label)
+    text, column_map or None, vertical=vertical or None, trench=label
+)
 ```
 
 and the route states the constraints again for whoever reads it there:
@@ -126,7 +127,8 @@ A repeated locus number keeps the first and says which row it came from:
 ```python
 notes.append(
     f"row {index}: locus {number} was already read from row "
-    f"{seen[number]}; keeping the first and ignoring this one")
+    f"{seen[number]}; keeping the first and ignoring this one"
+)
 ```
 
 That is the same first-wins-and-say-so rule the converter applies to duplicate

@@ -64,11 +64,7 @@ entry = {
     "diam": float(diameter),
 }
 ...
-fill = (
-    area / (math.pi * radius * radius)
-    if radius > 0
-    else 0
-)
+fill = area / (math.pi * radius * radius) if radius > 0 else 0
 
 if (
     min_d <= diameter <= max_d
@@ -82,8 +78,8 @@ if (
 **Diameter** is tested against a band expressed in millimetres of paper:
 
 ```python
-min_d = min_marker_paper_mm * mm_px      # default 0.5 mm
-max_d = max_marker_paper_mm * mm_px      # default 2.5 mm
+min_d = min_marker_paper_mm * mm_px  # default 0.5 mm
+max_d = max_marker_paper_mm * mm_px  # default 2.5 mm
 ```
 
 **Centre** becomes the marker's recorded position, and is the coordinate that
@@ -91,7 +87,8 @@ max_d = max_marker_paper_mm * mm_px      # default 2.5 mm
 
 ```python
 x_m, depth_m = pixel_to_section_coordinates(
-    pixel_x=entry["cx"], pixel_y=entry["cy"], transform=section_transform)
+    pixel_x=entry["cx"], pixel_y=entry["cy"], transform=section_transform
+)
 ```
 
 **Fill** is the ring-versus-disk test, and it is the one measure the module's

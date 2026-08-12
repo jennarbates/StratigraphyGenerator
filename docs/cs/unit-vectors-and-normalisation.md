@@ -79,13 +79,13 @@ Three things happen in six lines:
 The scale is kept *separately*:
 
 ```python
-px_per_m=pixel_span / ref_meters,
+px_per_m = (pixel_span / ref_meters,)
 ```
 
 so the conversion is a projection followed by one division:
 
 ```python
-x_m     = (dx * self.ux + dy * self.uy) / self.px_per_m
+x_m = (dx * self.ux + dy * self.uy) / self.px_per_m
 depth_m = (dx * self.vx + dy * self.vy) / self.px_per_m
 ```
 

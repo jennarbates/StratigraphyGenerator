@@ -79,8 +79,7 @@ def complete():
 def test_stops_seeds_four_walls_a_matrix_and_the_finds(stops):
     assert stops["trench"] == "T905"
     assert len(stops["jobs"]) == 4
-    assert stops["walls"] == [
-        "north wall", "east wall", "south wall", "west wall"]
+    assert stops["walls"] == ["north wall", "east wall", "south wall", "west wall"]
     assert stops["matrix_id"]
     assert stops["finds"] == 26
 
@@ -88,8 +87,7 @@ def test_stops_seeds_four_walls_a_matrix_and_the_finds(stops):
 # 6. Exactly one corner is unregistered, and the seeder says which.
 def test_stops_reports_the_unregistered_corner(stops):
     assert stops["unregistered_corners"] == ["155E/20S"]
-    assert any("no opening elevation recorded" in note
-               for note in stops["notes"])
+    assert any("no opening elevation recorded" in note for note in stops["notes"])
 
 
 # 7. The headline promise: the build refuses, and names the wall that corner
@@ -120,8 +118,9 @@ def test_stops_gets_all_the_way_to_the_registration_check(stops):
 def test_complete_is_the_same_trench_with_the_corner_supplied(complete):
     assert complete["trench"] == "T906"
     assert complete["unregistered_corners"] == []
-    assert any("demonstration value, not a measurement" in note
-               for note in complete["notes"])
+    assert any(
+        "demonstration value, not a measurement" in note for note in complete["notes"]
+    )
 
 
 # 10. The stand-in comes from the opening locus, not from whatever reading
@@ -132,7 +131,8 @@ def test_the_stand_in_elevation_comes_from_the_opening_locus(complete):
     (note,) = [n for n in complete["notes"] if "stands in" in n]
     assert "on locus 1" in note
     layout = json.loads(
-        (storage.TRENCHES_DIR / "T906" / "grid_config.json").read_text())
+        (storage.TRENCHES_DIR / "T906" / "grid_config.json").read_text()
+    )
     north = layout["grid"]["faces"]["east wall"]["surfaceZ"]
     assert north == pytest.approx(24.13)
 
@@ -156,8 +156,7 @@ def test_complete_runs_the_whole_pipeline(complete):
     trench_directory = storage.TRENCHES_DIR / "T906"
     with open(trench_directory / "points.csv", newline="") as handle:
         rows = list(csv.DictReader(handle))
-    assert {row["surface"] for row in rows} == {
-        "Locus 1", "Locus 2", "Locus 3"}
+    assert {row["surface"] for row in rows} == {"Locus 1", "Locus 2", "Locus 3"}
     assert len(rows) == 132
     assert (trench_directory / "points_orientations.csv").is_file()
     assert (trench_directory / "merged.json").is_file()
@@ -172,10 +171,9 @@ def test_complete_runs_the_whole_pipeline(complete):
     # to assert something this one already has on disk.
     if outcome["outcome"] == "built":
         meshes = sorted(
-            (trench_directory / "06_gempy_model" / "trench_model_meshes")
-            .glob("*.obj"))
-        assert [path.stem for path in meshes] == [
-            "Locus_1", "Locus_2", "Locus_3"]
+            (trench_directory / "06_gempy_model" / "trench_model_meshes").glob("*.obj")
+        )
+        assert [path.stem for path in meshes] == ["Locus_1", "Locus_2", "Locus_3"]
 
 
 # 14. What a younger-to-older graph cannot hold is reported, not dropped in
@@ -256,8 +254,13 @@ def test_an_unknown_scenario_lists_the_real_ones():
 def test_adjacent_layers_share_one_boundary():
     document = datasets.get("T905").loci()
     profile = walls.wall_profile(
-        document, trench_label="T905", wall_label="north wall",
-        surface_z=24.28, length_m=5.0, phase_index=0)
+        document,
+        trench_label="T905",
+        wall_label="north wall",
+        surface_z=24.28,
+        length_m=5.0,
+        phase_index=0,
+    )
     layers = profile["layers"]
     assert layers[0]["bottomBoundary"] == layers[1]["topBoundary"]
     assert layers[1]["bottomBoundary"] == layers[2]["topBoundary"]
@@ -267,8 +270,13 @@ def test_adjacent_layers_share_one_boundary():
 def test_generated_layers_deepen_in_stratigraphic_order():
     document = datasets.get("T905").loci()
     profile = walls.wall_profile(
-        document, trench_label="T905", wall_label="north wall",
-        surface_z=24.28, length_m=5.0, phase_index=0)
+        document,
+        trench_label="T905",
+        wall_label="north wall",
+        surface_z=24.28,
+        length_m=5.0,
+        phase_index=0,
+    )
     means = [
         sum(p["depthMeters"] for p in layer["bottomBoundary"])
         / len(layer["bottomBoundary"])
@@ -283,10 +291,14 @@ def test_generated_layers_deepen_in_stratigraphic_order():
 def test_generated_sections_declare_themselves():
     document = datasets.get("T905").loci()
     profile = walls.wall_profile(
-        document, trench_label="T905", wall_label="north wall",
-        surface_z=24.28, length_m=5.0, phase_index=0)
-    assert any("not drawn in the field" in line
-               for line in profile["marginalia"])
+        document,
+        trench_label="T905",
+        wall_label="north wall",
+        surface_z=24.28,
+        length_m=5.0,
+        phase_index=0,
+    )
+    assert any("not drawn in the field" in line for line in profile["marginalia"])
     assert all(
         point["confidence"] == "synthetic"
         for layer in profile["layers"]
@@ -298,8 +310,7 @@ def test_generated_sections_declare_themselves():
 #     to guess whether it is looking at demonstration data.
 def test_every_seeded_job_carries_its_provenance(stops):
     for job_id in stops["jobs"]:
-        meta = json.loads(
-            (storage.JOBS_DIR / job_id / "meta.json").read_text())
+        meta = json.loads((storage.JOBS_DIR / job_id / "meta.json").read_text())
         assert meta["demo"]["scenario"] == "stops"
         assert meta["demo"]["generated_sections"] is True
         assert "Synthetic" in meta["demo"]["provenance"]

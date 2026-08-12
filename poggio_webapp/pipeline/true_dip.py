@@ -84,11 +84,13 @@ def _grouped(points_rows, bearings, notes):
     for face in unregistered:
         notes.append(
             f"face {face!r} has no bearing_deg in the grid config; its points "
-            "cannot contribute to a true-dip solve")
+            "cannot contribute to a true-dip solve"
+        )
     for face in dropped:
         notes.append(
             f"face {face!r} has points whose X, Y or Z could not be read as "
-            "numbers; those points were left out of the true-dip solve")
+            "numbers; those points were left out of the true-dip solve"
+        )
     return grouped
 
 
@@ -113,9 +115,9 @@ def _wall_direction(points):
     if variance == 0.0:
         return None, ordered
 
-    slope = sum(
-        (s - s_mean) * (z - z_mean) for s, z in zip(s_values, z_values)
-    ) / variance
+    slope = (
+        sum((s - s_mean) * (z - z_mean) for s, z in zip(s_values, z_values)) / variance
+    )
     return slope, ordered
 
 
@@ -144,7 +146,7 @@ def _dip_from_normal(normal):
     For an upward normal the downhill horizontal direction is (n_x, n_y), and a
     compass bearing is atan2(east, north) -- not the mathematical atan2(y, x).
     """
-    length = math.sqrt(sum(component ** 2 for component in normal))
+    length = math.sqrt(sum(component**2 for component in normal))
     if length == 0.0:
         return None
     x, y, z = (component / length for component in normal)
@@ -192,7 +194,8 @@ def true_orientations(points_rows, grid, min_separation_deg=10.0):
                 notes.append(
                     f"surface {surface!r} on face {face!r} has too few "
                     "distinct points along the wall to measure a slope; it "
-                    "was left out of the true-dip solve")
+                    "was left out of the true-dip solve"
+                )
                 continue
             angle = math.radians(bearings[face])
             directions[face] = (math.sin(angle), math.cos(angle), slope)
@@ -204,7 +207,8 @@ def true_orientations(points_rows, grid, min_separation_deg=10.0):
                 notes.append(
                     f"surface {surface!r} is only on face {faces[0]!r}; its "
                     "dip stays the apparent dip measured on that one wall, "
-                    "which is always shallower than the true dip")
+                    "which is always shallower than the true dip"
+                )
             continue
 
         pair = _best_pair(faces, bearings, threshold)
@@ -214,7 +218,8 @@ def true_orientations(points_rows, grid, min_separation_deg=10.0):
                 f"{min_separation_deg} degrees of parallel "
                 f"({', '.join(repr(face) for face in faces)}); a true dip "
                 "cannot be solved from them, so the existing apparent dips "
-                "stand")
+                "stand"
+            )
             continue
 
         first, second = pair
@@ -236,13 +241,15 @@ def true_orientations(points_rows, grid, min_separation_deg=10.0):
             _s, x, y, z = ordered[len(ordered) // 2]
             seeds.append({"face": face, "X": x, "Y": y, "Z": z})
 
-        orientations.append({
-            "surface": surface,
-            "dip": dip,
-            "azimuth": azimuth,
-            "faces": [first, second],
-            "seeds": seeds,
-        })
+        orientations.append(
+            {
+                "surface": surface,
+                "dip": dip,
+                "azimuth": azimuth,
+                "faces": [first, second],
+                "seeds": seeds,
+            }
+        )
 
     return orientations, notes
 
@@ -267,8 +274,7 @@ def apply_true_dip(points_csv, orientations_csv, grid, min_separation_deg=10.0):
     except OSError as error:
         return [f"could not read {points_csv} to solve true dips: {error}"]
 
-    orientations, notes = true_orientations(
-        points_rows, grid, min_separation_deg)
+    orientations, notes = true_orientations(points_rows, grid, min_separation_deg)
     if not orientations:
         return notes
 
@@ -280,19 +286,19 @@ def apply_true_dip(points_csv, orientations_csv, grid, min_separation_deg=10.0):
     except OSError as error:
         notes.append(
             f"solved true dips but could not read {orientations_csv} to "
-            f"apply them: {error}")
+            f"apply them: {error}"
+        )
         return notes
 
-    by_surface = {
-        orientation["surface"]: orientation for orientation in orientations
-    }
+    by_surface = {orientation["surface"]: orientation for orientation in orientations}
     replaced = {surface: [] for surface in by_surface}
     for row in seed_rows:
         solved = by_surface.get(row.get("surface"))
         if solved is None:
             continue
         replaced[solved["surface"]].append(
-            f"{row.get('face')} {row.get('dip')} toward {row.get('azimuth')}")
+            f"{row.get('face')} {row.get('dip')} toward {row.get('azimuth')}"
+        )
         row["dip"] = round(solved["dip"], 2)
         row["azimuth"] = round(solved["azimuth"], 2)
 
@@ -302,13 +308,15 @@ def apply_true_dip(points_csv, orientations_csv, grid, min_separation_deg=10.0):
             notes.append(
                 f"surface {surface!r}: solved a true dip from "
                 f"{' and '.join(solved['faces'])} but the orientations file "
-                "has no seed for it, so nothing was changed")
+                "has no seed for it, so nothing was changed"
+            )
             continue
         notes.append(
             f"surface {surface!r}: replaced the per-wall apparent dips "
             f"({'; '.join(before)}) with one true dip of "
             f"{round(solved['dip'], 2)} toward {round(solved['azimuth'], 2)}, "
-            f"solved from {' and '.join(solved['faces'])}")
+            f"solved from {' and '.join(solved['faces'])}"
+        )
 
     with open(orientations_csv, "w", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=fieldnames)

@@ -36,7 +36,9 @@ docs = [
 ]
 dev = [
     "pytest",
-    "ruff",
+    # Pinned to the version the tree was formatted with, and that CI checks
+    # formatting with; formatter output can change between ruff releases.
+    "ruff==0.16.0",
 ]
 
 [tool.setuptools]
@@ -66,7 +68,9 @@ extend-exclude = [".archive", "poggio_webapp/static/vendor", "site"]
 # around, and an unused or shadowed import is the first sign one was missed.
 select = ["E", "F", "W", "I", "UP", "B"]
 ignore = [
-    "E501",   # line length: the existing code wraps by judgement, not column
+    # line length: ruff format owns wrapping; all it leaves over 88 columns are
+    # strings and URLs it cannot split, which are not worth failing lint over.
+    "E501",
     "B008",   # function call in default arg — Flask/pydantic idiom
     # zip(..., strict=): a good rule for new code, but the honest fix at each
     # of the 22 existing sites is strict=True, and turning a silent truncation

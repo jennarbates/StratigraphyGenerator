@@ -22,12 +22,8 @@ _GENERIC_LABEL = re.compile(
     r"(?:Polygon|Unlabeled layer)\s+\d+",
     re.IGNORECASE,
 )
-_ORDERING_REASON = (
-    "Consecutive source layers share a recorded boundary."
-)
-_CORRELATION_REASON = (
-    "Matching normalized labels appear in different jobs or faces."
-)
+_ORDERING_REASON = "Consecutive source layers share a recorded boundary."
+_CORRELATION_REASON = "Matching normalized labels appear in different jobs or faces."
 
 
 class HarrisSuggestionError(ValueError):
@@ -40,10 +36,7 @@ def _hash_suffix(*parts: str) -> str:
 
 
 def _suggestion_id(suggestion_type: str, *unit_ids: str) -> str:
-    return (
-        "suggestion-"
-        f"{_hash_suffix(suggestion_type, *unit_ids)}"
-    )
+    return f"suggestion-{_hash_suffix(suggestion_type, *unit_ids)}"
 
 
 def _relation_id(suggestion_id: str) -> str:
@@ -67,13 +60,9 @@ def _source_ref_key(source_ref: SourceRef) -> tuple:
 
 def _unique_source_refs(source_refs) -> list[SourceRef]:
     refs_by_key = {
-        _source_ref_key(source_ref): source_ref
-        for source_ref in source_refs
+        _source_ref_key(source_ref): source_ref for source_ref in source_refs
     }
-    return [
-        refs_by_key[key].model_copy(deep=True)
-        for key in sorted(refs_by_key)
-    ]
+    return [refs_by_key[key].model_copy(deep=True) for key in sorted(refs_by_key)]
 
 
 def _clean_face(value) -> str:
@@ -102,10 +91,7 @@ def _layer_for_ref(document: dict, source_ref: SourceRef) -> dict | None:
         ):
             continue
         layers = profile.get("layers")
-        if (
-            not isinstance(layers, list)
-            or source_ref.layer_index >= len(layers)
-        ):
+        if not isinstance(layers, list) or source_ref.layer_index >= len(layers):
             continue
         layer = layers[source_ref.layer_index]
         if isinstance(layer, dict):
@@ -157,8 +143,7 @@ def _boundaries_match(upper_boundary, lower_boundary, tolerance_m) -> bool:
     ):
         return False
     return all(
-        abs(upper_x - lower_x) <= tolerance_m
-        and abs(upper_y - lower_y) <= tolerance_m
+        abs(upper_x - lower_x) <= tolerance_m and abs(upper_y - lower_y) <= tolerance_m
         for (upper_x, upper_y), (lower_x, lower_y) in zip(
             upper_points,
             lower_points,
@@ -254,10 +239,7 @@ def _normalized_label(label: str) -> str | None:
 
 def _different_jobs_or_faces(first, second) -> bool:
     return any(
-        (
-            first_ref.job_id != second_ref.job_id
-            or first_ref.face != second_ref.face
-        )
+        (first_ref.job_id != second_ref.job_id or first_ref.face != second_ref.face)
         for first_ref in first.source_refs
         for second_ref in second.source_refs
     )
@@ -280,10 +262,9 @@ def _correlation_suggestions(
             key=lambda unit: unit.id,
         )
         for first, second in combinations(units, 2):
-            if (
-                not _different_jobs_or_faces(first, second)
-                or components.get(first.id) == components.get(second.id)
-            ):
+            if not _different_jobs_or_faces(first, second) or components.get(
+                first.id
+            ) == components.get(second.id):
                 continue
             unit_ids = sorted([first.id, second.id])
             suggestions.append(
@@ -322,10 +303,7 @@ def generate_suggestions(
     generated = _ordering_suggestions(matrix, jobs_dir, tolerance_m)
     generated.extend(_correlation_suggestions(matrix))
 
-    existing_by_id = {
-        suggestion.id: suggestion
-        for suggestion in matrix.suggestions
-    }
+    existing_by_id = {suggestion.id: suggestion for suggestion in matrix.suggestions}
     suggestions_by_id = {
         suggestion.id: suggestion.model_copy(deep=True)
         for suggestion in matrix.suggestions
@@ -338,8 +316,7 @@ def generate_suggestions(
 
     result = matrix.model_copy(deep=True)
     result.suggestions = [
-        suggestions_by_id[suggestion_id]
-        for suggestion_id in sorted(suggestions_by_id)
+        suggestions_by_id[suggestion_id] for suggestion_id in sorted(suggestions_by_id)
     ]
     return result
 
@@ -358,11 +335,7 @@ def _accept_ordering(
         notes=None,
     )
     existing = next(
-        (
-            item
-            for item in matrix.relations
-            if item.id == relation.id
-        ),
+        (item for item in matrix.relations if item.id == relation.id),
         None,
     )
     if existing is None:
@@ -392,9 +365,7 @@ def _accept_correlation(
         retained = min(matched, key=lambda correlation: correlation.id)
         retained.unit_ids = sorted(merged_ids)
         matched_ids = {
-            correlation.id
-            for correlation in matched
-            if correlation.id != retained.id
+            correlation.id for correlation in matched if correlation.id != retained.id
         }
         matrix.correlations = [
             correlation
@@ -409,11 +380,7 @@ def _accept_correlation(
         notes=None,
     )
     existing = next(
-        (
-            item
-            for item in matrix.correlations
-            if item.id == correlation.id
-        ),
+        (item for item in matrix.correlations if item.id == correlation.id),
         None,
     )
     if existing is None:
@@ -430,12 +397,9 @@ def _acceptance_error(
     report: dict,
 ) -> HarrisSuggestionError:
     details = "; ".join(
-        f"{issue['code']}: {issue['message']}"
-        for issue in report["errors"]
+        f"{issue['code']}: {issue['message']}" for issue in report["errors"]
     )
-    return HarrisSuggestionError(
-        f"Cannot accept suggestion {suggestion.id}: {details}"
-    )
+    return HarrisSuggestionError(f"Cannot accept suggestion {suggestion.id}: {details}")
 
 
 def review_suggestion(
@@ -444,10 +408,7 @@ def review_suggestion(
     action: str,
 ) -> HarrisMatrix:
     """Accept or reject one suggestion without mutating the input matrix."""
-    if (
-        not isinstance(action, str)
-        or action not in {"accept", "reject"}
-    ):
+    if not isinstance(action, str) or action not in {"accept", "reject"}:
         raise HarrisSuggestionError(
             "Suggestion action must be exactly 'accept' or 'reject'."
         )
@@ -461,9 +422,7 @@ def review_suggestion(
         None,
     )
     if suggestion_index is None:
-        raise HarrisSuggestionError(
-            f"Unknown suggestion ID: {suggestion_id}."
-        )
+        raise HarrisSuggestionError(f"Unknown suggestion ID: {suggestion_id}.")
 
     reviewed = matrix.model_copy(deep=True)
     suggestion = reviewed.suggestions[suggestion_index]

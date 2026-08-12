@@ -213,6 +213,7 @@ def matrices_for_trench(trench_label, summaries):
     if not wanted:
         return []
     return [
-        summary for summary in summaries
+        summary
+        for summary in summaries
         if canonical_trench(summary.get("trench")) == wanted
     ]

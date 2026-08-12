@@ -93,7 +93,8 @@ if prev_bottom and bottom:
             report.err(
                 where,
                 f"bottom at x={x} (depth {y:.2f}) is ABOVE "
-                f"{prev_name}'s bottom (depth {above:.2f}) — layers cross")
+                f"{prev_name}'s bottom (depth {above:.2f}) — layers cross",
+            )
 ```
 
 An **error**, not a warning — layers cannot cross. Compare the adjacent check on
@@ -105,7 +106,8 @@ if above is not None and abs(y - above) > top_continuity_tolerance_m:
         where,
         f"top at x={x} (depth {y:.2f}) is far from "
         f"{prev_name} bottom (depth {above:.2f}) — "
-        f"possible void/overlap")
+        f"possible void/overlap",
+    )
 ```
 
 A gap between one layer's bottom and the next's top can be real — a void, or a

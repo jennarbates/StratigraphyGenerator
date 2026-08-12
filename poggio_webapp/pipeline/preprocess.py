@@ -35,22 +35,27 @@ def recommend_upscale(width, height, target_dim=3000):
     factor = max(1.0, min(4.0, factor))
     factor = round(factor * 2) / 2
     if max_dim < 1500:
-        reason = ("low-resolution scan -- a higher upscale helps keep thin "
-                   "boundary lines from vanishing before extraction.")
+        reason = (
+            "low-resolution scan -- a higher upscale helps keep thin "
+            "boundary lines from vanishing before extraction."
+        )
     elif max_dim < target_dim:
         reason = "moderate resolution -- a modest upscale can help a bit."
     else:
-        reason = ("already high-resolution -- little upscale needed; "
-                   "extraction downsizes to at most 3072px on the longest "
-                   "side before sending to Gemini anyway, so scaling up "
-                   "further just adds processing time with no real detail "
-                   "gained.")
+        reason = (
+            "already high-resolution -- little upscale needed; "
+            "extraction downsizes to at most 3072px on the longest "
+            "side before sending to Gemini anyway, so scaling up "
+            "further just adds processing time with no real detail "
+            "gained."
+        )
     return {"factor": factor, "reason": reason}
 
 
 def probe_dimensions(path):
     """Cheap dimension read (no full pixel decode) for non-PDF images."""
     from PIL import Image as _PILImage
+
     with _PILImage.open(path) as im:
         return im.size  # (width, height)
 
@@ -69,8 +74,7 @@ def load_image(path, pdf_dpi=300, pdf_page=1):
         pages = convert_from_path(path, dpi=pdf_dpi)
         if pdf_page < 1 or pdf_page > len(pages):
             raise RuntimeError(
-                f"{path} has {len(pages)} page(s); page {pdf_page} "
-                "is out of range."
+                f"{path} has {len(pages)} page(s); page {pdf_page} is out of range."
             )
         pil_img = pages[pdf_page - 1].convert("RGB")
         return cv2.cvtColor(np.array(pil_img), cv2.COLOR_RGB2BGR)
@@ -81,7 +85,7 @@ def flatten_background(gray):
     """Divide out large-scale illumination/paper tone so faint ink is even."""
     bg = cv2.GaussianBlur(gray, (0, 0), sigmaX=25)
     bg = np.where(bg == 0, 1, bg)
-    norm = (gray.astype(np.float32) / bg.astype(np.float32))
+    norm = gray.astype(np.float32) / bg.astype(np.float32)
     norm = np.clip(norm * 200.0, 0, 255).astype(np.uint8)
     return norm
 
@@ -103,9 +107,9 @@ def deskew(gray):
     angle = float(np.median(angles))
     h, w = gray.shape
     M = cv2.getRotationMatrix2D((w / 2, h / 2), angle, 1.0)
-    rot = cv2.warpAffine(gray, M, (w, h),
-                          flags=cv2.INTER_CUBIC,
-                          borderMode=cv2.BORDER_REPLICATE)
+    rot = cv2.warpAffine(
+        gray, M, (w, h), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE
+    )
     return rot, angle
 
 
@@ -113,8 +117,9 @@ def clean(gray, upscale=2):
     """The recommended pipeline: flatten -> upscale -> CLAHE -> mild sharpen."""
     flat = flatten_background(gray)
     if upscale and upscale != 1:
-        flat = cv2.resize(flat, None, fx=upscale, fy=upscale,
-                           interpolation=cv2.INTER_LANCZOS4)
+        flat = cv2.resize(
+            flat, None, fx=upscale, fy=upscale, interpolation=cv2.INTER_LANCZOS4
+        )
     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
     eq = clahe.apply(flat)
     blur = cv2.GaussianBlur(eq, (0, 0), sigmaX=1.2)
@@ -126,16 +131,24 @@ def high_contrast(gray, upscale=2):
     """Aggressive binarization for BOUNDARY TRACING ONLY (destroys fine fills)."""
     flat = flatten_background(gray)
     if upscale and upscale != 1:
-        flat = cv2.resize(flat, None, fx=upscale, fy=upscale,
-                           interpolation=cv2.INTER_LANCZOS4)
+        flat = cv2.resize(
+            flat, None, fx=upscale, fy=upscale, interpolation=cv2.INTER_LANCZOS4
+        )
     binimg = cv2.adaptiveThreshold(
-        flat, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-        cv2.THRESH_BINARY, blockSize=25, C=10)
+        flat, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, blockSize=25, C=10
+    )
     return binimg
 
 
-def run_preprocess(input_path, outdir, upscale=2.0, deskew_flag=False,
-                    highcontrast=False, pdf_dpi=300, pdf_page=1):
+def run_preprocess(
+    input_path,
+    outdir,
+    upscale=2.0,
+    deskew_flag=False,
+    highcontrast=False,
+    pdf_dpi=300,
+    pdf_page=1,
+):
     """Run the full preprocess stage. Returns a dict describing outputs."""
     img = load_image(input_path, pdf_dpi=pdf_dpi, pdf_page=pdf_page)
     if img is None:

@@ -77,14 +77,17 @@ def _boundary(depth_m: float, length_m: float, phase: float, *, flat=False):
     for index in range(SAMPLES):
         fraction = index / (SAMPLES - 1)
         x = round(fraction * length_m, 4)
-        offset = 0.0 if flat else UNDULATION_M * math.sin(
-            2 * math.pi * fraction + phase)
-        points.append({
-            "xMeters": x,
-            "depthMeters": round(depth_m + offset, 4),
-            "confidence": CONFIDENCE,
-            "uncertaintyCm": None,
-        })
+        offset = (
+            0.0 if flat else UNDULATION_M * math.sin(2 * math.pi * fraction + phase)
+        )
+        points.append(
+            {
+                "xMeters": x,
+                "depthMeters": round(depth_m + offset, 4),
+                "confidence": CONFIDENCE,
+                "uncertaintyCm": None,
+            }
+        )
     return points
 
 
@@ -105,8 +108,7 @@ def wall_profile(
     """
     elevations = mean_closing_elevations(loci_document)
     by_number = {
-        locus.get("locus"): locus
-        for locus in (loci_document.get("loci") or [])
+        locus.get("locus"): locus for locus in (loci_document.get("loci") or [])
     }
     phase = phase_index * math.pi / 2
 
@@ -115,28 +117,31 @@ def wall_profile(
     # layer below it, so the two never drift apart by a rounding step.
     surfaces = [_boundary(0.0, length_m, phase, flat=True)]
     for number in SPANNING_LOCI:
-        surfaces.append(
-            _boundary(surface_z - elevations[number], length_m, phase))
+        surfaces.append(_boundary(surface_z - elevations[number], length_m, phase))
 
     loci = []
     layers = []
     for position, number in enumerate(SPANNING_LOCI):
         record = by_number.get(number) or {}
-        loci.append({
-            "locusNumber": str(number),
-            "munsell": {
-                "raw": (record.get("munsell") or "").split(" ", 2)[0] or None,
-                "colorName": record.get("munsell"),
-            },
-            "description": record.get("summary"),
-            "confidence": CONFIDENCE,
-        })
-        layers.append({
-            "locusNumber": str(number),
-            "topBoundary": surfaces[position],
-            "bottomBoundary": surfaces[position + 1],
-            "featuresInLayer": [],
-        })
+        loci.append(
+            {
+                "locusNumber": str(number),
+                "munsell": {
+                    "raw": (record.get("munsell") or "").split(" ", 2)[0] or None,
+                    "colorName": record.get("munsell"),
+                },
+                "description": record.get("summary"),
+                "confidence": CONFIDENCE,
+            }
+        )
+        layers.append(
+            {
+                "locusNumber": str(number),
+                "topBoundary": surfaces[position],
+                "bottomBoundary": surfaces[position + 1],
+                "featuresInLayer": [],
+            }
+        )
 
     return {
         "trenchLabel": trench_label,

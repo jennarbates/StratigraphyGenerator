@@ -61,8 +61,9 @@ def make_repository(tmp_path: Path, readme: str = README, manifest=None) -> Path
 
     asset = tmp_path / "docs" / "assets" / "diagrams" / "example.svg"
     asset.parent.mkdir(parents=True, exist_ok=True)
-    asset.write_text("<svg viewBox='0 0 1 1'><title>t</title><desc>d</desc></svg>",
-                     encoding="utf-8")
+    asset.write_text(
+        "<svg viewBox='0 0 1 1'><title>t</title><desc>d</desc></svg>", encoding="utf-8"
+    )
 
     manifest_path = tmp_path / "docs" / "assets" / "visual-manifest.yml"
     manifest_path.write_text(

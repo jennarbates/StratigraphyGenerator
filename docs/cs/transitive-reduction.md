@@ -80,11 +80,7 @@ def _path_exists(start, target, edges, excluded_edge):
 
 
 def _transitive_reduction_edges(edges):
-    return {
-        edge
-        for edge in edges
-        if not _path_exists(edge[0], edge[1], edges, edge)
-    }
+    return {edge for edge in edges if not _path_exists(edge[0], edge[1], edges, edge)}
 ```
 
 The definition, almost literally: keep an edge only if no other path connects
@@ -99,13 +95,15 @@ reduced_edges = _transitive_reduction_edges(edges)
 display_edges = sorted(reduced_edges)
 
 for edge in sorted(edges - reduced_edges):
-    warnings.append(_issue(
-        "redundant-relation",
-        f"Saved relation {edge[0]} -> {edge[1]} is implied by "
-        "a longer path and is omitted from display edges.",
-        list(edge),
-        relation_ids_by_edge[edge],
-    ))
+    warnings.append(
+        _issue(
+            "redundant-relation",
+            f"Saved relation {edge[0]} -> {edge[1]} is implied by "
+            "a longer path and is omitted from display edges.",
+            list(edge),
+            relation_ids_by_edge[edge],
+        )
+    )
 ```
 
 The name is **`display_edges`**. The reduction affects *what is drawn*, not what

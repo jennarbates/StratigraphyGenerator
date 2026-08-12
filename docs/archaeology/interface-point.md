@@ -56,16 +56,26 @@ contributes to one surface only if both produce the identical string.
 `poggio_webapp/pipeline/convert_coords.py`:
 
 ```python
-for layer in (face.get("layers") or []):
+for layer in face.get("layers") or []:
     surface = layer.get("inferredMaterial") or layer.get("layerName") or "unknown"
     bb = layer.get("bottomBoundary") or []
     pts = [(get_x(p), get_y(p)) for p in bb]
-    pts = [(x, d) for (x, d) in pts
-           if isinstance(x, (int, float)) and isinstance(d, (int, float))]
+    pts = [
+        (x, d)
+        for (x, d) in pts
+        if isinstance(x, (int, float)) and isinstance(d, (int, float))
+    ]
     for x, d in pts:
         X, Y, Z = to_site(x, d)
-        rows.append({"X": round(X, 4), "Y": round(Y, 4), "Z": round(Z, 4),
-                     "surface": surface, "face": fname})
+        rows.append(
+            {
+                "X": round(X, 4),
+                "Y": round(Y, 4),
+                "Z": round(Z, 4),
+                "surface": surface,
+                "face": fname,
+            }
+        )
 ```
 
 Written to `points.csv`:
@@ -101,16 +111,21 @@ single_face = {surf: faces[0] for surf, faces in coverage.items() if len(faces) 
 if conversion["n_points"] == 0:
     raise TrenchBuildError(
         "conversion produced no interface points; check that the walls' "
-        "layers have boundary points")
+        "layers have boundary points"
+    )
 ```
 
 and the single-sheet route explains the two possible causes:
 
 ```python
-return jsonify({"error": "conversion produced 0 points. Either no face in the "
-                          "extraction matched a name in the grid config "
-                          f"(unmatched: {', '.join(result['missing_faces']) or 'none'}), "
-                          "or the layers carry no usable boundary coordinates."}), 400
+return jsonify(
+    {
+        "error": "conversion produced 0 points. Either no face in the "
+        "extraction matched a name in the grid config "
+        f"(unmatched: {', '.join(result['missing_faces']) or 'none'}), "
+        "or the layers carry no usable boundary coordinates."
+    }
+), 400
 ```
 
 ### Exported back as evidence

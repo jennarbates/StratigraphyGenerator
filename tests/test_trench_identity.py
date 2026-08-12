@@ -129,8 +129,9 @@ def test_the_listing_route_exposes_variants_only_when_they_exist(jobs_dir):
 
 def test_one_season_needs_no_epoch():
     notes = []
-    check_locus_epochs([_member("a", season="2025"),
-                        _member("b", season="2025")], notes)
+    check_locus_epochs(
+        [_member("a", season="2025"), _member("b", season="2025")], notes
+    )
     assert notes == []
 
 
@@ -145,9 +146,14 @@ def test_consecutive_seasons_merge_and_say_so():
     """Procedures: a trench reopened in consecutive years continues its locus
     sequence, so these numbers are one sequence."""
     notes = []
-    check_locus_epochs([_member("a", season="2023"),
-                        _member("b", season="2024"),
-                        _member("c", season="2025")], notes)
+    check_locus_epochs(
+        [
+            _member("a", season="2023"),
+            _member("b", season="2024"),
+            _member("c", season="2025"),
+        ],
+        notes,
+    )
     assert any("consecutive seasons 2023-2025" in note for note in notes)
 
 
@@ -156,8 +162,9 @@ def test_a_gap_between_seasons_is_refused():
     Either guess -- fusing two deposits or splitting one -- produces a
     plausible-looking model, so neither is made."""
     with pytest.raises(TrenchBuildError) as caught:
-        check_locus_epochs([_member("a", season="2019"),
-                            _member("b", season="2025")], [])
+        check_locus_epochs(
+            [_member("a", season="2019"), _member("b", season="2025")], []
+        )
     message = str(caught.value)
     assert "non-consecutive" in message
     assert "2019" in message and "2025" in message
@@ -168,38 +175,47 @@ def test_a_declared_epoch_overrides_the_season_gap():
     """The operator knows whether numbering continued; the application does
     not. A declaration settles it."""
     notes = []
-    check_locus_epochs([_member("a", season="2019", locus_epoch="T104:1"),
-                        _member("b", season="2025", locus_epoch="T104:1")],
-                       notes)
+    check_locus_epochs(
+        [
+            _member("a", season="2019", locus_epoch="T104:1"),
+            _member("b", season="2025", locus_epoch="T104:1"),
+        ],
+        notes,
+    )
     assert notes == []
 
 
 def test_conflicting_epochs_are_refused():
     with pytest.raises(TrenchBuildError) as caught:
-        check_locus_epochs([_member("a", locus_epoch="T104:1"),
-                            _member("b", locus_epoch="T104:2")], [])
+        check_locus_epochs(
+            [_member("a", locus_epoch="T104:1"), _member("b", locus_epoch="T104:2")], []
+        )
     assert "different locus numbering epochs" in str(caught.value)
 
 
 def test_a_partially_declared_epoch_is_adopted_with_a_note():
     notes = []
-    check_locus_epochs([_member("a", season="2019", locus_epoch="T104:1"),
-                        _member("b", season="2025")], notes)
+    check_locus_epochs(
+        [
+            _member("a", season="2019", locus_epoch="T104:1"),
+            _member("b", season="2025"),
+        ],
+        notes,
+    )
     assert any("declare no locus epoch" in note for note in notes)
 
 
 def test_unparseable_seasons_across_sheets_are_refused():
     with pytest.raises(TrenchBuildError) as caught:
-        check_locus_epochs([_member("a", season="2025"),
-                            _member("b", season="summer 25")], [])
+        check_locus_epochs(
+            [_member("a", season="2025"), _member("b", season="summer 25")], []
+        )
     assert "4-digit year" in str(caught.value)
 
 
 def test_the_epoch_check_runs_before_a_build(jobs_dir):
-    _write_job("job_old", trench_label="T104", wall_label="north",
-               season="2019")
-    _write_job("job_new", trench_label="T104", wall_label="east",
-               season="2025")
+    _write_job("job_old", trench_label="T104", wall_label="north", season="2019")
+    _write_job("job_new", trench_label="T104", wall_label="east", season="2025")
 
     with pytest.raises(TrenchBuildError) as caught:
         build("T104", {})

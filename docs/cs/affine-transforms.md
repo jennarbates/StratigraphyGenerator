@@ -59,9 +59,9 @@ flowchart LR
 angle = float(np.median(angles))
 h, w = gray.shape
 M = cv2.getRotationMatrix2D((w / 2, h / 2), angle, 1.0)
-rot = cv2.warpAffine(gray, M, (w, h),
-                      flags=cv2.INTER_CUBIC,
-                      borderMode=cv2.BORDER_REPLICATE)
+rot = cv2.warpAffine(
+    gray, M, (w, h), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE
+)
 return rot, angle
 ```
 

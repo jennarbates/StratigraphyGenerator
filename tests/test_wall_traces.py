@@ -34,9 +34,11 @@ from pipeline.merge_walls import merge_extractions
 def manifest(tmp_path, monkeypatch):
     """The manifest for the merged T900 trench: two walls, two surfaces."""
     merged, _notes = merge_extractions(
-        [("north wall", NORTH_WALL), ("east wall", EAST_WALL)])
+        [("north wall", NORTH_WALL), ("east wall", EAST_WALL)]
+    )
     conversion = convert_coords.run_convert(
-        merged, GRID_T900, str(tmp_path / "points.csv"))
+        merged, GRID_T900, str(tmp_path / "points.csv")
+    )
 
     model_dir = tmp_path / "06_gempy_model"
     model_dir.mkdir()
@@ -75,10 +77,7 @@ def test_manifest_carries_one_trace_per_face_and_surface(manifest):
 
 def test_north_wall_traces_sit_on_the_north_wall(manifest):
     """Bearing 90 from origin (0, 3): the north wall runs east at Y = 3."""
-    north = [
-        trace for trace in manifest["wallTraces"]
-        if trace["face"] == "north wall"
-    ]
+    north = [trace for trace in manifest["wallTraces"] if trace["face"] == "north wall"]
 
     assert len(north) == 2
     for trace in north:
@@ -89,10 +88,7 @@ def test_north_wall_traces_sit_on_the_north_wall(manifest):
 def test_east_wall_traces_are_ordered_along_the_wall(manifest):
     """The east wall runs south at X = 4, so X cannot order it -- the trace
     has to be monotone in Y."""
-    east = [
-        trace for trace in manifest["wallTraces"]
-        if trace["face"] == "east wall"
-    ]
+    east = [trace for trace in manifest["wallTraces"] if trace["face"] == "east wall"]
 
     assert len(east) == 2
     for trace in east:
@@ -112,11 +108,13 @@ def test_traces_are_monotone_along_the_wall_for_both_faces(manifest):
 def test_wall_traces_orders_a_shuffled_group_along_its_own_axis():
     """The grouping helper on its own: a north-south wall is ordered by Y even
     when the rows arrive out of order."""
-    points = pd.DataFrame([
-        {"X": 4.0, "Y": 1.5, "Z": 99.5, "surface": SURFACE_L1, "face": "east"},
-        {"X": 4.0, "Y": 0.5, "Z": 99.4, "surface": SURFACE_L1, "face": "east"},
-        {"X": 4.0, "Y": 2.5, "Z": 99.6, "surface": SURFACE_L1, "face": "east"},
-    ])
+    points = pd.DataFrame(
+        [
+            {"X": 4.0, "Y": 1.5, "Z": 99.5, "surface": SURFACE_L1, "face": "east"},
+            {"X": 4.0, "Y": 0.5, "Z": 99.4, "surface": SURFACE_L1, "face": "east"},
+            {"X": 4.0, "Y": 2.5, "Z": 99.6, "surface": SURFACE_L1, "face": "east"},
+        ]
+    )
 
     traces = wall_traces(points)
 
@@ -136,9 +134,11 @@ def test_wall_traces_orders_a_shuffled_group_along_its_own_axis():
 def test_wall_traces_without_a_face_column_is_empty():
     """Older CSVs predate the face column; they get no traces rather than a
     crash or a made-up face name."""
-    points = pd.DataFrame([
-        {"X": 0.0, "Y": 0.0, "Z": 99.0, "surface": SURFACE_L1},
-    ])
+    points = pd.DataFrame(
+        [
+            {"X": 0.0, "Y": 0.0, "Z": 99.0, "surface": SURFACE_L1},
+        ]
+    )
 
     assert wall_traces(points) == []
 
@@ -203,17 +203,20 @@ def test_visualizer_files_route_serves_wall_traces(client):
 def test_visualizer_files_route_drops_malformed_traces_with_a_warning(client):
     """A bad overlay entry must not cost the reader the whole 3D model."""
     http, jobs_dir = client
-    job_id = _job_with_traces(jobs_dir, [
-        TRACE,
-        "not a trace",
-        {"face": "east wall", "surface": SURFACE_L1, "points": []},
-        {"face": "", "surface": SURFACE_L1, "points": TRACE["points"]},
-        {
-            "face": "east wall",
-            "surface": SURFACE_L1,
-            "points": [[0.0, 3.0], [1.0, 3.0, 99.0]],
-        },
-    ])
+    job_id = _job_with_traces(
+        jobs_dir,
+        [
+            TRACE,
+            "not a trace",
+            {"face": "east wall", "surface": SURFACE_L1, "points": []},
+            {"face": "", "surface": SURFACE_L1, "points": TRACE["points"]},
+            {
+                "face": "east wall",
+                "surface": SURFACE_L1,
+                "points": [[0.0, 3.0], [1.0, 3.0, 99.0]],
+            },
+        ],
+    )
 
     payload = http.get(f"/api/jobs/{job_id}/visualizer-files").get_json()
     model3d = payload["model3d"]
@@ -228,8 +231,7 @@ def test_visualizer_files_route_omits_wall_traces_when_absent(client):
     http, jobs_dir = client
     job_id = _job_with_traces(jobs_dir, None)
 
-    model3d = http.get(
-        f"/api/jobs/{job_id}/visualizer-files").get_json()["model3d"]
+    model3d = http.get(f"/api/jobs/{job_id}/visualizer-files").get_json()["model3d"]
 
     assert "wall_traces" not in model3d
     assert model3d["warnings"] == []

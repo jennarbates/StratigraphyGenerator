@@ -50,8 +50,9 @@ Three independent reasons to stop, evaluated together.
 `poggio_webapp/pipeline/_extract_common.py`:
 
 ```python
-def generate_with_retry(client, progress_cb=None, max_attempts=5,
-                        max_total_seconds=600, **kwargs):
+def generate_with_retry(
+    client, progress_cb=None, max_attempts=5, max_total_seconds=600, **kwargs
+):
     """...
     max_total_seconds caps the whole retry loop's wall clock. Every retry
     re-sends the full image as input tokens, so an outage at Google's end
@@ -63,19 +64,24 @@ def generate_with_retry(client, progress_cb=None, max_attempts=5,
             return client.models.generate_content(**kwargs)
         except errors.ServerError as e:
             code = getattr(e, "code", None)
-            wait = 2 ** attempt
+            wait = 2**attempt
             elapsed = time.time() - t0
             out_of_budget = elapsed + wait > max_total_seconds
-            if (code in TRANSIENT_STATUS_CODES
-                    and attempt < max_attempts - 1 and not out_of_budget):
+            if (
+                code in TRANSIENT_STATUS_CODES
+                and attempt < max_attempts - 1
+                and not out_of_budget
+            ):
                 ...
                 time.sleep(wait)
             else:
                 if progress_cb and code in TRANSIENT_STATUS_CODES:
-                    progress_cb(f"giving up after {attempt + 1} attempt(s) / "
-                                f"{elapsed:.0f}s — not retrying further to "
-                                "avoid spending more quota on a failing "
-                                "request.")
+                    progress_cb(
+                        f"giving up after {attempt + 1} attempt(s) / "
+                        f"{elapsed:.0f}s — not retrying further to "
+                        "avoid spending more quota on a failing "
+                        "request."
+                    )
                 raise
 ```
 

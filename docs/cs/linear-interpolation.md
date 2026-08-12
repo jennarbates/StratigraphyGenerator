@@ -91,7 +91,8 @@ if above is not None and y < above - monotonic_tolerance_m:
     report.err(
         where,
         f"bottom at x={x} (depth {y:.2f}) is ABOVE "
-        f"{prev_name}'s bottom (depth {above:.2f}) — layers cross")
+        f"{prev_name}'s bottom (depth {above:.2f}) — layers cross",
+    )
 ```
 
 Note the **clamping** outside the recorded range — `x <= pts[0][0]` returns the

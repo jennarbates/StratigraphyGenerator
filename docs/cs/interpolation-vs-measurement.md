@@ -78,8 +78,8 @@ single_face_note = None
 if single_face:
     single_face_note = (
         "These surfaces have points from only ONE face and will still be "
-        "interpolated across the whole model extent: " +
-        ", ".join(f"{surf!r} (only on {face})" for surf, face in single_face.items())
+        "interpolated across the whole model extent: "
+        + ", ".join(f"{surf!r} (only on {face})" for surf, face in single_face.items())
     )
     log("NOTE: " + single_face_note)
 ```
@@ -96,7 +96,8 @@ notes.append(
     f"surface {name!r} has layers on only one wall "
     f"({faces_by_surface[name][0]}); it is ordered from fewer "
     "constraints and will still be interpolated across the "
-    "whole model extent")
+    "whole model extent"
+)
 ```
 
 ### Restrict: bound the extent to the data
@@ -104,6 +105,7 @@ notes.append(
 ```python
 def infer_extent(points, pad_xy, pad_z):
     ...
+
     def pad(lo, hi, minimum):
         span = hi - lo
         p = max(span * 0.1, minimum)
@@ -165,8 +167,9 @@ And a value that could not be read is `null` with a reason, never zero:
 
 ```python
 if (x is None or y is None) and not conf:
-    report.err(f"{where}[{i}]",
-               "null coordinate with no confidence note explaining why")
+    report.err(
+        f"{where}[{i}]", "null coordinate with no confidence note explaining why"
+    )
 ```
 
 A missing measurement must not become a measurement of zero.

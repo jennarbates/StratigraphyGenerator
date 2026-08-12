@@ -40,11 +40,15 @@ _MISSING_GEMPY = ("no module named 'gempy'", "gempy import failed")
 
 def registration(trench_label: str):
     """The grid config the seeder wrote for this trench."""
-    path = (storage.TRENCHES_DIR / safe_filename(trench_label, "trench")
-            / "grid_config.json")
+    path = (
+        storage.TRENCHES_DIR
+        / safe_filename(trench_label, "trench")
+        / "grid_config.json"
+    )
     if not path.is_file():
         raise FileNotFoundError(
-            f"no registration for trench {trench_label} -- seed it first")
+            f"no registration for trench {trench_label} -- seed it first"
+        )
     return json.loads(path.read_text())["grid"]
 
 
@@ -92,8 +96,7 @@ def _await_build(task_id, timeout_s=BUILD_TIMEOUT_S):
         if task["status"] == "error":
             error = str(task.get("error") or "")
             detail = str(task.get("error_detail") or "")
-            if any(marker in (error + detail).lower()
-                   for marker in _MISSING_GEMPY):
+            if any(marker in (error + detail).lower() for marker in _MISSING_GEMPY):
                 return {
                     "outcome": "ready",
                     "message": (
@@ -124,16 +127,19 @@ def _built_summary(result):
     extent = [float(value) for value in (result.get("extent") or [])]
 
     message = f"{len(meshes)} surface mesh(es): " + ", ".join(
-        Path(path).stem for path in meshes)
+        Path(path).stem for path in meshes
+    )
     if len(extent) == 6:
         message += (
             f"\n  extent {extent[0]:.1f}-{extent[1]:.1f} E, "
             f"{extent[2]:.1f}-{extent[3]:.1f} N, "
-            f"{extent[4]:.2f}-{extent[5]:.2f} mAE")
+            f"{extent[4]:.2f}-{extent[5]:.2f} mAE"
+        )
     if result.get("series_order"):
         message += (
             f"\n  order {' over '.join(result['series_order'])}"
-            f"  ({result.get('series_order_source', 'unknown')})")
+            f"  ({result.get('series_order_source', 'unknown')})"
+        )
     for label in ("model", "section", "viewer_manifest"):
         if outputs.get(label):
             message += f"\n  {label:<16}{outputs[label]}"
@@ -162,7 +168,8 @@ def _format(outcome: dict) -> str:
 def main(argv=None):
     parser = argparse.ArgumentParser(
         prog="python -m demo.run",
-        description="Build a seeded demonstration trench and report the outcome.")
+        description="Build a seeded demonstration trench and report the outcome.",
+    )
     parser.add_argument("trench", help="trench label, e.g. T905")
     args = parser.parse_args(argv)
     print(_format(run(args.trench)))

@@ -111,12 +111,14 @@ def get_registration(label):
     if not isinstance(grid, dict):
         abort(400, description="this trench's registration is not a grid config")
 
-    return jsonify({
-        "trench": label,
-        "grid": grid,
-        "source": p_merge_walls.registration_source(grid) or "unknown",
-        "notes": stored.get("notes") or [],
-    })
+    return jsonify(
+        {
+            "trench": label,
+            "grid": grid,
+            "source": p_merge_walls.registration_source(grid) or "unknown",
+            "notes": stored.get("notes") or [],
+        }
+    )
 
 
 @bp.route("/api/trenches/<label>/layout", methods=["POST"])
@@ -169,7 +171,8 @@ def import_loci(label):
 
     try:
         result = locus_import.read_export(
-            text, column_map or None, vertical=vertical or None, trench=label)
+            text, column_map or None, vertical=vertical or None, trench=label
+        )
     except locus_import.LocusImportError as error:
         abort(400, description=str(error))
     return jsonify(result)
@@ -194,13 +197,11 @@ def read_geospatial_sheet():
     try:
         text = upload.read().decode("utf-8-sig")
     except UnicodeError:
-        abort(400, description="this spreadsheet is not UTF-8 text; export it "
-                               "as CSV")
+        abort(400, description="this spreadsheet is not UTF-8 text; export it as CSV")
 
     phase = (request.form.get("phase") or geospatial_sheet.OPENING).strip()
     if phase not in geospatial_sheet.PHASES:
-        abort(400, description="phase must be "
-                               + " or ".join(geospatial_sheet.PHASES))
+        abort(400, description="phase must be " + " or ".join(geospatial_sheet.PHASES))
     try:
         grid_name = p_site_grid.normalize_grid_name(request.form.get("site_grid"))
     except p_site_grid.GridError as error:
@@ -217,10 +218,10 @@ def read_geospatial_sheet():
         notes = list(geospatial_sheet.elevation_readiness(record))
         try:
             layout = geospatial_sheet.layout_for(
-                record, phase, site_grid=grid_name or None)
+                record, phase, site_grid=grid_name or None
+            )
             config, layout_notes = trench_layout.build_grid_config(layout)
-        except (geospatial_sheet.SheetError,
-                trench_layout.LayoutError) as error:
+        except (geospatial_sheet.SheetError, trench_layout.LayoutError) as error:
             needs_wall_names[label] = {
                 "reason": str(error),
                 "corners": record[phase],
@@ -233,9 +234,11 @@ def read_geospatial_sheet():
             "notes": notes + layout_notes + record["notes"],
         }
 
-    return jsonify({
-        "phase": phase,
-        "registered": registered,
-        "needs_wall_names": needs_wall_names,
-        "notes": sheet["notes"],
-    })
+    return jsonify(
+        {
+            "phase": phase,
+            "registered": registered,
+            "needs_wall_names": needs_wall_names,
+            "notes": sheet["notes"],
+        }
+    )

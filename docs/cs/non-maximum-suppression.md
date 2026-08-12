@@ -64,18 +64,13 @@ after:   [A .87]                   the best survives
 ```python
 # Remove nested-contour duplicates. Keep the largest contour from each
 # group whose centers are closer than half the minimum marker diameter.
-cand.sort(
-    key=lambda entry: -entry["diam"]
-)
+cand.sort(key=lambda entry: -entry["diam"])
 
 kept = []
 
 for entry in cand:
     is_separate = all(
-        (
-            (entry["cx"] - existing["cx"]) ** 2
-            + (entry["cy"] - existing["cy"]) ** 2
-        )
+        ((entry["cx"] - existing["cx"]) ** 2 + (entry["cy"] - existing["cy"]) ** 2)
         > (0.5 * min_d) ** 2
         for existing in kept
     )

@@ -41,7 +41,14 @@ def test_bulk_material_letters_match_the_kobo_instructions():
 
 def test_survey_point_codes_match_the_total_station_workflow():
     assert set(SURVEY_POINT_CODES) == {
-        "CTRL", "UNIT", "WALL", "STONE", "ART", "FEAT", "TEST", "TOPO",
+        "CTRL",
+        "UNIT",
+        "WALL",
+        "STONE",
+        "ART",
+        "FEAT",
+        "TEST",
+        "TOPO",
     }
     assert SURVEY_POINT_CODES["TOPO"] == "Ground surface"
     assert SURVEY_POINT_CODES["UNIT"] == "Unit corner"
@@ -164,15 +171,18 @@ def test_parsing_a_catalogued_object():
     assert parsed.text == "pc20250017"
 
 
-@pytest.mark.parametrize("bad", [
-    "",
-    "   ",
-    "sf-T111-25-1-1",          # two-digit year
-    "sf-T111-2025-1",          # missing find number
-    "xx-T111-2025-1-1",        # unknown prefix
-    "pc2025001",               # catalogue number too short
-    None,
-])
+@pytest.mark.parametrize(
+    "bad",
+    [
+        "",
+        "   ",
+        "sf-T111-25-1-1",  # two-digit year
+        "sf-T111-2025-1",  # missing find number
+        "xx-T111-2025-1-1",  # unknown prefix
+        "pc2025001",  # catalogue number too short
+        None,
+    ],
+)
 def test_malformed_identifiers_raise_with_an_explanation(bad):
     with pytest.raises(VocabError) as caught:
         parse_find_id(bad)

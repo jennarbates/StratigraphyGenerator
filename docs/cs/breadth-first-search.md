@@ -84,12 +84,14 @@ path.
 Naming the path is what makes the error actionable:
 
 ```python
-errors.append(_issue(
-    "cycle",
-    f"Chronological cycle detected: {' -> '.join(cycle)}.",
-    cycle,
-    _cycle_relation_ids(cycle, relation_ids_by_edge),
-))
+errors.append(
+    _issue(
+        "cycle",
+        f"Chronological cycle detected: {' -> '.join(cycle)}.",
+        cycle,
+        _cycle_relation_ids(cycle, relation_ids_by_edge),
+    )
+)
 ```
 
 ### Not for reachability either
@@ -101,7 +103,7 @@ def _path_exists(start, target, edges, excluded_edge):
     visited = set()
 
     while pending:
-        node = pending.pop()          # ← stack: depth-first
+        node = pending.pop()  # ← stack: depth-first
         if node == target:
             return True
 ```
@@ -117,11 +119,7 @@ chronology is.
 remaining predecessors, take one, and add whatever becomes ready.
 
 ```python
-ready = [
-    node
-    for node in nodes
-    if indegree[node] == 0
-]
+ready = [node for node in nodes if indegree[node] == 0]
 heapq.heapify(ready)
 order = []
 

@@ -40,12 +40,15 @@ def sheet(repo_root):
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize("text,expected", [
-    ("NW: 100/-20", ("NW", 100.0, -20.0)),
-    ("SE: 115/-25 ", ("SE", 115.0, -25.0)),      # trailing space in the sheet
-    ("130.25/40.75", (None, 130.25, 40.75)),     # an extended trench\'s vertex
-    ("NW: 120/8", ("NW", 120.0, 8.0)),           # north of the origin line
-])
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        ("NW: 100/-20", ("NW", 100.0, -20.0)),
+        ("SE: 115/-25 ", ("SE", 115.0, -25.0)),  # trailing space in the sheet
+        ("130.25/40.75", (None, 130.25, 40.75)),  # an extended trench\'s vertex
+        ("NW: 120/8", ("NW", 120.0, 8.0)),  # north of the origin line
+    ],
+)
 def test_corner_cells_parse(text, expected):
     assert parse_corner(text) == expected
 
@@ -58,10 +61,16 @@ def test_coordinates_are_taken_as_written():
     assert (x, y) == site_grid.label_to_grid("100E/20S")
 
 
-@pytest.mark.parametrize("text", [
-    "", "Closed", "contact removed Updated Loci 1 and 2",
-    "No locus forms uploaded yet", None,
-])
+@pytest.mark.parametrize(
+    "text",
+    [
+        "",
+        "Closed",
+        "contact removed Updated Loci 1 and 2",
+        "No locus forms uploaded yet",
+        None,
+    ],
+)
 def test_cells_that_are_not_corners_are_not_read_as_corners(text):
     assert parse_corner(text) is None
 
@@ -156,8 +165,7 @@ def test_unlabelled_vertices_produce_no_name():
 
 def test_a_trench_registers_itself_from_the_spreadsheet(sheet):
     """The whole point: no bearing worked out by hand, no origin typed."""
-    layout = layout_for(sheet["trenches"]["T900"],
-                        site_grid=site_grid.POGGIO_CIVITATE)
+    layout = layout_for(sheet["trenches"]["T900"], site_grid=site_grid.POGGIO_CIVITATE)
     config, _notes = trench_layout.build_grid_config(layout)
 
     assert config["source"] == "surveyed"
@@ -174,7 +182,7 @@ def test_every_rectangular_trench_in_the_season_registers(sheet):
         try:
             layout = layout_for(record, site_grid=site_grid.POGGIO_CIVITATE)
         except SheetError:
-            continue        # extended trenches need their walls named
+            continue  # extended trenches need their walls named
         config, _notes = trench_layout.build_grid_config(layout)
         assert set(config["faces"]) == set(WALLS), label
         registered.append(label)
@@ -191,8 +199,12 @@ def test_an_extended_trench_refuses_until_its_walls_are_named(sheet):
 
 def test_an_extended_trench_registers_once_its_walls_are_named(sheet):
     names = [f"wall {index}" for index in range(1, 9)]
-    layout = layout_for(sheet["trenches"]["T904"], phase=CLOSING, walls=names,
-                        site_grid=site_grid.POGGIO_CIVITATE)
+    layout = layout_for(
+        sheet["trenches"]["T904"],
+        phase=CLOSING,
+        walls=names,
+        site_grid=site_grid.POGGIO_CIVITATE,
+    )
     config, _notes = trench_layout.build_grid_config(layout)
 
     assert len(config["faces"]) == 8
@@ -202,8 +214,11 @@ def test_the_closing_outline_can_be_registered_instead(sheet):
     """An extended trench's two phases differ, and which one a model registers
     to is the operator's decision, not this module's."""
     opening = layout_for(sheet["trenches"]["T904"], phase=OPENING)
-    closing = layout_for(sheet["trenches"]["T904"], phase=CLOSING,
-                         walls=[f"wall {index}" for index in range(1, 9)])
+    closing = layout_for(
+        sheet["trenches"]["T904"],
+        phase=CLOSING,
+        walls=[f"wall {index}" for index in range(1, 9)],
+    )
 
     assert opening["corners"] != closing["corners"]
     assert len(closing["corners"]) == 8
@@ -235,8 +250,7 @@ def test_the_sheet_carries_no_elevations_at_all(sheet):
 
 
 def test_a_derived_config_has_no_surfaceZ_and_says_so(sheet):
-    layout = layout_for(sheet["trenches"]["T900"],
-                        site_grid=site_grid.POGGIO_CIVITATE)
+    layout = layout_for(sheet["trenches"]["T900"], site_grid=site_grid.POGGIO_CIVITATE)
     config, notes = trench_layout.build_grid_config(layout)
 
     assert config["faces"]["north wall"]["surfaceZ"] is None

@@ -66,6 +66,7 @@ this prevents.
 ```python
 MAX_ANALYSIS_DIM = 2200
 
+
 def _analysis_copy(img):
     """Return a resized analysis image and its scale relative to the original."""
     height, width = img.shape[:2]
@@ -93,8 +94,8 @@ expressed as *fractions* of it:
 
 ```python
 image_area = float(analysis_width * analysis_height)
-min_area = max(55.0, image_area * float(min_area_fraction))   # 0.000018
-max_area = image_area * float(max_area_fraction)              # 0.035
+min_area = max(55.0, image_area * float(min_area_fraction))  # 0.000018
+max_area = image_area * float(max_area_fraction)  # 0.035
 ...
 if width > 0.34 * analysis_width:
     continue
@@ -138,6 +139,7 @@ debug_image = original.copy()
 ```python
 MAX_SEND_DIMENSION = 3072
 
+
 def _cap_for_sending(img, max_dim=MAX_SEND_DIMENSION):
     w, h = img.size
     if max(w, h) <= max_dim:
@@ -168,7 +170,8 @@ if mm_px < 2:
     raise RuntimeError(
         "photo resolution too low for marker detection "
         f"({mm_px:.1f} px per paper mm) — retake closer or "
-        "at higher resolution")
+        "at higher resolution"
+    )
 ```
 
 Its coordinates become measurements that pass through the pipeline verbatim, so

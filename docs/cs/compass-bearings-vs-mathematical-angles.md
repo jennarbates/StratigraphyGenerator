@@ -87,6 +87,7 @@ The convention is chosen once and honoured in four places.
 th = math.radians(cfg["bearing_deg"])
 sin_t, cos_t = math.sin(th), math.cos(th)
 
+
 def to_site(x, depth, X0=X0, Y0=Y0, Z0=Z0, sin_t=sin_t, cos_t=cos_t):
     X = X0 + x * sin_t
     Y = Y0 + x * cos_t

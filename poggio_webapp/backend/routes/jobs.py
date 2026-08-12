@@ -21,8 +21,14 @@ bp = Blueprint("jobs", __name__)
 def create_job():
     job_id = uuid.uuid4().hex[:12]
     d = storage.JOBS_DIR / job_id
-    for sub in ["01_scan", "02_preprocess", "03_extraction",
-                "04_normalize_validate", "05_convert_coords", "06_gempy_model"]:
+    for sub in [
+        "01_scan",
+        "02_preprocess",
+        "03_extraction",
+        "04_normalize_validate",
+        "05_convert_coords",
+        "06_gempy_model",
+    ]:
         (d / sub).mkdir(parents=True, exist_ok=True)
     save_meta(job_id, {"job_id": job_id, "sheet_type": None})
     return jsonify({"job_id": job_id})

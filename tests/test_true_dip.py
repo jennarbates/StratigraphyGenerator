@@ -29,13 +29,17 @@ def plane(x_gradient, y_gradient):
 def rows_on_walls(height, surface=SURFACE):
     """The plane sampled along the A6 walls: north at Y=3, east at X=4."""
     rows = [
-        {"X": x, "Y": 3.0, "Z": height(x, 3.0),
-         "surface": surface, "face": "north wall"}
+        {
+            "X": x,
+            "Y": 3.0,
+            "Z": height(x, 3.0),
+            "surface": surface,
+            "face": "north wall",
+        }
         for x in NORTH_XS
     ]
     rows += [
-        {"X": 4.0, "Y": y, "Z": height(4.0, y),
-         "surface": surface, "face": "east wall"}
+        {"X": 4.0, "Y": y, "Z": height(4.0, y), "surface": surface, "face": "east wall"}
         for y in EAST_YS
     ]
     return rows
@@ -50,9 +54,11 @@ def test_two_walls_solve_the_plane_they_were_cut_from():
     solved = orientations[0]
     assert solved["surface"] == SURFACE
     assert solved["dip"] == pytest.approx(
-        math.degrees(math.atan(math.hypot(0.1, 0.05))), abs=1e-6)
+        math.degrees(math.atan(math.hypot(0.1, 0.05))), abs=1e-6
+    )
     assert solved["azimuth"] == pytest.approx(
-        math.degrees(math.atan2(0.1, 0.05)), abs=1e-6)
+        math.degrees(math.atan2(0.1, 0.05)), abs=1e-6
+    )
     assert set(solved["faces"]) == {"north wall", "east wall"}
     assert notes == []
 
@@ -89,15 +95,13 @@ def test_a_nearly_flat_surface_keeps_its_solved_direction():
 
     assert solved[0]["dip"] < 0.5
     assert solved[0]["azimuth"] == pytest.approx(
-        math.degrees(math.atan2(0.004, 0.002)), abs=1e-6)
+        math.degrees(math.atan2(0.004, 0.002)), abs=1e-6
+    )
 
 
 def test_each_seed_sits_on_a_real_traced_point_of_its_own_wall():
     rows = rows_on_walls(plane(0.1, 0.05))
-    traced = {
-        (row["face"], row["X"], row["Y"], round(row["Z"], 9))
-        for row in rows
-    }
+    traced = {(row["face"], row["X"], row["Y"], round(row["Z"], 9)) for row in rows}
 
     solved, _notes = true_orientations(rows, GRID_T900)
     seeds = solved[0]["seeds"]
@@ -105,22 +109,22 @@ def test_each_seed_sits_on_a_real_traced_point_of_its_own_wall():
     assert [seed["face"] for seed in seeds] == solved[0]["faces"]
     for seed in seeds:
         assert (
-            seed["face"], seed["X"], seed["Y"], round(seed["Z"], 9),
+            seed["face"],
+            seed["X"],
+            seed["Y"],
+            round(seed["Z"], 9),
         ) in traced
 
 
 def test_a_surface_on_one_wall_is_left_to_its_apparent_dip():
     rows = [
-        row for row in rows_on_walls(plane(0.1, 0.05))
-        if row["face"] == "north wall"
+        row for row in rows_on_walls(plane(0.1, 0.05)) if row["face"] == "north wall"
     ]
 
     solved, notes = true_orientations(rows, GRID_T900)
 
     assert solved == []
-    assert any(
-        SURFACE in note and "north wall" in note for note in notes
-    )
+    assert any(SURFACE in note and "north wall" in note for note in notes)
 
 
 def test_parallel_walls_are_refused_rather_than_solved_badly():
@@ -134,12 +138,22 @@ def test_parallel_walls_are_refused_rather_than_solved_badly():
     }
     height = plane(0.1, 0.05)
     rows = [
-        {"X": x, "Y": 3.0, "Z": height(x, 3.0),
-         "surface": SURFACE, "face": "north wall"}
+        {
+            "X": x,
+            "Y": 3.0,
+            "Z": height(x, 3.0),
+            "surface": SURFACE,
+            "face": "north wall",
+        }
         for x in NORTH_XS
     ] + [
-        {"X": x, "Y": 0.0, "Z": height(x, 0.0),
-         "surface": SURFACE, "face": "south wall"}
+        {
+            "X": x,
+            "Y": 0.0,
+            "Z": height(x, 0.0),
+            "surface": SURFACE,
+            "face": "south wall",
+        }
         for x in NORTH_XS
     ]
 
@@ -159,9 +173,13 @@ def test_the_least_parallel_pair_of_three_walls_wins():
     }
     height = plane(0.1, 0.05)
     rows = rows_on_walls(height) + [
-        {"X": 1.0 + (0.1 * step), "Y": 3.0 - (1.14 * step),
-         "Z": height(1.0 + (0.1 * step), 3.0 - (1.14 * step)),
-         "surface": SURFACE, "face": "skew wall"}
+        {
+            "X": 1.0 + (0.1 * step),
+            "Y": 3.0 - (1.14 * step),
+            "Z": height(1.0 + (0.1 * step), 3.0 - (1.14 * step)),
+            "surface": SURFACE,
+            "face": "skew wall",
+        }
         for step in range(5)
     ]
 
@@ -193,9 +211,9 @@ def test_inputs_are_not_mutated():
 def converted_fixture(tmp_path):
     """The A6 trench merged and run through the real converter."""
     merged, _notes = merge_extractions(
-        [("north wall", NORTH_WALL), ("east wall", EAST_WALL)])
-    return convert_coords.run_convert(
-        merged, GRID_T900, str(tmp_path / "points.csv"))
+        [("north wall", NORTH_WALL), ("east wall", EAST_WALL)]
+    )
+    return convert_coords.run_convert(merged, GRID_T900, str(tmp_path / "points.csv"))
 
 
 def read_csv(path):
@@ -228,14 +246,12 @@ def test_applying_true_dip_rewrites_every_seed_of_a_solved_surface(tmp_path):
     carries changes, and both walls' seeds now describe the same plane."""
     conversion = converted_fixture(tmp_path)
     before = read_csv(conversion["orientations_csv"])
-    solved, _notes = true_orientations(
-        read_csv(conversion["points_csv"]), GRID_T900)
-    expected = {
-        orientation["surface"]: orientation for orientation in solved
-    }
+    solved, _notes = true_orientations(read_csv(conversion["points_csv"]), GRID_T900)
+    expected = {orientation["surface"]: orientation for orientation in solved}
 
     notes = apply_true_dip(
-        conversion["points_csv"], conversion["orientations_csv"], GRID_T900)
+        conversion["points_csv"], conversion["orientations_csv"], GRID_T900
+    )
     after = read_csv(conversion["orientations_csv"])
 
     assert len(after) == len(before)
@@ -245,13 +261,11 @@ def test_applying_true_dip_rewrites_every_seed_of_a_solved_surface(tmp_path):
         assert new["polarity"] == old["polarity"]
         target = expected[new["surface"]]
         assert float(new["dip"]) == pytest.approx(target["dip"], abs=0.005)
-        assert float(new["azimuth"]) == pytest.approx(
-            target["azimuth"], abs=0.005)
+        assert float(new["azimuth"]) == pytest.approx(target["azimuth"], abs=0.005)
 
     by_surface = {}
     for row in after:
-        by_surface.setdefault(row["surface"], set()).add(
-            (row["dip"], row["azimuth"]))
+        by_surface.setdefault(row["surface"], set()).add((row["dip"], row["azimuth"]))
     assert all(len(values) == 1 for values in by_surface.values())
     assert any("replaced the per-wall apparent dips" in note for note in notes)
 
@@ -261,11 +275,13 @@ def test_applying_true_dip_leaves_unsolvable_surfaces_alone(tmp_path):
     answer available for it -- rather than being dropped or invented."""
     merged, _notes = merge_extractions([("north wall", NORTH_WALL)])
     conversion = convert_coords.run_convert(
-        merged, GRID_T900, str(tmp_path / "points.csv"))
+        merged, GRID_T900, str(tmp_path / "points.csv")
+    )
     before = read_csv(conversion["orientations_csv"])
 
     notes = apply_true_dip(
-        conversion["points_csv"], conversion["orientations_csv"], GRID_T900)
+        conversion["points_csv"], conversion["orientations_csv"], GRID_T900
+    )
 
     assert read_csv(conversion["orientations_csv"]) == before
     assert any("only on face" in note for note in notes)

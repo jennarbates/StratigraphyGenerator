@@ -75,9 +75,7 @@ class HarrisCorrelation(_HarrisModel):
     @model_validator(mode="after")
     def require_distinct_units(self):
         if len(set(self.unit_ids)) < 2:
-            raise ValueError(
-                "A correlation requires at least two distinct unit IDs."
-            )
+            raise ValueError("A correlation requires at least two distinct unit IDs.")
         return self
 ```
 
@@ -121,10 +119,13 @@ if (
     and relation.younger_id != relation.older_id
     and components[relation.younger_id] == components[relation.older_id]
 ):
-    errors.append(_issue(
-        "relation-within-correlation",
-        f"Relation {relation.id} connects units in the same "
-        "correlation component.", ...))
+    errors.append(
+        _issue(
+            "relation-within-correlation",
+            f"Relation {relation.id} connects units in the same correlation component.",
+            ...,
+        )
+    )
 ```
 
 If two units are the same deposit, one cannot be younger than the other. This
@@ -134,10 +135,14 @@ assertions.
 Overlapping groups are also an error:
 
 ```python
-errors.append(_issue(
-    "overlapping-correlation",
-    f"Unit {unit_id} appears in overlapping correlation groups: "
-    f"{', '.join(sorted_ids)}.", [unit_id]))
+errors.append(
+    _issue(
+        "overlapping-correlation",
+        f"Unit {unit_id} appears in overlapping correlation groups: "
+        f"{', '.join(sorted_ids)}.",
+        [unit_id],
+    )
+)
 ```
 
 ### Suggestions are proposals, never actions
@@ -145,9 +150,7 @@ errors.append(_issue(
 `poggio_webapp/pipeline/harris_suggestions.py`:
 
 ```python
-_CORRELATION_REASON = (
-    "Matching normalized labels appear in different jobs or faces."
-)
+_CORRELATION_REASON = "Matching normalized labels appear in different jobs or faces."
 ```
 
 Deliberately weak evidence — matching labels, in *different* sources — and it is

@@ -75,9 +75,10 @@ cand.sort(key=lambda entry: -entry["diam"])
 kept = []
 for entry in cand:
     is_separate = all(
-        ((entry["cx"] - existing["cx"]) ** 2
-         + (entry["cy"] - existing["cy"]) ** 2) > (0.5 * min_d) ** 2
-        for existing in kept)
+        ((entry["cx"] - existing["cx"]) ** 2 + (entry["cy"] - existing["cy"]) ** 2)
+        > (0.5 * min_d) ** 2
+        for existing in kept
+    )
     if is_separate:
         kept.append(entry)
 ```
@@ -109,7 +110,7 @@ for i, (top, bottom) in enumerate(layer_bands):
     low, high = sorted((top_depth, bottom_depth))
     if low - 0.02 <= depth <= high + 0.02:
         chosen = i
-        break                      # first match wins
+        break  # first match wins
     distance = min(abs(depth - low), abs(depth - high))
     if distance < best_distance:
         best_distance = distance

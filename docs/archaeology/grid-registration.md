@@ -138,6 +138,7 @@ Z0 = cfg["surfaceZ"]
 th = math.radians(cfg["bearing_deg"])
 sin_t, cos_t = math.sin(th), math.cos(th)
 
+
 def to_site(x, depth, X0=X0, Y0=Y0, Z0=Z0, sin_t=sin_t, cos_t=cos_t):
     X = X0 + x * sin_t
     Y = Y0 + x * cos_t
@@ -159,20 +160,19 @@ GRID_REGISTRATION_FIELDS = ("originX", "originY", "surfaceZ", "bearing_deg")
 
 ```python
 missing_fields = [
-    field for field in GRID_REGISTRATION_FIELDS
+    field
+    for field in GRID_REGISTRATION_FIELDS
     if not _is_finite_number(registration.get(field))
 ]
 bearing = registration.get("bearing_deg")
-if (
-    "bearing_deg" not in missing_fields
-    and not 0 <= bearing <= 360
-):
+if "bearing_deg" not in missing_fields and not 0 <= bearing <= 360:
     missing_fields.append("bearing_deg")
 
 if missing_fields:
     raise IncompleteGridRegistrationError(
         f'Face "{face_name}" grid registration is incomplete: '
-        f'{", ".join(missing_fields)}.')
+        f"{', '.join(missing_fields)}."
+    )
 ```
 
 An out-of-range bearing is folded into the *same* "incomplete" message, because
@@ -215,8 +215,9 @@ raise TrenchBuildError(
     "these faces still carry the starter placeholder registration: "
     + ", ".join(repr(name) for name in sorted(placeholders))
     + ". Fill in real survey values (originX, originY, surfaceZ, "
-      "bearing_deg) before building; placeholders would place the "
-      "walls in a row instead of around the pit")
+    "bearing_deg) before building; placeholders would place the "
+    "walls in a row instead of around the pit"
+)
 ```
 
 The service docstring explains why this one is fatal where geometry warnings are
@@ -236,7 +237,8 @@ warnings.append(
     f"face {name!r} is not connected to the rest of the "
     f"trench: neither of its ends lands within "
     f"{tolerance_m} m of another wall's end. Adjacent "
-    "walls must share corner coordinates")
+    "walls must share corner coordinates"
+)
 ```
 
 A warning, because an open end at an unexcavated side is legitimate.

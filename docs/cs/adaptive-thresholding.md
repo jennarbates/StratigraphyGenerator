@@ -85,8 +85,9 @@ def _ink_mask(img, block_px, C=10):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     b, g, r = cv2.split(img.astype(np.int32))
     redness = r - (g + b) / 2.0
-    ad = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C,
-                               cv2.THRESH_BINARY_INV, block_px, C)
+    ad = cv2.adaptiveThreshold(
+        gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, block_px, C
+    )
     return cv2.bitwise_and(ad, (redness < 25).astype(np.uint8) * 255)
 ```
 
@@ -123,11 +124,12 @@ def high_contrast(gray, upscale=2):
     """Aggressive binarization for BOUNDARY TRACING ONLY (destroys fine fills)."""
     flat = flatten_background(gray)
     if upscale and upscale != 1:
-        flat = cv2.resize(flat, None, fx=upscale, fy=upscale,
-                          interpolation=cv2.INTER_LANCZOS4)
+        flat = cv2.resize(
+            flat, None, fx=upscale, fy=upscale, interpolation=cv2.INTER_LANCZOS4
+        )
     binimg = cv2.adaptiveThreshold(
-        flat, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-        cv2.THRESH_BINARY, blockSize=25, C=10)
+        flat, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, blockSize=25, C=10
+    )
     return binimg
 ```
 

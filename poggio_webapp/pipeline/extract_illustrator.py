@@ -46,6 +46,7 @@ def _cap_for_sending(img, max_dim=MAX_SEND_DIMENSION):
 # SCHEMA (unchanged from renameImages.py)
 # ---------------------------------------------------------------------------
 
+
 class Scale(BaseModel):
     unit: str | None
     valuesMarked: list[int]
@@ -256,22 +257,28 @@ Emit ONLY the JSON conforming to the schema.
 """
 
 
-
-
-def run_extraction(image_path: str, out_path: str, api_key: str,
-                    max_output_tokens: int = 65536, progress_cb=None):
+def run_extraction(
+    image_path: str,
+    out_path: str,
+    api_key: str,
+    max_output_tokens: int = 65536,
+    progress_cb=None,
+):
     """Runs the single-agent illustrator-sheet extraction.
     Returns (raw_json_text, warning_or_None)."""
     if progress_cb:
         progress_cb("analyzing image (single agent)...")
 
-    client = genai.Client(api_key=api_key,
-                           http_options=types.HttpOptions(timeout=240_000))  # 4 min
+    client = genai.Client(
+        api_key=api_key, http_options=types.HttpOptions(timeout=240_000)
+    )  # 4 min
     img = Image.open(image_path)
     orig_size = img.size
     img = _cap_for_sending(img)
     if img.size != orig_size and progress_cb:
-        progress_cb(f"resized {orig_size[0]}x{orig_size[1]} -> {img.size[0]}x{img.size[1]} before sending to Gemini")
+        progress_cb(
+            f"resized {orig_size[0]}x{orig_size[1]} -> {img.size[0]}x{img.size[1]} before sending to Gemini"
+        )
     prompt = PROMPT_TEMPLATE.format(image_path=image_path)
 
     response = generate_with_retry(
@@ -298,6 +305,7 @@ def run_extraction(image_path: str, out_path: str, api_key: str,
         f.write(raw_json)
 
     from pipeline._extract_common import check_response
+
     warning = check_response(response, raw_json)
 
     if progress_cb:

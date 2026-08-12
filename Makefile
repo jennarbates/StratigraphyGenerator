@@ -25,8 +25,9 @@ test:  ## Run the Python test suite
 test-js:  ## Run the JavaScript test suite
 	node --test $(JS_TESTS)
 
-lint:  ## Check style and import hygiene
+lint:  ## Check style, formatting, and import hygiene
 	$(RUFF) check .
+	$(RUFF) format --check .
 
 format:  ## Apply the safe lint fixes and format
 	$(RUFF) check . --fix

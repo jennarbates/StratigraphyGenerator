@@ -20,7 +20,8 @@ whatever the module happened to build.
 The naive Flask application is a module-level object:
 
 ```python
-app = Flask(__name__)          # built on import
+app = Flask(__name__)  # built on import
+
 
 @app.route("/")
 def index(): ...
@@ -81,10 +82,12 @@ def create_app() -> Flask:
 
     @app.errorhandler(HTTPException)
     def handle_http_error(error: HTTPException):
-        return jsonify({
-            "error": error.description or error.name,
-            "status": error.code,
-        }), error.code
+        return jsonify(
+            {
+                "error": error.description or error.name,
+                "status": error.code,
+            }
+        ), error.code
 
     @app.errorhandler(Exception)
     def handle_unexpected_error(error: Exception):
@@ -171,9 +174,22 @@ problem [late binding](late-binding-vs-import-time-binding.md) solves for
 
 ```python
 BLUEPRINTS = (
-    pages_bp, jobs_bp, editor_bp, finds_bp, scans_bp, preprocess_bp,
-    extraction_bp, features_bp, markers_bp, manual_bp, task_status_bp,
-    text_metadata_bp, processing_bp, gempy_bp, harris_bp, trenches_bp,
+    pages_bp,
+    jobs_bp,
+    editor_bp,
+    finds_bp,
+    scans_bp,
+    preprocess_bp,
+    extraction_bp,
+    features_bp,
+    markers_bp,
+    manual_bp,
+    task_status_bp,
+    text_metadata_bp,
+    processing_bp,
+    gempy_bp,
+    harris_bp,
+    trenches_bp,
     demo_bp,
 )
 

@@ -103,13 +103,9 @@ possible.
 `poggio_webapp/pipeline/harris_suggestions.py`:
 
 ```python
-existing_by_id = {
-    suggestion.id: suggestion
-    for suggestion in matrix.suggestions
-}
+existing_by_id = {suggestion.id: suggestion for suggestion in matrix.suggestions}
 suggestions_by_id = {
-    suggestion.id: suggestion.model_copy(deep=True)
-    for suggestion in matrix.suggestions
+    suggestion.id: suggestion.model_copy(deep=True) for suggestion in matrix.suggestions
 }
 for suggestion in generated:
     previous = existing_by_id.get(suggestion.id)

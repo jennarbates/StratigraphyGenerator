@@ -53,9 +53,7 @@ def import_sources(matrix_id, job_ids, revision):
 def review(matrix_id, suggestion_id, action, revision):
     """Accept or reject one suggestion. Returns the saved matrix."""
     current = load_at_revision(matrix_id, revision)
-    if not any(
-        suggestion.id == suggestion_id for suggestion in current.suggestions
-    ):
+    if not any(suggestion.id == suggestion_id for suggestion in current.suggestions):
         raise SuggestionNotFoundError(suggestion_id)
     reviewed = review_suggestion(current, suggestion_id, action)
     return harris_store.save_matrix(

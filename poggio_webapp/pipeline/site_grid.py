@@ -53,12 +53,20 @@ GRID_NAMES = {
 #   proj_y = x*d + y*e + f
 _EPSG3003 = {
     POGGIO_CIVITATE: (
-        0.99221693, 0.0447248683, 169513.520,
-        -0.043247185, 0.999281902, 478065.144,
+        0.99221693,
+        0.0447248683,
+        169513.520,
+        -0.043247185,
+        0.999281902,
+        478065.144,
     ),
     VESCOVADO_DI_MURLO: (
-        0.87120992587, 0.486029300286, 1694396.08449,
-        -0.487297729938, 0.873675651295, 4782618.57257,
+        0.87120992587,
+        0.486029300286,
+        1694396.08449,
+        -0.487297729938,
+        0.873675651295,
+        4782618.57257,
     ),
 }
 
@@ -123,6 +131,7 @@ def format_label(grid_x, grid_y, places=2):
     never for storage: stored coordinates keep the signed numbers, because that
     is the form the site's own database uses.
     """
+
     def part(value, positive, negative):
         text = f"{abs(value):.{places}f}".rstrip("0").rstrip(".")
         return f"{text or '0'}{positive if value >= 0 else negative}"

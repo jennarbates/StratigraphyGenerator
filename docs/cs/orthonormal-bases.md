@@ -76,10 +76,15 @@ if toward_lowest < 0:
     vx, vy = -vx, -vy
 
 return Calibration(
-    origin_x=ox, origin_y=oy,
-    ux=ux, uy=uy, vx=vx, vy=vy,
+    origin_x=ox,
+    origin_y=oy,
+    ux=ux,
+    uy=uy,
+    vx=vx,
+    vy=vy,
     px_per_m=pixel_span / ref_meters,
-    ref_x=rx, ref_y=ry,
+    ref_x=rx,
+    ref_y=ry,
 )
 ```
 

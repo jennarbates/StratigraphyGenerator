@@ -88,10 +88,7 @@ def _validate_candidate(candidate) -> HarrisMatrix:
 
     report = validate_matrix_graph(matrix)
     if not report["ok"]:
-        error_codes = sorted({
-            issue["code"]
-            for issue in report["errors"]
-        })
+        error_codes = sorted({issue["code"] for issue in report["errors"]})
         raise InvalidMatrixError(
             "Matrix graph is invalid: " + ", ".join(error_codes) + ".",
             error_codes=error_codes,
@@ -179,16 +176,12 @@ def load_matrix(matrix_id: str) -> HarrisMatrix:
     try:
         serialized = path.read_text(encoding="utf-8")
     except FileNotFoundError as error:
-        raise MatrixNotFoundError(
-            f"Matrix {matrix_id} was not found."
-        ) from error
+        raise MatrixNotFoundError(f"Matrix {matrix_id} was not found.") from error
 
     try:
         matrix = HarrisMatrix.model_validate_json(serialized)
     except ValidationError as error:
-        raise InvalidMatrixError(
-            f"Stored matrix {matrix_id} is invalid."
-        ) from error
+        raise InvalidMatrixError(f"Stored matrix {matrix_id} is invalid.") from error
 
     if matrix.matrix_id != matrix_id:
         raise InvalidMatrixError(

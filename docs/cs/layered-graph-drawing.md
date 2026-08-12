@@ -156,7 +156,8 @@ _MAX_UNITS = 250
 if len(matrix.units) > _MAX_UNITS:
     raise HarrisRenderError(
         "Harris Matrix SVG rendering supports at most "
-        f"{_MAX_UNITS} units; this matrix contains {len(matrix.units)}.")
+        f"{_MAX_UNITS} units; this matrix contains {len(matrix.units)}."
+    )
 ```
 
 A stated limit with a clear message, rather than an unreadable diagram.

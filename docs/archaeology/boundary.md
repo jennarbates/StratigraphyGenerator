@@ -128,8 +128,9 @@ x, so a tilted photograph still yields a left-to-right boundary:
 
 ```python
 if (x is None or y is None) and not conf:
-    report.err(f"{where}[{i}]",
-               "null coordinate with no confidence note explaining why")
+    report.err(
+        f"{where}[{i}]", "null coordinate with no confidence note explaining why"
+    )
 ```
 
 A point the recorder could not read is legitimate — a point that is simply
@@ -140,8 +141,15 @@ missing is not. **Null means "not recorded", never zero.**
 ```python
 for x, d in pts:
     X, Y, Z = to_site(x, d)
-    rows.append({"X": round(X, 4), "Y": round(Y, 4), "Z": round(Z, 4),
-                 "surface": surface, "face": fname})
+    rows.append(
+        {
+            "X": round(X, 4),
+            "Y": round(Y, 4),
+            "Z": round(Z, 4),
+            "surface": surface,
+            "face": fname,
+        }
+    )
 ```
 
 and their overall slope becomes an

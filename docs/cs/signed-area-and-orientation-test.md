@@ -73,9 +73,8 @@ Three implementations, in two languages, all identical in structure.
 
 ```python
 def _direction(start, end, point):
-    return (
-        (end[0] - start[0]) * (point[1] - start[1])
-        - (end[1] - start[1]) * (point[0] - start[0])
+    return (end[0] - start[0]) * (point[1] - start[1]) - (end[1] - start[1]) * (
+        point[0] - start[0]
     )
 
 

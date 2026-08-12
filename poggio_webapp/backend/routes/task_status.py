@@ -14,8 +14,11 @@ def task_status(task_id):
     t = TASKS.get(task_id)
     if not t:
         abort(404)
-    resp = {"status": t["status"], "log": t["log"],
-            "elapsed_seconds": round(time.time() - t["started_at"])}
+    resp = {
+        "status": t["status"],
+        "log": t["log"],
+        "elapsed_seconds": round(time.time() - t["started_at"]),
+    }
     if t["status"] == "done":
         r = t["result"]
         # extraction returns str or (str, warning); gempy returns a dict

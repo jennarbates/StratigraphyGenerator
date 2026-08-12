@@ -65,12 +65,7 @@ def test_write_lithology_binary_writes_exact_little_endian_uint16(tmp_path):
         output_path,
     )
 
-    assert output_path.read_bytes() == (
-        b"\x00\x00"
-        b"\x01\x00"
-        b"\x00\x01"
-        b"\xff\xff"
-    )
+    assert output_path.read_bytes() == (b"\x00\x00\x01\x00\x00\x01\xff\xff")
 
 
 def test_write_lithology_binary_returns_sorted_lithology_metadata(tmp_path):
@@ -132,9 +127,7 @@ def fake_gempy():
         )
     )
     return SimpleNamespace(
-        data=SimpleNamespace(
-            ImporterHelper=lambda **kwargs: SimpleNamespace(**kwargs)
-        ),
+        data=SimpleNamespace(ImporterHelper=lambda **kwargs: SimpleNamespace(**kwargs)),
         create_geomodel=lambda **kwargs: geo_model,
         map_stack_to_surfaces=lambda *args, **kwargs: None,
         compute_model=lambda model: solution,
@@ -147,9 +140,7 @@ def test_run_build_preserves_npz_and_adds_binary_and_manifest_metadata(
 ):
     points_path = tmp_path / "points.csv"
     points_path.write_text(
-        "X,Y,Z,surface,face\n"
-        "0,0,0,Topsoil,north\n"
-        "1,1,1,Topsoil,north\n"
+        "X,Y,Z,surface,face\n0,0,0,Topsoil,north\n1,1,1,Topsoil,north\n"
     )
     orientations_path = tmp_path / "orientations.csv"
     orientations_path.write_text("X,Y,Z,surface\n")
@@ -195,9 +186,7 @@ def test_run_build_preserves_npz_and_adds_binary_and_manifest_metadata(
         1,
     ]
 
-    manifest = json.loads(
-        Path(result["outputs"]["viewer_manifest"]).read_text()
-    )
+    manifest = json.loads(Path(result["outputs"]["viewer_manifest"]).read_text())
     assert manifest["volume"] == {
         "schema_version": 1,
         "format": "raw",

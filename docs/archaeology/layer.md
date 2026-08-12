@@ -103,8 +103,10 @@ The manual tracer enforces the ordering rather than trusting it:
 original_order = [b["name"] for b in bottoms]
 bottoms.sort(key=lambda b: _average_depth(b["points"]))
 if [b["name"] for b in bottoms] != original_order:
-    warnings.append("Bottom boundaries were reordered from shallowest to "
-                    "deepest before building layers.")
+    warnings.append(
+        "Bottom boundaries were reordered from shallowest to "
+        "deepest before building layers."
+    )
 ```
 
 Reorders, and **says so**.

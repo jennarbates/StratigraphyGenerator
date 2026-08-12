@@ -109,10 +109,14 @@ def test_manual_calibration_includes_kind(client):
     job_dir.mkdir()
     scan_path = job_dir / "scan.png"
     scan_path.write_bytes(b"scan")
-    (job_dir / "meta.json").write_text(json.dumps({
-        "scan_path": str(scan_path),
-        "sheet_type": "illustrator",
-    }))
+    (job_dir / "meta.json").write_text(
+        json.dumps(
+            {
+                "scan_path": str(scan_path),
+                "sheet_type": "illustrator",
+            }
+        )
+    )
 
     response = client.post(
         f"/api/jobs/{job_id}/boundaries/manual",
@@ -249,43 +253,48 @@ def test_serialized_json_round_trips_source_pixel(calibration):
     restored = json.loads(json.dumps(data))
 
     assert restored["layers"][0]["topBoundary"][0]["sourcePixel"] == [100.25, 210.5]
-    assert (
-        restored["layers"][0]["featuresInLayer"][0]["shapePoints"][0]["sourcePixel"]
-        == [140.125, 250.625]
-    )
+    assert restored["layers"][0]["featuresInLayer"][0]["shapePoints"][0][
+        "sourcePixel"
+    ] == [140.125, 250.625]
 
 
 def test_verified_text_is_merged_without_replacing_manual_draw_values(calibration):
     payload = _fieldwall_payload()
-    payload.update({
-        "trenchLabel": "Manual trench",
-        "faceLabel": "Manual face",
-        "square_cm": 25,
-        "loci": [{
-            "locusNumber": "1042",
-            "munsellRaw": "7.5YR 4/4",
-            "description": None,
-        }],
-        "verifiedText": {
-            "document": {
-                "trenchLabel": "Verified trench",
-                "faceLabel": "Verified face",
-                "gridSquareCm": 20,
-                "illustrators": ["A. Recorder", "B. Illustrator"],
-                "date": "15 July 2026",
-                "northArrowPresent": False,
-                "gridTiePoints": ["E 194", "E 190"],
-                "marginalia": ["Continued on reverse"],
-                "otherText": ["Scale checked by JB"],
+    payload.update(
+        {
+            "trenchLabel": "Manual trench",
+            "faceLabel": "Manual face",
+            "square_cm": 25,
+            "loci": [
+                {
+                    "locusNumber": "1042",
+                    "munsellRaw": "7.5YR 4/4",
+                    "description": None,
+                }
+            ],
+            "verifiedText": {
+                "document": {
+                    "trenchLabel": "Verified trench",
+                    "faceLabel": "Verified face",
+                    "gridSquareCm": 20,
+                    "illustrators": ["A. Recorder", "B. Illustrator"],
+                    "date": "15 July 2026",
+                    "northArrowPresent": False,
+                    "gridTiePoints": ["E 194", "E 190"],
+                    "marginalia": ["Continued on reverse"],
+                    "otherText": ["Scale checked by JB"],
+                },
+                "loci": [
+                    {
+                        "locusNumber": "1042",
+                        "munsellRaw": "10YR 5/3",
+                        "description": "brown silty soil",
+                    }
+                ],
+                "audit": [],
             },
-            "loci": [{
-                "locusNumber": "1042",
-                "munsellRaw": "10YR 5/3",
-                "description": "brown silty soil",
-            }],
-            "audit": [],
-        },
-    })
+        }
+    )
 
     data, _ = build_fieldwall(payload, calibration, None)
 
@@ -316,11 +325,13 @@ def test_manual_locus_not_present_in_verified_text_remains_human_entered(calibra
     payload = _fieldwall_payload()
     payload["verifiedText"] = {
         "document": {},
-        "loci": [{
-            "locusNumber": "9999",
-            "munsellRaw": "10YR 5/3",
-            "description": None,
-        }],
+        "loci": [
+            {
+                "locusNumber": "9999",
+                "munsellRaw": "10YR 5/3",
+                "description": None,
+            }
+        ],
         "audit": [],
     }
 
@@ -332,20 +343,22 @@ def test_manual_locus_not_present_in_verified_text_remains_human_entered(calibra
 
 def test_verified_draw_fields_are_used_when_manual_values_are_empty(calibration):
     payload = _fieldwall_payload()
-    payload.update({
-        "trenchLabel": None,
-        "faceLabel": "",
-        "square_cm": None,
-        "verifiedText": {
-            "document": {
-                "trenchLabel": "Verified trench",
-                "faceLabel": "Verified face",
-                "gridSquareCm": 20,
+    payload.update(
+        {
+            "trenchLabel": None,
+            "faceLabel": "",
+            "square_cm": None,
+            "verifiedText": {
+                "document": {
+                    "trenchLabel": "Verified trench",
+                    "faceLabel": "Verified face",
+                    "gridSquareCm": 20,
+                },
+                "loci": [],
+                "audit": [],
             },
-            "loci": [],
-            "audit": [],
-        },
-    })
+        }
+    )
 
     data, _ = build_fieldwall(payload, calibration, None)
 

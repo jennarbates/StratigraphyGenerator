@@ -154,11 +154,7 @@ def _grid_registration():
 
 
 def _editor_state_envelope(schema_type="ArchaeologicalDiagram"):
-    face_name = (
-        "wall"
-        if schema_type == "FieldWallProfile"
-        else "south"
-    )
+    face_name = "wall" if schema_type == "FieldWallProfile" else "south"
     polygon_metadata = (
         {"locus": "1", "munsell": "10YR 5/3", "note": "Brown soil"}
         if schema_type == "FieldWallProfile"
@@ -336,18 +332,22 @@ def test_finalize_unnamed_face_raises_structural_error():
 def test_finalize_field_wall_with_multiple_faces_raises_structural_error():
     job_id = editor.create_editor_session("FieldWallProfile")
     state = _editor_state_envelope("FieldWallProfile")
-    state["editorState"]["faces"].append({
-        "name": "wall return",
-        "polygons": [_polygon()],
-    })
-    state["resumeState"]["faces"].append({
-        "name": "wall return",
-        "gridRegistration": _grid_registration(),
-        "polygons": [_polygon()],
-        "polygonMetadata": {
-            1: {"locus": "2", "munsell": "10YR 4/3"},
-        },
-    })
+    state["editorState"]["faces"].append(
+        {
+            "name": "wall return",
+            "polygons": [_polygon()],
+        }
+    )
+    state["resumeState"]["faces"].append(
+        {
+            "name": "wall return",
+            "gridRegistration": _grid_registration(),
+            "polygons": [_polygon()],
+            "polygonMetadata": {
+                1: {"locus": "2", "munsell": "10YR 4/3"},
+            },
+        }
+    )
     state["gridConfig"]["faces"]["wall return"] = _grid_registration()
     editor.save_editor_state(job_id, state)
 
@@ -572,12 +572,8 @@ def test_finalize_valid_field_wall_envelope_succeeds():
 
 
 def test_client_finalize_control_blocks_invalid_states_and_enables_clean_state():
-    grid_module = (
-        REPO_ROOT / "poggio_webapp" / "static" / "canvas" / "grid.mjs"
-    )
-    canvas_html = (
-        REPO_ROOT / "poggio_webapp" / "static" / "canvas.html"
-    ).read_text()
+    grid_module = REPO_ROOT / "poggio_webapp" / "static" / "canvas" / "grid.mjs"
+    canvas_html = (REPO_ROOT / "poggio_webapp" / "static" / "canvas.html").read_text()
     canvas_javascript = (
         REPO_ROOT / "poggio_webapp" / "static" / "canvas" / "index.js"
     ).read_text()

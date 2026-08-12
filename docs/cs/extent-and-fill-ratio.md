@@ -111,11 +111,7 @@ extent = area / float(width * height)
 if solidity < 0.34 or extent < 0.09:
     continue
 
-score = (
-    0.45 * compactness
-    + 0.35 * min(1.0, solidity)
-    + 0.20 * min(1.0, extent)
-)
+score = 0.45 * compactness + 0.35 * min(1.0, solidity) + 0.20 * min(1.0, extent)
 ```
 
 The comment names the target: **layer boundaries and grid lines**. Those are

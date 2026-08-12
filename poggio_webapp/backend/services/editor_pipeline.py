@@ -47,22 +47,26 @@ def run_editor_build(job_directory, build_fn, *args, log_cb=None):
     except Exception:
         with META_LOCK:
             meta = read_meta(job_directory)
-            meta.update({
-                "status": "error",
-                "stage": "building",
-                "message": "Model building failed.",
-                "pipeline_error": "Model building failed.",
-            })
+            meta.update(
+                {
+                    "status": "error",
+                    "stage": "building",
+                    "message": "Model building failed.",
+                    "pipeline_error": "Model building failed.",
+                }
+            )
             write_meta(job_directory, meta)
         raise
 
     with META_LOCK:
         meta = read_meta(job_directory)
-        meta.update({
-            "status": "complete",
-            "stage": "complete",
-            "message": STATUS_MESSAGES["complete"],
-        })
+        meta.update(
+            {
+                "status": "complete",
+                "stage": "complete",
+                "message": STATUS_MESSAGES["complete"],
+            }
+        )
         if isinstance(result, dict) and isinstance(result.get("outputs"), dict):
             meta["model_outputs"] = result["outputs"]
         meta.pop("pipeline_error", None)
@@ -75,50 +79,52 @@ def run_editor_pipeline(job_id):
     for subdirectory in PIPELINE_SUBDIRECTORIES:
         (job_directory / subdirectory).mkdir(exist_ok=True)
 
-    editor_meta = json.loads(
-        (job_directory / "editor_meta.json").read_text()
-    )
+    editor_meta = json.loads((job_directory / "editor_meta.json").read_text())
     editor_state = editor_pipeline.load_editor_state(job_id)
     extraction_path = job_directory / "extraction_output.json"
     meta = read_meta(job_directory)
-    meta.update({
-        "job_id": job_id,
-        "sheet_type": (
-            "fieldwall"
-            if editor_meta["schema_type"] == "FieldWallProfile"
-            else "illustrator"
-        ),
-        "source": "manual_editor",
-        "extraction_path": str(extraction_path),
-        "status": "normalizing",
-        "stage": "normalizing",
-        "message": STATUS_MESSAGES["normalizing"],
-    })
+    meta.update(
+        {
+            "job_id": job_id,
+            "sheet_type": (
+                "fieldwall"
+                if editor_meta["schema_type"] == "FieldWallProfile"
+                else "illustrator"
+            ),
+            "source": "manual_editor",
+            "extraction_path": str(extraction_path),
+            "status": "normalizing",
+            "stage": "normalizing",
+            "message": STATUS_MESSAGES["normalizing"],
+        }
+    )
     write_meta(job_directory, meta)
 
-    normalized_path = (
-        job_directory / "04_normalize_validate" / "output_clean.json"
-    )
+    normalized_path = job_directory / "04_normalize_validate" / "output_clean.json"
     normalized, normalization_log = normalizer.run_normalize(
         str(extraction_path),
         str(normalized_path),
     )
-    meta.update({
-        "normalized_path": str(normalized_path),
-        "normalization_log": normalization_log,
-        "status": "validating",
-        "stage": "validating",
-        "message": STATUS_MESSAGES["validating"],
-    })
+    meta.update(
+        {
+            "normalized_path": str(normalized_path),
+            "normalization_log": normalization_log,
+            "status": "validating",
+            "stage": "validating",
+            "message": STATUS_MESSAGES["validating"],
+        }
+    )
     write_meta(job_directory, meta)
 
     validation_report = validator.run_validate(str(normalized_path))
-    meta.update({
-        "validation_report": validation_report,
-        "status": "converting",
-        "stage": "converting",
-        "message": STATUS_MESSAGES["converting"],
-    })
+    meta.update(
+        {
+            "validation_report": validation_report,
+            "status": "converting",
+            "stage": "converting",
+            "message": STATUS_MESSAGES["converting"],
+        }
+    )
     write_meta(job_directory, meta)
 
     grid_config = editor_state.get("gridConfig")
@@ -133,22 +139,22 @@ def run_editor_pipeline(job_id):
     if conversion["n_points"] == 0:
         raise ValueError("conversion produced 0 points")
 
-    meta.update({
-        "points_csv": conversion["points_csv"],
-        "orientations_csv": conversion["orientations_csv"],
-        "status": "building",
-        "stage": "building",
-        "message": STATUS_MESSAGES["building"],
-    })
+    meta.update(
+        {
+            "points_csv": conversion["points_csv"],
+            "orientations_csv": conversion["orientations_csv"],
+            "status": "building",
+            "stage": "building",
+            "message": STATUS_MESSAGES["building"],
+        }
+    )
     write_meta(job_directory, meta)
 
     # Imported here rather than at module scope: gempy is an optional extra,
     # and everything above this line must work without it installed.
     from pipeline import build_gempy
 
-    output_prefix = str(
-        job_directory / "06_gempy_model" / "trench_model"
-    )
+    output_prefix = str(job_directory / "06_gempy_model" / "trench_model")
     with META_LOCK:
         task_id = start_task(
             run_editor_build,
@@ -159,9 +165,11 @@ def run_editor_pipeline(job_id):
             output_prefix,
         )
         meta = read_meta(job_directory)
-        meta.update({
-            "task_id": task_id,
-            "gempy_task_id": task_id,
-        })
+        meta.update(
+            {
+                "task_id": task_id,
+                "gempy_task_id": task_id,
+            }
+        )
         write_meta(job_directory, meta)
     return task_id

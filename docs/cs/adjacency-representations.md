@@ -63,8 +63,7 @@ reduced_edges = _transitive_reduction_edges(edges)
 display_edges = sorted(reduced_edges)
 
 for edge in sorted(edges - reduced_edges):
-    warnings.append(_issue(
-        "redundant-relation", ...))
+    warnings.append(_issue("redundant-relation", ...))
 ```
 
 `edges - reduced_edges` is the redundant edges, in one operation. An adjacency

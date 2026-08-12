@@ -45,8 +45,7 @@ def _validate_sheets(sheets):
         try:
             label, data = item
         except (TypeError, ValueError) as error:
-            raise ValueError(
-                f"sheets[{i}] is not a (wall_label, data) pair") from error
+            raise ValueError(f"sheets[{i}] is not a (wall_label, data) pair") from error
         if not isinstance(label, str) or not label.strip():
             raise ValueError(f"sheets[{i}] has an empty wall_label")
         if not isinstance(data, dict):
@@ -55,7 +54,8 @@ def _validate_sheets(sheets):
         if key in seen:
             raise ValueError(
                 f"wall_label {label.strip()!r} duplicates {seen[key]!r} "
-                "(labels are compared case-insensitively)")
+                "(labels are compared case-insensitively)"
+            )
         seen[key] = label.strip()
         cleaned.append((label.strip(), data))
     return cleaned
@@ -67,8 +67,7 @@ def _parse_correlation(correlation):
     for key, canonical in (correlation or {}).items():
         wall, sep, num = str(key).partition(":")
         if not sep or not wall.strip() or not str(num).strip():
-            raise ValueError(
-                f"correlation key {key!r} is not 'wall_label:locusNumber'")
+            raise ValueError(f"correlation key {key!r} is not 'wall_label:locusNumber'")
         parsed[(wall.strip().lower(), str(num).strip())] = str(canonical).strip()
     return parsed
 
@@ -76,13 +75,14 @@ def _parse_correlation(correlation):
 def _apply_correlation(label, sheet, parsed, notes):
     """Rename locusNumber values in loci[] and layers[] per the correlation
     map, in place (sheet is already a private deep copy)."""
-    renames = {num: canon for (wall, num), canon in parsed.items()
-               if wall == label.lower()}
+    renames = {
+        num: canon for (wall, num), canon in parsed.items() if wall == label.lower()
+    }
     if not renames:
         return
     applied = set()
     for section in ("loci", "layers"):
-        for entry in (sheet.get(section) or []):
+        for entry in sheet.get(section) or []:
             if not isinstance(entry, dict):
                 continue
             num = str(entry.get("locusNumber", "")).strip()
@@ -90,11 +90,15 @@ def _apply_correlation(label, sheet, parsed, notes):
                 entry["locusNumber"] = renames[num]
                 applied.add(num)
     for num in sorted(applied):
-        notes.append(f"wall {label!r}: locus {num} renamed to "
-                     f"{renames[num]} per the correlation map")
+        notes.append(
+            f"wall {label!r}: locus {num} renamed to "
+            f"{renames[num]} per the correlation map"
+        )
     for num in sorted(set(renames) - applied):
-        notes.append(f"correlation key {label}:{num} matched no locus on "
-                     f"wall {label!r} -- check the map for typos")
+        notes.append(
+            f"correlation key {label}:{num} matched no locus on "
+            f"wall {label!r} -- check the map for typos"
+        )
 
 
 def _report_munsell_disagreements(field_sheets, notes):
@@ -115,10 +119,10 @@ def _report_munsell_disagreements(field_sheets, notes):
     Within one sheet, only the first entry per number is considered; the
     adapter itself notes intra-sheet duplicates when it runs.
     """
-    seen = {}   # num -> (reading, wall_label that read it first)
+    seen = {}  # num -> (reading, wall_label that read it first)
     for wall_label, sheet in field_sheets:
         seen_here = set()
-        for entry in (sheet.get("loci") or []):
+        for entry in sheet.get("loci") or []:
             if not isinstance(entry, dict):
                 continue
             num = str(entry.get("locusNumber", "")).strip()
@@ -136,7 +140,8 @@ def _report_munsell_disagreements(field_sheets, notes):
                     f"locus {num}: Munsell disagrees between wall "
                     f"{first_wall!r} ({first_reading!r}) and wall "
                     f"{wall_label!r} ({reading!r}). Both walls still model one "
-                    f"surface; {first_reading!r} is used as its label")
+                    f"surface; {first_reading!r} is used as its label"
+                )
 
 
 def merge_extractions(sheets, correlation=None):
@@ -167,40 +172,58 @@ def merge_extractions(sheets, correlation=None):
 
     # 2. Report colour disagreements between walls. Nothing is rewritten:
     #    surfaces are identified by locus number, so the walls already fuse.
-    field_sheets = [(label, sheet) for label, sheet in copies
-                    if convert_coords.is_field_wall(sheet)]
+    field_sheets = [
+        (label, sheet) for label, sheet in copies if convert_coords.is_field_wall(sheet)
+    ]
     _report_munsell_disagreements(field_sheets, notes)
 
     # 3. Adapt every sheet to faces. Field sheets go through the existing
     #    adapter (which does ALL surface naming); illustrator-shaped sheets
     #    pass through.
-    entries = []   # {'face': dict, 'name': str, 'sheet': int,
-                   #  'wall_label': str, 'illustrator': bool}
+    entries = []  # {'face': dict, 'name': str, 'sheet': int,
+    #  'wall_label': str, 'illustrator': bool}
     for sheet_index, (label, sheet) in enumerate(copies):
         if convert_coords.is_field_wall(sheet):
             adapted, adapter_notes = convert_coords.fieldwall_to_profiles(
-                sheet, face_name=label)
+                sheet, face_name=label
+            )
             notes.extend(adapter_notes)
             for face in adapted.get("trenchProfiles", []):
-                entries.append({"face": face, "name": face.get("face"),
-                                "sheet": sheet_index, "wall_label": label,
-                                "illustrator": False})
+                entries.append(
+                    {
+                        "face": face,
+                        "name": face.get("face"),
+                        "sheet": sheet_index,
+                        "wall_label": label,
+                        "illustrator": False,
+                    }
+                )
         else:
             faces = sheet.get("trenchProfiles") or []
             if not faces:
-                notes.append(f"sheet {label!r} has no recognizable extraction "
-                             "content (no trenchProfiles, loci, or layers); "
-                             "it contributed no faces")
+                notes.append(
+                    f"sheet {label!r} has no recognizable extraction "
+                    "content (no trenchProfiles, loci, or layers); "
+                    "it contributed no faces"
+                )
             for j, face in enumerate(faces):
                 name = face.get("face")
                 if not name:
                     name = f"face_{j}"
                     face["face"] = name
-                    notes.append(f"sheet {label!r}: face at index {j} has no "
-                                 f"name -- assigned {name!r}")
-                entries.append({"face": face, "name": name,
-                                "sheet": sheet_index, "wall_label": label,
-                                "illustrator": True})
+                    notes.append(
+                        f"sheet {label!r}: face at index {j} has no "
+                        f"name -- assigned {name!r}"
+                    )
+                entries.append(
+                    {
+                        "face": face,
+                        "name": name,
+                        "sheet": sheet_index,
+                        "wall_label": label,
+                        "illustrator": True,
+                    }
+                )
 
     # 4. Cross-sheet name collisions: prefix the illustrator face(s) with
     #    their wall label. Decided on the pre-prefix names so order can't
@@ -213,9 +236,11 @@ def merge_extractions(sheets, correlation=None):
         for e in entries:
             if e["illustrator"] and len(sheets_using.get(e["name"], set())) > 1:
                 new_name = f"{e['wall_label']}: {e['name']}"
-                notes.append(f"sheet {e['wall_label']!r}: face "
-                             f"{e['name']!r} collides with a face from "
-                             f"another sheet -- renamed to {new_name!r}")
+                notes.append(
+                    f"sheet {e['wall_label']!r}: face "
+                    f"{e['name']!r} collides with a face from "
+                    f"another sheet -- renamed to {new_name!r}"
+                )
                 e["name"] = new_name
                 e["face"]["face"] = new_name
 
@@ -223,8 +248,10 @@ def merge_extractions(sheets, correlation=None):
     names = [e["name"] for e in entries]
     duplicates = sorted({n for n in names if names.count(n) > 1})
     if duplicates:
-        raise ValueError("duplicate face names after merge: "
-                         + ", ".join(repr(d) for d in duplicates))
+        raise ValueError(
+            "duplicate face names after merge: "
+            + ", ".join(repr(d) for d in duplicates)
+        )
 
     merged = {"trenchProfiles": [e["face"] for e in entries]}
     return merged, notes
@@ -237,8 +264,7 @@ def _surface_name(layer):
     run_build rejects a series_order naming anything absent from the CSV."""
     if not isinstance(layer, dict):
         return None
-    return str(layer.get("inferredMaterial") or layer.get("layerName")
-               or "unknown")
+    return str(layer.get("inferredMaterial") or layer.get("layerName") or "unknown")
 
 
 def merged_series_order(merged):
@@ -259,9 +285,9 @@ def merged_series_order(merged):
     faces = (merged or {}).get("trenchProfiles") or []
     notes = []
 
-    order_index = {}       # surface -> first-seen position (the tie-breaker)
+    order_index = {}  # surface -> first-seen position (the tie-breaker)
     faces_by_surface = {}  # surface -> [face names, in order]
-    successors = {}        # surface -> {surfaces that must come after it}
+    successors = {}  # surface -> {surfaces that must come after it}
     indegree = {}
 
     for face_i, face in enumerate(faces):
@@ -269,7 +295,7 @@ def merged_series_order(merged):
             continue
         fname = face.get("face") or f"face_{face_i}"
         sequence = []
-        for layer in (face.get("layers") or []):
+        for layer in face.get("layers") or []:
             name = _surface_name(layer)
             if name is None:
                 continue
@@ -286,23 +312,24 @@ def merged_series_order(merged):
                 notes.append(
                     f"face {fname!r} lists surface {earlier!r} in two adjacent "
                     "layers; ignoring that self-constraint (it would look like "
-                    "a contradiction)")
+                    "a contradiction)"
+                )
                 continue
             if later not in successors[earlier]:
                 successors[earlier].add(later)
                 indegree[later] += 1
 
     if not order_index:
-        notes.append("no named layers in the merged document -- no "
-                     "stratigraphic order to derive")
+        notes.append(
+            "no named layers in the merged document -- no stratigraphic order to derive"
+        )
         return [], notes
 
     # Kahn's algorithm. The ready set is a heap of first-seen positions, so
     # whenever several surfaces are simultaneously available the earliest-seen
     # one wins and the output is stable.
     by_index = {position: name for name, position in order_index.items()}
-    ready = [position for name, position in order_index.items()
-             if indegree[name] == 0]
+    ready = [position for name, position in order_index.items() if indegree[name] == 0]
     heapq.heapify(ready)
     order = []
     while ready:
@@ -314,8 +341,9 @@ def merged_series_order(merged):
                 heapq.heappush(ready, order_index[later])
 
     if len(order) < len(order_index):
-        raise ValueError(_cycle_message(order, order_index, successors,
-                                        faces_by_surface))
+        raise ValueError(
+            _cycle_message(order, order_index, successors, faces_by_surface)
+        )
 
     if len(faces) > 1:
         for name in order:
@@ -324,7 +352,8 @@ def merged_series_order(merged):
                     f"surface {name!r} has layers on only one wall "
                     f"({faces_by_surface[name][0]}); it is ordered from fewer "
                     "constraints and will still be interpolated across the "
-                    "whole model extent")
+                    "whole model extent"
+                )
 
     return order, notes
 
@@ -339,20 +368,22 @@ def _cycle_message(order, order_index, successors, faces_by_surface):
         changed = False
         for name in sorted(remaining, key=lambda n: order_index[n]):
             has_successor = bool(successors[name] & remaining)
-            has_predecessor = any(name in successors[other]
-                                  for other in remaining)
+            has_predecessor = any(name in successors[other] for other in remaining)
             if not (has_successor and has_predecessor):
                 remaining.discard(name)
                 changed = True
     cycle = remaining or (set(order_index) - set(order))
     listed = ", ".join(
         f"{name!r} (on {', '.join(faces_by_surface[name])})"
-        for name in sorted(cycle, key=lambda n: order_index[n]))
-    return ("the walls contradict each other: these surfaces form a "
-            "stratigraphic cycle and cannot be ordered young to old -- "
-            + listed
-            + ". Check the layer order on those walls, or correlate the loci "
-              "explicitly; no order is guessed.")
+        for name in sorted(cycle, key=lambda n: order_index[n])
+    )
+    return (
+        "the walls contradict each other: these surfaces form a "
+        "stratigraphic cycle and cannot be ordered young to old -- "
+        + listed
+        + ". Check the layer order on those walls, or correlate the loci "
+        "explicitly; no order is guessed."
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -407,11 +438,11 @@ def face_length_m(face):
     """The face's along-wall extent: the largest x found on its boundaries.
     Returns None when the face has no usable points."""
     xs = []
-    for layer in (face.get("layers") or []):
+    for layer in face.get("layers") or []:
         if not isinstance(layer, dict):
             continue
         for key in ("bottomBoundary", "topBoundary"):
-            for point in (layer.get(key) or []):
+            for point in layer.get(key) or []:
                 if not isinstance(point, dict):
                     continue
                 x = convert_coords.get_x(point)
@@ -475,12 +506,13 @@ def is_placeholder(face_cfg, grid=None):
     except (KeyError, TypeError, ValueError):
         return False
     remainder = abs(originX) % _PLACEHOLDER_ORIGIN_STEP
-    on_step = (remainder < 1e-9
-               or abs(remainder - _PLACEHOLDER_ORIGIN_STEP) < 1e-9)
-    return (originY == _PLACEHOLDER_ORIGIN_Y
-            and surfaceZ == _PLACEHOLDER_SURFACE_Z
-            and bearing == _PLACEHOLDER_BEARING
-            and on_step)
+    on_step = remainder < 1e-9 or abs(remainder - _PLACEHOLDER_ORIGIN_STEP) < 1e-9
+    return (
+        originY == _PLACEHOLDER_ORIGIN_Y
+        and surfaceZ == _PLACEHOLDER_SURFACE_Z
+        and bearing == _PLACEHOLDER_BEARING
+        and on_step
+    )
 
 
 def _endpoint_components(endpoints, tolerance_m):
@@ -496,10 +528,12 @@ def _endpoint_components(endpoints, tolerance_m):
         return name
 
     for i, a in enumerate(names):
-        for b in names[i + 1:]:
+        for b in names[i + 1 :]:
             touching = any(
                 math.dist(pa, pb) <= tolerance_m
-                for pa in endpoints[a] for pb in endpoints[b])
+                for pa in endpoints[a]
+                for pb in endpoints[b]
+            )
             if touching:
                 parent[find(a)] = find(b)
 
@@ -519,8 +553,9 @@ def check_trench_grid_config(grid, merged, tolerance_m=0.05):
     surfaceZ is absent, which is every depth on that wall measured from
     nothing.
     """
-    faces = [f for f in ((merged or {}).get("trenchProfiles") or [])
-             if isinstance(f, dict)]
+    faces = [
+        f for f in ((merged or {}).get("trenchProfiles") or []) if isinstance(f, dict)
+    ]
     names = face_names(merged)
     faces_cfg = (grid or {}).get("faces") or {}
 
@@ -529,7 +564,8 @@ def check_trench_grid_config(grid, merged, tolerance_m=0.05):
         raise ValueError(
             "grid config has no entry for these faces of the merged trench: "
             + ", ".join(repr(name) for name in missing)
-            + " -- convert() would drop them from the model")
+            + " -- convert() would drop them from the model"
+        )
 
     # surfaceZ is the ground surface every depth on that wall is subtracted
     # from, so a face without one has no elevations at all -- not approximate
@@ -538,7 +574,8 @@ def check_trench_grid_config(grid, merged, tolerance_m=0.05):
     # existed the None reached convert(), where `Z0 - depth` raised a bare
     # TypeError; the refusal the layout notes promise was a stack trace.
     unregistered = [
-        name for name in names
+        name
+        for name in names
         if not isinstance(faces_cfg[name].get("surfaceZ"), (int, float))
         or isinstance(faces_cfg[name].get("surfaceZ"), bool)
     ]
@@ -550,7 +587,8 @@ def check_trench_grid_config(grid, merged, tolerance_m=0.05):
             "measured down from, so without it those depths convert to no "
             "elevation at all. This is usually a corner whose opening "
             "elevation was never recorded -- supply it, or build the walls "
-            "that are registered as their own trench")
+            "that are registered as their own trench"
+        )
 
     warnings = []
 
@@ -561,7 +599,8 @@ def check_trench_grid_config(grid, merged, tolerance_m=0.05):
             warnings.append(
                 f"face {name!r} is still the starter placeholder "
                 f"(originY 0, surfaceZ 100, bearing 90, originX a multiple of "
-                f"10); replace it with real survey values before building")
+                f"10); replace it with real survey values before building"
+            )
 
     # 2. Corner adjacency. Only meaningful once there are walls to join.
     if len(names) > 1:
@@ -571,7 +610,8 @@ def check_trench_grid_config(grid, merged, tolerance_m=0.05):
             if length is None:
                 warnings.append(
                     f"face {name!r} has no boundary points, so its extent is "
-                    "unknown -- skipped the corner-adjacency check for it")
+                    "unknown -- skipped the corner-adjacency check for it"
+                )
                 continue
             try:
                 endpoints[name] = face_endpoints(faces_cfg[name], length)
@@ -579,7 +619,8 @@ def check_trench_grid_config(grid, merged, tolerance_m=0.05):
                 warnings.append(
                     f"face {name!r} has an unusable grid entry (need numeric "
                     "originX, originY, bearing_deg) -- skipped the "
-                    "corner-adjacency check for it")
+                    "corner-adjacency check for it"
+                )
 
         if len(endpoints) > 1:
             components = _endpoint_components(endpoints, tolerance_m)
@@ -588,15 +629,15 @@ def check_trench_grid_config(grid, merged, tolerance_m=0.05):
             # An open end (a wall of an unexcavated side) is fine; a wall that
             # joins nothing at either end is the real problem.
             order = {name: i for i, name in enumerate(endpoints)}
-            trench = max(components,
-                         key=lambda g: (len(g), -min(order[n] for n in g)))
+            trench = max(components, key=lambda g: (len(g), -min(order[n] for n in g)))
             for name in endpoints:
                 if name not in trench:
                     warnings.append(
                         f"face {name!r} is not connected to the rest of the "
                         f"trench: neither of its ends lands within "
                         f"{tolerance_m} m of another wall's end. Adjacent "
-                        "walls must share corner coordinates")
+                        "walls must share corner coordinates"
+                    )
 
     # 3. Datum sanity.
     elevations = []
@@ -612,6 +653,7 @@ def check_trench_grid_config(grid, merged, tolerance_m=0.05):
                 f"surfaceZ spreads {spread:.2f} m across the faces "
                 f"({min(elevations):.2f} to {max(elevations):.2f}); the walls "
                 "may not share a datum -- confirm all elevations come from the "
-                "same benchmark")
+                "same benchmark"
+            )
 
     return warnings

@@ -122,6 +122,7 @@ Z0 = cfg["surfaceZ"]
 th = math.radians(cfg["bearing_deg"])
 sin_t, cos_t = math.sin(th), math.cos(th)
 
+
 def to_site(x, depth, X0=X0, Y0=Y0, Z0=Z0, sin_t=sin_t, cos_t=cos_t):
     X = X0 + x * sin_t
     Y = Y0 + x * cos_t
@@ -148,7 +149,8 @@ and the caller refuses:
 raise TrenchBuildError(
     "the grid config has no entry for these faces: "
     + ", ".join(repr(name) for name in conversion["missing_faces"])
-    + " -- they would be dropped from the model")
+    + " -- they would be dropped from the model"
+)
 ```
 
 Silently dropping a wall would produce a model missing a quarter of its evidence
@@ -160,16 +162,19 @@ and looking complete.
 
 ```python
 new_name = f"{e['wall_label']}: {e['name']}"
-notes.append(f"sheet {e['wall_label']!r}: face "
-             f"{e['name']!r} collides with a face from "
-             f"another sheet -- renamed to {new_name!r}")
+notes.append(
+    f"sheet {e['wall_label']!r}: face "
+    f"{e['name']!r} collides with a face from "
+    f"another sheet -- renamed to {new_name!r}"
+)
 ```
 
 and raises if any duplicate survives:
 
 ```python
-raise ValueError("duplicate face names after merge: "
-                 + ", ".join(repr(d) for d in duplicates))
+raise ValueError(
+    "duplicate face names after merge: " + ", ".join(repr(d) for d in duplicates)
+)
 ```
 
 The face name also travels into the model output, so a reader can tell which

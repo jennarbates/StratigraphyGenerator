@@ -25,25 +25,30 @@ def prepared_job(monkeypatch):
     directory = storage.JOBS_DIR / job_id
     directory.mkdir()
     (directory / "editor_meta.json").write_text(
-        json.dumps({"schema_type": "FieldWallProfile"}))
+        json.dumps({"schema_type": "FieldWallProfile"})
+    )
     (directory / "editor_state.json").write_text(json.dumps({}))
     (directory / "extraction_output.json").write_text(json.dumps({}))
     (directory / "meta.json").write_text(json.dumps({"job_id": job_id}))
 
     monkeypatch.setattr(
-        service.normalizer, "run_normalize",
-        lambda src, dst: ({"normalized": True}, ["normalized"]))
+        service.normalizer,
+        "run_normalize",
+        lambda src, dst: ({"normalized": True}, ["normalized"]),
+    )
+    monkeypatch.setattr(service.validator, "run_validate", lambda path: {"ok": True})
     monkeypatch.setattr(
-        service.validator, "run_validate", lambda path: {"ok": True})
+        service.convert_coords, "make_starter_config", lambda data: {"faces": {}}
+    )
     monkeypatch.setattr(
-        service.convert_coords, "make_starter_config", lambda data: {"faces": {}})
-    monkeypatch.setattr(
-        service.convert_coords, "run_convert",
+        service.convert_coords,
+        "run_convert",
         lambda data, grid, path: {
             "n_points": 3,
             "points_csv": str(storage.JOBS_DIR / "points.csv"),
             "orientations_csv": str(storage.JOBS_DIR / "orientations.csv"),
-        })
+        },
+    )
     monkeypatch.setattr(service, "start_task", lambda *a, **k: "task-1")
     return job_id, directory
 
@@ -75,8 +80,14 @@ def test_run_editor_pipeline_refuses_an_empty_conversion(prepared_job):
     job_id, _ = prepared_job
     monkeypatch = pytest.MonkeyPatch()
     monkeypatch.setattr(
-        service.convert_coords, "run_convert",
-        lambda data, grid, path: {"n_points": 0, "points_csv": "", "orientations_csv": ""})
+        service.convert_coords,
+        "run_convert",
+        lambda data, grid, path: {
+            "n_points": 0,
+            "points_csv": "",
+            "orientations_csv": "",
+        },
+    )
     with pytest.raises(ValueError, match="0 points"):
         service.run_editor_pipeline(job_id)
     monkeypatch.undo()

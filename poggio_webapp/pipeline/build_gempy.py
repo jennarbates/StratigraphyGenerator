@@ -49,13 +49,13 @@ def infer_series_order(points):
         points.groupby("surface")["Z"]
         .mean()
         .sort_values(ascending=False)
-        .index
-        .tolist()
+        .index.tolist()
     )
 
 
-def middle_zoom_range(points, surf_order, surfaces=None, padding_frac=0.25,
-                       min_padding=0.05):
+def middle_zoom_range(
+    points, surf_order, surfaces=None, padding_frac=0.25, min_padding=0.05
+):
     if surfaces is None:
         surfaces = surf_order[1:-1]
         if not surfaces:
@@ -86,16 +86,17 @@ def wall_traces(points):
     for (face, surface), group in points.groupby(["face", "surface"], sort=True):
         x_span = group["X"].max() - group["X"].min()
         y_span = group["Y"].max() - group["Y"].min()
-        ordered = group.sort_values("X" if x_span > y_span else "Y",
-                                     kind="stable")
-        traces.append({
-            "face": str(face),
-            "surface": str(surface),
-            "points": [
-                [float(x), float(y), float(z)]
-                for x, y, z in zip(ordered["X"], ordered["Y"], ordered["Z"])
-            ],
-        })
+        ordered = group.sort_values("X" if x_span > y_span else "Y", kind="stable")
+        traces.append(
+            {
+                "face": str(face),
+                "surface": str(surface),
+                "points": [
+                    [float(x), float(y), float(z)]
+                    for x, y, z in zip(ordered["X"], ordered["Y"], ordered["Z"])
+                ],
+            }
+        )
     return traces
 
 
@@ -155,8 +156,7 @@ def write_viewer_manifest(
                 else series_order_module.describe(order_source or ELEVATION)
             ),
             "arbitrary_pairs": [
-                [str(earlier), str(later)]
-                for earlier, later in (arbitrary_pairs or [])
+                [str(earlier), str(later)] for earlier, later in (arbitrary_pairs or [])
             ],
         },
         "single_face_note": (
@@ -259,8 +259,7 @@ def write_lithology_binary(
         raise TypeError("lithology_names must be a mapping or sequence")
     else:
         names_by_id = {
-            index: name
-            for index, name in enumerate(lithology_names, start=1)
+            index: name for index, name in enumerate(lithology_names, start=1)
         }
 
     lithologies = []
@@ -325,35 +324,39 @@ def export_meshes(geo_model, solution, surf_order, outdir, log_cb=None):
             for v in transformed_verts:
                 f.write(f"v {v[0]:.6f} {v[1]:.6f} {v[2]:.6f}\n")
             for face in validated_faces:
-                f.write(f"f {face[0]+1} {face[1]+1} {face[2]+1}\n")
+                f.write(f"f {face[0] + 1} {face[1] + 1} {face[2] + 1}\n")
         written.append(path)
     return written
 
 
-def run_build(points_csv, orientations_csv, out_prefix,
-              project_name="trench_model",
-              # Higher voxel count = smoother lith-block/mesh surfaces at the
-              # cost of longer compute + bigger .bin/.npz files. GemPy's own
-              # docs recommend staying under ~1,000,000 cells total; this is
-              # 700,000. Drop back toward (50, 50, 30) only if compute time
-              # becomes a problem on a given machine.
-              resolution=(100, 100, 70),
-              extent=None,
-              padding_xy=2.0,
-              padding_z=1.0,
-              series_order=None,
-              make_plot=True,
-              section_direction="y",
-              vertical_exaggeration=5.0,
-              make_meshes=True,
-              save_model=True,
-              make_zoom_plot=True,
-              zoom_surfaces=None,
-              zoom_vertical_exaggeration=None,
-              surface_labels=None,
-              order_source=None,
-              arbitrary_pairs=None,
-              log_cb=None):
+def run_build(
+    points_csv,
+    orientations_csv,
+    out_prefix,
+    project_name="trench_model",
+    # Higher voxel count = smoother lith-block/mesh surfaces at the
+    # cost of longer compute + bigger .bin/.npz files. GemPy's own
+    # docs recommend staying under ~1,000,000 cells total; this is
+    # 700,000. Drop back toward (50, 50, 30) only if compute time
+    # becomes a problem on a given machine.
+    resolution=(100, 100, 70),
+    extent=None,
+    padding_xy=2.0,
+    padding_z=1.0,
+    series_order=None,
+    make_plot=True,
+    section_direction="y",
+    vertical_exaggeration=5.0,
+    make_meshes=True,
+    save_model=True,
+    make_zoom_plot=True,
+    zoom_surfaces=None,
+    zoom_vertical_exaggeration=None,
+    surface_labels=None,
+    order_source=None,
+    arbitrary_pairs=None,
+    log_cb=None,
+):
     """Runs the full GemPy build stage. Returns a dict describing outputs."""
 
     def log(msg):
@@ -370,12 +373,17 @@ def run_build(points_csv, orientations_csv, out_prefix,
     log(f"extent: {resolved_extent}")
 
     if series_order:
-        surf_order = [s.strip() for s in series_order] if isinstance(series_order, list) \
+        surf_order = (
+            [s.strip() for s in series_order]
+            if isinstance(series_order, list)
             else [s.strip() for s in series_order.split(";")]
+        )
         missing = set(surf_order) - set(points["surface"].unique())
         if missing:
-            raise RuntimeError(f"--series-order names not found in {points_csv}: "
-                                f"{', '.join(sorted(missing))}")
+            raise RuntimeError(
+                f"--series-order names not found in {points_csv}: "
+                f"{', '.join(sorted(missing))}"
+            )
         resolved_source = order_source or SUPPLIED
     else:
         surf_order = infer_series_order(points)
@@ -389,18 +397,24 @@ def run_build(points_csv, orientations_csv, out_prefix,
     else:
         log(order_note)
     if arbitrary_pairs:
-        log("NOTE: no recorded relationship orders "
+        log(
+            "NOTE: no recorded relationship orders "
             + "; ".join(f"{a!r} and {b!r}" for a, b in arbitrary_pairs)
-            + " -- the model imposes an order the excavation did not record")
+            + " -- the model imposes an order the excavation did not record"
+        )
 
     coverage = points.groupby("surface")["face"].unique()
-    single_face = {surf: faces[0] for surf, faces in coverage.items() if len(faces) == 1}
+    single_face = {
+        surf: faces[0] for surf, faces in coverage.items() if len(faces) == 1
+    }
     single_face_note = None
     if single_face:
         single_face_note = (
             "These surfaces have points from only ONE face and will still be "
-            "interpolated across the whole model extent: " +
-            ", ".join(f"{surf!r} (only on {face})" for surf, face in single_face.items())
+            "interpolated across the whole model extent: "
+            + ", ".join(
+                f"{surf!r} (only on {face})" for surf, face in single_face.items()
+            )
         )
         log("NOTE: " + single_face_note)
 
@@ -439,9 +453,7 @@ def run_build(points_csv, orientations_csv, out_prefix,
     volume_ids = geo_model.structural_frame.volume_elements_enumerator
     volume_names = geo_model.structural_frame.volume_elements_names
     if len(volume_ids) != len(volume_names):
-        raise ValueError(
-            "GemPy volume element IDs and names must have equal lengths"
-        )
+        raise ValueError("GemPy volume element IDs and names must have equal lengths")
     lithology_names = {
         int(lithology_id): str(name)
         for lithology_id, name in zip(volume_ids, volume_names)
@@ -458,18 +470,19 @@ def run_build(points_csv, orientations_csv, out_prefix,
     log(f"wrote {lith_binary_path}")
 
     lith_path = f"{out_prefix}_lith_block.npz"
-    np.savez(lith_path,
-             lith_block=solution.raw_arrays.lith_block,
-             resolution=np.array(resolution),
-             extent=np.array(resolved_extent))
+    np.savez(
+        lith_path,
+        lith_block=solution.raw_arrays.lith_block,
+        resolution=np.array(resolution),
+        extent=np.array(resolved_extent),
+    )
     result["outputs"]["lith_block"] = lith_path
     log(f"wrote {lith_path}")
 
     written = []
     if make_meshes:
         meshdir = f"{out_prefix}_meshes"
-        written = export_meshes(geo_model, solution, surf_order, meshdir,
-                                log_cb=log)
+        written = export_meshes(geo_model, solution, surf_order, meshdir, log_cb=log)
         result["outputs"]["meshes"] = written
         log(f"wrote {len(written)} mesh(es) -> {meshdir}/")
 
@@ -495,15 +508,22 @@ def run_build(points_csv, orientations_csv, out_prefix,
     if make_plot:
         try:
             import matplotlib
+
             matplotlib.use("Agg")
             import gempy_viewer as gpv
+
             nx, ny, nz = resolution
             cell = {"x": nx, "y": ny, "z": nz}[section_direction] // 2
 
             def render(ve, ylim, path):
-                p = gpv.plot_2d(geo_model, cell_number=[cell],
-                                 direction=[section_direction],
-                                 show_data=True, show=False, ve=ve)
+                p = gpv.plot_2d(
+                    geo_model,
+                    cell_number=[cell],
+                    direction=[section_direction],
+                    show_data=True,
+                    show=False,
+                    ve=ve,
+                )
                 ax = p.axes[0]
                 if ylim is not None:
                     ax.set_ylim(*ylim)
@@ -521,20 +541,27 @@ def run_build(points_csv, orientations_csv, out_prefix,
             if make_zoom_plot:
                 zsurfs = (
                     [s.strip() for s in zoom_surfaces.split(";")]
-                    if isinstance(zoom_surfaces, str) else zoom_surfaces
+                    if isinstance(zoom_surfaces, str)
+                    else zoom_surfaces
                 )
                 zrange = middle_zoom_range(points, surf_order, zsurfs)
                 if zrange is None:
-                    log("NOTE: no middle layers to zoom into — skipping the zoomed plot.")
+                    log(
+                        "NOTE: no middle layers to zoom into — skipping the zoomed plot."
+                    )
                 else:
-                    zoom_ve = (zoom_vertical_exaggeration
-                               if zoom_vertical_exaggeration is not None
-                               else vertical_exaggeration * 3)
+                    zoom_ve = (
+                        zoom_vertical_exaggeration
+                        if zoom_vertical_exaggeration is not None
+                        else vertical_exaggeration * 3
+                    )
                     zoom_path = f"{out_prefix}_section_{section_direction}_zoom.png"
                     render(zoom_ve, zrange, zoom_path)
                     result["outputs"]["section_zoom"] = zoom_path
         except Exception as e:
-            log(f"WARNING: 2D plot failed ({e}); skipping. The model itself "
-                f"was still computed and saved.")
+            log(
+                f"WARNING: 2D plot failed ({e}); skipping. The model itself "
+                f"was still computed and saved."
+            )
 
     return result

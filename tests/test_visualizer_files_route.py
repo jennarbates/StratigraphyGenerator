@@ -50,13 +50,14 @@ def _viewer_manifest(*, surfaces=None, schema_version=1):
         "extent": [0, 10, 0, 5, 90, 100],
         "resolution": [50, 50, 30],
         "series_order": [
-            surface["name"] for surface in (
-                surfaces if surfaces is not None else [
+            surface["name"]
+            for surface in (
+                surfaces
+                if surfaces is not None
+                else [
                     {
                         "name": "Topsoil",
-                        "mesh_path": (
-                            "trench_model_meshes/Topsoil.obj"
-                        ),
+                        "mesh_path": ("trench_model_meshes/Topsoil.obj"),
                     }
                 ]
             )
@@ -101,10 +102,7 @@ def _volume_manifest(**overrides):
 
 
 def _write_manifest(job_dir, payload, relative_path=None):
-    relative_path = (
-        relative_path
-        or Path("06_gempy_model") / "trench_model_viewer.json"
-    )
+    relative_path = relative_path or Path("06_gempy_model") / "trench_model_viewer.json"
     manifest_path = job_dir / relative_path
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
     manifest_path.write_text(json.dumps(payload))
@@ -125,10 +123,13 @@ def test_manual_calibration_surfaced_under_calibration_key(client):
     image_path = job_dir / "manual.png"
     image_path.write_bytes(b"image")
     calibration = _manual_calibration()
-    _write_meta(job_dir, {
-        "manual_calibration": calibration,
-        "manual_image_path": str(image_path),
-    })
+    _write_meta(
+        job_dir,
+        {
+            "manual_calibration": calibration,
+            "manual_image_path": str(image_path),
+        },
+    )
 
     response = client.get(f"/api/jobs/{job_id}/visualizer-files")
 
@@ -136,20 +137,20 @@ def test_manual_calibration_surfaced_under_calibration_key(client):
     payload = response.get_json()
     assert payload["calibration"] == calibration
     assert "marker_calib" not in payload
-    assert (
-        payload["image_url"]
-        == f"/api/jobs/{job_id}/file?path=manual.png"
-    )
+    assert payload["image_url"] == f"/api/jobs/{job_id}/file?path=manual.png"
 
 
 def test_manual_calibration_omitted_without_matching_image(client):
     job_id = "missing-manual-image"
     job_dir = storage.JOBS_DIR / job_id
     job_dir.mkdir()
-    _write_meta(job_dir, {
-        "manual_calibration": _manual_calibration(),
-        "manual_image_path": str(job_dir / "missing.png"),
-    })
+    _write_meta(
+        job_dir,
+        {
+            "manual_calibration": _manual_calibration(),
+            "manual_image_path": str(job_dir / "missing.png"),
+        },
+    )
 
     response = client.get(f"/api/jobs/{job_id}/visualizer-files")
 
@@ -171,10 +172,7 @@ def test_no_calibration_at_all_still_serves_image(client):
 
     assert response.status_code == 200
     payload = response.get_json()
-    assert (
-        payload["image_url"]
-        == f"/api/jobs/{job_id}/file?path=scan.png"
-    )
+    assert payload["image_url"] == f"/api/jobs/{job_id}/file?path=scan.png"
     assert "calibration" not in payload
 
 
@@ -195,8 +193,7 @@ def test_marker_calib_surfaced_under_calibration_key(client):
     assert payload["calibration"] == calibration
     assert "marker_calib" not in payload
     assert (
-        payload["image_url"]
-        == f"/api/jobs/{job_id}/file?"
+        payload["image_url"] == f"/api/jobs/{job_id}/file?"
         "path=03_extraction/marker_source_rotated.png"
     )
 
@@ -207,19 +204,19 @@ def test_marker_calib_ignored_without_rotated_image(client):
     job_dir.mkdir()
     scan_path = job_dir / "scan.png"
     scan_path.write_bytes(b"scan")
-    _write_meta(job_dir, {
-        "marker_calib": _marker_calibration(),
-        "scan_path": str(scan_path),
-    })
+    _write_meta(
+        job_dir,
+        {
+            "marker_calib": _marker_calibration(),
+            "scan_path": str(scan_path),
+        },
+    )
 
     response = client.get(f"/api/jobs/{job_id}/visualizer-files")
 
     assert response.status_code == 200
     payload = response.get_json()
-    assert (
-        payload["image_url"]
-        == f"/api/jobs/{job_id}/file?path=scan.png"
-    )
+    assert payload["image_url"] == f"/api/jobs/{job_id}/file?path=scan.png"
     assert "calibration" not in payload
     assert "marker_calib" not in payload
 
@@ -231,12 +228,15 @@ def test_no_model_keeps_existing_visualizer_payload_unchanged(client):
     scan_path = _write_model_file(job_dir, "scan.png")
     normalized_path = _write_model_file(job_dir, "normalized.json")
     extraction_path = _write_model_file(job_dir, "extraction.json")
-    _write_meta(job_dir, {
-        "sheet_type": "fieldwall",
-        "scan_path": str(scan_path),
-        "normalized_path": str(normalized_path),
-        "extraction_path": str(extraction_path),
-    })
+    _write_meta(
+        job_dir,
+        {
+            "sheet_type": "fieldwall",
+            "scan_path": str(scan_path),
+            "normalized_path": str(normalized_path),
+            "extraction_path": str(extraction_path),
+        },
+    )
 
     response = client.get(f"/api/jobs/{job_id}/visualizer-files")
 
@@ -246,15 +246,11 @@ def test_no_model_keeps_existing_visualizer_payload_unchanged(client):
         "jsons": [
             {
                 "label": "normalized",
-                "url": (
-                    f"/api/jobs/{job_id}/file?path=normalized.json"
-                ),
+                "url": (f"/api/jobs/{job_id}/file?path=normalized.json"),
             },
             {
                 "label": "raw extraction",
-                "url": (
-                    f"/api/jobs/{job_id}/file?path=extraction.json"
-                ),
+                "url": (f"/api/jobs/{job_id}/file?path=extraction.json"),
             },
         ],
         "image_url": f"/api/jobs/{job_id}/file?path=scan.png",
@@ -278,11 +274,14 @@ def test_metadata_manifest_returns_model3d_with_job_file_urls(client):
         job_dir,
         "custom_model/trench_model_lith_block.npz",
     )
-    _write_meta(job_dir, {
-        "model_outputs": {
-            "viewer_manifest": str(manifest_path),
+    _write_meta(
+        job_dir,
+        {
+            "model_outputs": {
+                "viewer_manifest": str(manifest_path),
+            },
         },
-    })
+    )
 
     response = client.get(f"/api/jobs/{job_id}/visualizer-files")
 
@@ -308,8 +307,7 @@ def test_metadata_manifest_returns_model3d_with_job_file_urls(client):
             }
         ],
         "lith_block_url": (
-            f"/api/jobs/{job_id}/file?"
-            "path=custom_model/trench_model_lith_block.npz"
+            f"/api/jobs/{job_id}/file?path=custom_model/trench_model_lith_block.npz"
         ),
         "warnings": [],
     }
@@ -334,8 +332,7 @@ def test_conventional_manifest_survives_without_model_outputs(client):
 
     assert response.status_code == 200
     assert response.get_json()["model3d"]["surfaces"][0]["url"] == (
-        f"/api/jobs/{job_id}/file?"
-        "path=06_gempy_model/trench_model_meshes/Topsoil.obj"
+        f"/api/jobs/{job_id}/file?path=06_gempy_model/trench_model_meshes/Topsoil.obj"
     )
 
 
@@ -345,10 +342,14 @@ def test_metadata_manifest_is_preferred_over_conventional_manifest(client):
     job_dir.mkdir()
     _write_manifest(
         job_dir,
-        _viewer_manifest(surfaces=[{
-            "name": "Conventional",
-            "mesh_path": "trench_model_meshes/Conventional.obj",
-        }]),
+        _viewer_manifest(
+            surfaces=[
+                {
+                    "name": "Conventional",
+                    "mesh_path": "trench_model_meshes/Conventional.obj",
+                }
+            ]
+        ),
     )
     _write_model_file(
         job_dir,
@@ -356,18 +357,25 @@ def test_metadata_manifest_is_preferred_over_conventional_manifest(client):
     )
     metadata_manifest = _write_manifest(
         job_dir,
-        _viewer_manifest(surfaces=[{
-            "name": "Preferred",
-            "mesh_path": "meshes/Preferred.obj",
-        }]),
+        _viewer_manifest(
+            surfaces=[
+                {
+                    "name": "Preferred",
+                    "mesh_path": "meshes/Preferred.obj",
+                }
+            ]
+        ),
         Path("preferred") / "viewer.json",
     )
     _write_model_file(job_dir, "preferred/meshes/Preferred.obj")
-    _write_meta(job_dir, {
-        "model_outputs": {
-            "viewer_manifest": str(metadata_manifest),
+    _write_meta(
+        job_dir,
+        {
+            "model_outputs": {
+                "viewer_manifest": str(metadata_manifest),
+            },
         },
-    })
+    )
 
     response = client.get(f"/api/jobs/{job_id}/visualizer-files")
 
@@ -375,10 +383,7 @@ def test_metadata_manifest_is_preferred_over_conventional_manifest(client):
     assert response.get_json()["model3d"]["surfaces"] == [
         {
             "name": "Preferred",
-            "url": (
-                f"/api/jobs/{job_id}/file?"
-                "path=preferred/meshes/Preferred.obj"
-            ),
+            "url": (f"/api/jobs/{job_id}/file?path=preferred/meshes/Preferred.obj"),
         }
     ]
 
@@ -389,16 +394,18 @@ def test_missing_mesh_is_omitted_with_surface_warning(client):
     job_dir.mkdir()
     _write_manifest(
         job_dir,
-        _viewer_manifest(surfaces=[
-            {
-                "name": "Present",
-                "mesh_path": "trench_model_meshes/Present.obj",
-            },
-            {
-                "name": "Missing",
-                "mesh_path": "trench_model_meshes/Missing.obj",
-            },
-        ]),
+        _viewer_manifest(
+            surfaces=[
+                {
+                    "name": "Present",
+                    "mesh_path": "trench_model_meshes/Present.obj",
+                },
+                {
+                    "name": "Missing",
+                    "mesh_path": "trench_model_meshes/Missing.obj",
+                },
+            ]
+        ),
     )
     _write_model_file(
         job_dir,
@@ -420,10 +427,14 @@ def test_manifest_with_no_existing_surfaces_omits_model3d(client):
     job_dir.mkdir()
     _write_manifest(
         job_dir,
-        _viewer_manifest(surfaces=[{
-            "name": "Missing",
-            "mesh_path": "trench_model_meshes/Missing.obj",
-        }]),
+        _viewer_manifest(
+            surfaces=[
+                {
+                    "name": "Missing",
+                    "mesh_path": "trench_model_meshes/Missing.obj",
+                }
+            ]
+        ),
     )
     _write_meta(job_dir, {})
 
@@ -481,8 +492,7 @@ def test_valid_volume_replaces_manifest_path_with_job_file_url(client):
         "axes": ["x", "y", "z"],
         "shape": [50, 50, 30],
         "url": (
-            f"/api/jobs/{job_id}/file?"
-            "path=06_gempy_model/trench_model_lith_block.bin"
+            f"/api/jobs/{job_id}/file?path=06_gempy_model/trench_model_lith_block.bin"
         ),
         "lithologies": [
             {
@@ -495,7 +505,7 @@ def test_valid_volume_replaces_manifest_path_with_job_file_url(client):
             },
         ],
     }
-    assert "\"path\"" not in json.dumps(model["volume"])
+    assert '"path"' not in json.dumps(model["volume"])
     assert str(job_dir) not in response.get_data(as_text=True)
 
 
@@ -596,9 +606,7 @@ def test_malformed_manifest_does_not_break_two_dimensional_payload(client):
     job_id = "malformed-model"
     job_dir = storage.JOBS_DIR / job_id
     job_dir.mkdir()
-    manifest_path = (
-        job_dir / "06_gempy_model" / "trench_model_viewer.json"
-    )
+    manifest_path = job_dir / "06_gempy_model" / "trench_model_viewer.json"
     manifest_path.parent.mkdir()
     manifest_path.write_text("{not valid json")
     scan_path = _write_model_file(job_dir, "scan.png")
@@ -659,10 +667,14 @@ def test_manifest_traversal_cannot_create_url_or_read_outside_job(
     outside_mesh.write_text("v 0 0 0")
     _write_manifest(
         job_dir,
-        _viewer_manifest(surfaces=[{
-            "name": "Escaped",
-            "mesh_path": "../../../outside.obj",
-        }]),
+        _viewer_manifest(
+            surfaces=[
+                {
+                    "name": "Escaped",
+                    "mesh_path": "../../../outside.obj",
+                }
+            ]
+        ),
     )
     _write_meta(job_dir, {})
 
@@ -686,20 +698,27 @@ def test_outside_metadata_manifest_is_ignored_for_conventional_fallback(
     outside_manifest.write_text(json.dumps(_viewer_manifest()))
     _write_manifest(
         job_dir,
-        _viewer_manifest(surfaces=[{
-            "name": "Safe",
-            "mesh_path": "trench_model_meshes/Safe.obj",
-        }]),
+        _viewer_manifest(
+            surfaces=[
+                {
+                    "name": "Safe",
+                    "mesh_path": "trench_model_meshes/Safe.obj",
+                }
+            ]
+        ),
     )
     _write_model_file(
         job_dir,
         "06_gempy_model/trench_model_meshes/Safe.obj",
     )
-    _write_meta(job_dir, {
-        "model_outputs": {
-            "viewer_manifest": str(outside_manifest),
+    _write_meta(
+        job_dir,
+        {
+            "model_outputs": {
+                "viewer_manifest": str(outside_manifest),
+            },
         },
-    })
+    )
 
     response = client.get(f"/api/jobs/{job_id}/visualizer-files")
 
@@ -714,10 +733,14 @@ def test_surface_name_is_returned_only_as_json_data(client):
     surface_name = '<img src=x onerror="alert(1)">'
     _write_manifest(
         job_dir,
-        _viewer_manifest(surfaces=[{
-            "name": surface_name,
-            "mesh_path": "trench_model_meshes/safe.obj",
-        }]),
+        _viewer_manifest(
+            surfaces=[
+                {
+                    "name": surface_name,
+                    "mesh_path": "trench_model_meshes/safe.obj",
+                }
+            ]
+        ),
     )
     _write_model_file(
         job_dir,
@@ -729,7 +752,4 @@ def test_surface_name_is_returned_only_as_json_data(client):
 
     assert response.status_code == 200
     assert response.content_type == "application/json"
-    assert (
-        response.get_json()["model3d"]["surfaces"][0]["name"]
-        == surface_name
-    )
+    assert response.get_json()["model3d"]["surfaces"][0]["name"] == surface_name

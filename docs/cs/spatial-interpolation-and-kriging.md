@@ -80,8 +80,8 @@ single_face_note = None
 if single_face:
     single_face_note = (
         "These surfaces have points from only ONE face and will still be "
-        "interpolated across the whole model extent: " +
-        ", ".join(f"{surf!r} (only on {face})" for surf, face in single_face.items())
+        "interpolated across the whole model extent: "
+        + ", ".join(f"{surf!r} (only on {face})" for surf, face in single_face.items())
     )
     log("NOTE: " + single_face_note)
 ```
@@ -123,6 +123,7 @@ ordered = group.sort_values("X" if x_span > y_span else "Y", kind="stable")
 ```python
 def infer_extent(points, pad_xy, pad_z):
     ...
+
     def pad(lo, hi, minimum):
         span = hi - lo
         p = max(span * 0.1, minimum)
@@ -180,7 +181,7 @@ reasoning:
 # docs recommend staying under ~1,000,000 cells total; this is
 # 700,000. Drop back toward (50, 50, 30) only if compute time
 # becomes a problem on a given machine.
-resolution=(100, 100, 70),
+resolution = ((100, 100, 70),)
 ```
 
 The **epistemic** cost is the one this project takes seriously. An interpolated

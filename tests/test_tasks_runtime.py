@@ -37,6 +37,7 @@ def test_progress_callback_is_injected_when_declared():
 def test_a_local_variable_is_not_mistaken_for_a_parameter():
     """co_varnames included locals, so this function used to be handed a
     keyword argument it never declared, and died with a TypeError."""
+
     def work():
         log_cb = "an ordinary local"
         return log_cb

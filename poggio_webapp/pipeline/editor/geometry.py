@@ -23,9 +23,8 @@ def _point_coordinates(point: dict) -> tuple[float, float] | None:
 
 
 def _direction(start, end, point):
-    return (
-        (end[0] - start[0]) * (point[1] - start[1])
-        - (end[1] - start[1]) * (point[0] - start[0])
+    return (end[0] - start[0]) * (point[1] - start[1]) - (end[1] - start[1]) * (
+        point[0] - start[0]
     )
 
 
@@ -44,10 +43,9 @@ def _segments_intersect(first_start, first_end, second_start, second_end):
     fourth_direction = _direction(second_start, second_end, first_end)
 
     if (
-        (first_direction > 0 > second_direction
-         or first_direction < 0 < second_direction)
-        and (third_direction > 0 > fourth_direction
-             or third_direction < 0 < fourth_direction)
+        first_direction > 0 > second_direction or first_direction < 0 < second_direction
+    ) and (
+        third_direction > 0 > fourth_direction or third_direction < 0 < fourth_direction
     ):
         return True
 
@@ -77,8 +75,7 @@ def _polygon_self_intersects(vertices: list[dict]) -> bool:
         for second_edge in range(first_edge + 1, len(points)):
             second_edge_end = (second_edge + 1) % len(points)
             edges_are_adjacent = (
-                first_edge_end == second_edge
-                or second_edge_end == first_edge
+                first_edge_end == second_edge or second_edge_end == first_edge
             )
             if edges_are_adjacent:
                 continue

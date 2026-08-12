@@ -127,9 +127,7 @@ def test_successful_editor_build_persists_complete_status_and_outputs(
 ):
     job_directory = tmp_path / "successful-build"
     points_path = job_directory / "05_convert_coords" / "points.csv"
-    orientations_path = (
-        job_directory / "05_convert_coords" / "orientations.csv"
-    )
+    orientations_path = job_directory / "05_convert_coords" / "orientations.csv"
     model_path = job_directory / "06_gempy_model" / "trench_model.gempy"
     _write_meta(
         job_directory,

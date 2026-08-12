@@ -28,7 +28,8 @@ LOCAL_ROOT = REPO_ROOT / "local" / "fixtures"
 
 # "t905-2025-layout.json" -> label T905, season 2025.
 _LAYOUT_NAME = re.compile(
-    r"^(?P<label>[a-z]+\d+)-(?P<season>\d{4})-layout\.json$", re.IGNORECASE)
+    r"^(?P<label>[a-z]+\d+)-(?P<season>\d{4})-layout\.json$", re.IGNORECASE
+)
 
 _COMPANIONS = ("loci", "special-finds")
 
@@ -76,8 +77,7 @@ def _dataset_at(layout_path: Path, *, real_records: bool):
     stem = f"{match.group('label')}-{season}"
 
     companions = {
-        name: layout_path.parent / f"{stem}-{name}.json"
-        for name in _COMPANIONS
+        name: layout_path.parent / f"{stem}-{name}.json" for name in _COMPANIONS
     }
     if not all(path.is_file() for path in companions.values()):
         return None

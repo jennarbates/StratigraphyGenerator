@@ -43,6 +43,7 @@ def slope_to_orientation(
 
     return dip, azimuth
 
+
 def least_squares_slope(xs, ds):
     """Best-fit slope (dz/dx) of depth vs. x over ALL points, not just the
     endpoints. Falls back to 0.0 if x has no spread (can't determine a slope).
@@ -78,6 +79,7 @@ def get_x(p):
 # FieldWallProfile -> trenchProfiles adapter
 # ---------------------------------------------------------------------------
 
+
 def is_field_wall(data):
     """True for a FieldWallProfile extraction (T104-style field sheet)."""
     return "trenchProfiles" not in data and ("loci" in data or "layers" in data)
@@ -90,7 +92,9 @@ def _munsell_label(entry):
         return m.strip() or None
     if isinstance(m, dict):
         parts = [m.get("raw"), m.get("colorName")]
-        parts = [str(p).strip() for p in parts if p and str(p).strip().lower() != "none"]
+        parts = [
+            str(p).strip() for p in parts if p and str(p).strip().lower() != "none"
+        ]
         return " ".join(parts) or None
     return None
 
@@ -125,21 +129,24 @@ def fieldwall_to_profiles(data, face_name=None):
     """
     notes = []
 
-    fname = (face_name or data.get("faceLabel") or data.get("trenchLabel")
-             or "field wall")
+    fname = (
+        face_name or data.get("faceLabel") or data.get("trenchLabel") or "field wall"
+    )
 
     # locus number -> munsell label. Duplicate locus numbers happen (T104 has
     # two entries numbered 5); take the first and say so rather than merging.
     munsell_by_locus = {}
-    for entry in (data.get("loci") or []):
+    for entry in data.get("loci") or []:
         num = str(entry.get("locusNumber", "")).strip()
         if not num:
             continue
         label = _munsell_label(entry)
         if num in munsell_by_locus:
-            notes.append(f"locus {num} is listed more than once in loci[] — "
-                         f"using the first Munsell reading ({munsell_by_locus[num]}) "
-                         f"and ignoring {label!r}")
+            notes.append(
+                f"locus {num} is listed more than once in loci[] — "
+                f"using the first Munsell reading ({munsell_by_locus[num]}) "
+                f"and ignoring {label!r}"
+            )
             continue
         munsell_by_locus[num] = label
 
@@ -154,8 +161,7 @@ def fieldwall_to_profiles(data, face_name=None):
         else:
             surface = f"layer_{i}"
             display = surface
-            notes.append(f"layer at index {i} has no locusNumber — "
-                         f"named {surface!r}")
+            notes.append(f"layer at index {i} has no locusNumber — named {surface!r}")
 
         # Field sheets name an interface for the locus that starts at it, so
         # the model surface for Locus N is that locus's top boundary. The
@@ -171,13 +177,21 @@ def fieldwall_to_profiles(data, face_name=None):
             )
         bb = []
         for p in model_boundary:
-            bb.append({"xCoordinateMeters": get_x(p),
-                       "depthMeters": p.get("depthMeters"),
-                       "confidence": p.get("confidence")})
-        layers.append({"layerName": surface,
-                       "inferredMaterial": surface,
-                       "displayLabel": display,
-                       "bottomBoundary": bb})
+            bb.append(
+                {
+                    "xCoordinateMeters": get_x(p),
+                    "depthMeters": p.get("depthMeters"),
+                    "confidence": p.get("confidence"),
+                }
+            )
+        layers.append(
+            {
+                "layerName": surface,
+                "inferredMaterial": surface,
+                "displayLabel": display,
+                "bottomBoundary": bb,
+            }
+        )
 
     if not layers:
         notes.append("no layers[] in this field-wall extraction — nothing to convert")
@@ -254,7 +268,7 @@ def make_starter_config(data):
         # not applied: which end of a face a label marks is a site-records
         # question this module cannot answer.
         ties = []
-        for tie in (data.get("gridTiePoints") or []):
+        for tie in data.get("gridTiePoints") or []:
             raw = tie.get("rawText")
             if not raw:
                 continue
@@ -287,7 +301,7 @@ def surface_labels(data):
     for face in (data or {}).get("trenchProfiles") or []:
         if not isinstance(face, dict):
             continue
-        for layer in (face.get("layers") or []):
+        for layer in face.get("layers") or []:
             if not isinstance(layer, dict):
                 continue
             name = layer.get("inferredMaterial") or layer.get("layerName")
@@ -326,15 +340,28 @@ def convert(data, grid, out_csv):
             Z = Z0 - depth
             return X, Y, Z
 
-        for layer in (face.get("layers") or []):
-            surface = layer.get("inferredMaterial") or layer.get("layerName") or "unknown"
+        for layer in face.get("layers") or []:
+            surface = (
+                layer.get("inferredMaterial") or layer.get("layerName") or "unknown"
+            )
             bb = layer.get("bottomBoundary") or []
             pts = [(get_x(p), get_y(p)) for p in bb]
-            pts = [(x, d) for (x, d) in pts if isinstance(x, (int, float)) and isinstance(d, (int, float))]
+            pts = [
+                (x, d)
+                for (x, d) in pts
+                if isinstance(x, (int, float)) and isinstance(d, (int, float))
+            ]
             for x, d in pts:
                 X, Y, Z = to_site(x, d)
-                rows.append({"X": round(X, 4), "Y": round(Y, 4), "Z": round(Z, 4),
-                             "surface": surface, "face": fname})
+                rows.append(
+                    {
+                        "X": round(X, 4),
+                        "Y": round(Y, 4),
+                        "Z": round(Z, 4),
+                        "surface": surface,
+                        "face": fname,
+                    }
+                )
             if len(pts) >= 2:
                 xs = [p[0] for p in pts]
                 ds = [p[1] for p in pts]
@@ -342,8 +369,8 @@ def convert(data, grid, out_csv):
                 dz_dx = least_squares_slope(xs, ds)
 
                 dip, azimuth = slope_to_orientation(
-                slope=dz_dx,
-                face_bearing=cfg["bearing_deg"],
+                    slope=dz_dx,
+                    face_bearing=cfg["bearing_deg"],
                 )
 
                 midx = xs[len(xs) // 2]
@@ -351,16 +378,18 @@ def convert(data, grid, out_csv):
 
                 X, Y, Z = to_site(midx, midd)
 
-                orient.append({
-                    "X": round(X, 4),
-                    "Y": round(Y, 4),
-                    "Z": round(Z, 4),
-                    "surface": surface,
-                    "face": fname,
-                    "dip": round(dip, 2),
-                    "azimuth": round(azimuth, 2),
-                    "polarity": 1,
-                })
+                orient.append(
+                    {
+                        "X": round(X, 4),
+                        "Y": round(Y, 4),
+                        "Z": round(Z, 4),
+                        "surface": surface,
+                        "face": fname,
+                        "dip": round(dip, 2),
+                        "azimuth": round(azimuth, 2),
+                        "polarity": 1,
+                    }
+                )
 
     with open(out_csv, "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=["X", "Y", "Z", "surface", "face"])
@@ -368,7 +397,10 @@ def convert(data, grid, out_csv):
         w.writerows(rows)
     orient_csv = out_csv.rsplit(".", 1)[0] + "_orientations.csv"
     with open(orient_csv, "w", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=["X", "Y", "Z", "surface", "face", "dip", "azimuth", "polarity"])
+        w = csv.DictWriter(
+            f,
+            fieldnames=["X", "Y", "Z", "surface", "face", "dip", "azimuth", "polarity"],
+        )
         w.writeheader()
         w.writerows(orient)
 

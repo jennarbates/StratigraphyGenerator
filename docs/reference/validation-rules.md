@@ -29,9 +29,9 @@ flowchart TD
 All thresholds can be overridden in validation requests; these are the application defaults:
 
 ```python
-DEFAULT_MONOTONIC_TOLERANCE_M = 0.02      # 2 cm
-DEFAULT_TOP_CONTINUITY_TOLERANCE_M = 0.10 # 10 cm
-DEFAULT_MAX_PLAUSIBLE_DEPTH_M = 5.0       # 5 meters
+DEFAULT_MONOTONIC_TOLERANCE_M = 0.02  # 2 cm
+DEFAULT_TOP_CONTINUITY_TOLERANCE_M = 0.10  # 10 cm
+DEFAULT_MAX_PLAUSIBLE_DEPTH_M = 5.0  # 5 meters
 ```
 
 ## Validation Report
@@ -191,7 +191,7 @@ def check_face(face, report, ...):
 return {
     "errors": report.errors,
     "warnings": report.warnings,
-    "ok": len(report.errors) == 0
+    "ok": len(report.errors) == 0,
 }
 ```
 

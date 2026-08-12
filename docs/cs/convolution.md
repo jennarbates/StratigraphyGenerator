@@ -77,10 +77,10 @@ convolution underneath.
 ```python
 def clean(gray, upscale=2):
     """The recommended pipeline: flatten -> upscale -> CLAHE -> mild sharpen."""
-    flat = flatten_background(gray)              # contains a σ=25 Gaussian
+    flat = flatten_background(gray)  # contains a σ=25 Gaussian
     ...
-    blur = cv2.GaussianBlur(eq, (0, 0), sigmaX=1.2)   # convolution
-    sharp = cv2.addWeighted(eq, 1.5, blur, -0.5, 0)   # combines two images
+    blur = cv2.GaussianBlur(eq, (0, 0), sigmaX=1.2)  # convolution
+    sharp = cv2.addWeighted(eq, 1.5, blur, -0.5, 0)  # combines two images
     return sharp
 ```
 

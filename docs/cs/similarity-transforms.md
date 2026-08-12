@@ -98,8 +98,9 @@ is the single uniform scale.
 docstring:
 
 ```python
-def create_section_coordinate_transform(top_left, top_right, lowest_point,
-                                        reference_width_m):
+def create_section_coordinate_transform(
+    top_left, top_right, lowest_point, reference_width_m
+):
     """
     Create a rotation-aware pixel-to-section transform.
 

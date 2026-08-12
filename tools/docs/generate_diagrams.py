@@ -79,8 +79,8 @@ def document(
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {view_w} {view_h}" '
         f'role="img" aria-labelledby="t d">\n'
-        f"  <title id=\"t\">{escape(title)}</title>\n"
-        f"  <desc id=\"d\">{escape(desc)}</desc>\n"
+        f'  <title id="t">{escape(title)}</title>\n'
+        f'  <desc id="d">{escape(desc)}</desc>\n'
         f"  <style>{STYLE}</style>\n"
         f"  <defs>\n"
         f'    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" '
@@ -191,13 +191,23 @@ def glossary_anatomy() -> str:
         arrow(600, 300, 548, 300),
         txt(608, 305, "locus — the excavator's number"),
         '  <line x1="60" y1="345" x2="540" y2="345" class="thin"/>',
-        txt(300, 368, "face — one wall of the trench, drawn on one sheet",
-            "sm muted", "middle"),
-        txt(24, 400, "The trench is the whole excavated hole; this is one of its faces.",
-            "sm muted"),
+        txt(
+            300,
+            368,
+            "face — one wall of the trench, drawn on one sheet",
+            "sm muted",
+            "middle",
+        ),
+        txt(
+            24,
+            400,
+            "The trench is the whole excavated hole; this is one of its faces.",
+            "sm muted",
+        ),
     ]
     return document(
-        980, 420,
+        980,
+        420,
         "Anatomy of a trench section",
         "A stratigraphic section with four layers, the boundaries between them, "
         "an internal feature, and labels naming layer, boundary, feature, locus, "
@@ -207,41 +217,61 @@ def glossary_anatomy() -> str:
 
 
 def three_coordinate_spaces() -> str:
-    panels = [(40, "Pixel space", "origin top-left, y grows down"),
-              (350, "Face-local metres", "origin at the face's x=0, depth grows down"),
-              (660, "Site coordinates", "surveyed X, Y, Z across the whole site")]
+    panels = [
+        (40, "Pixel space", "origin top-left, y grows down"),
+        (350, "Face-local metres", "origin at the face's x=0, depth grows down"),
+        (660, "Site coordinates", "surveyed X, Y, Z across the whole site"),
+    ]
     b = [heading(24, 30, "The same point, in all three spaces")]
     for x, name, sub in panels:
-        b += [box(x, 50, 280, 250, "panel"),
-              txt(x + 14, 76, name, "bold"),
-              txt(x + 14, 96, sub, "sm muted")]
+        b += [
+            box(x, 50, 280, 250, "panel"),
+            txt(x + 14, 76, name, "bold"),
+            txt(x + 14, 96, sub, "sm muted"),
+        ]
     # pixel panel. The axes are labelled at the end each one grows toward:
     # x to the right, y downward.
-    b += ['  <rect x="80" y="132" width="210" height="132" class="fill"/>',
-          dot(180, 200), txt(190, 195, "(1240, 860)", "mono"),
-          arrow(72, 124, 72, 276), arrow(72, 124, 296, 124),
-          txt(292, 116, "x px", "sm muted", "end"),
-          txt(80, 292, "y px", "sm muted")]
+    b += [
+        '  <rect x="80" y="132" width="210" height="132" class="fill"/>',
+        dot(180, 200),
+        txt(190, 195, "(1240, 860)", "mono"),
+        arrow(72, 124, 72, 276),
+        arrow(72, 124, 296, 124),
+        txt(292, 116, "x px", "sm muted", "end"),
+        txt(80, 292, "y px", "sm muted"),
+    ]
     # local panel
-    b += ['  <rect x="380" y="132" width="210" height="132" class="fill"/>',
-          dot(452, 200), txt(462, 195, "(2.10, 0.85) m", "mono"),
-          txt(386, 292, "x metres along the face", "sm muted"),
-          txt(386, 152, "depth below surface", "sm muted")]
+    b += [
+        '  <rect x="380" y="132" width="210" height="132" class="fill"/>',
+        dot(452, 200),
+        txt(462, 195, "(2.10, 0.85) m", "mono"),
+        txt(386, 292, "x metres along the face", "sm muted"),
+        txt(386, 152, "depth below surface", "sm muted"),
+    ]
     # site panel
-    b += ['  <rect x="690" y="132" width="210" height="132" class="fill"/>',
-          dot(762, 200), txt(772, 195, "(X, Y, Z)", "mono"),
-          txt(696, 292, "north-oriented site grid", "sm muted")]
-    b += [arrow(325, 175, 348, 175, "accent", "arrow-a"),
-          arrow(635, 175, 658, 175, "accent", "arrow-a"),
-          txt(180, 330, "three calibration clicks", "sm accent-f", "middle"),
-          txt(180, 348, "+ one real measurement", "sm accent-f", "middle"),
-          txt(490, 330, "registration per face", "sm accent-f", "middle"),
-          txt(490, 348, "originX, originY, surfaceZ, bearing", "sm accent-f", "middle"),
-          txt(24, 386,
-              "Most confusion in this project is a mix-up between two of these.",
-              "sm muted")]
+    b += [
+        '  <rect x="690" y="132" width="210" height="132" class="fill"/>',
+        dot(762, 200),
+        txt(772, 195, "(X, Y, Z)", "mono"),
+        txt(696, 292, "north-oriented site grid", "sm muted"),
+    ]
+    b += [
+        arrow(325, 175, 348, 175, "accent", "arrow-a"),
+        arrow(635, 175, 658, 175, "accent", "arrow-a"),
+        txt(180, 330, "three calibration clicks", "sm accent-f", "middle"),
+        txt(180, 348, "+ one real measurement", "sm accent-f", "middle"),
+        txt(490, 330, "registration per face", "sm accent-f", "middle"),
+        txt(490, 348, "originX, originY, surfaceZ, bearing", "sm accent-f", "middle"),
+        txt(
+            24,
+            386,
+            "Most confusion in this project is a mix-up between two of these.",
+            "sm muted",
+        ),
+    ]
     return document(
-        960, 405,
+        960,
+        405,
         "The three coordinate spaces",
         "One point shown in pixel coordinates, in face-local metres, and in "
         "surveyed site coordinates, with the conversion required between each pair.",
@@ -258,12 +288,14 @@ def calibration_clicks() -> str:
         band(60, 250, 480, 80, "band-c"),
         path(wavy(60, 540, 160), "edge"),
         path(wavy(60, 540, 250), "edge"),
-        dot(110, 100, 7), txt(110, 84, "1", "bold accent-f", "middle"),
-        dot(470, 100, 7), txt(470, 84, "2", "bold accent-f", "middle"),
-        dot(300, 330, 7), txt(300, 352, "3", "bold accent-f", "middle"),
+        dot(110, 100, 7),
+        txt(110, 84, "1", "bold accent-f", "middle"),
+        dot(470, 100, 7),
+        txt(470, 84, "2", "bold accent-f", "middle"),
+        dot(300, 330, 7),
+        txt(300, 352, "3", "bold accent-f", "middle"),
         '  <line x1="110" y1="100" x2="470" y2="100" class="accent dash"/>',
-        txt(290, 118, "a distance you measured on the sheet",
-            "sm accent-f", "middle"),
+        txt(290, 118, "a distance you measured on the sheet", "sm accent-f", "middle"),
         heading(600, 80, "Click 1 and 2"),
         txt(600, 102, "Two points a known real", "sm"),
         txt(600, 120, "distance apart. This sets", "sm"),
@@ -275,12 +307,16 @@ def calibration_clicks() -> str:
         heading(600, 285, "Then type the width"),
         txt(600, 307, "The real distance between", "sm"),
         txt(600, 325, "clicks 1 and 2, in metres.", "sm"),
-        txt(24, 382,
+        txt(
+            24,
+            382,
             "Clicks too close together make the scale unstable; spread them out.",
-            "sm muted"),
+            "sm muted",
+        ),
     ]
     return document(
-        960, 400,
+        960,
+        400,
         "The three calibration clicks",
         "A trench drawing with three numbered calibration points: two defining a "
         "known horizontal distance, and a third setting the depth reference.",
@@ -305,15 +341,22 @@ def boundary_anatomy() -> str:
         '  <line x1="492" y1="150" x2="508" y2="150" class="edge"/>',
         '  <line x1="492" y1="222" x2="508" y2="222" class="edge"/>',
         txt(516, 190, "the layer between them"),
-        txt(24, 340,
+        txt(
+            24,
+            340,
             "A layer is never traced directly. It is defined by the boundary above it",
-            "sm muted"),
-        txt(24, 360,
+            "sm muted",
+        ),
+        txt(
+            24,
+            360,
             "and the boundary below it, which is why boundary order matters.",
-            "sm muted"),
+            "sm muted",
+        ),
     ]
     return document(
-        900, 380,
+        900,
+        380,
         "Boundaries and the layers between them",
         "Three stratigraphic layers with the two traced boundaries highlighted, "
         "showing that a layer is the region between consecutive boundaries.",
@@ -355,7 +398,8 @@ def marker_anatomy() -> str:
         txt(530, 348, "record, separate from the geometry.", "sm"),
     ]
     return document(
-        1000, 380,
+        1000,
+        380,
         "Marker, feature, and find",
         "One drawing showing a grid marker, a feature inside a layer, and a "
         "recovered find, each labelled with what it records.",
@@ -370,7 +414,8 @@ def registration_fields() -> str:
         txt(60, 70, "Plan view, looking down", "bold"),
         '  <line x1="60" y1="100" x2="60" y2="300" class="thin"/>',
         '  <line x1="60" y1="300" x2="330" y2="300" class="thin"/>',
-        txt(46, 96, "Y", "sm muted", "end"), txt(338, 304, "X", "sm muted"),
+        txt(46, 96, "Y", "sm muted", "end"),
+        txt(338, 304, "X", "sm muted"),
         '  <line x1="120" y1="250" x2="290" y2="160" class="accent"/>',
         dot(120, 250, 6),
         txt(112, 272, "originX, originY", "sm accent-f", "middle"),
@@ -391,15 +436,22 @@ def registration_fields() -> str:
         txt(812, 124, "Z = surfaceZ", "sm"),
         txt(812, 196, "Z = surfaceZ − depth", "sm"),
         txt(430, 292, "x runs along the face from originX, originY", "sm muted"),
-        txt(24, 340,
+        txt(
+            24,
+            340,
             "bearing_deg is the compass direction of the face's local +x axis,",
-            "sm muted"),
-        txt(24, 360,
+            "sm muted",
+        ),
+        txt(
+            24,
+            360,
             "measured clockwise from north — not a slope and not a screen angle.",
-            "sm muted"),
+            "sm muted",
+        ),
     ]
     return document(
-        1010, 380,
+        1010,
+        380,
         "The four registration fields",
         "A plan view showing originX, originY and bearing measured clockwise from "
         "north, beside a section view showing surfaceZ and depth.",
@@ -427,17 +479,24 @@ def points_to_surface() -> str:
         f'class="thin dash"/>',
         txt(546, 276, "a continuous surface, extrapolated to the extent", "sm muted"),
         arrow(490, 170, 522, 170, "accent", "arrow-a"),
-        txt(24, 330,
+        txt(
+            24,
+            330,
             "The surface between points is interpolation, not evidence. A single "
             "face is stretched",
-            "sm muted"),
-        txt(24, 350,
+            "sm muted",
+        ),
+        txt(
+            24,
+            350,
             "across the whole model extent, so confidence falls off away from the "
             "recorded points.",
-            "sm muted"),
+            "sm muted",
+        ),
     ]
     return document(
-        1000, 370,
+        1000,
+        370,
         "From interface points to an interpolated surface",
         "Scattered recorded interface points on the left, and on the right the "
         "continuous surface interpolated between them and extrapolated to the "
@@ -463,13 +522,17 @@ def surface_vs_volume() -> str:
             b.append(band(556 + col * 36, 108 + row * 60, 34, 58, colour))
     b += [
         txt(546, 288, "classified cells; size depends on grid resolution", "sm muted"),
-        txt(24, 340,
+        txt(
+            24,
+            340,
             "The default gate covers 75,000 instances. Larger grids grow in binary "
             "size, memory, and slice work.",
-            "sm muted"),
+            "sm muted",
+        ),
     ]
     return document(
-        1000, 360,
+        1000,
+        360,
         "Surface mode compared with volume mode",
         "The same model shown as smooth interpolated boundary surfaces and as a "
         "grid of resolution-dependent classified cells.",
@@ -485,9 +548,11 @@ def walls_to_pit() -> str:
     names = ["North", "East", "South", "West"]
     for i, name in enumerate(names):
         x = 40 + i * 105
-        b += [box(x, 80, 92, 66, "fill"),
-              txt(x + 46, 108, name, "sm bold", "middle"),
-              txt(x + 46, 128, "one wall", "sm muted", "middle")]
+        b += [
+            box(x, 80, 92, 66, "fill"),
+            txt(x + 46, 108, name, "sm bold", "middle"),
+            txt(x + 46, 128, "one wall", "sm muted", "middle"),
+        ]
         b.append(arrow(x + 46, 152, x + 46, 176))
     b += [
         txt(40, 200, "one shared trench label", "sm accent-f"),
@@ -510,17 +575,24 @@ def walls_to_pit() -> str:
         f'  <line x1="{cx + 130}" y1="{cy - 95}" x2="{cx + 130}" y2="{cy + 95}" class="accent"/>',
         f'  <line x1="{cx - 130}" y1="{cy - 95}" x2="{cx + 130}" y2="{cy - 95}" class="accent"/>',
         f'  <line x1="{cx - 130}" y1="{cy + 95}" x2="{cx + 130}" y2="{cy + 95}" class="accent"/>',
-        txt(24, 330,
+        txt(
+            24,
+            330,
             "Walls meet at a corner only when adjacent faces really share corner "
             "coordinates.",
-            "sm muted"),
-        txt(24, 350,
+            "sm muted",
+        ),
+        txt(
+            24,
+            350,
             "A per-sheet starter config cannot know that, so it cannot check it "
             "for you.",
-            "sm muted"),
+            "sm muted",
+        ),
     ]
     return document(
-        900, 370,
+        900,
+        370,
         "Four registered walls enclosing one trench",
         "Four separate wall drawings joined by a shared trench label and placed by "
         "their registration so they enclose one rectangular pit.",
@@ -548,21 +620,30 @@ def placeholder_failure() -> str:
     ]
     for i in range(4):
         y = 130 + i * 42
-        b += [f'  <line x1="570" y1="{y}" x2="880" y2="{y}" class="warn"/>',
-              txt(890, y + 5, f"wall {i + 1}", "sm muted")]
+        b += [
+            f'  <line x1="570" y1="{y}" x2="880" y2="{y}" class="warn"/>',
+            txt(890, y + 5, f"wall {i + 1}", "sm muted"),
+        ]
     b += [
         txt(546, 292, "identical bearing 90 — every wall parallel", "sm muted"),
-        txt(24, 340,
+        txt(
+            24,
+            340,
             "Every face carries the same 0, 0, 100, 90, so the walls lie in a row "
             "about 10 m apart",
-            "sm muted"),
-        txt(24, 360,
+            "sm muted",
+        ),
+        txt(
+            24,
+            360,
             "instead of around a pit. The build refuses rather than producing a "
             "confident model of nothing.",
-            "sm muted"),
+            "sm muted",
+        ),
     ]
     return document(
-        1000, 380,
+        1000,
+        380,
         "Correct registration compared with placeholder registration",
         "On the left four walls enclosing a pit; on the right the same walls laid "
         "out as parallel lines because every face shares the placeholder bearing.",
@@ -571,15 +652,26 @@ def placeholder_failure() -> str:
 
 
 def reading_a_matrix() -> str:
-    nodes = [("Topsoil", 420, 70), ("Fill 2", 300, 150), ("Fill 3", 540, 150),
-             ("Floor 4", 420, 230), ("Natural 5", 420, 310)]
+    nodes = [
+        ("Topsoil", 420, 70),
+        ("Fill 2", 300, 150),
+        ("Fill 3", 540, 150),
+        ("Floor 4", 420, 230),
+        ("Natural 5", 420, 310),
+    ]
     b = [heading(24, 30, "Reading a Harris matrix")]
     for name, x, y in nodes:
-        b += [box(x - 68, y - 22, 136, 44, "panel"),
-              txt(x, y + 5, name, "sm bold", "middle")]
-    for x1, y1, x2, y2 in [(420, 92, 300, 128), (420, 92, 540, 128),
-                           (300, 172, 420, 208), (540, 172, 420, 208),
-                           (420, 252, 420, 288)]:
+        b += [
+            box(x - 68, y - 22, 136, 44, "panel"),
+            txt(x, y + 5, name, "sm bold", "middle"),
+        ]
+    for x1, y1, x2, y2 in [
+        (420, 92, 300, 128),
+        (420, 92, 540, 128),
+        (300, 172, 420, 208),
+        (540, 172, 420, 208),
+        (420, 252, 420, 288),
+    ]:
         b.append(arrow(x1, y1, x2, y2))
     b += [
         '  <line x1="150" y1="70" x2="150" y2="320" class="accent" '
@@ -593,13 +685,17 @@ def reading_a_matrix() -> str:
         txt(660, 220, "dated relative to each other —", "sm"),
         txt(660, 240, "the matrix records only what", "sm"),
         txt(660, 260, "the stratigraphy actually shows.", "sm"),
-        txt(24, 370,
+        txt(
+            24,
+            370,
             "The matrix is an archaeological interpretation, not an automatically "
             "verified result.",
-            "sm muted"),
+            "sm muted",
+        ),
     ]
     return document(
-        1000, 390,
+        1000,
+        390,
         "How to read a Harris matrix",
         "A small Harris matrix with the youngest unit at the top and arrows "
         "running downward to progressively older units.",
@@ -611,8 +707,10 @@ def correlation_not_merge() -> str:
     b = [
         heading(24, 30, "Correlation is an interpretation, not an automatic merge"),
         txt(60, 80, "Two walls each record a unit numbered 4", "sm muted"),
-        box(60, 100, 150, 50, "panel"), txt(135, 130, "North · 4", "sm bold", "middle"),
-        box(320, 100, 150, 50, "panel"), txt(395, 130, "South · 4", "sm bold", "middle"),
+        box(60, 100, 150, 50, "panel"),
+        txt(135, 130, "North · 4", "sm bold", "middle"),
+        box(320, 100, 150, 50, "panel"),
+        txt(395, 130, "South · 4", "sm bold", "middle"),
         '  <line x1="212" y1="125" x2="318" y2="125" class="accent dash"/>',
         txt(265, 116, "correlation", "sm accent-f", "middle"),
         txt(265, 168, "proposed, then accepted by a person", "sm muted", "middle"),
@@ -630,7 +728,8 @@ def correlation_not_merge() -> str:
         '  <line x1="66" y1="294" x2="204" y2="252" class="warn"/>',
     ]
     return document(
-        1000, 330,
+        1000,
+        330,
         "Correlation compared with merging",
         "Two identically numbered units on different walls shown as separate nodes "
         "joined by a correlation, beside a crossed-out single merged node.",
@@ -639,35 +738,56 @@ def correlation_not_merge() -> str:
 
 
 def genuine_vs_fabricated() -> str:
-    ink = [(70, 150), (130, 142), (190, 158), (250, 148), (310, 164), (370, 156),
-           (430, 170)]
+    ink = [
+        (70, 150),
+        (130, 142),
+        (190, 158),
+        (250, 148),
+        (310, 164),
+        (370, 156),
+        (430, 170),
+    ]
     b = [
         heading(24, 30, "A boundary that does not lie on ink is fabricated"),
         box(40, 56, 440, 230, "panel"),
         txt(56, 82, "Genuine trace", "bold good-f"),
     ]
-    b += [f'  <circle cx="{x}" cy="{y + 40}" r="5" fill="var(--muted)" opacity="0.55"/>'
-          for x, y in ink]
-    b += [poly([(x, y + 40) for x, y in ink], "good"),
-          txt(56, 272, "follows the drawn line, wobble and all", "sm muted"),
-          box(530, 56, 440, 230, "panel"),
-          txt(546, 82, "Fabricated", "bold warn-f")]
-    b += [f'  <circle cx="{x + 490}" cy="{y + 40}" r="5" fill="var(--muted)" '
-          f'opacity="0.55"/>' for x, y in ink]
+    b += [
+        f'  <circle cx="{x}" cy="{y + 40}" r="5" fill="var(--muted)" opacity="0.55"/>'
+        for x, y in ink
+    ]
+    b += [
+        poly([(x, y + 40) for x, y in ink], "good"),
+        txt(56, 272, "follows the drawn line, wobble and all", "sm muted"),
+        box(530, 56, 440, 230, "panel"),
+        txt(546, 82, "Fabricated", "bold warn-f"),
+    ]
+    b += [
+        f'  <circle cx="{x + 490}" cy="{y + 40}" r="5" fill="var(--muted)" '
+        f'opacity="0.55"/>'
+        for x, y in ink
+    ]
     b += [
         path("M560,205 C660,196 800,196 920,205", "warn"),
         txt(546, 272, "smooth, evenly spaced, and off the ink", "sm muted"),
-        txt(24, 322,
+        txt(
+            24,
+            322,
             "Statistical signatures — suspiciously even spacing, implausible "
             "smoothness — are hints.",
-            "sm muted"),
-        txt(24, 342,
+            "sm muted",
+        ),
+        txt(
+            24,
+            342,
             "Overlap with actual ink pixels is direct evidence, and is the check "
             "worth automating.",
-            "sm muted"),
+            "sm muted",
+        ),
     ]
     return document(
-        1000, 362,
+        1000,
+        362,
         "A genuine trace compared with a fabricated boundary",
         "On the left a boundary following the drawn ink; on the right a smooth "
         "evenly spaced curve lying away from the ink entirely.",
@@ -694,13 +814,17 @@ def normalization_steps() -> str:
         '  <rect x="702" y="110" width="200" height="150" class="fill"/>',
         '  <line x1="702" y1="276" x2="902" y2="276" class="accent"/>',
         txt(802, 268, "known width", "sm accent-f", "middle"),
-        txt(24, 330,
+        txt(
+            24,
+            330,
             "Every step here changes how the sheet sits, not what it records. "
             "Boundary shapes are untouched.",
-            "sm muted"),
+            "sm muted",
+        ),
     ]
     return document(
-        960, 350,
+        960,
+        350,
         "The normalization steps",
         "A skewed scan, the same scan rotated to horizontal, and the result scaled "
         "against a known real-world width.",
@@ -717,11 +841,14 @@ def archaeology_to_3d() -> str:
     ]
     b = [heading(24, 30, "Four representations of one trench")]
     for name, sub, x in stages:
-        b += [box(x, 60, 200, 170, "panel"),
-              txt(x + 100, 90, name, "bold", "middle"),
-              txt(x + 100, 218, sub, "sm muted", "middle")]
+        b += [
+            box(x, 60, 200, 170, "panel"),
+            txt(x + 100, 90, name, "bold", "middle"),
+            txt(x + 100, 218, sub, "sm muted", "middle"),
+        ]
     b += [
-        band(56, 108, 168, 30, "band-a"), band(56, 138, 168, 36, "band-b"),
+        band(56, 108, 168, 30, "band-a"),
+        band(56, 138, 168, 36, "band-b"),
         band(56, 174, 168, 28, "band-c"),
         path(wavy(296, 464, 130, 4, 4), "edge"),
         path(wavy(296, 464, 172, 4, 4), "edge"),
@@ -737,17 +864,24 @@ def archaeology_to_3d() -> str:
     for x in (248, 488, 728):
         b.append(arrow(x, 145, x + 26, 145))
     b += [
-        txt(24, 268,
+        txt(
+            24,
+            268,
             "Each step loses something. The project's job is to record what was "
             "lost, so the model",
-            "sm muted"),
-        txt(24, 288,
+            "sm muted",
+        ),
+        txt(
+            24,
+            288,
             "can be judged against the drawing it came from rather than trusted "
             "on its own.",
-            "sm muted"),
+            "sm muted",
+        ),
     ]
     return document(
-        1000, 305,
+        1000,
+        305,
         "From excavated wall to 3D model",
         "Four panels in sequence: the excavated trench wall, its measured drawing, "
         "the structured coordinate data, and the interpolated model.",
@@ -761,34 +895,45 @@ def two_sheet_types() -> str:
         box(40, 56, 440, 260, "panel"),
         txt(56, 82, "Illustrated trench sheet", "bold"),
         txt(56, 102, "layers identified by pattern or shading", "sm muted"),
-        band(60, 118, 400, 56, "band-a"), band(60, 174, 400, 62, "band-b"),
+        band(60, 118, 400, 56, "band-a"),
+        band(60, 174, 400, 62, "band-b"),
         band(60, 236, 400, 56, "band-c"),
     ]
     for row, y in enumerate((118, 174, 236)):
         step = 14 + row * 6
-        b += [f'  <line x1="{x}" y1="{y + 4}" x2="{x - 12}" y2="{y + 50}" '
-              f'class="thin"/>' for x in range(74, 460, step)]
+        b += [
+            f'  <line x1="{x}" y1="{y + 4}" x2="{x - 12}" y2="{y + 50}" class="thin"/>'
+            for x in range(74, 460, step)
+        ]
     b += [
         txt(56, 306, "one sheet may hold several faces", "sm accent-f"),
         box(530, 56, 440, 260, "panel"),
         txt(546, 82, "Hand-drawn field sheet", "bold"),
         txt(546, 102, "layers identified by locus number and Munsell", "sm muted"),
-        band(550, 118, 400, 56, "band-a"), band(550, 174, 400, 62, "band-b"),
+        band(550, 118, 400, 56, "band-a"),
+        band(550, 174, 400, 62, "band-b"),
         band(550, 236, 400, 56, "band-c"),
         txt(566, 150, "L1 · 10YR 5/4", "mono"),
         txt(566, 210, "L2 · 7.5YR 4/3", "mono"),
         txt(566, 270, "L3 · 10YR 3/2", "mono"),
         txt(546, 306, "one sheet records exactly one wall", "sm accent-f"),
-        txt(24, 350,
+        txt(
+            24,
+            350,
             "They use different extraction schemas because they record material "
             "differently — but both",
-            "sm muted"),
-        txt(24, 370,
+            "sm muted",
+        ),
+        txt(
+            24,
+            370,
             "converge on the same coordinate conversion and model build.",
-            "sm muted"),
+            "sm muted",
+        ),
     ]
     return document(
-        1000, 390,
+        1000,
+        390,
         "The two source drawing types",
         "An illustrated sheet whose layers are identified by hatch patterns, "
         "beside a field sheet whose layers carry locus numbers and Munsell colours.",
@@ -801,7 +946,8 @@ def good_vs_bad_drawing() -> str:
         heading(24, 30, "What makes a sheet extractable"),
         box(40, 56, 440, 250, "panel"),
         txt(56, 82, "Works well", "bold good-f"),
-        band(60, 100, 400, 56, "band-a"), band(60, 156, 400, 62, "band-b"),
+        band(60, 100, 400, 56, "band-a"),
+        band(60, 156, 400, 62, "band-b"),
         path(wavy(60, 460, 156), "edge"),
         '  <line x1="60" y1="240" x2="160" y2="240" class="good"/>',
         '  <line x1="60" y1="234" x2="60" y2="246" class="good"/>',
@@ -811,23 +957,31 @@ def good_vs_bad_drawing() -> str:
         txt(60, 296, "boundaries closed and continuous", "sm muted"),
         box(530, 56, 440, 250, "panel"),
         txt(546, 82, "Causes trouble", "bold warn-f"),
-        band(550, 100, 400, 56, "band-a"), band(550, 156, 400, 62, "band-b"),
+        band(550, 100, 400, 56, "band-a"),
+        band(550, 156, 400, 62, "band-b"),
         path("M550,156 L640,160 L700,152", "warn"),
         path("M760,158 L860,150 L950,160", "warn"),
         txt(700, 200, "boundary breaks", "sm warn-f", "middle"),
         txt(550, 274, "no scale, no locus label", "sm warn-f"),
         txt(550, 296, "and scanned below 300 DPI", "sm muted"),
-        txt(24, 350,
+        txt(
+            24,
+            350,
             "Most extraction failures start on the sheet. A missing scale cannot "
             "be recovered later,",
-            "sm muted"),
-        txt(24, 370,
+            "sm muted",
+        ),
+        txt(
+            24,
+            370,
             "and a broken boundary becomes a gap the model silently interpolates "
             "across.",
-            "sm muted"),
+            "sm muted",
+        ),
     ]
     return document(
-        1000, 390,
+        1000,
+        390,
         "A well-drawn sheet compared with a problematic one",
         "A sheet with a scale bar, closed boundaries, and legible locus labels "
         "beside one with broken boundaries and no scale or labels.",
@@ -856,16 +1010,23 @@ def status_labels() -> str:
         txt(680, 282, "kept only as reference", "sm muted", "middle"),
         '  <line x1="230" y1="210" x2="820" y2="210" class="thin"/>',
         '  <line x1="530" y1="100" x2="530" y2="320" class="thin"/>',
-        txt(24, 366,
+        txt(
+            24,
+            366,
             "experimental cuts across the grid: user-facing, but dependent on an "
             "optional package,",
-            "sm muted"),
-        txt(24, 386,
+            "sm muted",
+        ),
+        txt(
+            24,
+            386,
             "an API key, or a path not yet covered well enough to depend on.",
-            "sm muted"),
+            "sm muted",
+        ),
     ]
     return document(
-        900, 406,
+        900,
+        406,
         "The five capability status labels",
         "A grid separating supported, backend-only, blocked, and historical by "
         "whether a user control and a backend implementation exist, with "
@@ -875,10 +1036,22 @@ def status_labels() -> str:
 
 
 def normalization_diff() -> str:
-    before = ['{', '  "locusNumber": "L1",', '  "munsell": "null",',
-              '  "description": "  loose fill ",', '  "topBoundary": [ … ]', '}']
-    after = ['{', '  "locusNumber": "L1",', '  "munsell": null,',
-             '  "description": "loose fill",', '  "topBoundary": [ … ]', '}']
+    before = [
+        "{",
+        '  "locusNumber": "L1",',
+        '  "munsell": "null",',
+        '  "description": "  loose fill ",',
+        '  "topBoundary": [ … ]',
+        "}",
+    ]
+    after = [
+        "{",
+        '  "locusNumber": "L1",',
+        '  "munsell": null,',
+        '  "description": "loose fill",',
+        '  "topBoundary": [ … ]',
+        "}",
+    ]
     b = [
         heading(24, 30, "Normalization cleans formatting, not geometry"),
         box(40, 56, 430, 210, "panel"),
@@ -886,22 +1059,30 @@ def normalization_diff() -> str:
     ]
     b += [txt(56, 112 + i * 24, line, "mono") for i, line in enumerate(before)]
     b += [box(530, 56, 430, 210, "panel"), txt(546, 82, "After", "bold")]
-    b += [txt(546, 112 + i * 24, line,
-              "mono good-f" if before[i] != after[i] else "mono")
-          for i, line in enumerate(after)]
+    b += [
+        txt(546, 112 + i * 24, line, "mono good-f" if before[i] != after[i] else "mono")
+        for i, line in enumerate(after)
+    ]
     b += [
         arrow(482, 160, 518, 160, "accent", "arrow-a"),
-        txt(24, 300,
+        txt(
+            24,
+            300,
             'The null-like string "null" becomes a real null and the padded '
             "description is trimmed.",
-            "sm muted"),
-        txt(24, 320,
+            "sm muted",
+        ),
+        txt(
+            24,
+            320,
             "topBoundary is passed through untouched — normalization never moves "
             "a coordinate.",
-            "sm muted"),
+            "sm muted",
+        ),
     ]
     return document(
-        1000, 340,
+        1000,
+        340,
         "Extraction data before and after normalization",
         "The same extraction record shown before and after normalization, with the "
         "cleaned null-like string and trimmed description highlighted and the "
@@ -913,38 +1094,39 @@ def normalization_diff() -> str:
 def _sheet(rotate: float, label: str, note: str) -> str:
     """One trench sheet, optionally skewed. Both variants share a viewBox so the
     before/after comparison slider can overlay them exactly."""
-    inner = "\n".join([
-        band(0, 0, 460, 70, "band-a"),
-        band(0, 70, 460, 84, "band-b"),
-        band(0, 154, 460, 76, "band-c"),
-        path(wavy(0, 460, 70), "edge"),
-        path(wavy(0, 460, 154), "edge"),
-    ])
+    inner = "\n".join(
+        [
+            band(0, 0, 460, 70, "band-a"),
+            band(0, 70, 460, 84, "band-b"),
+            band(0, 154, 460, 76, "band-c"),
+            path(wavy(0, 460, 70), "edge"),
+            path(wavy(0, 460, 154), "edge"),
+        ]
+    )
     return document(
-        720, 420,
+        720,
+        420,
         f"Trench sheet {label.lower()}",
         note,
-        "\n".join([
-            heading(24, 34, label),
-            f'  <g transform="translate(130 90) rotate({rotate} 230 115)">',
-            inner,
-            "  </g>",
-            '  <line x1="130" y1="360" x2="590" y2="360" class="thin"/>',
-            txt(360, 386, note, "sm muted", "middle"),
-        ]),
+        "\n".join(
+            [
+                heading(24, 34, label),
+                f'  <g transform="translate(130 90) rotate({rotate} 230 115)">',
+                inner,
+                "  </g>",
+                '  <line x1="130" y1="360" x2="590" y2="360" class="thin"/>',
+                txt(360, 386, note, "sm muted", "middle"),
+            ]
+        ),
     )
 
 
 def normalization_before() -> str:
-    return _sheet(
-        -6.5, "Before", "As scanned: the sheet sits crooked on the platen."
-    )
+    return _sheet(-6.5, "Before", "As scanned: the sheet sits crooked on the platen.")
 
 
 def normalization_after() -> str:
-    return _sheet(
-        0, "After", "Deskewed: rotated to the detected horizontal."
-    )
+    return _sheet(0, "After", "Deskewed: rotated to the detected horizontal.")
 
 
 def worked_example_plan() -> str:
@@ -954,6 +1136,7 @@ def worked_example_plan() -> str:
     numbers in ``tests/fixtures/t905-2025-loci.json`` cannot drift apart
     without one of them being wrong.
     """
+
     # 1 m = 70 px, with grid 150E/20S at the top-left of the trench. The left
     # margin is wide because two of the findspots plot outside the west baulk,
     # which is the whole point of showing them.
@@ -964,30 +1147,31 @@ def worked_example_plan() -> str:
         return 60 + (-20.0 - gy) * 70
 
     def ring(points, cls):
-        return poly([(px(x), py(y)) for x, y in points]
-                    + [(px(points[0][0]), py(points[0][1]))], cls)
+        return poly(
+            [(px(x), py(y)) for x, y in points]
+            + [(px(points[0][0]), py(points[0][1]))],
+            cls,
+        )
 
     b = [
         heading(24, 30, "T905 in plan: eight loci, and three gaps in the record"),
         # the trench
-        f'  <rect x="{px(150)}" y="{py(-20)}" width="350" height="350" '
-        f'class="fill"/>',
+        f'  <rect x="{px(150)}" y="{py(-20)}" width="350" height="350" class="fill"/>',
         txt(px(152.5), py(-24.3), "Locus 3 — floor surface", "sm muted", "middle"),
     ]
     # Locus 5, the cobbled surface, and Locus 4, the wall
     b += [
-        ring([(150, -20), (152.84, -20), (152.65, -21.36), (150, -21.82)],
-             "edge"),
+        ring([(150, -20), (152.84, -20), (152.65, -21.36), (150, -21.82)], "edge"),
         txt(px(151.2), py(-20.9), "Locus 5", "sm bold", "middle"),
-        ring([(152.84, -20), (153.20, -20), (152.56, -22.36), (152.23, -22.46)],
-             "accent"),
+        ring(
+            [(152.84, -20), (153.20, -20), (152.56, -22.36), (152.23, -22.46)], "accent"
+        ),
         txt(px(153.9), py(-21.3), "Locus 4 — wall", "sm accent-f"),
         arrow(px(153.85), py(-21.45), px(153.1), py(-21.2), "accent", "arrow-a"),
     ]
     # the sounding
     b += [
-        f'  <rect x="{px(153)}" y="{py(-22)}" width="70" height="140" '
-        f'class="panel"/>',
+        f'  <rect x="{px(153)}" y="{py(-22)}" width="70" height="140" class="panel"/>',
         txt(px(153.5), py(-22.7), "Loci", "sm bold", "middle"),
         txt(px(153.5), py(-23.0), "6·7·8", "sm bold", "middle"),
         txt(px(153.5), py(-23.4), "sounding", "sm muted", "middle"),
@@ -1017,13 +1201,17 @@ def worked_example_plan() -> str:
         txt(575, 352, "Loci 4 and 5 were drawn and left", "sm"),
         txt(575, 372, "standing. Only the 2 × 1 m sounding", "sm"),
         txt(575, 392, "cut through the floor.", "sm"),
-        txt(24, 462,
+        txt(
+            24,
+            462,
             "Synthetic example. Every coordinate is invented and none of it is "
             "archaeological evidence.",
-            "sm muted"),
+            "sm muted",
+        ),
     ]
     return document(
-        1000, 482,
+        1000,
+        482,
         "Plan of the synthetic trench T905",
         "A five metre square trench in plan, showing the cobbled surface and "
         "wall in its northern half, a two by one metre sounding east of the "
@@ -1036,6 +1224,7 @@ def worked_example_plan() -> str:
 
 def worked_example_section() -> str:
     """The sounding as four measured surfaces, along its western edge."""
+
     def px(northing):
         return 130 + (abs(northing) - 22.0) * 180
 
@@ -1047,7 +1236,9 @@ def worked_example_section() -> str:
         ("Locus 6 closing = Locus 7 opening", 23.79, 23.74),
         ("Locus 7 closing = Locus 8 opening", 23.62, 23.51),
     ]
-    b = [heading(24, 30, "The sounding, west edge: four surfaces, three of them shared")]
+    b = [
+        heading(24, 30, "The sounding, west edge: four surfaces, three of them shared")
+    ]
 
     # the two excavated bodies
     for index, colour in enumerate(("band-b", "band-c")):
@@ -1081,25 +1272,38 @@ def worked_example_section() -> str:
         txt(px(-23), py(23.90), "Locus 6", "sm bold", "middle"),
         txt(px(-23), py(23.68), "Locus 7", "sm bold", "middle"),
         txt(px(-23), py(23.51), "Locus 8 — unexcavated", "sm bold", "middle"),
-        txt(24, 424,
+        txt(
+            24,
+            424,
             "One locus's closing surface is the next one's opening surface, at "
             "all four corners. Nothing is interpolated here:",
-            "sm"),
-        txt(24, 444,
+            "sm",
+        ),
+        txt(
+            24,
+            444,
             "every line is two recorded elevations joined. Locus 6 measures 0.20 m "
             "thick at the northwest corner and 0.13 m at the southwest,",
-            "sm"),
-        txt(24, 464,
+            "sm",
+        ),
+        txt(
+            24,
+            464,
             "so the season's single stated figure of “about 20 cm” "
             "describes one corner rather than the layer.",
-            "sm"),
-        txt(24, 500,
+            "sm",
+        ),
+        txt(
+            24,
+            500,
             "Synthetic example. Every elevation is invented and none of it is "
             "archaeological evidence.",
-            "sm muted"),
+            "sm muted",
+        ),
     ]
     return document(
-        900, 520,
+        900,
+        520,
         "Section through the synthetic sounding",
         "A section down the western edge of a two metre sounding, showing three "
         "recorded surfaces bounding two excavated layers above an unexcavated "
@@ -1111,16 +1315,22 @@ def worked_example_section() -> str:
 def worked_example_matrix() -> str:
     """The season's matrix, with the correlation and the redundant edge."""
     nodes = {
-        1: ("Locus 1", 430, 70), 2: ("Locus 2", 430, 150),
-        5: ("Locus 5", 190, 235), 3: ("Locus 3", 390, 235),
-        6: ("Locus 6", 550, 235), 4: ("Locus 4", 750, 235),
-        7: ("Locus 7", 470, 320), 8: ("Locus 8", 470, 400),
+        1: ("Locus 1", 430, 70),
+        2: ("Locus 2", 430, 150),
+        5: ("Locus 5", 190, 235),
+        3: ("Locus 3", 390, 235),
+        6: ("Locus 6", 550, 235),
+        4: ("Locus 4", 750, 235),
+        7: ("Locus 7", 470, 320),
+        8: ("Locus 8", 470, 400),
     }
     b = [heading(24, 30, "T905's matrix: one correlation, one redundant edge")]
     for number, (name, x, y) in nodes.items():
         cls = "fill" if number in (3, 6) else "panel"
-        b += [box(x - 62, y - 20, 124, 40, cls),
-              txt(x, y + 5, name, "sm bold", "middle")]
+        b += [
+            box(x - 62, y - 20, 124, 40, cls),
+            txt(x, y + 5, name, "sm bold", "middle"),
+        ]
 
     for younger, older in ((1, 2), (2, 5), (2, 3), (2, 4), (6, 7), (7, 8)):
         x1, y1 = nodes[younger][1], nodes[younger][2] + 20
@@ -1140,25 +1350,37 @@ def worked_example_matrix() -> str:
         'marker-end="url(#arrow-a)"/>',
         txt(70, 70, "younger", "sm accent-f", "end"),
         txt(70, 400, "older", "sm accent-f", "end"),
-        txt(24, 452,
+        txt(
+            24,
+            452,
             "Loci 3 and 6 are one deposit under two numbers: 6 is the piece of 3 "
             "the sounding removed. Both SU forms say so, and a correlation is",
-            "sm"),
-        txt(24, 472,
+            "sm",
+        ),
+        txt(
+            24,
+            472,
             "what the schema has for it — the drawn matrix stacked them instead, "
             "which would make a deposit younger than itself. Locus 6's form also",
-            "sm"),
-        txt(24, 492,
+            "sm",
+        ),
+        txt(
+            24,
+            492,
             "asserts it overlies 8 as well as 7; that follows from 6 → 7 → 8, so "
             "it is kept in the record and omitted from the diagram with a warning.",
-            "sm"),
-        txt(24, 528,
-            "Synthetic example. Invented loci; not an archaeological "
-            "interpretation.",
-            "sm muted"),
+            "sm",
+        ),
+        txt(
+            24,
+            528,
+            "Synthetic example. Invented loci; not an archaeological interpretation.",
+            "sm muted",
+        ),
     ]
     return document(
-        1000, 548,
+        1000,
+        548,
         "Harris matrix of the synthetic trench T905",
         "A Harris matrix with eight loci running from topsoil at the top to an "
         "unexcavated layer at the bottom, two of them joined by a dashed "

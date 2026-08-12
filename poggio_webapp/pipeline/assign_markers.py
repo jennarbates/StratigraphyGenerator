@@ -1,5 +1,5 @@
 """
-assign_markers.py — close the gap detectFieldWallMarkers left open: decide
+assign_markers.py — close the gap detect_field_wall_markers left open: decide
 which locus/boundary each CV-detected marker belongs to.
 
 Division of labor, per the note at the bottom of the original tool:
@@ -39,6 +39,7 @@ Image.MAX_IMAGE_PIXELS = None
 # the ordinary field-wall extraction (geometry deliberately absent)
 # ---------------------------------------------------------------------------
 
+
 class MarkerAssignment(BaseModel):
     markerId: int
     # "top"   -> the top boundary of locusNumber
@@ -63,8 +64,8 @@ class MarkerAssignmentResult(BaseModel):
 
 def build_prompt(markers, square_cm):
     lines = "\n".join(
-        f"  id={m['id']}  x={m['x_m']:.3f}  depth={m['depth_m']:.3f}"
-        for m in markers)
+        f"  id={m['id']}  x={m['x_m']:.3f}  depth={m['depth_m']:.3f}" for m in markers
+    )
     return f"""
 You are looking at a MODERN FIELD RECORDING SHEET of a single trench wall
 (baulk section) hand-drawn on graph paper. One bold grid square represents
@@ -114,6 +115,7 @@ Emit ONLY JSON conforming to the schema.
 # deterministic assembly: CV coordinates in, FieldWallProfile out
 # ---------------------------------------------------------------------------
 
+
 def _assemble(markers, result_dict):
     """Build the FieldWallProfile dict. Coordinates come exclusively from
     `markers`; `result_dict` contributes only labels and classifications.
@@ -128,19 +130,22 @@ def _assemble(markers, result_dict):
             warnings.append(f"assignment for unknown marker id {mid} ignored")
             continue
         if mid in seen:
-            warnings.append(f"marker id {mid} assigned twice — keeping the "
-                            f"first ({seen[mid]['kind']})")
+            warnings.append(
+                f"marker id {mid} assigned twice — keeping the "
+                f"first ({seen[mid]['kind']})"
+            )
             continue
         seen[mid] = a
     missing = sorted(set(by_id) - set(seen))
     if missing:
-        warnings.append(f"{len(missing)} markers got no assignment "
-                        f"(ids {missing[:10]}{'…' if len(missing) > 10 else ''}) "
-                        f"— treated as noise")
+        warnings.append(
+            f"{len(missing)} markers got no assignment "
+            f"(ids {missing[:10]}{'…' if len(missing) > 10 else ''}) "
+            f"— treated as noise"
+        )
 
     def pt(m):
-        return {"xMeters": m["x_m"], "depthMeters": m["depth_m"],
-                "confidence": None}
+        return {"xMeters": m["x_m"], "depthMeters": m["depth_m"], "confidence": None}
 
     tops, base, legacy_surface, legacy_bottoms, n_noise = {}, [], [], {}, 0
     for mid, a in seen.items():
@@ -148,8 +153,10 @@ def _assemble(markers, result_dict):
         if kind == "top":
             num = str(a.get("locusNumber") or "").strip()
             if not num:
-                warnings.append(f"marker {mid} classified 'top' with no "
-                                f"locusNumber — treated as noise")
+                warnings.append(
+                    f"marker {mid} classified 'top' with no "
+                    f"locusNumber — treated as noise"
+                )
                 n_noise += 1
                 continue
             tops.setdefault(num, []).append(by_id[mid])
@@ -162,8 +169,10 @@ def _assemble(markers, result_dict):
         elif kind == "bottom":
             num = str(a.get("locusNumber") or "").strip()
             if not num:
-                warnings.append(f"marker {mid} classified 'bottom' with no "
-                                f"locusNumber — treated as noise")
+                warnings.append(
+                    f"marker {mid} classified 'bottom' with no "
+                    f"locusNumber — treated as noise"
+                )
                 n_noise += 1
                 continue
             legacy_bottoms.setdefault(num, []).append(by_id[mid])
@@ -184,7 +193,9 @@ def _assemble(markers, result_dict):
                 "classification mixes locus-top and legacy bottom-of-locus "
                 "labels — legacy-labelled markers were ignored"
             )
-            n_noise += len(legacy_surface) + sum(len(v) for v in legacy_bottoms.values())
+            n_noise += len(legacy_surface) + sum(
+                len(v) for v in legacy_bottoms.values()
+            )
 
         # Vertical order of loci = mean depth of their named top boundaries.
         order = sorted(
@@ -200,12 +211,14 @@ def _assemble(markers, result_dict):
                     "boundary — too few to draw a line; check the debug image "
                     "/ assignments"
                 )
-            layers.append({
-                "locusNumber": num,
-                "topBoundary": [pt(m) for m in top_pts],
-                "bottomBoundary": [pt(m) for m in bottom_pts] or None,
-                "featuresInLayer": None,
-            })
+            layers.append(
+                {
+                    "locusNumber": num,
+                    "topBoundary": [pt(m) for m in top_pts],
+                    "bottomBoundary": [pt(m) for m in bottom_pts] or None,
+                    "featuresInLayer": None,
+                }
+            )
 
         if not base:
             warnings.append(
@@ -226,8 +239,7 @@ def _assemble(markers, result_dict):
         order = sorted(
             legacy_bottoms,
             key=lambda n: (
-                sum(m["depth_m"] for m in legacy_bottoms[n])
-                / len(legacy_bottoms[n])
+                sum(m["depth_m"] for m in legacy_bottoms[n]) / len(legacy_bottoms[n])
             ),
         )
         prev = legacy_surface
@@ -238,12 +250,14 @@ def _assemble(markers, result_dict):
                     f"locus {num}: only {len(pts)} marker(s) on its legacy "
                     "bottom boundary — too few to draw a line"
                 )
-            layers.append({
-                "locusNumber": num,
-                "topBoundary": [pt(m) for m in prev] or None,
-                "bottomBoundary": [pt(m) for m in pts],
-                "featuresInLayer": None,
-            })
+            layers.append(
+                {
+                    "locusNumber": num,
+                    "topBoundary": [pt(m) for m in prev] or None,
+                    "bottomBoundary": [pt(m) for m in pts],
+                    "featuresInLayer": None,
+                }
+            )
             prev = pts
         if using_legacy_bottoms:
             warnings.append(
@@ -251,8 +265,10 @@ def _assemble(markers, result_dict):
                 "convention; re-run marker assignment to use named locus tops"
             )
 
-    listed = [str(locus.get("locusNumber") or "").strip()
-              for locus in (result_dict.get("loci") or [])]
+    listed = [
+        str(locus.get("locusNumber") or "").strip()
+        for locus in (result_dict.get("loci") or [])
+    ]
     for num in dict.fromkeys(n for n in listed if n):
         assigned_loci = tops if using_locus_tops else legacy_bottoms
         if num not in assigned_loci:
@@ -271,7 +287,8 @@ def _assemble(markers, result_dict):
         f"[provenance] boundary coordinates from CV marker detection "
         f"({len(markers)} candidates: {n_boundary} boundary + "
         f"{n_noise + len(missing)} noise); "
-        f"Gemini assigned loci/labels only and generated no geometry")
+        f"Gemini assigned loci/labels only and generated no geometry"
+    )
 
     profile = {
         "trenchLabel": result_dict.get("trenchLabel"),
@@ -300,8 +317,10 @@ def _assemble(markers, result_dict):
 # run_assign() below composes the two for one-shot/CLI use.
 # ---------------------------------------------------------------------------
 
-def classify_markers(image_path, markers, square_cm, api_key,
-                     max_output_tokens=65536, progress_cb=None):
+
+def classify_markers(
+    image_path, markers, square_cm, api_key, max_output_tokens=65536, progress_cb=None
+):
     """Phase 1 (calls Gemini): classify each detected marker
     (top of locus N / final base / noise) and read the sheet's labels.
     Generates no geometry and writes nothing to disk. `image_path` must be
@@ -315,17 +334,22 @@ def classify_markers(image_path, markers, square_cm, api_key,
         raise RuntimeError(f"file not found: {image_path}")
 
     if progress_cb:
-        progress_cb(f"asking Gemini to assign {len(markers)} detected markers "
-                    f"to loci (classification only — no geometry generation)...")
+        progress_cb(
+            f"asking Gemini to assign {len(markers)} detected markers "
+            f"to loci (classification only — no geometry generation)..."
+        )
 
-    client = genai.Client(api_key=api_key,
-                          http_options=types.HttpOptions(timeout=240_000))
+    client = genai.Client(
+        api_key=api_key, http_options=types.HttpOptions(timeout=240_000)
+    )
     img = Image.open(image_path)
     orig_size = img.size
     img = _cap_for_sending(img)
     if img.size != orig_size and progress_cb:
-        progress_cb(f"resized {orig_size[0]}x{orig_size[1]} -> "
-                    f"{img.size[0]}x{img.size[1]} before sending to Gemini")
+        progress_cb(
+            f"resized {orig_size[0]}x{orig_size[1]} -> "
+            f"{img.size[0]}x{img.size[1]} before sending to Gemini"
+        )
 
     response = generate_with_retry(
         client,
@@ -347,8 +371,10 @@ def classify_markers(image_path, markers, square_cm, api_key,
     result_dict = json.loads(raw)
     n = len(result_dict.get("assignments") or [])
     if progress_cb:
-        progress_cb(f"received {n} marker assignments — review them, then "
-                    f"finalize to build the extraction")
+        progress_cb(
+            f"received {n} marker assignments — review them, then "
+            f"finalize to build the extraction"
+        )
     return {"result_dict": result_dict, "warning": api_warning}
 
 
@@ -361,8 +387,7 @@ def finalize_assignments(markers, result_dict, out_path):
     if not markers:
         raise RuntimeError("no markers to finalize — run detection first")
     if not result_dict or not (result_dict.get("assignments") or []):
-        raise RuntimeError("no assignments to finalize — run classification "
-                           "first")
+        raise RuntimeError("no assignments to finalize — run classification first")
 
     profile, warnings = _assemble(markers, result_dict)
 
@@ -374,18 +399,31 @@ def finalize_assignments(markers, result_dict, out_path):
     return raw_json, warning
 
 
-def run_assign(image_path, markers, square_cm, out_path, api_key,
-               max_output_tokens=65536, progress_cb=None):
+def run_assign(
+    image_path,
+    markers,
+    square_cm,
+    out_path,
+    api_key,
+    max_output_tokens=65536,
+    progress_cb=None,
+):
     """One-shot convenience wrapper: classify then immediately finalize,
     with no review step in between. Preserved for CLI/script use; the
     webapp calls the two phases separately. Returns
     (raw_json_text, warning_or_None) exactly as before the split."""
     classified = classify_markers(
-        image_path, markers, square_cm, api_key,
-        max_output_tokens=max_output_tokens, progress_cb=progress_cb)
+        image_path,
+        markers,
+        square_cm,
+        api_key,
+        max_output_tokens=max_output_tokens,
+        progress_cb=progress_cb,
+    )
 
     raw_json, assemble_warning = finalize_assignments(
-        markers, classified["result_dict"], out_path)
+        markers, classified["result_dict"], out_path
+    )
     if progress_cb:
         progress_cb(f"wrote {out_path}")
 

@@ -33,9 +33,7 @@ def _features(data: dict) -> list[dict]:
     else:
         layers = data.get("layers") or []
     return [
-        feature
-        for layer in layers
-        for feature in (layer.get("featuresInLayer") or [])
+        feature for layer in layers for feature in (layer.get("featuresInLayer") or [])
     ]
 
 
@@ -121,9 +119,7 @@ def test_fieldwall_fixture_has_two_loci_and_two_layers() -> None:
 def test_illustrator_fixture_has_two_layers() -> None:
     fixture = build_illustrator_fixture()
     layers = [
-        layer
-        for profile in fixture["trenchProfiles"]
-        for layer in profile["layers"]
+        layer for profile in fixture["trenchProfiles"] for layer in profile["layers"]
     ]
 
     assert len(layers) >= 2
@@ -236,9 +232,7 @@ def test_fixture_coordinates_are_small_and_face_local(builder) -> None:
 def test_main_writes_all_four_assets(tmp_path: Path) -> None:
     assert main(["--output-root", str(tmp_path)]) == 0
     assert {
-        path.relative_to(tmp_path)
-        for path in tmp_path.rglob("*")
-        if path.is_file()
+        path.relative_to(tmp_path) for path in tmp_path.rglob("*") if path.is_file()
     } == {
         Path("docs/fixtures/demo-fieldwall.json"),
         Path("docs/fixtures/demo-illustrator.json"),
@@ -267,9 +261,9 @@ def test_checked_in_assets_match_generator(tmp_path: Path) -> None:
                 with Image.open(committed_path) as committed_image:
                     assert generated_image.size == committed_image.size, relative_path
                     assert generated_image.mode == committed_image.mode, relative_path
-                    assert (
-                        generated_image.tobytes() == committed_image.tobytes()
-                    ), f"{relative_path} is stale: rerun tools/docs/generate_demo_assets.py"
+                    assert generated_image.tobytes() == committed_image.tobytes(), (
+                        f"{relative_path} is stale: rerun tools/docs/generate_demo_assets.py"
+                    )
         else:
             assert generated_path.read_bytes() == committed_path.read_bytes(), (
                 f"{relative_path} is stale: rerun tools/docs/generate_demo_assets.py"

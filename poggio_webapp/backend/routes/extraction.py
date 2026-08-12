@@ -22,8 +22,12 @@ def run_extract(job_id):
     body = request.get_json(force=True, silent=True) or {}
     api_key = body.get("api_key") or os.environ.get("GEMINI_API_KEY")
     if not api_key:
-        return jsonify({"error": "no Gemini API key provided (and GEMINI_API_KEY not set "
-                                  "in the server environment)"}), 400
+        return jsonify(
+            {
+                "error": "no Gemini API key provided (and GEMINI_API_KEY not set "
+                "in the server environment)"
+            }
+        ), 400
 
     image_path = meta["clean_image_path"]
     out_dir = job_dir(job_id) / "03_extraction"
@@ -33,26 +37,39 @@ def run_extract(job_id):
     try:
         if sheet_type == "illustrator":
             from pipeline import extract_illustrator as p_extract_illustrator
+
             out_path = out_dir / "output.json"
             task_id = start_task(
                 p_extract_illustrator.run_extraction,
-                image_path, str(out_path), api_key,
+                image_path,
+                str(out_path),
+                api_key,
                 max_output_tokens=max_output_tokens,
             )
         else:
             square_cm = body.get("square_cm")
             if not square_cm:
-                return jsonify({"error": "square_cm is required for field-wall sheets"}), 400
+                return jsonify(
+                    {"error": "square_cm is required for field-wall sheets"}
+                ), 400
             from pipeline import extract_fieldwall as p_extract_fieldwall
+
             out_path = out_dir / "field_wall.json"
             task_id = start_task(
                 p_extract_fieldwall.run_extraction,
-                image_path, float(square_cm), str(out_path), api_key,
+                image_path,
+                float(square_cm),
+                str(out_path),
+                api_key,
                 max_output_tokens=max_output_tokens,
             )
     except ImportError as e:
-        return jsonify({"error": f"missing dependency: {e}. Install with "
-                                  f"`pip install google-genai pillow pydantic --break-system-packages`."}), 400
+        return jsonify(
+            {
+                "error": f"missing dependency: {e}. Install with "
+                f"`pip install google-genai pillow pydantic --break-system-packages`."
+            }
+        ), 400
 
     meta["extraction_path"] = str(out_path)
     meta["extraction_task_id"] = task_id
@@ -91,9 +108,13 @@ def upload_extraction(job_id):
     elif isinstance(data, dict) and p_convert_coords.is_field_wall(data):
         detected = "fieldwall"
     else:
-        return jsonify({"error": "this JSON is neither an illustrator extraction "
-                                  "(trenchProfiles) nor a field-wall extraction "
-                                  "(loci/layers) — refusing to install it"}), 400
+        return jsonify(
+            {
+                "error": "this JSON is neither an illustrator extraction "
+                "(trenchProfiles) nor a field-wall extraction "
+                "(loci/layers) — refusing to install it"
+            }
+        ), 400
 
     out_path = job_dir(job_id) / "03_extraction" / "uploaded.json"
     out_path.write_text(raw)
@@ -104,5 +125,6 @@ def upload_extraction(job_id):
     meta.pop("normalized_path", None)  # belongs to the previous extraction
     save_meta(job_id, meta)
 
-    return jsonify({"raw_json": raw, "sheet_type": detected,
-                    "file_url": rel_url(job_id, out_path)})
+    return jsonify(
+        {"raw_json": raw, "sheet_type": detected, "file_url": rel_url(job_id, out_path)}
+    )

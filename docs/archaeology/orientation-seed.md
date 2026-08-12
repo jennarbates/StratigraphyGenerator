@@ -80,12 +80,18 @@ if len(pts) >= 2:
 
     X, Y, Z = to_site(midx, midd)
 
-    orient.append({
-        "X": round(X, 4), "Y": round(Y, 4), "Z": round(Z, 4),
-        "surface": surface, "face": fname,
-        "dip": round(dip, 2), "azimuth": round(azimuth, 2),
-        "polarity": 1,
-    })
+    orient.append(
+        {
+            "X": round(X, 4),
+            "Y": round(Y, 4),
+            "Z": round(Z, 4),
+            "surface": surface,
+            "face": fname,
+            "dip": round(dip, 2),
+            "azimuth": round(azimuth, 2),
+            "polarity": 1,
+        }
+    )
 ```
 
 Four decisions.
@@ -155,7 +161,8 @@ notes.append(
     f"surface {surface!r}: replaced the per-wall apparent dips "
     f"({'; '.join(before)}) with one true dip of "
     f"{round(solved['dip'], 2)} toward {round(solved['azimuth'], 2)}, "
-    f"solved from {' and '.join(solved['faces'])}")
+    f"solved from {' and '.join(solved['faces'])}"
+)
 ```
 
 > so a reader can see the change rather than discovering the numbers moved.

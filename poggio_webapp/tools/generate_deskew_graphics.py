@@ -19,7 +19,7 @@ def generate_deskew_debug_graphics(input_path, output_path):
 
     # 3. Detect Linear Structures
     # Use the same parameters as the preprocessing pipeline
-    lines = cv2.HoughLines(edges, 1, np.pi/180, 200)
+    lines = cv2.HoughLines(edges, 1, np.pi / 180, 200)
 
     # 4. Map the Math to the Image
     debug_img = img.copy()
@@ -53,26 +53,29 @@ def generate_deskew_debug_graphics(input_path, output_path):
 
     # Panel 1: Original Input (Convert BGR to RGB for accurate Matplotlib coloring)
     axes[0].imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
-    axes[0].set_title('1. Original Input Image', fontsize=14, pad=10)
+    axes[0].set_title("1. Original Input Image", fontsize=14, pad=10)
 
     # Panel 2: The Binary Canny Edge Matrix
-    axes[1].imshow(edges, cmap='gray')
-    axes[1].set_title('2. Canny Edge Detection', fontsize=14, pad=10)
+    axes[1].imshow(edges, cmap="gray")
+    axes[1].set_title("2. Canny Edge Detection", fontsize=14, pad=10)
 
     # Panel 3: Filtered Hough Lines
     axes[2].imshow(cv2.cvtColor(debug_img, cv2.COLOR_BGR2RGB))
-    axes[2].set_title('3. Horizontal Hough Lines (±15°)', fontsize=14, pad=10)
+    axes[2].set_title("3. Horizontal Hough Lines (±15°)", fontsize=14, pad=10)
 
     # Remove axis ticks for a clean documentation graphic
     for ax in axes:
-        ax.axis('off')
+        ax.axis("off")
 
     plt.tight_layout()
-    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    plt.savefig(output_path, dpi=300, bbox_inches="tight")
     print(f"Success! Deskew documentation graphic saved to {output_path}")
+
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
-        print("Usage: python generate_deskew_graphics.py <input_image_path> <output_image_path>")
+        print(
+            "Usage: python generate_deskew_graphics.py <input_image_path> <output_image_path>"
+        )
     else:
         generate_deskew_debug_graphics(sys.argv[1], sys.argv[2])

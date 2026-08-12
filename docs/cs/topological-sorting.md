@@ -94,7 +94,8 @@ for earlier, later in zip(sequence, sequence[1:]):
         notes.append(
             f"face {fname!r} lists surface {earlier!r} in two adjacent "
             "layers; ignoring that self-constraint (it would look like "
-            "a contradiction)")
+            "a contradiction)"
+        )
         continue
     if later not in successors[earlier]:
         successors[earlier].add(later)
@@ -114,8 +115,7 @@ Then the sort:
 # whenever several surfaces are simultaneously available the earliest-seen
 # one wins and the output is stable.
 by_index = {position: name for name, position in order_index.items()}
-ready = [position for name, position in order_index.items()
-         if indegree[name] == 0]
+ready = [position for name, position in order_index.items() if indegree[name] == 0]
 heapq.heapify(ready)
 order = []
 while ready:
@@ -142,7 +142,8 @@ if len(faces) > 1:
                 f"surface {name!r} has layers on only one wall "
                 f"({faces_by_surface[name][0]}); it is ordered from fewer "
                 "constraints and will still be interpolated across the "
-                "whole model extent")
+                "whole model extent"
+            )
 ```
 
 ### Reading order for a Harris Matrix
@@ -156,11 +157,7 @@ def _topological_sort(nodes, edges):
     for _, older in edges:
         indegree[older] += 1
 
-    ready = [
-        node
-        for node in nodes
-        if indegree[node] == 0
-    ]
+    ready = [node for node in nodes if indegree[node] == 0]
     heapq.heapify(ready)
     order = []
 

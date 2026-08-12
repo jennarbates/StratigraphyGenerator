@@ -459,8 +459,7 @@ def test_suggestion_ids_and_order_are_deterministic(tmp_path):
     first_generated = generate_suggestions(first, jobs_dir)
     second_generated = generate_suggestions(second, jobs_dir)
     first_dump = [
-        suggestion.model_dump(mode="json")
-        for suggestion in first_generated.suggestions
+        suggestion.model_dump(mode="json") for suggestion in first_generated.suggestions
     ]
     second_dump = [
         suggestion.model_dump(mode="json")
@@ -566,9 +565,10 @@ def test_accept_correlation_creates_and_merges_exactly_one_group(tmp_path):
         ]
     )
     assert accepted.correlations[0].notes == "Keep this group"
-    assert next(
-        item for item in accepted.suggestions if item.id == suggestion.id
-    ).status == "accepted"
+    assert (
+        next(item for item in accepted.suggestions if item.id == suggestion.id).status
+        == "accepted"
+    )
 
 
 def test_reject_changes_only_suggestion_status(tmp_path):

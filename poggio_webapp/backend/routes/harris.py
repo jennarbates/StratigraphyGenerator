@@ -107,9 +107,7 @@ def _matrix_response(matrix, status=200):
 def _export_response(content, mimetype, filename, *, attachment=True):
     disposition = "attachment" if attachment else "inline"
     response = Response(content, mimetype=mimetype)
-    response.headers["Content-Disposition"] = (
-        f'{disposition}; filename="{filename}"'
-    )
+    response.headers["Content-Disposition"] = f'{disposition}; filename="{filename}"'
     response.headers["Cache-Control"] = "no-store"
     return response
 
@@ -151,8 +149,6 @@ def _store_error_response(error):
             details={"error_codes": list(error.error_codes)},
         )
     raise error
-
-
 
 
 @bp.route("/harris")
@@ -198,9 +194,7 @@ def create_harris_matrix():
         return _invalid_request(error)
 
     try:
-        matrix = harris_store.create_matrix(
-            initial_fields.model_dump(mode="python")
-        )
+        matrix = harris_store.create_matrix(initial_fields.model_dump(mode="python"))
     except harris_store.InvalidMatrixError as error:
         return _store_error_response(error)
     return _matrix_response(matrix, 201)
@@ -280,10 +274,7 @@ def update_harris_matrix(matrix_id):
         )
 
     expected_revision = body.get("revision")
-    if (
-        type(expected_revision) is not int
-        or expected_revision < 0
-    ):
+    if type(expected_revision) is not int or expected_revision < 0:
         return _error_response(
             "Matrix revision must be a non-negative integer.",
             "invalid_matrix",
@@ -350,10 +341,7 @@ def import_harris_sources(matrix_id):
 
 
 @bp.route(
-    (
-        "/api/harris-matrices/<matrix_id>/suggestions/"
-        "<suggestion_id>"
-    ),
+    ("/api/harris-matrices/<matrix_id>/suggestions/<suggestion_id>"),
     methods=["POST"],
 )
 def review_harris_suggestion(matrix_id, suggestion_id):

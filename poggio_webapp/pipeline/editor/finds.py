@@ -14,13 +14,9 @@ def add_find(job_id: str, find: dict) -> dict:
 
     A find may be logged independently of any saved or finalized editor state.
     """
-    missing_fields = [
-        field for field in REQUIRED_FIND_FIELDS if field not in find
-    ]
+    missing_fields = [field for field in REQUIRED_FIND_FIELDS if field not in find]
     if missing_fields:
-        raise ValueError(
-            f'Missing required find field(s): {", ".join(missing_fields)}'
-        )
+        raise ValueError(f"Missing required find field(s): {', '.join(missing_fields)}")
 
     session_dir = storage.JOBS_DIR / job_id
     if not session_dir.is_dir():
@@ -54,9 +50,7 @@ def get_finds(job_id: str) -> list[dict]:
 def delete_find(job_id: str, find_id: str) -> None:
     """Delete the artifact find matching find_id from an existing job."""
     finds = get_finds(job_id)
-    retained_finds = [
-        find for find in finds if find.get("find_id") != find_id
-    ]
+    retained_finds = [find for find in finds if find.get("find_id") != find_id]
     if len(retained_finds) == len(finds):
         raise ValueError(f"Find does not exist: {find_id}")
 

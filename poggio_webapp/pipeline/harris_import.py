@@ -71,14 +71,11 @@ def _metadata_candidate(
 def _schema_type(document: dict) -> str:
     if isinstance(document.get("trenchProfiles"), list):
         return "ArchaeologicalDiagram"
-    if (
-        isinstance(document.get("layers"), list)
-        and _FIELD_WALL_FIELDS.intersection(document)
+    if isinstance(document.get("layers"), list) and _FIELD_WALL_FIELDS.intersection(
+        document
     ):
         return "FieldWallProfile"
-    raise HarrisImportError(
-        "Source document has an unsupported extraction schema."
-    )
+    raise HarrisImportError("Source document has an unsupported extraction schema.")
 
 
 def _read_source_json(job_id: str, path: Path) -> dict:
@@ -100,8 +97,7 @@ def _read_source_json(job_id: str, path: Path) -> dict:
 
     if not isinstance(document, dict):
         raise HarrisImportError(
-            f"Source document for job {job_id} has an unsupported "
-            "top-level shape."
+            f"Source document for job {job_id} has an unsupported top-level shape."
         )
     _schema_type(document)
     return document
@@ -124,11 +120,7 @@ def load_source_document(
             metadata,
             "normalized_path",
         ),
-        (
-            job_directory
-            / "04_normalize_validate"
-            / "output_clean.json"
-        ).resolve(),
+        (job_directory / "04_normalize_validate" / "output_clean.json").resolve(),
         _metadata_candidate(
             job_directory,
             metadata,
@@ -145,9 +137,7 @@ def load_source_document(
         ):
             return _read_source_json(job_id, candidate), candidate
 
-    raise HarrisImportError(
-        f"Source job {job_id} has no usable extraction output."
-    )
+    raise HarrisImportError(f"Source job {job_id} has no usable extraction output.")
 
 
 def _clean_text(value) -> str | None:
@@ -347,9 +337,7 @@ def _extract_with_warnings(
 ) -> tuple[list[HarrisUnit], list[dict]]:
     job_id = _validate_job_id(job_id)
     if not isinstance(document, dict):
-        raise HarrisImportError(
-            "Source document has an unsupported top-level shape."
-        )
+        raise HarrisImportError("Source document has an unsupported top-level shape.")
 
     schema_type = _schema_type(document)
     if schema_type == "FieldWallProfile":
@@ -397,10 +385,7 @@ def discover_source_jobs(jobs_dir: Path) -> list[dict]:
         key=lambda path: path.name,
     ):
         job_id = candidate.name
-        if (
-            not candidate.is_dir()
-            or _JOB_ID.fullmatch(job_id) is None
-        ):
+        if not candidate.is_dir() or _JOB_ID.fullmatch(job_id) is None:
             continue
         try:
             document, _path = load_source_document(job_id, jobs_directory)
@@ -427,10 +412,7 @@ def import_source_jobs(
 ) -> tuple[HarrisMatrix, list[dict]]:
     """Return a matrix copy with source units merged idempotently."""
     imported_matrix = matrix.model_copy(deep=True)
-    units_by_id = {
-        unit.id: unit
-        for unit in imported_matrix.units
-    }
+    units_by_id = {unit.id: unit for unit in imported_matrix.units}
     warnings = []
     imported_job_ids = set(imported_matrix.source_job_ids)
     requested_job_ids = set()

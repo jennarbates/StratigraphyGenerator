@@ -101,22 +101,14 @@ def _dedupe(candidates: list[dict[str, Any]]) -> list[dict[str, Any]]:
     kept: list[dict[str, Any]] = []
 
     for candidate in ordered:
-        candidate_center_x = (
-            float(candidate["x"]) + float(candidate["width"]) / 2
-        )
-        candidate_center_y = (
-            float(candidate["y"]) + float(candidate["height"]) / 2
-        )
+        candidate_center_x = float(candidate["x"]) + float(candidate["width"]) / 2
+        candidate_center_y = float(candidate["y"]) + float(candidate["height"]) / 2
 
         duplicate = False
 
         for existing in kept:
-            existing_center_x = (
-                float(existing["x"]) + float(existing["width"]) / 2
-            )
-            existing_center_y = (
-                float(existing["y"]) + float(existing["height"]) / 2
-            )
+            existing_center_x = float(existing["x"]) + float(existing["width"]) / 2
+            existing_center_y = float(existing["y"]) + float(existing["height"]) / 2
 
             center_distance = math.hypot(
                 candidate_center_x - existing_center_x,
@@ -241,9 +233,7 @@ def run_detect(
 
         solidity = area / hull_area if hull_area > 0 else 0.0
         extent = area / float(width * height)
-        circularity = (
-            4.0 * math.pi * area / (perimeter * perimeter)
-        )
+        circularity = 4.0 * math.pi * area / (perimeter * perimeter)
 
         # Layer boundaries and grid lines generally have low extent or
         # solidity. Small text loops are mostly removed by size limits.
@@ -255,11 +245,7 @@ def run_detect(
             max(0.0, circularity),
         )
 
-        score = (
-            0.45 * compactness
-            + 0.35 * min(1.0, solidity)
-            + 0.20 * min(1.0, extent)
-        )
+        score = 0.45 * compactness + 0.35 * min(1.0, solidity) + 0.20 * min(1.0, extent)
 
         if score < 0.28:
             continue
@@ -347,14 +333,10 @@ def run_detect(
             cv2.LINE_AA,
         )
 
-    debug_path = str(
-        Path(out_dir) / "feature_candidates.png"
-    )
+    debug_path = str(Path(out_dir) / "feature_candidates.png")
 
     if not cv2.imwrite(debug_path, debug_image):
-        raise RuntimeError(
-            f"Could not write feature debug image: {debug_path}"
-        )
+        raise RuntimeError(f"Could not write feature debug image: {debug_path}")
 
     return {
         "features": candidates,
@@ -388,9 +370,7 @@ def write_review_overlay(
         height = int(round(float(feature["height"])))
 
         feature_type = str(
-            feature.get("feature_type")
-            or feature.get("suggested_type")
-            or "feature"
+            feature.get("feature_type") or feature.get("suggested_type") or "feature"
         )
 
         cv2.rectangle(
@@ -415,8 +395,6 @@ def write_review_overlay(
         )
 
     if not cv2.imwrite(out_path, image):
-        raise RuntimeError(
-            f"Could not write reviewed feature overlay: {out_path}"
-        )
+        raise RuntimeError(f"Could not write reviewed feature overlay: {out_path}")
 
     return out_path

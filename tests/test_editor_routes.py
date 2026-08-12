@@ -98,19 +98,19 @@ def _invalid_structural_field_wall_envelope():
 
 
 def _read_job_meta(job_id):
-    return json.loads(
-        (storage.JOBS_DIR / job_id / "meta.json").read_text()
-    )
+    return json.loads((storage.JOBS_DIR / job_id / "meta.json").read_text())
 
 
 def _mock_pipeline_start(monkeypatch, task_id="editor-task-123"):
     calls = []
 
     def fake_run_editor_pipeline(job_id):
-        calls.append({
-            "job_id": job_id,
-            "meta": _read_job_meta(job_id),
-        })
+        calls.append(
+            {
+                "job_id": job_id,
+                "meta": _read_job_meta(job_id),
+            }
+        )
         return task_id
 
     monkeypatch.setattr(
@@ -212,15 +212,8 @@ def test_building_results_page_includes_polling_configuration(
 
     assert response.status_code == 200
     assert page.results_attributes["data-result-status"] == "building"
-    assert (
-        page.results_attributes["data-status-url"]
-        == f"/api/jobs/{job_id}/status"
-    )
-    assert (
-        1500
-        <= int(page.results_attributes["data-poll-interval-ms"])
-        <= 3000
-    )
+    assert page.results_attributes["data-status-url"] == f"/api/jobs/{job_id}/status"
+    assert 1500 <= int(page.results_attributes["data-poll-interval-ms"]) <= 3000
     assert "/static/results.js" in page.scripts
 
 
@@ -241,10 +234,7 @@ def test_finalizing_results_page_includes_polling_configuration(
 
     assert response.status_code == 200
     assert page.results_attributes["data-result-status"] == "finalizing"
-    assert (
-        page.results_attributes["data-status-url"]
-        == f"/api/jobs/{job_id}/status"
-    )
+    assert page.results_attributes["data-status-url"] == f"/api/jobs/{job_id}/status"
     assert "/static/results.js" in page.scripts
 
 
@@ -282,10 +272,7 @@ def test_error_results_page_shows_recovery_guidance(client, tmp_path):
     assert response.status_code == 200
     assert "Your saved drawing has not been lost." in page_text
     assert "Return to the editor to review it" in page_text
-    assert f"/editor/{job_id}" in {
-        attributes.get("href")
-        for attributes in page.links
-    }
+    assert f"/editor/{job_id}" in {attributes.get("href") for attributes in page.links}
 
 
 def test_complete_results_page_keeps_visualization_and_download_links(
@@ -305,14 +292,8 @@ def test_complete_results_page_keeps_visualization_and_download_links(
 
     response = client.get(f"/jobs/{job_id}")
     page = _parse_results_page(response)
-    links_by_href = {
-        attributes.get("href"): attributes
-        for attributes in page.links
-    }
-    model_url = (
-        f"/api/jobs/{job_id}/file"
-        "?path=06_gempy_model/trench_model.gempy"
-    )
+    links_by_href = {attributes.get("href"): attributes for attributes in page.links}
+    model_url = f"/api/jobs/{job_id}/file?path=06_gempy_model/trench_model.gempy"
 
     assert response.status_code == 200
     assert f"/visualizer?job={job_id}" in links_by_href
@@ -331,18 +312,24 @@ def test_results_page_defers_harris_action_to_source_discovery(
         status="complete",
         source="manual_editor",
     )
-    (job_directory / "extraction_output.json").write_text(json.dumps({
-        "trenchLabel": "T123",
-        "faceLabel": "North baulk",
-        "gridSquareCm": 25,
-        "loci": [],
-        "layers": [{
-            "locusNumber": "7",
-            "topBoundary": [],
-            "bottomBoundary": [],
-            "featuresInLayer": [],
-        }],
-    }))
+    (job_directory / "extraction_output.json").write_text(
+        json.dumps(
+            {
+                "trenchLabel": "T123",
+                "faceLabel": "North baulk",
+                "gridSquareCm": 25,
+                "loci": [],
+                "layers": [
+                    {
+                        "locusNumber": "7",
+                        "topBoundary": [],
+                        "bottomBoundary": [],
+                        "featuresInLayer": [],
+                    }
+                ],
+            }
+        )
+    )
 
     response = client.get(f"/jobs/{job_id}")
     page = _parse_results_page(response)
@@ -354,12 +341,14 @@ def test_results_page_defers_harris_action_to_source_discovery(
     discovered = client.get("/api/harris-source-jobs").get_json()
 
     assert response.status_code == 200
-    assert harris_links == [{
-        "class": "button-link secondary",
-        "data-harris-source-action": job_id,
-        "href": f"/harris?source_job={job_id}",
-        "hidden": None,
-    }]
+    assert harris_links == [
+        {
+            "class": "button-link secondary",
+            "data-harris-source-action": job_id,
+            "href": f"/harris?source_job={job_id}",
+            "hidden": None,
+        }
+    ]
     assert [source["job_id"] for source in discovered] == [job_id]
     normalized_html = " ".join(response.get_data(as_text=True).split())
     assert "Create or add to a Harris Matrix" in normalized_html
@@ -405,9 +394,7 @@ def test_complete_results_page_uses_mesh_viewer_with_section_fallback(
     model_directory = job_directory / "06_gempy_model"
     mesh_directory = model_directory / "trench_model_meshes"
     mesh_directory.mkdir(parents=True)
-    (mesh_directory / "Layer_1.obj").write_text(
-        "v 0 0 0\nv 1 0 0\nv 0 1 0\nf 1 2 3\n"
-    )
+    (mesh_directory / "Layer_1.obj").write_text("v 0 0 0\nv 1 0 0\nv 0 1 0\nf 1 2 3\n")
     section_path = model_directory / "trench_model_section_y.png"
     section_path.write_bytes(b"png")
 
@@ -436,9 +423,7 @@ def test_complete_results_page_uses_mesh_viewer_with_section_fallback(
   }
 }
 </script>"""
-    viewer_script = (
-        '<script type="module" src="/static/viewer3d.js"></script>'
-    )
+    viewer_script = '<script type="module" src="/static/viewer3d.js"></script>'
     assert expected_import_map in html
     assert html.index(expected_import_map) < html.index(viewer_script)
     assert "unpkg" not in html
@@ -448,8 +433,7 @@ def test_complete_results_page_uses_mesh_viewer_with_section_fallback(
     assert "Layer 1" in html
     assert "View the flat cross-section instead" in html
     assert (
-        f"/api/jobs/{job_id}/file"
-        "?path=06_gempy_model/trench_model_section_y.png"
+        f"/api/jobs/{job_id}/file?path=06_gempy_model/trench_model_section_y.png"
     ) in html
 
 
@@ -462,8 +446,7 @@ def test_ordinary_upload_results_keep_existing_actions(client, tmp_path):
 
     assert response.status_code == 200
     assert f"/visualizer?job={job_id}" in {
-        attributes.get("href")
-        for attributes in page.links
+        attributes.get("href") for attributes in page.links
     }
     assert "data-status-url" not in page.results_attributes
 
@@ -528,10 +511,7 @@ def test_archaeological_diagram_editor_page_contains_schema_data_attribute(
         f"/editor/{job_id}?schema_type=FieldWallProfile",
     )
 
-    assert (
-        b'data-schema-type="ArchaeologicalDiagram"'
-        in response.data
-    )
+    assert b'data-schema-type="ArchaeologicalDiagram"' in response.data
 
 
 def test_field_wall_profile_editor_page_contains_schema_data_attribute(client):

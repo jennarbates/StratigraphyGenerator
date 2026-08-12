@@ -71,8 +71,9 @@ def clean(gray, upscale=2):
     """The recommended pipeline: flatten -> upscale -> CLAHE -> mild sharpen."""
     flat = flatten_background(gray)
     if upscale and upscale != 1:
-        flat = cv2.resize(flat, None, fx=upscale, fy=upscale,
-                          interpolation=cv2.INTER_LANCZOS4)
+        flat = cv2.resize(
+            flat, None, fx=upscale, fy=upscale, interpolation=cv2.INTER_LANCZOS4
+        )
 ```
 
 The purpose of the upscale is stated in `recommend_upscale()`:

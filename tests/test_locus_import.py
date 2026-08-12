@@ -31,7 +31,8 @@ T900,1,2025,7.5YR 4/2 dark brown,Topsoil,31.00,30.40,
 
 def test_plausible_headers_are_suggested_not_required_to_match_exactly():
     mapping, unmatched = suggest_column_map(
-        ["Trench", "Locus", "Opening Elevation", "_uuid"])
+        ["Trench", "Locus", "Opening Elevation", "_uuid"]
+    )
 
     assert mapping["trench"] == "Trench"
     assert mapping["locus_number"] == "Locus"
@@ -47,14 +48,15 @@ def test_an_unrecognised_export_refuses_and_shows_its_headers():
     message = str(caught.value)
 
     assert "locus_number" in message
-    assert "\'Column A\'" in message
+    assert "'Column A'" in message
     assert "guessing here would" in message
 
 
 def test_an_explicit_column_map_overrides_the_suggestion():
     text = "unit,ctx,soil\nT104,6,10YR 5/3 brown\n"
-    result = read_export(text, {"locus_number": "ctx", "trench": "unit",
-                                "munsell": "soil"})
+    result = read_export(
+        text, {"locus_number": "ctx", "trench": "unit", "munsell": "soil"}
+    )
 
     assert result["loci"][0]["locusNumber"] == "6"
     assert result["loci"][0]["munsell"] == "10YR 5/3 brown"
@@ -103,8 +105,7 @@ def test_without_a_trench_filter_every_row_is_read():
 def test_provenance_links_are_carried_and_validated():
     result = read_export(EXPORT, trench="T104")
 
-    assert result["loci"][0]["koboRecordId"] == (
-        "1a329746-b924-4a7b-b9f3-feb82e2c3d51")
+    assert result["loci"][0]["koboRecordId"] == ("1a329746-b924-4a7b-b9f3-feb82e2c3d51")
     assert "koboRecordId" not in result["loci"][1]
 
 
@@ -129,10 +130,14 @@ def test_a_repeated_locus_keeps_the_first_and_says_so():
 
 def test_below_datum_elevations_are_resolved_through_the_vertical_frame():
     text = "Trench,Locus,Opening Elevation\nT104,6,0.5\n"
-    result = read_export(text, vertical={
-        "frame": "mAE", "entryForm": "below-datum",
-        "datumNail": {"absoluteZ": 29.6},
-    })
+    result = read_export(
+        text,
+        vertical={
+            "frame": "mAE",
+            "entryForm": "below-datum",
+            "datumNail": {"absoluteZ": 29.6},
+        },
+    )
 
     assert result["loci"][0]["openingElevation"] == pytest.approx(29.1)
 
@@ -166,8 +171,7 @@ def test_unmatched_columns_are_reported():
 
 
 def test_an_import_fills_only_what_the_sheet_is_missing():
-    sheet = {"loci": [{"locusNumber": "6", "munsell": None,
-                       "description": None}]}
+    sheet = {"loci": [{"locusNumber": "6", "munsell": None, "description": None}]}
     imported = read_export(EXPORT, trench="T104")["loci"]
 
     merged, _notes = merge_into_sheet(sheet, imported)
@@ -185,7 +189,7 @@ def test_the_recorders_own_reading_wins_over_an_import():
     merged, notes = merge_into_sheet(sheet, imported)
 
     assert merged["loci"][0]["munsell"] == "10YR 4/4 dark brown"
-    assert any("sheet\'s own reading is kept" in note for note in notes)
+    assert any("sheet's own reading is kept" in note for note in notes)
 
 
 def test_overwrite_is_available_but_not_the_default():

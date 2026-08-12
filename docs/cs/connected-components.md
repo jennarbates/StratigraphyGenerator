@@ -73,10 +73,12 @@ def _endpoint_components(endpoints, tolerance_m):
         return name
 
     for i, a in enumerate(names):
-        for b in names[i + 1:]:
+        for b in names[i + 1 :]:
             touching = any(
                 math.dist(pa, pb) <= tolerance_m
-                for pa in endpoints[a] for pb in endpoints[b])
+                for pa in endpoints[a]
+                for pb in endpoints[b]
+            )
             if touching:
                 parent[find(a)] = find(b)
 
@@ -95,15 +97,15 @@ components = _endpoint_components(endpoints, tolerance_m)
 # An open end (a wall of an unexcavated side) is fine; a wall that
 # joins nothing at either end is the real problem.
 order = {name: i for i, name in enumerate(endpoints)}
-trench = max(components,
-             key=lambda g: (len(g), -min(order[n] for n in g)))
+trench = max(components, key=lambda g: (len(g), -min(order[n] for n in g)))
 for name in endpoints:
     if name not in trench:
         warnings.append(
             f"face {name!r} is not connected to the rest of the "
             f"trench: neither of its ends lands within "
             f"{tolerance_m} m of another wall's end. Adjacent "
-            "walls must share corner coordinates")
+            "walls must share corner coordinates"
+        )
 ```
 
 Three decisions in that comment:
@@ -130,21 +132,19 @@ model of nothing."
 different purpose:
 
 ```python
-connected_components = {
-    component
-    for edge in edges
-    for component in edge
-}
+connected_components = {component for edge in edges for component in edge}
 members_by_component = defaultdict(list)
 for unit_id, component in components.items():
     members_by_component[component].append(unit_id)
 for component in sorted(nodes - connected_components):
     members = sorted(members_by_component[component])
-    warnings.append(_issue(
-        "isolated-unit",
-        f"Unit component {component} has no chronological relations.",
-        members,
-    ))
+    warnings.append(
+        _issue(
+            "isolated-unit",
+            f"Unit component {component} has no chronological relations.",
+            members,
+        )
+    )
 ```
 
 A unit with no relations is not an error — a newly imported layer legitimately

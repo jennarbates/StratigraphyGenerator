@@ -14,7 +14,7 @@ def clean_null_strings(obj, log, path="root"):
         for k, v in list(obj.items()):
             if isinstance(v, str) and v.strip().lower() in NULLISH:
                 obj[k] = None
-                log.append(f'nulled string at {path}.{k}')
+                log.append(f"nulled string at {path}.{k}")
             else:
                 clean_null_strings(v, log, f"{path}.{k}")
     elif isinstance(obj, list):
@@ -29,8 +29,12 @@ def points_key(pts):
     for p in pts:
         x = p.get("xCoordinateMeters")
         y = p.get("yCoordinateMeters")
-        out.append((round(x, 3) if x is not None else None,
-                    round(y, 3) if y is not None else None))
+        out.append(
+            (
+                round(x, 3) if x is not None else None,
+                round(y, 3) if y is not None else None,
+            )
+        )
     return tuple(out)
 
 
@@ -45,8 +49,10 @@ def dedupe_floor(face, log):
     for f in feats:
         name = (f.get("feature") or "").lower()
         if "floor" in name and points_key(f.get("shapePoints")) == bkey and bkey:
-            log.append(f'{face.get("face")}: dropped trench-floor feature '
-                       f'(duplicates {deepest.get("layerName") or deepest.get("inferredMaterial")} bottom)')
+            log.append(
+                f"{face.get('face')}: dropped trench-floor feature "
+                f"(duplicates {deepest.get('layerName') or deepest.get('inferredMaterial')} bottom)"
+            )
             continue
         kept.append(f)
     deepest["featuresInLayer"] = kept or None
@@ -56,7 +62,7 @@ def dedupe_cross_layer_features(face, log):
     layers = face.get("layers") or []
     seen = {}
     for i, layer in enumerate(layers):
-        for f in (layer.get("featuresInLayer") or []):
+        for f in layer.get("featuresInLayer") or []:
             sig = ((f.get("feature") or "").lower(), points_key(f.get("shapePoints")))
             if sig[1] is None:
                 continue
@@ -67,10 +73,12 @@ def dedupe_cross_layer_features(face, log):
         for f in feats:
             sig = ((f.get("feature") or "").lower(), points_key(f.get("shapePoints")))
             if sig[1] is not None and seen.get(sig) != i:
-                log.append(f'{face.get("face")}: removed duplicate feature '
-                           f'"{f.get("feature")}" from '
-                           f'{layer.get("layerName") or layer.get("inferredMaterial")} '
-                           f'(kept in deepest layer)')
+                log.append(
+                    f"{face.get('face')}: removed duplicate feature "
+                    f'"{f.get("feature")}" from '
+                    f"{layer.get('layerName') or layer.get('inferredMaterial')} "
+                    f"(kept in deepest layer)"
+                )
                 continue
             kept.append(f)
         layer["featuresInLayer"] = kept or None

@@ -65,9 +65,7 @@ def test_existing_fieldwall_extraction_is_adapted_for_review(tmp_path):
     }
     assert result["document"]["gridSquareCm"]["proposed"] == 20.0
     assert result["document"]["northArrowPresent"]["proposed"] is True
-    assert [row["raw"] for row in result["document"]["gridTiePoints"]] == [
-        "E 194"
-    ]
+    assert [row["raw"] for row in result["document"]["gridTiePoints"]] == ["E 194"]
     assert result["loci"][0]["locusNumber"]["confidence"] == "high"
     assert result["loci"][1]["description"]["confidence"] == "low"
 
@@ -97,9 +95,7 @@ def test_embedded_review_candidates_take_precedence_and_bad_box_is_dropped():
 
 
 def test_geometry_from_existing_extraction_is_not_copied_into_text_candidates():
-    result = extract_text.candidates_from_fieldwall_extraction(
-        _fieldwall_extraction()
-    )
+    result = extract_text.candidates_from_fieldwall_extraction(_fieldwall_extraction())
     serialized = json.dumps(result)
 
     assert "layers" not in result
@@ -107,8 +103,7 @@ def test_geometry_from_existing_extraction_is_not_copied_into_text_candidates():
     assert "bottomBoundary" not in serialized
     assert "xMeters" not in serialized
     assert all(
-        candidate["bbox"] is None
-        for candidate in result["document"]["illustrators"]
+        candidate["bbox"] is None for candidate in result["document"]["illustrators"]
     )
 
 

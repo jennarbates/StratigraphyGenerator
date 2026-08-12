@@ -58,8 +58,7 @@ Both [topological sorts](topological-sorting.md), for the same reason.
 # whenever several surfaces are simultaneously available the earliest-seen
 # one wins and the output is stable.
 by_index = {position: name for name, position in order_index.items()}
-ready = [position for name, position in order_index.items()
-         if indegree[name] == 0]
+ready = [position for name, position in order_index.items() if indegree[name] == 0]
 heapq.heapify(ready)
 order = []
 while ready:
@@ -84,11 +83,7 @@ first wins," which is arbitrary but neutral.
 `poggio_webapp/pipeline/harris_matrix.py`:
 
 ```python
-ready = [
-    node
-    for node in nodes
-    if indegree[node] == 0
-]
+ready = [node for node in nodes if indegree[node] == 0]
 heapq.heapify(ready)
 order = []
 

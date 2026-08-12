@@ -36,9 +36,7 @@ def create_editor_session(
         "schema_type": schema_type,
         "created_at": created_at,
     }
-    (session_dir / "editor_meta.json").write_text(
-        json.dumps(metadata, indent=2)
-    )
+    (session_dir / "editor_meta.json").write_text(json.dumps(metadata, indent=2))
     draft_metadata = {
         "job_id": job_id,
         "schema_type": schema_type,
@@ -55,9 +53,7 @@ def create_editor_session(
         draft_metadata["trench_label"] = canonical_trench(trench_label)
     if clean_label(wall_label):
         draft_metadata["wall_label"] = clean_label(wall_label)
-    (session_dir / "meta.json").write_text(
-        json.dumps(draft_metadata, indent=2)
-    )
+    (session_dir / "meta.json").write_text(json.dumps(draft_metadata, indent=2))
     return job_id
 
 
@@ -67,9 +63,7 @@ def save_editor_state(job_id: str, state: dict) -> None:
     if not session_dir.is_dir():
         raise FileNotFoundError(f"Editor job directory does not exist: {job_id}")
 
-    (session_dir / "editor_state.json").write_text(
-        json.dumps(state, indent=2)
-    )
+    (session_dir / "editor_state.json").write_text(json.dumps(state, indent=2))
 
 
 def load_editor_state(job_id: str) -> dict:
