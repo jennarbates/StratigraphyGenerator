@@ -7,7 +7,7 @@ source_files:
   - poggio_webapp/pipeline/editor/geometry.py
   - poggio_webapp/static/canvas/grid.mjs
   - poggio_webapp/backend/services/viewer_files.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Floating-point representation

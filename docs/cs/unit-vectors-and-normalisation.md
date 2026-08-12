@@ -6,7 +6,7 @@ source_files:
   - poggio_webapp/pipeline/manual_extraction.py
   - poggio_webapp/pipeline/detect_markers.py
   - poggio_webapp/static/visualizer/coordinates.mjs
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Unit vectors and normalisation
@@ -122,9 +122,9 @@ let v = { x: -u.y, y: u.x };
 
 Three implementations — Python manual tracing, Python CV, browser overlay — of
 the same construction, in three languages, each with its own degenerate-input
-guard. They are pinned by tests against each other, because a browser overlay
-that disagreed with the stored coordinates would silently misplace every drawn
-boundary.
+guard. Each is pinned by its own tests to fixed expected values, because a
+browser overlay that disagreed with the stored coordinates would silently
+misplace every drawn boundary.
 
 ## Why this and not something else
 

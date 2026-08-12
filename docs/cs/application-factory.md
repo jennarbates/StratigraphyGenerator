@@ -6,7 +6,7 @@ source_files:
   - poggio_webapp/app.py
   - poggio_webapp/backend/__init__.py
   - tests/conftest.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Application factory
@@ -174,6 +174,7 @@ BLUEPRINTS = (
     pages_bp, jobs_bp, editor_bp, finds_bp, scans_bp, preprocess_bp,
     extraction_bp, features_bp, markers_bp, manual_bp, task_status_bp,
     text_metadata_bp, processing_bp, gempy_bp, harris_bp, trenches_bp,
+    demo_bp,
 )
 
 
@@ -194,7 +195,7 @@ See [blueprint and plugin registries](blueprint-and-plugin-registries.md).
 | **`create_app(config)`** | Parameterise the factory | The common extension, and this project has no configuration to vary — the storage roots are already redirectable via [late binding](late-binding-vs-import-time-binding.md), which is what the tests actually need. |
 | **A no-argument factory** *(chosen)* | `create_app()` | Minimal, testable, and the invariant "everything is registered here" is easy to state and to check. |
 
-The deciding property is **testability without a running server**. 707 tests
+The deciding property is **testability without a running server**. 1135 tests
 build applications freely because construction is a function call.
 
 ## What it costs

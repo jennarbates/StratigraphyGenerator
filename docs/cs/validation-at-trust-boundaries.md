@@ -7,7 +7,7 @@ source_files:
   - poggio_webapp/backend/harris_store.py
   - poggio_webapp/pipeline/build_gempy.py
   - poggio_webapp/static/visualizer/volume3d-core.mjs
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Validation at trust boundaries
@@ -79,8 +79,11 @@ def _has_valid_manifest_fields(manifest):
 ```
 
 Note `type(...) is int` rather than `isinstance` — because `bool` is a subclass
-of `int` in Python, and `True` would otherwise pass as a schema version. The
-same trap is handled explicitly in the number check:
+of `int` in Python, and `True` would otherwise pass as a schema version. (The
+`== 1` pin is currently stale against the writer, which now stamps 2 — see
+[schema versioning](schema-versioning.md) — so this degrade path fires for
+freshly built manifests.) The same trap is handled explicitly in the number
+check:
 
 ```python
 def _valid_number(value):
@@ -91,10 +94,10 @@ def _valid_number(value):
     )
 ```
 
-That exact pattern appears four times across the codebase — here,
-`true_dip._number`, `editor/geometry._point_coordinates`, and
-`manual_extraction._positive_number` — each at a point where untrusted JSON
-becomes a number.
+The same guard — exclude `bool`, require a finite value — appears four times
+across the codebase: here, `true_dip._number`,
+`editor/geometry._point_coordinates`, and `manual_extraction._positive_number`,
+each at a point where untrusted JSON becomes a number.
 
 Semantic checks sit alongside the type checks: `extent[0] < extent[1]` is not a
 type constraint, it is the statement that a bounding box must be non-degenerate.

@@ -633,6 +633,92 @@ button.secondary{
   font-size: 12px;
 }
 
+/* The demonstration card. Deliberately quieter than .sidebar-help: that block
+   tells you what to do with your own work, and this one offers something that
+   is not your work. It should be findable, not competing. */
+.demo-card{
+  display: grid;
+  gap: 5px;
+  margin-top: 14px;
+  padding: 13px 14px;
+  color: var(--ink-soft);
+  background: var(--panel);
+  border: 1px dashed var(--panel-border);
+  border-radius: 9px;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.demo-card strong{
+  color: var(--ink);
+  font-size: 12px;
+}
+
+.demo-action-row{
+  display: grid;
+  gap: 2px;
+  margin-top: 4px;
+}
+
+.demo-action{
+  justify-self: start;
+  padding: 5px 10px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.demo-action:hover:not(:disabled){ border-color: var(--ink-soft); }
+.demo-action:disabled{ cursor: not-allowed; opacity: .55; }
+
+.demo-detail{ color: var(--ink-soft); }
+
+.demo-open,
+.demo-remove{
+  justify-self: start;
+  margin-top: 6px;
+  padding: 0;
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: var(--ink-soft);
+  background: none;
+  border: 0;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.demo-status:not(:empty){
+  margin-top: 6px;
+  color: var(--ink);
+}
+
+/* Demonstration data, wherever it appears. Both the trench heading and the
+   job list use it, because the one thing that must never happen is a seeded
+   trench being mistaken for the operator's own -- or, on a real record set,
+   invented geometry being mistaken for evidence. */
+.demo-flag{
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 7px;
+  font-family: var(--font-body);
+  font-size: 10px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  background: rgba(38,49,42,.06);
+  border-radius: 999px;
+  vertical-align: middle;
+}
+
+.demo-flag[data-real="yes"]{
+  color: var(--err);
+  background: rgba(164,82,47,.10);
+}
+
 .previous-work{
   margin-top: 22px;
   padding-top: 18px;

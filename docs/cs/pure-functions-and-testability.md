@@ -7,14 +7,15 @@ source_files:
   - poggio_webapp/pipeline/merge_walls.py
   - poggio_webapp/static/canvas/grid.mjs
   - tests/conftest.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Pure functions and testability
 
 A function whose output depends only on its inputs, with no side effects. Easy
-to test, and the reason 707 Python tests and 84 browser tests run in under four
-seconds.
+to test, and the reason most of this project's 1135 Python tests and its
+standalone browser tests run on literal inputs, with no fixtures, no server,
+and no disk.
 
 ## What it is
 
@@ -179,12 +180,14 @@ temporary directory, automatically. See
 ### The measurable result
 
 ```
-707 passed, 1 skipped in 2.70s
-84 browser tests pass in 0.8s
+1135 Python tests collected
+21 browser test files, each a plain node script with no framework
 ```
 
 Most of those call pipeline functions directly. The Flask `client` fixture
-exists and is used where routing genuinely needs testing — the minority.
+exists and is used where routing genuinely needs testing — the minority. The
+full Python run is dominated by a handful of integration and subprocess tests,
+not by the hundreds of pure-function tests.
 
 ## Why this and not something else
 

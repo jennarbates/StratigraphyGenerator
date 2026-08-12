@@ -7,10 +7,9 @@ source_files:
   - poggio_webapp/storage.py
   - poggio_webapp/backend/config.py
   - poggio_webapp/backend/__init__.py
-  - poggio_webapp/app.py
   - poggio_webapp/requirements.txt
   - requirements-docs.txt
-verified_against: a8b58f1
+verified_against: ae2fc1d
 ---
 
 # Configuration
@@ -90,8 +89,8 @@ Then `/api/jobs/<job_id>/gempy` becomes available.
 
 Tests use the application dependencies plus:
 
-- `pytest` — unit test framework
-- `pytest-cov` — coverage reporting
+- `pytest` — unit test framework (in `pyproject.toml`'s `dev` extra, alongside
+  `ruff`)
 
 ---
 
@@ -129,11 +128,13 @@ ALLOWED_SCAN_EXT = {".png", ".jpg", ".jpeg", ".pdf", ".tif", ".tiff"}
 
 ### Preprocessed Output
 
-Preprocessing saves to `02_preprocess/` with filenames:
+Preprocessing saves to `02_preprocess/` with filenames derived from the
+uploaded file's stem:
 
-- `clean.png` — deskewed, rotated image
-- `deskew_angle.txt` — rotation angle (degrees)
-- others (context-dependent)
+- `<name>_clean.png` — deskewed, upscaled working image
+- `<name>_highcontrast.png` — optional viewing aid
+
+The deskew angle is returned in the preprocess response, not written to disk.
 
 ### Extraction Output
 
@@ -147,15 +148,16 @@ Extraction saves to `03_extraction/` with names:
 
 Normalization saves to `04_normalize_validate/`:
 
-- `output_clean.json` — structured, validated data
-- validation report (in `meta.json`)
+- `output_clean.json` — cleaned extraction data
+- validation report — returned by the validate step; the editor finalisation
+  flow also stores it in `meta.json`
 
 ### Coordinate Conversion
 
 Conversion saves to `05_convert_coords/`:
 
 - `points.csv` — site-wide 3D points
-- `orientations_csv` — optional orientations
+- `points_orientations.csv` — layer orientation seeds
 
 ### GemPy Model
 
@@ -195,7 +197,10 @@ Model building saves to `06_gempy_model/`:
 }
 ```
 
-All paths are absolute filesystem paths.
+All paths are absolute filesystem paths. Jobs carry further keys when set:
+`created_at` (editor and demo jobs), `trench_label` / `wall_label` / `season` /
+`site_grid` (multi-wall registration), `surface_labels` (conversion), and
+`demo` (seeded demonstration provenance).
 
 ---
 
@@ -209,8 +214,8 @@ The Flask app is created by `backend.create_app()` in `poggio_webapp/backend/__i
 def create_app() -> Flask:
     app = Flask(
         __name__,
-        static_folder=str(STATIC_DIR),
-        template_folder=str(TEMPLATES_DIR),
+        static_folder=str(storage.STATIC_DIR),
+        template_folder=str(storage.TEMPLATES_DIR),
         static_url_path="/static",
     )
     register_blueprints(app)
@@ -222,17 +227,23 @@ def create_app() -> Flask:
 
 All routes are registered as blueprints from `backend.routes`:
 
-- `pages_bp` — UI pages (`/`, `/visualizer`)
+- `pages_bp` — UI pages (`/`, `/visualizer`, `/jobs/<id>`, `/trenches`)
 - `jobs_bp` — job lifecycle
-- `scans_bp` — scan upload
+- `editor_bp` — canvas editor sessions and finalisation
+- `finds_bp` — find records
+- `scans_bp` — scan upload and job labels
 - `preprocess_bp` — image preprocessing
-- `extraction_bp` — AI/manual extraction
+- `extraction_bp` — AI extraction and JSON upload
 - `features_bp` — feature detection
 - `markers_bp` — marker detection (experimental)
 - `manual_bp` — manual tracing
 - `task_status_bp` — task polling
+- `text_metadata_bp` — writing check (text candidates)
 - `processing_bp` — normalize/validate/convert
 - `gempy_bp` — 3D model building
+- `harris_bp` — Harris matrix workspaces
+- `trenches_bp` — multi-wall trench builds
+- `demo_bp` — demonstration seeding
 
 ### Error Handling
 
@@ -295,7 +306,7 @@ All three are gitignored, so a fresh clone has none of them.
 
 - **In-memory tasks:** Asynchronous tasks (extraction, GemPy build) are stored in memory. If the server restarts, running tasks are lost.
 - **File-based jobs:** Completed job data (meta.json, artifacts) persists on disk.
-- **Single-threaded task queue:** Tasks run in a thread pool; concurrent extractions may wait if the pool is saturated.
+- **One thread per task:** Each task runs on its own daemon thread; there is no queue or pool bounding concurrency, only a retention ceiling of 200 finished task records.
 
 ### Restart Behavior
 
@@ -329,7 +340,7 @@ Validation parameters can be adjusted per-job via `/api/jobs/<job_id>/validate`:
 |-----------|---------|------|-------|
 | `monotonic_tolerance` | 0.02 | meters | Allow bottom boundary to be slightly above previous layer bottom (overlap detection) |
 | `top_continuity_tolerance` | 0.10 | meters | Allow gap between layer bottom and next layer top |
-| `max_plausible_depth` | 5.0 | meters | Flag deeper measurements as implausibly deep (warning) |
+| `max_depth` | 5.0 | meters | Flag deeper measurements as implausibly deep (warning) |
 
 These can be overridden per-request; defaults come from `poggio_webapp/pipeline/validator.py`.
 
@@ -343,12 +354,17 @@ Asynchronous tasks use Python's `threading.Thread` and a task registry in `backe
 
 ### Job Metadata Locking
 
-In `app.py`, meta file access is protected by `threading.Lock` to avoid corruption during concurrent edits:
+Meta file access during finalisation is protected by `threading.Lock` in
+`backend/services/editor_pipeline.py`, so two concurrent finalize requests
+cannot both decide the job is idle and start the pipeline twice:
 
 ```python
-_EDITOR_META_LOCK = threading.Lock()
-_STATUS_MESSAGES_LOCK = threading.Lock()
+FINALIZATION_LOCK = threading.Lock()
+META_LOCK = threading.Lock()
 ```
+
+The task registry has its own `_TASKS_LOCK` in `backend/tasks.py`, guarding
+the read-decide-delete sequence that evicts finished tasks.
 
 ### Filesystem roots
 

@@ -6,7 +6,7 @@ source_files:
   - poggio_webapp/pipeline/preprocess.py
   - poggio_webapp/pipeline/manual_extraction.py
   - poggio_webapp/pipeline/convert_coords.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Homogeneous coordinates
@@ -118,7 +118,7 @@ into a matrix.
 | Alternative | How it would work here | Why it lost — or won |
 |---|---|---|
 | **Homogeneous matrices throughout** | Represent every calibration as a 3×3, compose, apply | The right answer when transforms compose — a graphics pipeline, a robot arm, a nested scene graph. Here the two conversions are separate, applied once each, and never chained. The composition benefit never arrives. |
-| **Explicit component arithmetic** *(chosen)* | Write out the multiplications | Every geometric decision stays visible and independently commentable. It also avoids a matrix library dependency in `convert_coords.py`, which imports only `csv` and `math`. |
+| **Explicit component arithmetic** *(chosen)* | Write out the multiplications | Every geometric decision stays visible and independently commentable. It also keeps any matrix library out of `convert_coords.py`, whose imports are `csv`, `math`, and two sibling site modules. |
 | **A matrix library (NumPy) for the coordinate code** | `np.array` and `@` | Already a dependency for the image work. For 2- and 3-element vectors it is *slower* than plain floats — array allocation dominates — and it would obscure the conventions. |
 | **Homogeneous inside OpenCV, explicit outside** *(what happens)* | Let the library use them where it composes; write out the two conversions | Each context gets the representation that suits it. |
 

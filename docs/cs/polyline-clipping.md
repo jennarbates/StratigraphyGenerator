@@ -4,7 +4,7 @@ audience: developer
 status: current
 source_files:
   - poggio_webapp/static/visualizer/layer-fill.mjs
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Polyline clipping
@@ -199,9 +199,9 @@ The correctness costs:
   are near-horizontal, so this is small.
 - **Vertical segments need their own branch**, since interpolation by `along`
   would divide by zero.
-- **`EPSILON` appears seven times** in this file. Every one is guarding a
-  comparison on coordinates that have been through arithmetic — see
-  [epsilon comparison](epsilon-comparison.md).
+- **`EPSILON` guards more than two dozen comparisons** in this file. Every one
+  is protecting a comparison on coordinates that have been through arithmetic —
+  see [epsilon comparison](epsilon-comparison.md).
 
 ## Where else you meet it
 

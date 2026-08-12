@@ -10,7 +10,7 @@ source_files:
   - poggio_webapp/backend/routes/markers.py
   - poggio_webapp/backend/routes/gempy.py
   - poggio_webapp/backend/routes/task_status.py
-verified_against: b7a381e
+verified_against: ae2fc1d
 ---
 
 # Asynchronous tasks
@@ -73,6 +73,7 @@ sequenceDiagram
 
 ## Related tests
 
+- `tests/test_tasks_runtime.py`
 - `tests/test_editor_status.py`
 
 ## Related workflow pages
@@ -82,4 +83,4 @@ sequenceDiagram
 
 ## Under the hood
 
-The task helper in `poggio_webapp/backend/tasks.py` uses a daemon thread to run the supplied callable and updates a shared dictionary with the current status. The route modules call that helper when a workflow step needs a background operation, but the task store remains process-local. This is sufficient for the current local-development workflow, but it is an important limitation for restart resilience and for any future multi-process deployment.
+The task helper in `poggio_webapp/backend/tasks.py` uses a daemon thread to run the supplied callable and updates a shared dictionary with the current status. Submission introspects the callable with `inspect.signature`, so partials and callable objects are accepted and the progress callback is only injected where it is declared. The registry is bounded: past a ceiling of 200 entries, finished tasks are evicted oldest-first under a lock, and a running task is never evicted, so a poller cannot lose the record it is waiting on. The route modules call that helper when a workflow step needs a background operation, but the task store remains process-local. This is sufficient for the current local-development workflow, but it is an important limitation for restart resilience and for any future multi-process deployment.

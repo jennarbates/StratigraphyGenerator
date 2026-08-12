@@ -10,7 +10,7 @@ source_files:
   - poggio_webapp/static/shared/model3d-viewer.js
   - poggio_webapp/static/app/stages/visualize.js
   - poggio_webapp/backend/routes/pages.py
-verified_against: 15173f2
+verified_against: ae2fc1d
 ---
 
 # View and download
@@ -43,6 +43,12 @@ for 3D review, or both. The optional manifest `volume` entry makes
    - Drag to orbit, use the wheel or pinch to zoom, and right-drag or the
      platform-equivalent gesture to pan.
    - Show or hide each named surface, or use **Show all** and **Hide all**.
+     Surfaces are listed by their display label when the manifest carries one
+     (for example a locus with its Munsell reading); the underlying surface
+     name remains the identity.
+   - Toggle **Wall traces** to overlay the lines actually traced on each
+     wall; everything away from them is interpolated. Models built before
+     traces existed leave the toggle disabled.
    - Adjust opacity, toggle wireframe, and show or hide axes and bounds.
    - Use **Reset**, **Top**, **Front**, **Side**, and **3D** camera views.
      The model is Z-up and axis units are metres.
@@ -123,10 +129,12 @@ samples, not smooth closed geological solids. Unknown IDs are shown
 conservatively as `Lithology <id>`; they are never named from surface order,
 and ID `0` is not assumed to mean empty space.
 
-The default `50 × 50 × 30` grid contains 75,000 instances and is the supported
-performance gate. Slice rebuilds target less than 200 ms on the review
-machine. A raw binary uses two bytes per cell, and instance count, memory, and
-slice work grow with `nx × ny × nz`; larger volumes may not remain interactive.
+The app's default `50 × 50 × 30` job grid contains 75,000 instances and is the
+supported performance gate; a combined trench build defaults to the pipeline's
+`100 × 100 × 70` grid, 700,000 cells. Slice rebuilds target less than 200 ms
+on the review machine. A raw binary uses two bytes per cell, and instance
+count, memory, and slice work grow with `nx × ny × nz`; larger volumes may not
+remain interactive.
 
 ## Next
 

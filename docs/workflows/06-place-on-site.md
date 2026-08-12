@@ -5,7 +5,7 @@ status: current
 source_files:
   - poggio_webapp/pipeline/convert_coords.py
   - poggio_webapp/static/app/stages/convert.js
-verified_against: a8b58f1
+verified_against: ae2fc1d
 ---
 
 # Place on site
@@ -31,11 +31,21 @@ The four registration fields are:
 - `surfaceZ`: the ground-surface elevation at that edge.
 - `bearing_deg`: the clockwise-from-north direction of the face's local $+x$ axis.
 
+For a trench whose corners were surveyed, the registration does not have to be
+typed at all: `POST /api/trenches/<label>/layout` turns surveyed corner
+coordinates into a grid config, and `POST /api/trenches/geospatial-sheet`
+reads a season's Geospatial Spreadsheet export and returns one config per
+trench. Both return the config for checking and write nothing. See [trench
+layout](../archaeology/trench-layout.md) and [the Geospatial
+Spreadsheet](../archaeology/geospatial-spreadsheet.md).
+
 ## Do this
 
 1. Open the registration step after validation.
-   - Action: enter the four values for each face.
-   - Artifact: a grid-registration entry stored with the job.
+   - Action: the app fetches a starter table with placeholder values; replace
+     the four values for each face with surveyed ones, then choose "Use these
+     site coordinates".
+   - Artifact: a grid registration sent with the conversion request.
 2. Use the repository's coordinate formula exactly as implemented in the converter.
 
 ```text
@@ -67,9 +77,9 @@ These values are for a documentation walkthrough only. Replace them with real si
 
 ## What the application creates
 
-- A registered grid configuration for the face.
 - A converted point table in `points.csv`.
 - A converted orientation table in `points_orientations.csv`.
+- Job metadata recording the paths of both exports.
 
 ## Check your result
 

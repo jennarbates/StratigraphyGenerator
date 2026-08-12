@@ -69,6 +69,11 @@
         <strong>Unsure what to do?</strong>
         <span>Complete the highlighted step. Recommended settings are already chosen for you.</span>
       </div>
+
+      {# Populated by static/app/demo-card.js, and hidden until it answers:
+         a card advertising a demonstration the server cannot seed would be
+         worse than no card. #}
+      <div class="demo-card" data-demo-card aria-live="polite" hidden></div>
     {% endif %}
 
     <section class="previous-work" aria-labelledby="job-list-heading">
@@ -77,8 +82,21 @@
         {% for job in jobs %}
           <li data-job-source="{{ job.source }}" data-job-status="{{ job.status }}">
             <a href="{{ job.results_url }}">
-              <strong>Drawing {{ job.job_id[-6:] }}</strong>
-              {% if job.source == "manual_editor" %}
+              <strong>
+                {%- if job.demo and job.demo.title -%}
+                  {{ job.demo.title }}
+                {%- else -%}
+                  Drawing {{ job.job_id[-6:] }}
+                {%- endif -%}
+              </strong>
+              {% if job.demo %}
+                {# Never let a seeded drawing pass for the operator's own, and
+                   never let generated sections pass for evidence. #}
+                <span
+                  class="demo-flag"
+                  data-real="{{ 'no' if job.demo.provenance.startswith('Synthetic') else 'yes' }}"
+                >{{ job.demo.provenance }}</span>
+              {% elif job.source == "manual_editor" %}
                 <span>{{ job.source_label }}</span>
               {% endif %}
               <span>
@@ -205,6 +223,10 @@
 <script src="/static/results.js"></script>
 {% elif not result_job %}
 <script src="/static/app.js"></script>
+{# Loaded separately from the stage machinery: the demo card lives in the
+   sidebar, is useful before any stage has rendered, and must still appear if
+   the guide itself fails to start. #}
+<script type="module" src="/static/app/demo-card.js"></script>
 {% endif %}
 {% if result_job %}
 <script type="module">

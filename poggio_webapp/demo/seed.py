@@ -98,6 +98,18 @@ def _counterfactual_label(label: str) -> str:
     return f"{label}{int(digits) + 1:0{len(digits)}d}"
 
 
+def trench_label_for(scenario: Scenario, dataset_label: str | None = None) -> str:
+    """The trench label one scenario seeds under.
+
+    The complete run needs its own label so both demonstrations can sit in the
+    application at once and be compared side by side. Kept here rather than
+    inline in ``seed`` so that removing a demonstration can find the same
+    labels seeding it created, without re-deriving the rule and drifting.
+    """
+    label = dataset_label or scenario.dataset_label
+    return _counterfactual_label(label) if scenario.complete_registration else label
+
+
 def unregistered_corners(layout: dict) -> list[dict]:
     """The corners of this layout with no opening elevation."""
     read = trench_layout.read_layout(layout)
@@ -273,6 +285,11 @@ def _write_wall_job(
             "dataset": f"{dataset.label} {dataset.season}",
             "provenance": dataset.provenance,
             "generated_sections": True,
+            # The job list shows the last six characters of a job id, which is
+            # right for the uuids the application generates and useless for
+            # these: 'demo-t905-north-wall' renders as 'h-wall'. A seeded job
+            # knows what it is, so it says so.
+            "title": f"{trench_label} {wall_label}",
         },
     }
     (job_directory / "meta.json").write_text(json.dumps(meta, indent=2))
@@ -457,9 +474,7 @@ def seed(scenario_name: str, *, dataset_label: str | None = None) -> dict:
     if scenario.complete_registration:
         layout, supplied_notes = complete_layout(layout, loci_document)
         notes.extend(supplied_notes)
-        trench_label = _counterfactual_label(dataset.label)
-    else:
-        trench_label = dataset.label
+    trench_label = trench_label_for(scenario, dataset.label)
 
     removed = reset(trench_label)
 

@@ -7,7 +7,9 @@ source_files:
   - poggio_webapp/static/app/core/state.js
   - poggio_webapp/static/app/core/api.js
   - poggio_webapp/static/app/stages/scan.js
-verified_against: a8b58f1
+  - poggio_webapp/static/app/demo-card.js
+  - poggio_webapp/static/app/demo-mode.mjs
+verified_against: ae2fc1d
 ---
 
 # Frontend architecture
@@ -51,6 +53,8 @@ flowchart TD
 - `poggio_webapp/static/app/core/state.js`
 - `poggio_webapp/static/app/core/api.js`
 - `poggio_webapp/static/app/stages/scan.js`
+- `poggio_webapp/static/app/demo-card.js`
+- `poggio_webapp/static/app/demo-mode.mjs`
 
 ## Failure boundaries
 
@@ -72,5 +76,7 @@ flowchart TD
 ## Under the hood
 
 The renderer switchboard in `poggio_webapp/static/app/index.js` selects the current stage component. The shared state module in `poggio_webapp/static/app/core/state.js` defines the step order, prerequisites, and the invalidation rules that clear downstream data when an earlier step changes. The API helper in `poggio_webapp/static/app/core/api.js` wraps fetch calls and provides the polling helper used by the asynchronous task flow.
+
+The landing page also loads `poggio_webapp/static/app/demo-card.js` as its own module, outside the renderer map: the sidebar card that seeds and removes the demonstration trenches. It is wiring only — every sentence the card renders comes from `poggio_webapp/static/app/demo-mode.mjs`, which holds the state logic and is tested without a browser. That split is the repo-wide layering rule enforced by `poggio_webapp/static/module-layering.test.mjs`: `*.mjs` modules hold pure logic with no browser dependency and are the only side the headless suite imports, `*.js` files are the glue that wires them to the DOM, and only two named glue files (`shared/model3d-viewer.js`, `visualizer/volume3d.js`) may import three.js.
 
 This frontend is user-facing and should be read as the visible workflow. Its backend calls are separate from the current UI availability labels: the browser can expose a step as supported, experimental, or optional depending on what the current UI renders, even when the backend route exists independently.

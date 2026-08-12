@@ -4,12 +4,12 @@ audience: developer
 status: current
 source_files:
   - poggio_webapp/pipeline/validator.py
-verified_against: a8b58f1
+verified_against: ae2fc1d
 ---
 
 # Validation Rules
 
-This reference documents all data-validation checks performed by the application. Validators run automatically after normalization or when explicitly requested via `/api/jobs/<job_id>/validate`.
+This reference documents all data-validation checks performed by the application. Validators run automatically during editor finalisation (after normalization) or when explicitly requested via `/api/jobs/<job_id>/validate`.
 
 ```mermaid
 flowchart TD
@@ -45,12 +45,14 @@ The validator returns:
     ...
   ],
   "warnings": [
-    "[WARN] <location>: <message>",
+    "[WARN]  <location>: <message>",
     ...
   ],
   "ok": true | false
 }
 ```
+
+(The `[WARN]` prefix carries two spaces, aligning it with `[ERROR]`.)
 
 - **`ok: true`** — no errors (warnings permitted)
 - **`ok: false`** — one or more errors; data should not proceed to conversion
@@ -86,7 +88,7 @@ The validator returns:
 
 ### 4. Fabrication Detection
 
-These warnings flag automatic extraction results that may be computer-generated rather than hand-traced.
+These warnings flag automatic extraction results that may be computer-generated rather than hand-traced. Both checks are skipped when the document's `source` is `"manual_editor"` — hand-traced boundaries are exempt.
 
 #### Uniform Spacing (Field-Wall and Illustrator)
 
@@ -96,11 +98,11 @@ These warnings flag automatic extraction results that may be computer-generated 
 
 **Coefficient of Variation (CV):** $\text{CV} = \frac{\sigma}{\mu}$ of x-interval spacings. Real boundaries: CV ≈ 0.20; fabricated: CV ≈ 0.00.
 
-#### Parallel Offset (Field-Wall Only)
+#### Parallel Offset (Field-Wall and Illustrator)
 
 | Rule | Level | Trigger | Notes |
 |------|-------|---------|-------|
-| Copied boundaries | warning | Two layers have identical boundary shapes offset by constant depth within 0.5 cm tolerance | `layers <layer1> and <layer2> have identical boundary shapes offset by constant <offset> m — one boundary copied down` |
+| Copied boundaries | warning | Two layers have identical boundary shapes offset by constant depth within 0.5 cm tolerance | `layers <layer1> and <layer2> have identical boundary shapes offset by a constant <offset> m — almost certainly one boundary copied down` |
 
 ---
 
@@ -124,13 +126,13 @@ These checks apply only to `FieldWallProfile` extractions (identified by `loci` 
 | Rule | Level | Trigger | Notes |
 |------|-------|---------|-------|
 | Missing locus entry | warning | `layers[].locusNumber` references a locus not in `loci[]` | `<face>: layer references locus <num>, which has no entry in loci[] (no Munsell reading)` |
-| Duplicate locus | warning | `loci[]` contains the same `locusNumber` twice with different Munsell readings | `<face>: locus <num> appears <count> times in loci[] with different Munsell readings — converter will use the first` |
+| Duplicate locus | warning | `loci[]` contains the same `locusNumber` more than once (readings are not compared) | `<face>: locus <num> appears <count> times in loci[] with different Munsell readings — the converter will use the first` |
 
 ### Grid Tie Points
 
 | Rule | Level | Trigger | Notes |
 |------|-------|---------|-------|
-| Scale mismatch | warning | Grid labels span and drawn grid extent differ by > 50% or < 67% | `<face>: tie-point labels span <span> units but were placed across only <extent> m of the drawing (<ratio>x apart). If those labels are metre marks, the extracted scale is wrong.` |
+| Scale mismatch | warning | Ratio of label span to drawn span > 1.5 or < 0.67 (needs two or more numeric tie-point labels) | `<face>: tie-point labels span <span> units but were placed across only <extent> m of the drawing (<ratio>x apart). If those labels are metre marks, the extracted scale is wrong.` |
 
 ---
 

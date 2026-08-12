@@ -6,7 +6,7 @@ source_files:
   - poggio_webapp/pipeline/true_dip.py
   - poggio_webapp/pipeline/convert_coords.py
   - poggio_webapp/backend/services/trench_builder.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Apparent and true dip

@@ -7,15 +7,36 @@ source_files:
   - poggio_webapp/demo/seed.py
   - poggio_webapp/demo/walls.py
   - poggio_webapp/demo/run.py
+  - poggio_webapp/backend/routes/demo.py
+  - poggio_webapp/static/app/demo-mode.mjs
   - tests/test_demo.py
+  - tests/test_demo_routes.py
   - Makefile
-verified_against: 13091c9
+verified_against: ae2fc1d
 ---
 
 # Run the demo
 
-Two commands put a whole excavated trench into the application and take it to a
-model — no drawing to trace, no survey to type in, no API key.
+A whole excavated trench, taken to a model — no drawing to trace, no survey to
+type in, no API key.
+
+## From the application
+
+Start it with `make run` and open <http://localhost:5000>. In the sidebar:
+
+> **Never used this before?** Load a demonstration trench — no drawing needed.
+> **[See it refuse]** · **[See it build]**
+
+Each button seeds one trench. Then open the trenches page and press **Build the
+combined model** — the registration is already filled in from the trench's
+surveyed records, so there is nothing to type.
+
+Pressing Build yourself is the point. The two trenches end differently, and
+watching that happen is the demonstration.
+
+"Remove the demonstration" takes both back out again.
+
+## From the command line
 
 ```bash
 make demo
@@ -25,8 +46,8 @@ make demo
 make demo-run
 ```
 
-The first seeds **two** trenches. The second builds them, and they end
-differently on purpose.
+The first seeds both trenches; the second builds them and reports where each
+one lands.
 
 ## Why there are two
 
@@ -138,12 +159,14 @@ Everything lands in `poggio_webapp/jobs/`, `poggio_webapp/trenches/` and
 application already uses for your own work. Nothing is written into the
 repository and nothing is copied out of `local/`.
 
-Seeded jobs are named `demo-t905-north-wall` and so on. Re-running `make demo`
-removes the previous run's demo trenches first, so the demonstration always
-opens on a known state, and leaves everything else alone.
+Seeded jobs are named `demo-t905-north-wall` and so on, and every one carries a
+provenance badge wherever it appears — in the drawing list and on the trenches
+page — so a demonstration trench is never mistaken for your own work.
 
-To remove them entirely, delete the four `demo-*` job directories and the
-`T905`/`T906` trench directories.
+Re-seeding removes the previous run's demo trenches first, so the
+demonstration always opens on a known state and leaves everything else alone.
+"Remove the demonstration" in the sidebar, or `DELETE /api/demo`, takes both
+trenches back out.
 
 ## Related
 

@@ -5,7 +5,7 @@ status: current
 source_files:
   - poggio_webapp/static/visualizer/volume3d-core.mjs
   - poggio_webapp/backend/services/viewer_files.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Same-origin URL validation

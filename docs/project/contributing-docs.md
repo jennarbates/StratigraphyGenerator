@@ -8,7 +8,7 @@ source_files:
   - docs/_meta/page-template.md
   - mkdocs.yml
   - requirements-docs.txt
-verified_against: d23b842
+verified_against: ae2fc1d
 ---
 
 # Contributing to the docs
@@ -67,8 +67,10 @@ is invisible to readers, so the checker treats it as an error, not a warning.
 ### 4. Run the checks
 
 ```bash
-python tools/docs/check_docs.py . && python tools/docs/check_coverage.py . && python tools/docs/validate_visual_manifest.py . && mkdocs build --strict
+python tools/docs/check_docs.py . && python tools/docs/check_coverage.py . && python tools/docs/validate_visual_manifest.py . && python tools/docs/check_readme_sync.py . && mkdocs build --strict
 ```
+
+`make check-docs` runs the same five commands.
 
 ## What the checkers enforce
 
@@ -85,9 +87,10 @@ python tools/docs/check_docs.py . && python tools/docs/check_coverage.py . && py
 It exits `0` and prints `Documentation checks passed.` when clean.
 
 `tools/docs/check_coverage.py` adds one further rule: every module under
-`poggio_webapp/pipeline/` and `poggio_webapp/backend/` must be named by **full
-path** on some page. The full path is required so an ordinary English word
-cannot cover a module by accident — `trenches.py` would otherwise look
+`poggio_webapp/pipeline/`, `poggio_webapp/backend/`, and `poggio_webapp/demo/`
+— plus `poggio_webapp/app.py` and `poggio_webapp/storage.py` — must be named
+by **full path** on some page. The full path is required so an ordinary
+English word cannot cover a module by accident — `trenches.py` would otherwise look
 documented because "trenches" appears throughout the prose. A `source_files`
 entry satisfies it, so writing correct front matter usually satisfies it for
 free.
@@ -174,7 +177,8 @@ so a failure names itself:
 5. `pytest tests/` and the Node test suites
 6. `mkdocs build --strict`
 7. A regeneration check: `generate_diagrams.py` must produce no diff against
-   the committed SVGs, so a hand-edited or stale diagram cannot ship
+   the committed SVGs, so a hand-edited or stale diagram cannot ship. `make
+   diagrams` runs the same check locally
 
 Pushes to `main` that pass then deploy the built site to GitHub Pages.
 

@@ -3,10 +3,9 @@ title: Drawing trench profiles for digital capture
 audience: operator
 status: current
 source_files:
-  - 00_docs/IllusstratorGuide.md
   - poggio_webapp/pipeline/extract_illustrator.py
   - poggio_webapp/pipeline/validator.py
-verified_against: c702617
+verified_against: ae2fc1d
 ---
 
 # Drawing Trench Profiles for Digital Capture — Illustrator Guidelines

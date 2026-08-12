@@ -5,7 +5,7 @@ status: current
 source_files:
   - poggio_webapp/pipeline/harris_matrix.py
   - poggio_webapp/pipeline/merge_walls.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Topological sorting
@@ -205,7 +205,7 @@ one node — so the order is over display nodes rather than raw units.
 | **Kahn with a plain list or set** | Arbitrary among ready nodes | Non-deterministic. The same matrix could render two different diagrams, and a diff of two saves would show spurious changes. |
 | **Kahn with a min-heap** *(chosen)* | Earliest-seen among ready nodes | Deterministic, and the tie-break is a meaningful one — document order in `merge_walls`, stable IDs in `harris_matrix`. |
 | **Sort by depth or elevation** | Order by measured Z | Tempting, and it ignores the recorded relationships in favour of geometry. Two deposits at the same depth on opposite sides of a trench are not contemporaneous just because their elevations match. |
-| **Require the user to supply an order** | Ask | `merge_walls` allows exactly this — `body.get("series_order")` — and computes one only when the user has not. Both paths exist. |
+| **Require the user to supply an order** | Ask | The build allows exactly this — `trench_builder.resolve_series_order` takes a `series_order` supplied with the request first, then a reviewed Harris matrix, and falls back to `merged_series_order` only when neither exists. All paths exist. |
 
 The deciding argument is the same one that runs through the graph work: **the
 evidence gives a partial order, and a topological sort is the minimal way to
@@ -225,8 +225,10 @@ The subtleties:
   incremented twice for one relationship never reaches zero, so it vanishes from
   the output and looks like a cycle. Both implementations guard against this.
 - **Self-loops are instant cycles**, hence the explicit skip in `merge_walls`.
-- **A cycle yields a short output**, not an exception — so the caller must check
-  the length. Both do.
+- **A cycle yields a short output**, not an exception — so the caller must
+  check. `merge_walls` compares the output length to the node count;
+  `harris_matrix` runs [cycle detection](cycle-detection.md) before sorting at
+  all.
 
 ## Where else you meet it
 

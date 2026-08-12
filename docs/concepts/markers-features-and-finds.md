@@ -10,7 +10,7 @@ source_files:
   - poggio_webapp/pipeline/editor/finds.py
   - poggio_webapp/app.py
   - poggio_webapp/static/app/index.js
-verified_against: c702617
+verified_against: ae2fc1d
 ---
 
 # Markers, features, and finds
@@ -78,7 +78,7 @@ finalized, so it is not a boundary point or a feature shape.
 | Where it applies | Field recording sheets | Both sheet types | Any existing job, even without saved stratigraphy |
 | How geometry is recorded | Computer-vision candidates retain fixed coordinates through backend classification | Human tracing is supported; AI tracing is experimental; CV proposals are backend-only | A person marks a point on the find logger's reference canvas and enters its elevation |
 | Current availability | `backend-only` automated flow | `supported` manual tracing; `backend-only` automated detection | `experimental` direct `/finds` page |
-| Main implementation | `pipeline/detect_markers.py` and `pipeline/assign_markers.py` | `pipeline/detect_features.py`, extraction schemas, and the manual route | `pipeline/editor.py`, application find routes, and the finds page |
+| Main implementation | `pipeline/detect_markers.py` and `pipeline/assign_markers.py` | `pipeline/detect_features.py`, extraction schemas, and the manual route | `pipeline/editor/finds.py`, application find routes, and the finds page |
 
 ### Markers
 
@@ -126,9 +126,9 @@ traced boundary can: either the dot is on the paper or it is not.
 
 ### Finds
 
-- `pipeline/editor.py` stores each job's find records in `finds.json` and
-  gives a new record a 12-character `find_id` when it does not already have
-  one.
+- `pipeline/editor/finds.py` stores each job's find records in `finds.json`
+  and gives a new record a 12-character `find_id` when it does not already
+  have one.
 - Adding or deleting a find also copies the current list into
   `extraction_output.json` when that finalized output exists. If it does not
   exist, find logging still works independently.

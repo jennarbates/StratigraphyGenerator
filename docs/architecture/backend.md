@@ -10,12 +10,13 @@ source_files:
   - poggio_webapp/backend/routes/jobs.py
   - poggio_webapp/backend/routes/editor.py
   - poggio_webapp/backend/routes/finds.py
+  - poggio_webapp/backend/routes/demo.py
   - poggio_webapp/backend/services/editor_pipeline.py
   - poggio_webapp/backend/services/harris_workspace.py
   - poggio_webapp/backend/services/trench_builder.py
   - poggio_webapp/backend/services/viewer_files.py
   - poggio_webapp/backend/tasks.py
-verified_against: b7a381e
+verified_against: ae2fc1d
 ---
 
 # Backend architecture
@@ -32,12 +33,17 @@ flowchart LR
   Reg --> H[harris]
   Reg --> T[trenches]
   Reg --> E[editor, finds]
+  Reg --> D[demo]
   E --> Svc[backend/services/]
   T --> Svc
   Svc --> Pipe[pipeline modules]
+  D --> Seed[demo/ package]
   J --> Store[(job folders)]
   H --> Mat[(matrix folders)]
   T --> Tr[(trench folders)]
+  Seed --> Store
+  Seed --> Tr
+  Seed --> Mat
 ```
 
 *One blueprint per concern; the route layer owns persistence.*
@@ -70,6 +76,7 @@ flowchart LR
 - `poggio_webapp/backend/routes/jobs.py`
 - `poggio_webapp/backend/routes/editor.py`
 - `poggio_webapp/backend/routes/finds.py`
+- `poggio_webapp/backend/routes/demo.py`
 - `poggio_webapp/backend/services/editor_pipeline.py`
 - `poggio_webapp/backend/services/harris_workspace.py`
 - `poggio_webapp/backend/services/trench_builder.py`
@@ -80,12 +87,17 @@ flowchart LR
 The extraction of routes out of `poggio_webapp/app.py` is complete.
 `app.py` now only builds the application and runs it — it defines no routes at
 all, and its module docstring says that anything you are about to add there
-belongs in a blueprint instead. Two blueprints and four service modules are the
-newest part of that move:
+belongs in a blueprint instead. These blueprints and the four service modules
+are the newest part of that structure:
 
 - `poggio_webapp/backend/routes/editor.py` — the manual drawing editor and its
   model-build lifecycle.
 - `poggio_webapp/backend/routes/finds.py` — finds logged against a job.
+- `poggio_webapp/backend/routes/demo.py` — seeds and removes the
+  demonstration trenches through the `poggio_webapp/demo/` package. Seeding is
+  fast enough to answer in the request; the build is deliberately left to the
+  operator on the trenches page, because watching one trench refuse and the
+  other build is the demonstration.
 - `poggio_webapp/backend/services/editor_pipeline.py` — drives a finalized
   editor session through normalize → validate → convert → build. The build is
   asynchronous, and `meta.json` is updated at each step, so a browser polling
@@ -120,6 +132,7 @@ pipeline stages together belongs here rather than in a route.
 - `tests/test_editor_routes.py`
 - `tests/test_editor_status.py`
 - `tests/test_finds_routes.py`
+- `tests/test_demo_routes.py`
 
 ## Related workflow pages
 

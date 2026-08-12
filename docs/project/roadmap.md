@@ -6,8 +6,10 @@ source_files:
   - poggio_webapp/pipeline/convert_coords.py
   - poggio_webapp/pipeline/assign_markers.py
   - poggio_webapp/pipeline/build_gempy.py
+  - poggio_webapp/pipeline/merge_walls.py
   - poggio_webapp/requirements.txt
-verified_against: d23b842
+  - .github/workflows/docs.yml
+verified_against: ae2fc1d
 ---
 
 # Roadmap
@@ -26,19 +28,22 @@ Nothing in phases 2–3 matters while the underlying geometry is still invalid.
 
 ### 1. Real grid registration
 
-The binding constraint. Get the four registration values per face from the site
-records.
+**Partly done.** The binding constraint: get the four registration values per
+face from the site records. That path now exists — a surveyed trench layout or
+a season's Geospatial Spreadsheet derives the grid config
+(`POST /api/trenches/<label>/layout`, `POST /api/trenches/geospatial-sheet`),
+and the trenches page prefills a stored derived registration where one exists.
 
-Then add a provenance field to the grid config
-(`"source": "surveyed" | "placeholder"`) and have the model build refuse — or
-at least watermark its output — when building from placeholders. Nothing
-currently stops a placeholder model from being mistaken for a real one once it
-leaves the application.
+The provenance field this item asked for exists too: the grid config carries
+`"source": "surveyed" | "placeholder"`, the starter config declares
+`placeholder`, and the multi-wall build refuses that declaration.
 
-The [multi-wall trench build](../workflows/09-multi-wall-trench.md) already
-refuses placeholder registration, because merged models amplify
-mis-registration badly enough that the failure is not survivable. Single-sheet
-builds still accept it. Making that consistent is the work.
+What remains is consistency. The [multi-wall trench
+build](../workflows/09-multi-wall-trench.md) refuses placeholder registration,
+because merged models amplify mis-registration badly enough that the failure
+is not survivable. Single-sheet builds still accept it and nothing watermarks
+their output, so a placeholder single-sheet model can still be mistaken for a
+real one once it leaves the application.
 
 ### 2. Wire marker assignment into the interface
 
@@ -73,14 +78,17 @@ guidelines](../reference/drawing-guidelines.md).
 
 ### 5. Tests
 
-**Largely done.** Several hundred Python tests and 78 JavaScript tests now run
-without a key or network access. The pure functions this item named — the
-coordinate transform, `fieldwall_to_profiles`, the fabrication heuristics — are
-covered, and the merge layer added 55 more.
+**Largely done.** Several hundred Python tests and over two hundred JavaScript
+tests now run without a key or network access. The pure functions this item
+named — the coordinate transform, `fieldwall_to_profiles`, the fabrication
+heuristics — are covered, and the merge layer added 55 more.
 
-Two gaps remain: **CI does not exist** (there is no `.github/` directory, so
-nothing runs automatically), and there is still no golden-file test running a
-known extraction end-to-end through convert → validate.
+CI exists now: `.github/workflows/docs.yml` runs the documentation checkers,
+both test suites, a strict site build, and the diagram regeneration check on
+every push and pull request. One gap remains: there is still no golden-file
+test running a known extraction end-to-end through convert → validate — the
+merge-integration and T905 worked-example suites run synthetic records, not a
+real extraction.
 
 See [running the tests](../reference/running-the-tests.md) for what is and is
 not covered.
@@ -97,8 +105,8 @@ evidence, and can run automatically at validation.
 
 ### 7. Hygiene
 
-- Route uploads through `safe_job_path` / `secure_filename`. The download
-  route is guarded; the upload route saves the raw client filename.
+- **Done:** uploads now pass through `secure_filename` (with a safe fallback
+  name); the download routes were already guarded.
 - Pin versions in `poggio_webapp/requirements.txt`, which is currently
   unpinned. The documentation requirements are already pinned.
 - Add a license. There is none.
@@ -139,7 +147,9 @@ site-level aggregation of multiple trenches into one model.
 
 The [multi-wall merge](../workflows/09-multi-wall-trench.md) is the first step
 of this — it aggregates walls into a trench. Aggregating trenches into a site
-is the same problem one level up.
+is the same problem one level up. The season-wide [Geospatial Spreadsheet
+registration](../archaeology/geospatial-spreadsheet.md) is a second step: it
+registers every trench in a season from one file.
 
 ### 12. Standards-compliant export
 

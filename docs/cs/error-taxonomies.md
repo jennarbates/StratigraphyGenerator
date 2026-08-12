@@ -8,7 +8,7 @@ source_files:
   - poggio_webapp/backend/harris_store.py
   - poggio_webapp/backend/errors.py
   - poggio_webapp/backend/services/trench_builder.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Error taxonomies
@@ -123,7 +123,7 @@ class IncompleteGridRegistrationError(EditorStructuralValidationError):
     """Raised when any editor face lacks a complete grid registration."""
 ```
 
-Twelve classes, one per rule, under a common base. The docstring gives both
+Thirteen classes, one per rule, under a common base. The docstring gives both
 reasons: a caller can catch the whole family or one specific case, and the
 *meaning* of each failure lives with its class rather than being implied by a
 string at the raise site.
@@ -210,7 +210,12 @@ output: they tell the user which category they are in.
 machine-readable:
 
 ```python
-def _issue(code, message, unit_ids=(), relation_ids=()) -> dict:
+def _issue(
+    code: str,
+    message: str,
+    unit_ids=(),
+    relation_ids=(),
+) -> dict:
     return {
         "code": code,
         "message": message,
@@ -255,7 +260,7 @@ Nothing at runtime.
 
 The costs:
 
-- **Twelve exception classes** is a lot of file for a lot of one-line classes.
+- **Thirteen exception classes** is a lot of file for a lot of one-line classes.
   The payoff is that each carries its rule's meaning and can be caught
   individually.
 - **The severity split must be maintained.** Every new check needs a judgement,

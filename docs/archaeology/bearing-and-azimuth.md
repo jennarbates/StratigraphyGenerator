@@ -6,7 +6,7 @@ source_files:
   - poggio_webapp/pipeline/convert_coords.py
   - poggio_webapp/pipeline/true_dip.py
   - poggio_webapp/pipeline/merge_walls.py
-verified_against: 40e4a0d
+verified_against: ae2fc1d
 ---
 
 # Bearing and azimuth
@@ -89,8 +89,10 @@ For this project the bearing is what turns a wall's *shape* into a wall's
 
 with the starter config defining it:
 
-> bearing_deg = compass direction (clockwise from north) that the face's local
-> +x axis points.
+> bearing_deg = the direction the face's local +x axis points, in degrees
+> clockwise from GRID NORTH -- the site's artificial reference direction, the
+> one the total station sets as HA 0 (90 East, 180 South, 270 West). It is NOT
+> magnetic north and NOT projected north.
 
 ### Used, with `sin` and `cos` swapped
 

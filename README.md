@@ -81,7 +81,8 @@ Leave that running and open <http://localhost:5000>. Stop it with
 | `make run` | Start the app on <http://localhost:5000> |
 | `make test` | Run the Python test suite |
 | `make lint` | Check style and import hygiene |
-| `make check` | Lint, then test — what CI runs |
+| `make check` | Lint, docs checks, both test suites, diagrams — what CI runs |
+| `make demo` | Seed the two demonstration trenches (one refuses, one builds) |
 | `make docs` | Build this documentation site |
 | `make help` | List every target |
 
@@ -94,6 +95,11 @@ Leave that running and open <http://localhost:5000>. Stop it with
 | `gempy`, `gempy_viewer` — the 3D model build | No | `pip install gempy gempy_viewer` (heavy) |
 
 <!-- screenshot slot: quickstart-first-screen — see docs/assets/visual-manifest.yml -->
+
+Never used it before? The demo card in the application's sidebar loads a
+demonstration trench with nothing to trace or type — one trench the build
+refuses, one it completes. [Run the demo](docs/start-here/demo.md) explains
+the pair; `make demo` seeds the same two from the command line.
 
 Next: [choose your path](docs/start-here/choose-your-path.md) tells you which
 route suits your drawing, and
@@ -168,8 +174,9 @@ parallel walls instead of walls around a pit: a confident-looking model of
 nothing. Full detail:
 [combine walls into one trench](docs/workflows/09-multi-wall-trench.md).
 
-> **The page exists, but nothing links to it.** Open `/trenches` directly —
-> like the finds page, it works and is tested, but you have to know the address.
+> **The page is easy to miss.** The demo card links to it once a demonstration
+> is seeded; otherwise open `/trenches` directly — like the finds page, it
+> works and is tested, but you have to know the address.
 
 ### Harris matrices
 
@@ -379,11 +386,11 @@ The browser-side suite, which needs Node rather than Python:
 node --test "poggio_webapp/static/**/*.test.mjs" "docs/javascripts/**/*.test.mjs"
 ```
 
-The four documentation checks — links and front matter, module coverage, the
-visual manifest, and a strict site build:
+The documentation checks — links and front matter, module coverage, the
+visual manifest, README synchronisation, and a strict site build:
 
 ```bash
-python tools/docs/check_docs.py . && python tools/docs/check_coverage.py . && python tools/docs/validate_visual_manifest.py . && mkdocs build --strict
+make check-docs
 ```
 
 None of these needs GemPy, an API key, or network access.
@@ -398,14 +405,16 @@ Stated plainly, because a model that looks convincing and is wrong is the main
 risk this project carries.
 
 - **Registration is the binding constraint.** The starter values `0, 0, 100, 90`
-  are smoke-test placeholders. A single-sheet build still accepts them, and
-  nothing marks the resulting model as unsurveyed.
+  are smoke-test placeholders. The config now declares
+  `"source": "placeholder"` and the multi-wall build refuses it, but a
+  single-sheet build still accepts it, and nothing marks the resulting model
+  as unsurveyed.
 - **AI extraction is experimental.** It needs a key and network access, has no
   end-to-end test, and its output must be compared against the drawing by a
   human.
-- **Marker detection, feature detection, and multi-wall trenches are
-  backend-only.** The routes exist and are tested; no browser control reaches
-  them.
+- **Marker detection and feature detection are backend-only.** The routes
+  exist and are tested; no browser control reaches them. The multi-wall
+  trenches page works and is tested, but only the demo card links to it.
 - **Task state is in memory.** Restarting the server loses the status of a
   running build, though the files it already wrote survive.
 - **A single face is extrapolated** across the whole model extent, so confidence
@@ -437,9 +446,9 @@ are all recoverable from git history — see
 ### Contributing to the documentation
 
 Every page names the source files it describes and the commit it was verified
-against, and four checks run over the corpus: links and front matter, module
-coverage, the visual manifest, and a strict site build. See
-[contributing to the docs](docs/project/contributing-docs.md).
+against, and five checks run over the corpus: links and front matter, module
+coverage, the visual manifest, README synchronisation, and a strict site
+build. See [contributing to the docs](docs/project/contributing-docs.md).
 
 ---
 
@@ -451,8 +460,8 @@ mkdocs.yml               configuration for the documentation site
 pyproject.toml           dependencies, test settings, and lint rules
 .venv/                   the one virtual environment (you create this)
 
-00_docs/                 reference material for whoever draws the profiles
-01_scans/                raw drawings
+scans/                   raw drawings
+local/                   real excavation records — gitignored, never committed
 docs/                    the documentation guide (MkDocs)
 tools/docs/              documentation checkers and asset generators
 tests/                   the Python test suite
@@ -463,6 +472,7 @@ poggio_webapp/           the pipeline and browser application  <- start here
   backend/services/      work that chains several pipeline stages
   pipeline/              preprocess, extract, normalize, validate, convert,
                          merge_walls, build_gempy, and the rest
+  demo/                  the seedable demonstration trenches (`make demo`)
   static/, templates/    the browser interface
   jobs/                  created at runtime, one folder per sheet
   trenches/              created at runtime, merged multi-wall output

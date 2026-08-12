@@ -5,7 +5,7 @@ status: current
 source_files:
   - poggio_webapp/pipeline/__init__.py
   - poggio_webapp/app.py
-verified_against: d23b842
+verified_against: ae2fc1d
 ---
 
 # Project history
@@ -19,7 +19,7 @@ The pipeline began as a series of numbered directories, each holding a
 standalone CLI script and its outputs:
 
 ```
-02_preprocess  03_extraction  04_normalize
+02_preprocess  03_extraction  04_normalize_validate
 05_convert_coords  06_gempy_model  07_visualizer
 ```
 
@@ -33,8 +33,10 @@ why the workflow documentation is still numbered.
 
 ## What that means now
 
-`01_scans/` and `00_docs/` remain, holding raw drawings and reference material
-for whoever draws the profiles. Everything else moved.
+`scans/` remains, holding raw drawings; it was `01_scans/` until commit
+`0b2edf9`. `00_docs/`, which held reference material for whoever draws the
+profiles, was retired in that same commit — recover it the way the section
+below recovers everything else. Everything else moved.
 
 The application writes into three directories, all created on import and none
 of them tracked by git:

@@ -5,7 +5,7 @@ status: current
 source_files:
   - poggio_webapp/pipeline/merge_walls.py
   - poggio_webapp/pipeline/harris_matrix.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Union-Find (disjoint sets)
@@ -187,10 +187,11 @@ of walls; a Harris Matrix has tens to low hundreds of units. The reason to know
 the table is to know that the deterministic choice costs nothing real here, and
 where it *would* start to cost something.
 
-Both call sites also do an **O(n²) pairwise scan** before ever calling `union` —
-comparing every wall's endpoints against every other wall's. That, not the
-Union-Find, is the dominant term. It is fine at four walls and would need a
-spatial index at four thousand.
+The corner-adjacency site also does an **O(n²) pairwise scan** before ever
+calling `union` — comparing every wall's endpoints against every other wall's.
+That, not the Union-Find, is the dominant term. It is fine at four walls and
+would need a spatial index at four thousand. (The correlation site has no such
+scan: it unions the members of each recorded correlation directly.)
 
 ## Where else you meet it
 

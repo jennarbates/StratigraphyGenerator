@@ -6,7 +6,7 @@ source_files:
   - poggio_webapp/pipeline/manual_extraction.py
   - poggio_webapp/pipeline/detect_markers.py
   - poggio_webapp/static/visualizer/coordinates.mjs
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Similarity transforms

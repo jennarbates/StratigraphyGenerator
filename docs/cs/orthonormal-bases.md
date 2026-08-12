@@ -6,7 +6,7 @@ source_files:
   - poggio_webapp/pipeline/manual_extraction.py
   - poggio_webapp/pipeline/detect_markers.py
   - poggio_webapp/static/visualizer/coordinates.mjs
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Orthonormal bases
@@ -128,8 +128,10 @@ return { origin, u, v, pxPerMeter };
 
 Three copies of one construction is a duplication risk, and the repository
 handles it the way duplication should be handled when it cannot be removed:
-**the browser's arithmetic is pinned by tests against the application's own
-Python**, so a divergence fails CI rather than misplacing a boundary.
+**each side's arithmetic is pinned by tests to fixed expected values** —
+`tests/test_manual_routes.py` freezes the Python conversion's output and
+`coordinates.test.mjs` freezes the browser's — so a drift on either side fails
+its tests rather than misplacing a boundary.
 
 ## Why this and not something else
 

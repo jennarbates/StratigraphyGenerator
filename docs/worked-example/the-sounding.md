@@ -6,7 +6,7 @@ source_files:
   - tests/fixtures/t905-2025-loci.json
   - tests/test_t905_worked_example.py
   - poggio_webapp/pipeline/site_elevation.py
-verified_against: 13091c9
+verified_against: ae2fc1d
 ---
 
 # The sounding as measured geometry

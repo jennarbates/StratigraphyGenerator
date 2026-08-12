@@ -6,7 +6,7 @@ source_files:
   - README.md
   - poggio_webapp/static/app/core/state.js
   - poggio_webapp/pipeline/build_gempy.py
-verified_against: eac1f51
+verified_against: ae2fc1d
 ---
 
 # What this project does

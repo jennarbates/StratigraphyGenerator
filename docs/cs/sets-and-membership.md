@@ -6,7 +6,7 @@ source_files:
   - poggio_webapp/pipeline/harris_matrix.py
   - poggio_webapp/pipeline/merge_walls.py
   - poggio_webapp/backend/config.py
-verified_against: 40e4a0d
+verified_against: ae2fc1d
 ---
 
 # Sets and membership
@@ -193,8 +193,8 @@ The costs:
   input.
 - **Elements must be hashable**, so tuples not lists.
 - **Sets discard multiplicity.** Where a count matters — how many relations
-  assert an edge — `merge_walls` and `harris_matrix` use a
-  `defaultdict(list)` instead.
+  assert an edge — `harris_matrix` uses a `defaultdict(list)` instead, and
+  `merge_walls` keeps plain dicts of lists.
 
 ## Where else you meet it
 

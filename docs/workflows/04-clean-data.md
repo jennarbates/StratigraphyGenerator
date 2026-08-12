@@ -6,7 +6,7 @@ source_files:
   - poggio_webapp/static/app/stages/normalize.js
   - poggio_webapp/backend/routes/processing.py
   - poggio_webapp/pipeline/normalizer.py
-verified_against: a8b58f1
+verified_against: ae2fc1d
 ---
 
 # Clean up the data

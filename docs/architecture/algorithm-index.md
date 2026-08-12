@@ -21,8 +21,12 @@ source_files:
   - poggio_webapp/backend/tasks.py
   - poggio_webapp/backend/jobs.py
   - poggio_webapp/pipeline/site_vocab.py
+  - poggio_webapp/pipeline/series_order.py
+  - poggio_webapp/pipeline/provenance.py
+  - poggio_webapp/pipeline/geospatial_sheet.py
+  - poggio_webapp/pipeline/locus_import.py
   - poggio_webapp/naming.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Algorithm index
@@ -67,6 +71,7 @@ terms these modules operate on.
 |---|---|
 | `pipeline/harris_matrix.py` | [Directed acyclic graphs](../cs/directed-acyclic-graphs.md) · adjacency representations · depth-first search · three-colour cycle detection · Kahn's topological sort · heaps and priority queues · transitive reduction · [union-find](../cs/union-find.md) · connected components · graph quotients |
 | `pipeline/merge_walls.py` | Kahn's topological sort · heaps · [union-find](../cs/union-find.md) · connected components · cycle isolation by peeling |
+| `pipeline/series_order.py` | [Topological sorting](../cs/topological-sorting.md) (via `harris_matrix`) · reachability by [explicit-stack](../cs/stacks-and-explicit-recursion.md) traversal · [provenance labelling](../cs/provenance-and-data-lineage.md) of the order's source |
 | `pipeline/harris_render.py` | Longest-path layering · layered graph drawing · deterministic ordering |
 
 ## Data, storage, and concurrency
@@ -78,6 +83,9 @@ terms these modules operate on.
 | `backend/jobs.py` | Path traversal containment · tolerant versus strict reads |
 | `pipeline/harris_suggestions.py` | SHA-256 hashing · content-addressed identifiers · idempotency · immutability and defensive copying · combinations |
 | `pipeline/site_vocab.py` | Controlled vocabularies · [regular expressions](../cs/regular-expressions.md) for identifier parsing · frozen value objects · canonical construction with permissive parsing — see [find identifiers](../archaeology/find-identifiers.md) and [survey point codes](../archaeology/survey-point-codes.md) |
+| `pipeline/provenance.py` | [Regular expressions](../cs/regular-expressions.md) for link shapes · [input sanitisation](../cs/input-sanitisation.md) of operator-supplied identifiers, validated by shape and never fetched — see [provenance and data lineage](../cs/provenance-and-data-lineage.md) |
+| `pipeline/geospatial_sheet.py` | [Regular expressions](../cs/regular-expressions.md) for corner and trench-id labels · [error taxonomies](../cs/error-taxonomies.md) (per-trench refusals versus notes) |
+| `pipeline/locus_import.py` | [Fail-closed design](../cs/fail-closed-design.md) — explicit column maps, refusing an unrecognised export with its observed headers listed · [validation at trust boundaries](../cs/validation-at-trust-boundaries.md) |
 | `naming.py` | Regular expressions · canonicalisation that declines to mangle what it does not recognise — see [trench](../archaeology/trench.md) |
 | `pipeline/build_gempy.py` | Endianness and binary serialisation · spatial interpolation (via GemPy) · mesh validation · schema versioning |
 | `static/visualizer/volume3d-core.mjs` | Endianness-safe decoding · C-order indexing · golden-angle colour assignment |

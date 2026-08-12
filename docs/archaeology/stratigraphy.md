@@ -6,7 +6,7 @@ source_files:
   - poggio_webapp/pipeline/harris_matrix.py
   - poggio_webapp/pipeline/merge_walls.py
   - poggio_webapp/pipeline/validator.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Stratigraphy

@@ -7,7 +7,7 @@ source_files:
   - poggio_webapp/pipeline/convert_coords.py
   - poggio_webapp/pipeline/true_dip.py
   - poggio_webapp/pipeline/assign_markers.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Mean and variance
@@ -88,8 +88,9 @@ def check_uniform_spacing(points, where, report):
         report.warn(where, ...)
 ```
 
-Three guards before any statistic is trusted: at least five points (a variance
-over three gaps is meaningless), and `mean <= 0` before dividing by it. The
+Three guards before any statistic is trusted: `_pairs` keeps only points whose
+x and depth are numbers, at least five must survive (a variance over three gaps
+is meaningless), and `mean <= 0` is checked before dividing by it. The
 ratio `σ/μ` is the [coefficient of variation](coefficient-of-variation.md).
 
 ### Ordering loci by mean depth

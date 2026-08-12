@@ -8,7 +8,7 @@ source_files:
   - poggio_webapp/pipeline/site_elevation.py
   - tests/fixtures/t905-2025-layout.json
   - tests/test_t905_worked_example.py
-verified_against: 13091c9
+verified_against: ae2fc1d
 ---
 
 # Registering T905

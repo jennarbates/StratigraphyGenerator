@@ -241,6 +241,11 @@ def job_record(job_directory):
             if source == "manual_editor"
             else "Extraction"
         ),
+        # Carried through verbatim so the interface can label demonstration
+        # data as such. The seeder distinguishes synthetic records from real
+        # ones in this block, and that distinction is exactly the thing that
+        # must not be lost between disk and screen.
+        "demo": meta.get("demo") if isinstance(meta.get("demo"), dict) else None,
         "status": status,
         "results_url": (
             f"/editor/{job_id}"

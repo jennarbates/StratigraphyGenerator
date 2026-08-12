@@ -6,7 +6,7 @@ source_files:
   - poggio_webapp/storage.py
   - poggio_webapp/backend/config.py
   - tests/conftest.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Late binding versus import-time binding

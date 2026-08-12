@@ -5,7 +5,7 @@ status: current
 source_files:
   - poggio_webapp/static/app/stages/preprocess.js
   - poggio_webapp/backend/routes/preprocess.py
-verified_against: 077f108
+verified_against: ae2fc1d
 ---
 
 # Prepare the image
@@ -39,7 +39,7 @@ Callouts: upscale, deskew, high-contrast, preview
 
 - A prepared image in the job's preprocess folder.
 - An optional high-contrast copy when that setting is enabled.
-- Job metadata that records the clean-image path and the deskew angle that was applied.
+- Job metadata that records the clean-image path. The deskew angle that was applied is reported back in the browser under the technical details.
 
 ## Check your result
 

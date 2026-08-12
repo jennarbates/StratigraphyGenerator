@@ -21,7 +21,8 @@ source_files:
   - poggio_webapp/pipeline/editor/finds.py
   - poggio_webapp/pipeline/manual_extraction.py
   - poggio_webapp/pipeline/true_dip.py
-verified_against: b7a381e
+  - poggio_webapp/pipeline/series_order.py
+verified_against: ae2fc1d
 ---
 
 # Pipeline architecture
@@ -110,7 +111,7 @@ become a navigable list; without it, every stage is listed below in order.
 <dt>Module</dt><dd><code>pipeline/merge_walls.py</code></dd>
 <dt>Input</dt><dd>One normalized extraction per wall of a trench</dd>
 <dt>Output</dt><dd>merged.json — one multi-face document, plus notes</dd>
-<dt>Route</dt><dd><code>POST /api/trenches/&lt;label&gt;/build (no browser control)</code></dd>
+<dt>Route</dt><dd><code>POST /api/trenches/&lt;label&gt;/build, driven from the trenches page</code></dd>
 </dl>
 
 </div>
@@ -136,7 +137,7 @@ become a navigable list; without it, every stage is listed below in order.
 <dt>Module</dt><dd><code>pipeline/true_dip.py</code></dd>
 <dt>Input</dt><dd>Interface points and each face's bearing</dd>
 <dt>Output</dt><dd>One true dip and azimuth per surface, where two walls allow it</dd>
-<dt>Route</dt><dd><code>none — implemented and tested, but called by nothing</code></dd>
+<dt>Route</dt><dd><code>none of its own — applied by the merged trench build</code></dd>
 </dl>
 
 </div>
@@ -178,11 +179,12 @@ document plus a list of human-readable notes. Inputs are never mutated.
 
 The constraint that shapes the module: GemPy fuses interface points into a
 surface by exact string match on the surface name, so the same locus recorded
-on two walls must produce one identical name. Because field-sheet surface names
-embed a Munsell reading, and readings of the same locus differ slightly between
-sheets, the merge canonicalizes Munsell values per locus number across the
-trench and feeds them into the existing adapter rather than building surface
-strings itself.
+on two walls must produce one identical name. Surfaces are identified as
+`Locus N` by `convert_coords.surface_id()` — identity only, with the Munsell
+reading carried as a separate display label — so two walls recording one
+deposit fuse whatever their colours say. The merge never builds surface
+strings itself; a Munsell reading that differs between walls is reported as a
+note rather than resolved behind the operator's back.
 
 Series order is derived by topologically sorting the ordering constraints from
 every face, with ties broken by first-seen order. Contradictory walls raise
@@ -210,9 +212,14 @@ rather than resolving to a guess.
 - `poggio_webapp/pipeline/convert_coords.py`
 - `poggio_webapp/pipeline/merge_walls.py`
 - `poggio_webapp/pipeline/true_dip.py` — solves one true dip per surface from
-  its traces on two non-parallel walls. Implemented and tested, but called by
-  nothing; see
+  its traces on two non-parallel walls. Applied automatically by the merged
+  trench build after conversion; single-sheet builds cannot use it. See
   [combine walls into one trench](../workflows/09-multi-wall-trench.md).
+- `poggio_webapp/pipeline/series_order.py` — picks the evidence for the
+  young-to-old surface order the model builder needs: an order supplied with
+  the request, then the trench's Harris matrix, then the layer sequence
+  recorded on the walls, falling back to mean elevation — which it labels as
+  the assumption it is rather than passing it off as a result.
 - `poggio_webapp/pipeline/build_gempy.py`
 - `poggio_webapp/pipeline/manual_extraction.py` — turns the browser's
   calibration clicks, boundary polylines, and feature polygons into the same
@@ -268,6 +275,6 @@ See [running the tests](../reference/running-the-tests.md) for the full suite.
 
 ## Under the hood
 
-The Flask routes in `poggio_webapp/backend/routes/preprocess.py`, `poggio_webapp/backend/routes/extraction.py`, `poggio_webapp/backend/routes/processing.py`, and `poggio_webapp/backend/routes/gempy.py` call the pipeline modules with the current job directory and metadata. The modules themselves stay focused on transformation logic and file output; the route layer remains responsible for request handling and persistence state.
+The Flask routes in `poggio_webapp/backend/routes/preprocess.py`, `poggio_webapp/backend/routes/extraction.py`, `poggio_webapp/backend/routes/processing.py`, and `poggio_webapp/backend/routes/gempy.py` call the pipeline modules with the current job directory and metadata; the merged path runs through `poggio_webapp/backend/routes/trenches.py` and `poggio_webapp/backend/services/trench_builder.py`, which chain merge, conversion, true dip, and series order before the build. The modules themselves stay focused on transformation logic and file output; the route layer remains responsible for request handling and persistence state.
 
 The current documentation should therefore describe the pipeline as a set of families that compose into a workflow, not as a single fully automated path. Some pieces are supported by the visible UI, while others remain optional or backend-only depending on the runtime environment and the current frontend wiring.

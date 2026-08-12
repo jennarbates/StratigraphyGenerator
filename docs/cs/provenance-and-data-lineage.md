@@ -6,8 +6,9 @@ source_files:
   - poggio_webapp/pipeline/assign_markers.py
   - poggio_webapp/pipeline/manual_extraction.py
   - poggio_webapp/pipeline/harris_import.py
+  - poggio_webapp/pipeline/provenance.py
   - poggio_webapp/pipeline/build_gempy.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Provenance and data lineage
@@ -96,7 +97,8 @@ model's response schema has no coordinate field.
 
 ### Source references on imported units
 
-`poggio_webapp/pipeline/harris_import.py`:
+`poggio_webapp/pipeline/harris_matrix.py` defines the reference shape, and
+`poggio_webapp/pipeline/harris_import.py` attaches one to every imported unit:
 
 ```python
 class SourceRef(_HarrisModel):
@@ -153,6 +155,16 @@ see [JSON schema design](json-schema-design.md).
 `suggested_type` is what the detector said; `feature_type` is what the reviewer
 settles on. Keeping both means a later reader can see where the machine and the
 person disagreed.
+
+### Links back to the published record
+
+`poggio_webapp/pipeline/provenance.py` extends the same idea beyond the
+machine: it records which site record a job's data came from — an Open Context
+or ARK URI, a Kobo submission UUID, a trenchbook page. Each value is validated
+by its shape and never fetched, and only the project's own hosts are accepted,
+so a stored link is one the operator vouched for. See
+[provenance links](../archaeology/provenance-links.md) for the archaeological
+side of these fields.
 
 ### Lineage as directory structure
 

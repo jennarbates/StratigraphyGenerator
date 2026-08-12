@@ -6,8 +6,9 @@ source_files:
   - poggio_webapp/app.py
   - poggio_webapp/requirements.txt
   - requirements-docs.txt
+  - pyproject.toml
   - Makefile
-verified_against: eac1f51
+verified_against: ae2fc1d
 ---
 
 # Quickstart

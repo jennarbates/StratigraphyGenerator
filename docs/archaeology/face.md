@@ -6,7 +6,7 @@ source_files:
   - poggio_webapp/pipeline/convert_coords.py
   - poggio_webapp/pipeline/merge_walls.py
   - poggio_webapp/pipeline/build_gempy.py
-verified_against: 40e4a0d
+verified_against: ae2fc1d
 ---
 
 # Face

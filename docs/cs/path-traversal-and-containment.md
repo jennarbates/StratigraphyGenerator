@@ -6,8 +6,9 @@ source_files:
   - poggio_webapp/backend/jobs.py
   - poggio_webapp/naming.py
   - poggio_webapp/backend/routes/trenches.py
+  - poggio_webapp/backend/harris_store.py
   - poggio_webapp/backend/services/viewer_files.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Path traversal and containment

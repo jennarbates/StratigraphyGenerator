@@ -7,7 +7,7 @@ source_files:
   - poggio_webapp/pipeline/extract_illustrator.py
   - poggio_webapp/pipeline/extract_fieldwall.py
   - poggio_webapp/pipeline/preprocess.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Multi-scale analysis

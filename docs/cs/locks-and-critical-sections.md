@@ -5,7 +5,7 @@ status: current
 source_files:
   - poggio_webapp/backend/tasks.py
   - poggio_webapp/backend/services/editor_pipeline.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Locks and critical sections

@@ -9,7 +9,7 @@ source_files:
   - poggio_webapp/backend/tasks.py
   - poggio_webapp/backend/routes/trenches.py
   - poggio_webapp/pipeline/validator.py
-verified_against: d23b842
+verified_against: ae2fc1d
 ---
 
 # Troubleshooting
@@ -58,9 +58,9 @@ the raw exception travels alongside as `error_detail`.
 | `429` | Out of quota | Retrying will not help until the quota resets. Free-tier keys have daily caps a few large extractions can exhaust |
 | `400`, `401`, `403` | Invalid or restricted key, or a project without the Gemini API enabled | Check the key. Retrying with the same key will keep failing |
 
-If a `5xx` persists for more than a day, the suggested workaround is to shrink
-the request — lower `max_output_tokens`, or reduce `MAX_SEND_DIMENSION` in the
-extraction module.
+If a `5xx` persists, the suggested workaround is to shrink the request — lower
+`max_output_tokens`, or reduce `MAX_SEND_DIMENSION` in the extraction module.
+If it still fails after a day, report it on the project's issue tracker.
 
 ### "api_key is required"
 

@@ -14,7 +14,7 @@ source_files:
   - poggio_webapp/pipeline/harris_matrix.py
   - poggio_webapp/pipeline/build_gempy.py
   - poggio_webapp/pipeline/merge_walls.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Codebase review
@@ -30,7 +30,7 @@ can act on six months later.
 
 ```mermaid
 flowchart TB
-  Routes["backend/routes/<br/>16 blueprints — HTTP parsing and persistence"]
+  Routes["backend/routes/<br/>17 blueprints — HTTP parsing and persistence"]
   Services["backend/services/<br/>work that chains several pipeline stages"]
   Pipeline["pipeline/<br/>pure transformation, no Flask"]
   Storage["storage.py · naming.py<br/>leaf modules"]
@@ -46,6 +46,11 @@ The direction is enforced, not aspirational: no module under `pipeline/`
 imports Flask. That is what lets `trench_builder.build()` be tested without an
 application, and it is why the refusal rules are unit-testable at all. See
 [layered architecture](../cs/index.md).
+
+Since this review was written the repository has grown a `poggio_webapp/demo/`
+package, which sits beside the route layer and obeys the same direction: it
+drives the real pipeline and stores through the seeder rather than through
+private shortcuts, and it too imports no Flask.
 
 ## What this repository does well
 
@@ -116,7 +121,7 @@ and cites a source. Very little research software tells you what it cannot do.
 | `TASKS` grew without bound | Low | Bounded at 200, evicting finished tasks oldest-first, never a running one |
 | Upload filename used unsanitised | Low | `secure_filename`, with the extension already validated |
 | `export_meshes` truncated silently | Low | Logs which surfaces got no mesh |
-| No-op `reshape().ravel()` in the lithology writer | Cosmetic | Removed; the endianness rationale documented instead |
+| No-op `reshape().ravel()` in the lithology writer | Cosmetic | The endianness rationale is now documented; the reshape/ravel round-trip itself survives, folded into one expression |
 | `is_placeholder` false-positive undocumented | Cosmetic | Documented as deliberate, with the reasoning |
 
 #### The traversal, in detail

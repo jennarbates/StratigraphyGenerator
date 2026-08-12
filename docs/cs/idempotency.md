@@ -7,7 +7,7 @@ source_files:
   - poggio_webapp/pipeline/harris_suggestions.py
   - poggio_webapp/pipeline/editor/finds.py
   - poggio_webapp/storage.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Idempotency
@@ -222,7 +222,8 @@ The costs:
   idempotent. The distinction is whether a repeat means "again" or "the same."
 - **Idempotent ≠ commutative.** Importing A then B is idempotent in each step
   and can differ from B then A — for instance in which
-  [Munsell reading is canonical](../archaeology/locus.md) across a trench.
+  [Munsell reading](../archaeology/locus.md) becomes a merged surface's
+  display label.
 - **Silent no-ops can confuse.** Re-importing a job reports nothing new, which
   looks like a failure. Hence the `warnings` list the import returns alongside.
 

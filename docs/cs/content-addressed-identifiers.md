@@ -7,7 +7,7 @@ source_files:
   - poggio_webapp/pipeline/harris_suggestions.py
   - poggio_webapp/pipeline/editor/session.py
   - poggio_webapp/backend/harris_store.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Content-addressed identifiers

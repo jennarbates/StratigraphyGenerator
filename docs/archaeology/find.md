@@ -6,7 +6,7 @@ source_files:
   - poggio_webapp/pipeline/editor/finds.py
   - poggio_webapp/pipeline/editor/schema.py
   - poggio_webapp/pipeline/site_vocab.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Find

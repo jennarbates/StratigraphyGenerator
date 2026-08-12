@@ -6,7 +6,7 @@ source_files:
   - poggio_webapp/pipeline/assign_markers.py
   - poggio_webapp/pipeline/harris_suggestions.py
   - poggio_webapp/pipeline/editor/finalize.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Two-phase commit with review

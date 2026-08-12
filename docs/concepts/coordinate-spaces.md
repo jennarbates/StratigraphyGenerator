@@ -9,7 +9,7 @@ source_files:
   - poggio_webapp/pipeline/convert_coords.py
   - poggio_webapp/pipeline/site_grid.py
   - poggio_webapp/pipeline/site_elevation.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Coordinate spaces

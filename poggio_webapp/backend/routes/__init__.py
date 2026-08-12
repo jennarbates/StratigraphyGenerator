@@ -2,6 +2,7 @@
 
 from flask import Flask
 
+from .demo import bp as demo_bp
 from .editor import bp as editor_bp
 from .extraction import bp as extraction_bp
 from .features import bp as features_bp
@@ -36,6 +37,7 @@ BLUEPRINTS = (
     gempy_bp,
     harris_bp,
     trenches_bp,
+    demo_bp,
 )
 
 

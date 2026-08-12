@@ -6,13 +6,13 @@ source_files:
   - mkdocs.yml
   - docs/_meta/page-template.md
   - tools/docs/check_docs.py
-verified_against: d23b842
+verified_against: ae2fc1d
 ---
 
 # How to read these docs
 
-There are five sections and four sensible ways through them. You do not need to
-read everything, and reading in nav order is rarely the fastest route.
+There are nine sections and four sensible ways through them. You do not need
+to read everything, and reading in nav order is rarely the fastest route.
 
 ```mermaid
 flowchart LR
@@ -59,9 +59,9 @@ tells you which route suits your drawing, and which steps need an API key.
 The **Concepts** section. These pages are not sequential — read the one you
 need.
 
-Every workflow page has an **Under the hood** section linking to the concept
-behind it. That is usually the better way in: hit the step, then follow the
-link, rather than reading concepts cold.
+Every numbered workflow page has an **Under the hood** section linking to the
+concept behind it. That is usually the better way in: hit the step, then
+follow the link, rather than reading concepts cold.
 
 ### 4. I want to change the code
 
@@ -79,20 +79,27 @@ there but unreachable.
 |---|---|---|
 | Start here | What is this, and how do I run it? | First, once |
 | Workflows | How do I do this step? | In order, while working |
+| Worked example | What does one real trench look like, end to end? | After the workflows, once |
 | Concepts | Why does it work this way? | On demand |
+| Archaeology | What does this site term mean, precisely? | As a lookup |
+| Computer science | What technique is this code using? | As a lookup |
 | Architecture | How is the system built? | Before changing code |
 | Reference | What exactly is the format? | As a lookup |
 | Project | What is the state of this? | Before trusting anything |
 
 ## Reading a page
 
-Every page follows one of two shapes, defined in `docs/_meta/page-template.md`.
+Workflow and concept pages follow one of two shapes, defined in
+`docs/_meta/page-template.md`.
 
 **Workflow pages** run: Before you start → Do this → What the application
 creates → Check your result → Common problems → Under the hood → Next.
 
 **Concept pages** run: definition → Why it matters here → Example → How the
 repository represents it → Related concepts.
+
+The per-term Archaeology and Computer science pages and the worked example
+use their own recurring shapes.
 
 Two conventions worth knowing:
 

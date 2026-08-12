@@ -7,7 +7,7 @@ source_files:
   - poggio_webapp/pipeline/editor/geometry.py
   - poggio_webapp/pipeline/validator.py
   - poggio_webapp/pipeline/merge_walls.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Epsilon comparison
@@ -89,7 +89,7 @@ function samePoint(a, b) {
 }
 ```
 
-The same file uses `EPSILON` seven times, and it is the right call here for a
+The same file uses `EPSILON` twenty-six times, and it is the right call here for a
 reason the *other* file's exactness makes clear: these coordinates have been
 through [interpolation](linear-interpolation.md) during
 [polyline clipping](polyline-clipping.md). Division has occurred, so exact zero

@@ -7,7 +7,7 @@ source_files:
   - poggio_webapp/pipeline/detect_markers.py
   - poggio_webapp/pipeline/true_dip.py
   - poggio_webapp/static/visualizer/coordinates.mjs
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Dot product
@@ -63,7 +63,7 @@ flowchart TB
 `poggio_webapp/pipeline/manual_extraction.py`:
 
 ```python
-def convert(self, point):
+def convert(self, point: list[float] | tuple[float, float]) -> tuple[float, float]:
     px, py = float(point[0]), float(point[1])
     dx, dy = px - self.origin_x, py - self.origin_y
     x_m = (dx * self.ux + dy * self.uy) / self.px_per_m

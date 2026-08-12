@@ -13,8 +13,9 @@ source_files:
   - poggio_webapp/pipeline/convert_coords.py
   - poggio_webapp/pipeline/merge_walls.py
   - poggio_webapp/pipeline/true_dip.py
+  - poggio_webapp/pipeline/series_order.py
   - poggio_webapp/pipeline/build_gempy.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Pipeline walkthrough
@@ -50,7 +51,7 @@ pipeline is built to keep those two things distinguishable. See
 | | `ArchaeologicalDiagram` | `FieldWallProfile` |
 |---|---|---|
 | Source | Archival illustrator sheet | Modern field sheet on graph paper |
-| Units keyed by | Layer name and hatch pattern | [Locus](../archaeology/locus.md) number and Munsell colour |
+| Units keyed by | Layer name and hatch pattern | [Locus](../archaeology/locus.md) number, with the Munsell colour kept as a display label |
 | Faces per sheet | Several | Exactly one wall |
 | Coordinate keys | `xCoordinateMeters`, `yCoordinateMeters` | `xMeters`, `depthMeters` |
 
@@ -76,8 +77,8 @@ matters:
 
 ```mermaid
 flowchart LR
-  A["grayscale"] --> B["flatten background"]
-  B --> C["deskew<br/>(optional)"]
+  A["grayscale"] --> B["deskew<br/>(optional)"]
+  B --> C["flatten background"]
   C --> D["upscale"]
   D --> E["CLAHE"]
   E --> F["unsharp mask"]
@@ -85,14 +86,14 @@ flowchart LR
 
 1. [Grayscale conversion](../cs/grayscale-conversion.md) discards colour the
    later stages never use.
-2. [Homomorphic illumination correction](../cs/homomorphic-illumination-correction.md)
-   divides the image by a heavily blurred copy of itself, removing paper tone
-   and lighting gradient so faint ink is evenly dark.
-3. Deskew runs [Canny](../cs/canny-edge-detection.md) →
+2. Deskew runs [Canny](../cs/canny-edge-detection.md) →
    [Hough](../cs/hough-line-transform.md) → the
    [median](../cs/median-and-robust-statistics.md) near-horizontal angle →
    an [affine rotation](../cs/affine-transforms.md). Median, not mean, so a few
    diagonal strokes cannot drag the estimate.
+3. [Homomorphic illumination correction](../cs/homomorphic-illumination-correction.md)
+   divides the image by a heavily blurred copy of itself, removing paper tone
+   and lighting gradient so faint ink is evenly dark.
 4. [Lanczos resampling](../cs/lanczos-resampling.md) upscales, preserving thin
    ink lines that nearest-neighbour would break.
 5. [CLAHE](../cs/clahe.md) equalises contrast locally rather than globally.
@@ -236,8 +237,10 @@ locus on two walls must get an identical name; different deposits must never
 collide.
 
 Five ordered phases, each with its position justified: correlation renames →
-trench-wide canonical Munsell → adapt to faces → collision prefixing (decided
-on *pre-prefix* names so ordering cannot matter) → duplicate check.
+Munsell disagreement reporting (surfaces are identified as `Locus N`, so a
+colour that differs between walls is surfaced, never rewritten) → adapt to
+faces → collision prefixing (decided on *pre-prefix* names so ordering cannot
+matter) → duplicate check.
 
 `merged_series_order()` derives one young-to-old order by
 [topological sorting](../cs/topological-sorting.md) over the union of per-face
@@ -247,8 +250,8 @@ contradict each other, and it **refuses** — guessing there would invent
 stratigraphy.
 
 `check_trench_grid_config()` uses [Union-Find](../cs/union-find.md) to group
-walls meeting at a corner and flags any wall in no
-[component](../cs/connected-components.md) but its own.
+walls meeting at a corner and flags any wall left outside the largest
+[component](../cs/connected-components.md) — the trench itself.
 
 ## 08 · True dip
 
@@ -258,8 +261,9 @@ exactly, via the [cross product](../cs/cross-product.md) of their trace
 directions and the resulting [plane normal](../cs/plane-normals.md).
 
 Wall pairs are scored by `|sin(Δbearing)|` — 1 for perpendicular, 0 for
-parallel — and refused below 10°. Where no solve is available, nothing is
-emitted:
+parallel — and refused below 10°. The merged trench build applies the solve
+automatically after conversion (`apply_true_dip`); a single sheet never can.
+Where no solve is available, nothing is emitted:
 
 > A plausible-looking invented orientation would be worse than the apparent
 > dips already in the CSV, because it would look like an improvement.
@@ -276,7 +280,12 @@ host-independent.
 
 `wall_traces()` emits the actually-traced polylines, so a viewer can show a
 reader which parts of the model are data and which are the interpolator's
-guess.
+guess. The same honesty applies to the stack itself:
+`poggio_webapp/pipeline/series_order.py` records *where* the young-to-old
+order came from — a supplied order, the trench's Harris matrix, the recorded
+layer sequence, or a mean-elevation assumption — and the build log and viewer
+manifest carry that label, along with any adjacent pairs the record never
+actually ordered.
 
 ## Related concepts
 

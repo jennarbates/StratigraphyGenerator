@@ -7,7 +7,7 @@ source_files:
   - poggio_webapp/backend/config.py
   - poggio_webapp/naming.py
   - poggio_webapp/pipeline/harris_render.py
-verified_against: 40e4a0d
+verified_against: ae2fc1d
 ---
 
 # Input sanitisation

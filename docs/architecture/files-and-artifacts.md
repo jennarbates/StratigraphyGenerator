@@ -11,8 +11,9 @@ source_files:
   - poggio_webapp/backend/routes/manual.py
   - poggio_webapp/backend/harris_store.py
   - poggio_webapp/pipeline/harris_import.py
+  - poggio_webapp/backend/services/trench_builder.py
   - poggio_webapp/app.py
-verified_against: 2267711
+verified_against: ae2fc1d
 ---
 
 # Files and artifacts
@@ -50,6 +51,7 @@ flowchart TD
 - File URLs that the browser can load or download.
 - Metadata entries in meta.json that reference the current files.
 - Independent matrix folders containing one versioned `matrix.json`.
+- Trench folders holding the merged document, converted CSVs, and model output for a multi-wall build.
 
 ## Main source files
 
@@ -61,6 +63,7 @@ flowchart TD
 - `poggio_webapp/backend/routes/pages.py`
 - `poggio_webapp/backend/harris_store.py`
 - `poggio_webapp/pipeline/harris_import.py`
+- `poggio_webapp/backend/services/trench_builder.py`
 - `poggio_webapp/app.py`
 
 ## Failure boundaries
@@ -106,6 +109,32 @@ zero-based layer index, and original source label. They contain no absolute
 path. The importer reads job artifacts but never writes a source job's
 `meta.json`, extraction or normalized JSON, editor state, finds, converted
 coordinates, or GemPy output.
+
+## Trench storage
+
+A multi-wall build writes into a per-trench directory rather than into any one
+job. `poggio_webapp/backend/services/trench_builder.py` creates it under the
+trench's filesystem-safe label:
+
+```text
+poggio_webapp/trenches/
+└── <label>/
+    ├── grid_config.json        - stored registration ({"grid": ..., "notes": ...}),
+    │                             written when one is derived from records or
+    │                             seeded; read back by the registration route
+    ├── merged.json             - the multi-face document the merge produced
+    ├── points.csv              - converted interface points
+    ├── points_orientations.csv - orientation seeds, true dips applied
+    └── 06_gempy_model/         - trench_model.gempy, section PNGs,
+                                  trench_model_meshes/*.obj, the viewer
+                                  manifest, and the lithology block files
+```
+
+The build takes its grid config in the request body; the stored
+`grid_config.json` is a prefill for the operator to check, not something the
+build picks up on its own. Demonstration jobs seeded by the `poggio_webapp/demo/`
+package follow the job layout above but create only the folders they need
+(03_extraction and 04_normalize_validate, plus meta.json and finds.json).
 
 ## Under the hood
 

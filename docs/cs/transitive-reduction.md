@@ -4,7 +4,7 @@ audience: developer
 status: current
 source_files:
   - poggio_webapp/pipeline/harris_matrix.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Transitive reduction
@@ -147,7 +147,7 @@ redundancy is assessed.
 | **Transitive closure** | Add every implied edge | The opposite. Maximum clutter, and it manufactures contact claims wholesale. |
 | **Reduce for display, warn, keep the data** *(chosen)* | Three separate outputs | The diagram is readable, the record is complete, and the user is told which relations were omitted and why. |
 | **Matrix-based reduction (Floyd–Warshall)** | Compute closure, subtract | O(V³) time, O(V²) memory. For sparse chronologies the reachability approach is much cheaper. |
-| **Let the user mark relations as direct** | Manual annotation | More faithful in principle — direct contact is an observation, not a derivation. It is work per relation, and the current `HarrisRelation.kind` field (above, cuts, fills, precedes) already carries some of that meaning. A reasonable future direction. |
+| **Let the user mark relations as direct** | Manual annotation | More faithful in principle — direct contact is an observation, not a derivation. It is work per relation, and the current `HarrisRelation.kind` field (above, cuts, fills, precedes, other) already carries some of that meaning. A reasonable future direction. |
 
 ## What it costs
 

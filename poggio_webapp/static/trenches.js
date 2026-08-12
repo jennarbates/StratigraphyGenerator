@@ -158,6 +158,64 @@ async function startBuild(label, section) {
   }
 }
 
+/* A trench's stored registration, or null when it has none.
+ *
+ * Registration derived from records -- a trench layout, the Geospatial
+ * Spreadsheet, the demo seeder -- is written to the trench directory, and
+ * until this call existed nothing read it. The operator was asked to paste
+ * values the application had already worked out, and a gridless Build answered
+ * with the starter placeholder, so a trench with a good surveyed registration
+ * on disk looked exactly like one with none. */
+async function loadRegistration(label) {
+  try {
+    const response = await fetch(
+      `/api/trenches/${encodeURIComponent(label)}/registration`,
+      { headers: { Accept: "application/json" } },
+    );
+    if (!response.ok) return null;
+    return await response.json();
+  } catch (_error) {
+    return null;
+  }
+}
+
+/* Fill the textarea from the stored registration, saying which kind it is.
+   'surveyed' and 'placeholder' are not interchangeable and the difference is
+   the whole reason the build refuses one of them. */
+async function prefillRegistration(label, section) {
+  const textarea = section.querySelector("[data-grid-config]");
+  const hint = section.querySelector("[data-grid-hint]");
+  if (!textarea || textarea.value.trim()) return;
+
+  const stored = await loadRegistration(label);
+  if (!stored) return;
+
+  textarea.value = JSON.stringify(stored.grid, null, 2);
+  hint.textContent = stored.source === "surveyed"
+    ? "Loaded from this trench's surveyed records. Check it against the "
+      + "drawings before building."
+    : `Loaded from this trench's stored registration (source: ${stored.source}). `
+      + "Check it before building.";
+  const notes = messageBanner("From the records", stored.notes);
+  if (notes) section.querySelector("[data-messages]").append(notes);
+}
+
+/* The provenance badge. Read from the member rather than inferred from the
+   trench label, so a demonstration seeded under any label is still labelled. */
+function demoFlag(members) {
+  const marker = members.map(member => member.demo).find(Boolean);
+  if (!marker) return null;
+  const flag = document.createElement("span");
+  const real = !String(marker.provenance || "").startsWith("Synthetic");
+  flag.className = "demo-flag";
+  flag.dataset.real = real ? "yes" : "no";
+  flag.textContent = marker.provenance || "Demonstration data";
+  flag.title = marker.generated_sections
+    ? "The wall sections in this trench were generated, not drawn in the field."
+    : "";
+  return flag;
+}
+
 function renderTrench(label, members, index) {
   const section = document.createElement("section");
   const heading = document.createElement("h2");
@@ -174,6 +232,11 @@ function renderTrench(label, members, index) {
   section.className = "panel";
   section.dataset.trench = label;
   heading.textContent = `Trench ${label}`;
+  const flag = demoFlag(members);
+  if (flag) {
+    heading.append(flag);
+    section.dataset.demo = "";
+  }
 
   walls.className = "wall-list";
   for (const member of members) walls.append(wallItem(member));
@@ -186,6 +249,7 @@ function renderTrench(label, members, index) {
   fieldText.className = "label-text";
   fieldText.textContent = "Grid configuration (JSON)";
   hint.className = "hint";
+  hint.dataset.gridHint = "";
   hint.textContent = "Leave this empty and press Build to get a starter "
     + "configuration you can fill in with surveyed values.";
   field.append(fieldText, textarea, hint);
@@ -218,7 +282,11 @@ function renderTrenches(trenches) {
     return;
   }
   labels.forEach((label, index) => {
-    list.append(renderTrench(label, trenches[label] || [], index));
+    const members = trenches[label] || [];
+    const section = renderTrench(label, members, index);
+    list.append(section);
+    // After appending, so a slow or absent registration never delays the list.
+    void prefillRegistration(label, section);
   });
 }
 

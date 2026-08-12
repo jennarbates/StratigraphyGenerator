@@ -6,7 +6,7 @@ source_files:
   - poggio_webapp/backend/services/editor_pipeline.py
   - poggio_webapp/backend/tasks.py
   - poggio_webapp/backend/harris_store.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Race conditions
@@ -182,8 +182,9 @@ Prevention is nearly free — a few lock acquisitions, a retry loop, some
 What is expensive is **not** preventing them:
 
 - **They pass tests.** A race that needs a specific interleaving will not appear
-  in a single-threaded test run. None of the races above has a regression test,
-  because writing a reliable one requires forcing an interleaving.
+  in a single-threaded test run. The defences above are tested sequentially —
+  eviction order, the stale-revision refusal — but no test forces a genuine
+  interleaving, because writing a reliable one means controlling the scheduler.
 - **They are found in production**, intermittently, and reported as "it
   sometimes does something odd."
 - **The symptom is far from the cause.** A lost status update shows up as a

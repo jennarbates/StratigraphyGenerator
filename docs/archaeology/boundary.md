@@ -6,7 +6,7 @@ source_files:
   - poggio_webapp/pipeline/manual_extraction.py
   - poggio_webapp/pipeline/validator.py
   - poggio_webapp/pipeline/convert_coords.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Boundary
@@ -69,9 +69,10 @@ several walls is exactly what GemPy does.
 ]
 ```
 
-Four fields per point. `confidence` records **how it was obtained**;
-`sourcePixel` keeps the pixel it was clicked at, so the browser overlay redraws
-it exactly rather than round-tripping through metres.
+Four fields per point, plus an optional `uncertaintyCm` — the recorder's ± in
+centimetres — when one was entered. `confidence` records **how it was
+obtained**; `sourcePixel` keeps the pixel it was clicked at, so the browser
+overlay redraws it exactly rather than round-tripping through metres.
 
 Illustrator sheets use `xCoordinateMeters` / `yCoordinateMeters` for the same
 thing. Readers accept either:

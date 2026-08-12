@@ -6,7 +6,7 @@ source_files:
   - poggio_webapp/static/canvas/grid.mjs
   - poggio_webapp/pipeline/manual_extraction.py
   - poggio_webapp/pipeline/convert_coords.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Grid snapping and quantisation

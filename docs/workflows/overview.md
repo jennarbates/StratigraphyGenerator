@@ -9,7 +9,7 @@ source_files:
   - poggio_webapp/backend/routes/scans.py
   - poggio_webapp/backend/routes/preprocess.py
   - poggio_webapp/backend/routes/manual.py
-verified_against: 077f108
+verified_against: ae2fc1d
 ---
 
 # Workflow overview
@@ -36,7 +36,7 @@ flowchart TD
 
 ## Before you start
 
-Make sure the local app is running and that you have either a trench drawing or a synthetic example ready. The beginner path uses the manual tracing workflow, not an API key.
+Make sure the local app is running and that you have either a trench drawing or a synthetic example ready. The beginner path uses the manual tracing workflow, not an API key. Between preparing the image and tracing, the app inserts a "Check the writing" step for reviewing a sheet's written labels; automatic reading needs a Gemini API key, but the step can always be completed by continuing without it.
 
 For a safe example, use the generated fixtures described in [docs/fixtures/README.md](../fixtures/README.md). The repository also accepts PNG, JPEG, TIFF, and PDF uploads.
 

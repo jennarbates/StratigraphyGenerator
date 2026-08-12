@@ -4,7 +4,7 @@ audience: developer
 status: current
 source_files:
   - poggio_webapp/pipeline/convert_coords.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Closure late-binding capture
@@ -121,7 +121,8 @@ they come last.
 The pattern this repository actually favours for the *same* problem elsewhere is
 the fifth row: `manual_extraction.Calibration` and
 `detect_markers.SectionCoordinateTransform` are both `frozen=True` dataclasses
-holding their parameters, with a `convert` method. Immune by construction — see
+holding their parameters — the first with a `convert` method, the second applied
+by `pixel_to_section_coordinates`. Immune by construction — see
 [immutability and defensive copying](immutability-and-defensive-copying.md).
 
 `to_site` stays a closure because it is four lines used in one loop, and the

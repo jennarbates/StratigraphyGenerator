@@ -5,7 +5,7 @@ status: current
 source_files:
   - poggio_webapp/pipeline/provenance.py
   - poggio_webapp/backend/routes/scans.py
-verified_against: 40e4a0d
+verified_against: ae2fc1d
 ---
 
 # Provenance links
@@ -90,7 +90,7 @@ meta.update(provenance_fields)
 `read` returns only the fields actually supplied:
 
 ```python
-def read(body):
+def read(payload):
     """Pull the provenance fields out of a request body or form.
 
     Returns ``(record, notes)`` where record holds only the fields that were

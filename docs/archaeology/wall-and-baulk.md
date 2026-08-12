@@ -5,7 +5,7 @@ status: current
 source_files:
   - poggio_webapp/backend/services/trench_builder.py
   - poggio_webapp/pipeline/merge_walls.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Wall and baulk

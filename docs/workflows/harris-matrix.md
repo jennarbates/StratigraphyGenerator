@@ -11,7 +11,7 @@ source_files:
   - poggio_webapp/pipeline/harris_render.py
   - poggio_webapp/static/harris/dashboard.js
   - poggio_webapp/static/harris/editor.js
-verified_against: 2267711
+verified_against: ae2fc1d
 ---
 
 # Build and review a Harris Matrix
@@ -27,6 +27,11 @@ created blank, or it can import units from multiple drawing jobs for the same
 trench. A saved drawing with usable extraction data offers **Create or add to
 a Harris Matrix**, which opens the dashboard with that source preselected.
 Opening this link does not create, import, or modify anything.
+
+One consumer reads a matrix back: a [combined trench
+build](09-multi-wall-trench.md) uses the trench's matrix as its stratigraphic
+order when one exists, and refuses to build while two matrices are recorded
+for one trench unless the request supplies an explicit order.
 
 ![A small Harris matrix with the youngest units at the top and arrows running downward to older units](../assets/diagrams/wh-reading-a-matrix.svg)
 
@@ -177,19 +182,14 @@ if [ ! -x "$PYTHON" ]; then
 fi
 
 "$PYTHON" -m pytest -q
-node poggio_webapp/static/harris/core.test.mjs
-node poggio_webapp/static/canvas/grid.test.mjs
-node poggio_webapp/static/app/stages/start-options.test.mjs
-node poggio_webapp/static/app/text-metadata.test.mjs
-node poggio_webapp/static/app/stages/verify-text-navigation.test.mjs
-node poggio_webapp/static/visualizer/viewbox.test.mjs
-node poggio_webapp/static/visualizer/alignment-policy.test.mjs
-node poggio_webapp/static/visualizer/schema-core.test.mjs
-node poggio_webapp/static/visualizer/coordinates.test.mjs
+node --test "poggio_webapp/static/**/*.test.mjs" "docs/javascripts/**/*.test.mjs"
 "$PYTHON" tools/docs/check_docs.py
 git diff --check
 git status --short
 ```
+
+The JavaScript suite is addressed by glob (the same globs `make test-js`
+uses), so new `*.test.mjs` files are picked up without editing this list.
 
 Run the Harris groups explicitly:
 

@@ -6,7 +6,7 @@ source_files:
   - poggio_webapp/pipeline/convert_coords.py
   - poggio_webapp/pipeline/editor/schema.py
   - poggio_webapp/pipeline/build_gempy.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Elevation
@@ -147,12 +147,15 @@ The manifest declares the axis explicitly:
 },
 ```
 
-and the browser refuses anything else:
+and the manifest validation in
+`poggio_webapp/backend/services/viewer_files.py` refuses anything else:
 
 ```python
 and coordinate_system.get("units") == "m"
 and coordinate_system.get("up_axis") == "Z"
 ```
+
+(The browser's own loader independently requires `up_axis` to be `"Z"`.)
 
 Stating which way is up, rather than assuming it. See
 [schema versioning](../cs/schema-versioning.md).

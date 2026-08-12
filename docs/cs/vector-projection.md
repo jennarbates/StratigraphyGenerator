@@ -7,7 +7,7 @@ source_files:
   - poggio_webapp/pipeline/detect_markers.py
   - poggio_webapp/pipeline/true_dip.py
   - poggio_webapp/static/visualizer/layer-fill.mjs
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Vector projection
@@ -105,7 +105,8 @@ def pixel_to_section_coordinates(pixel_x, pixel_y, transform):
     )
 ```
 
-Its docstring states the payoff:
+The docstring of its companion `create_section_coordinate_transform` states
+the payoff:
 
 > This corrects measurements when the photographed or scanned section is tilted
 > in the image.

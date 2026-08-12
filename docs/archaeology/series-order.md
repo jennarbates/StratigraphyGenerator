@@ -7,7 +7,7 @@ source_files:
   - poggio_webapp/pipeline/build_gempy.py
   - poggio_webapp/pipeline/merge_walls.py
   - poggio_webapp/pipeline/harris_matrix.py
-verified_against: 40e4a0d
+verified_against: ae2fc1d
 ---
 
 # Series order

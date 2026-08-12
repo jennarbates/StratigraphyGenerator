@@ -73,6 +73,10 @@ folder as its working directory, which is why the target exists.
 The AI steps are optional. Manual tracing is the supported path and needs no
 key at all.
 
+`make demo` seeds two demonstration trenches to explore without a drawing; the
+sidebar's demo card offers the same pair from the browser. See
+[run the demo](../docs/start-here/demo.md).
+
 ## Layout
 
 ```
@@ -85,6 +89,7 @@ backend/
   jobs.py, tasks.py    job folders and the in-memory task registry
 pipeline/              preprocess, extract, normalize, validate, convert,
                        merge_walls, build_gempy, harris_*, and the rest
+demo/                  the seedable demonstration trenches (`make demo`)
 tools/                 standalone helpers not wired into the interface
 static/, templates/    the browser interface, vanilla JS with no build step
 jobs/                  created at runtime, one folder per sheet
@@ -117,12 +122,13 @@ The authoritative record is
 [capability status](../docs/project/capability-status.md), which labels every
 capability and cites its source. The short version:
 
-- Starter registration values are smoke-test placeholders, and a single-sheet
-  build still accepts them.
+- Starter registration values are smoke-test placeholders; the config declares
+  `"source": "placeholder"`, and only the multi-wall build refuses it — a
+  single-sheet build still accepts it.
 - AI extraction is experimental: it needs a key and network access, and has no
   end-to-end test.
-- Marker detection, feature detection, and multi-wall trenches are
-  backend-only — the routes exist and are tested, but no browser control
-  reaches them.
+- Marker detection and feature detection are backend-only — the routes exist
+  and are tested, but no browser control reaches them. The multi-wall trenches
+  page works and is tested, but only the demo card links to it.
 - Task state lives in process memory, so a restart loses the status of a
   running build.

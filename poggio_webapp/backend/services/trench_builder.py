@@ -96,6 +96,10 @@ def grouped_members():
                 else None),
             "has_normalized": bool(
                 normalized and Path(normalized).is_file()),
+            # Demonstration provenance, if this job has any. The trenches page
+            # needs it to badge a seeded trench; without it a demo trench is
+            # indistinguishable on screen from the operator's own.
+            "demo": meta.get("demo") if isinstance(meta.get("demo"), dict) else None,
             "_normalized_path": normalized,
         })
     for members in grouped.values():

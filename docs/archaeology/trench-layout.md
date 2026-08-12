@@ -6,7 +6,7 @@ source_files:
   - poggio_webapp/pipeline/trench_layout.py
   - poggio_webapp/pipeline/site_grid.py
   - poggio_webapp/backend/routes/trenches.py
-verified_against: 40e4a0d
+verified_against: ae2fc1d
 ---
 
 # Trench layout
@@ -30,9 +30,12 @@ too.
 > of your trench. How your trench was sited on the master grid … The location
 > and elevation of your datum nail.
 
-A layout is therefore: **corners in order around the pit**, each with a label, a
-grid X and Y, and an elevation; plus **wall names**, one per edge. The last wall
-closes back to the first corner.
+A layout is therefore: **corners in order around the pit**, each with a grid
+label like `190E/53S` (or numeric `gridX`/`gridY`) and an elevation; plus
+**wall names**, one per edge. The last wall closes back to the first corner. A
+corner's `label` is its *grid* label, parsed by `site_grid.label_to_grid` —
+never a corner name like `NW`, which is a different thing the
+[Geospatial Spreadsheet](geospatial-spreadsheet.md) keeps under `corner`.
 
 ## The picture
 
@@ -68,14 +71,18 @@ A layout posted to `POST /api/trenches/<label>/layout`:
 {
   "site_grid": "poggio-civitate",
   "corners": [
-    { "label": "NW", "gridX": 190.0, "gridY": -53.0, "elevation": 24.31 },
-    { "label": "NE", "gridX": 194.0, "gridY": -53.0, "elevation": 24.28 },
-    { "label": "SE", "gridX": 194.0, "gridY": -57.0, "elevation": 24.19 },
-    { "label": "SW", "gridX": 190.0, "gridY": -57.0, "elevation": 24.22 }
+    { "label": "190E/53S", "elevation": 24.31 },
+    { "label": "194E/53S", "elevation": 24.28 },
+    { "label": "194E/57S", "elevation": 24.19 },
+    { "label": "190E/57S", "elevation": 24.22 }
   ],
   "walls": ["north wall", "east wall", "south wall", "west wall"]
 }
 ```
+
+Each corner carries either a grid label, read through the site's own sign rule
+(`190E/53S` is `gridX 190, gridY -53`), or explicit numeric `gridX` and
+`gridY`.
 
 `poggio_webapp/pipeline/trench_layout.py` turns each edge into a face:
 
@@ -118,7 +125,7 @@ match another module* rather than as a preference — see
 ### It refuses a shape that is not a trench
 
 ```python
-def _self_intersects(corners):
+def _self_intersects(points):
     """True when the closed ring through these corners crosses itself.
 
     This is the check that catches the realistic mistake. Two corner labels
@@ -128,8 +135,9 @@ def _self_intersects(corners):
     """
 ```
 
-Transposing `SE` and `SW` in the list above still gives four distinct points and
-four edges. Nothing about the numbers is wrong. The result is a bow-tie, and two
+Transposing the two southern corners in the list above still gives four
+distinct points and four edges. Nothing about the numbers is wrong. The result
+is a bow-tie, and two
 of the derived walls would run diagonally across the trench — producing a model
 that builds cleanly and places half the evidence in the wrong place. See
 [line segment intersection](../cs/line-segment-intersection.md).

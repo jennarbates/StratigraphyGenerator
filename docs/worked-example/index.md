@@ -7,7 +7,7 @@ source_files:
   - tests/fixtures/t905-2025-loci.json
   - tests/fixtures/t905-2025-special-finds.json
   - tests/test_t905_worked_example.py
-verified_against: 13091c9
+verified_against: ae2fc1d
 ---
 
 # A trench, end to end
@@ -111,4 +111,6 @@ easiest thing to quietly get wrong when a fixture is edited.
 
 - [Workflow overview](../workflows/overview.md) — the numbered path, one sheet at a time
 - [Synthetic fixtures](../fixtures/README.md) — the clean examples, for contrast
-- [Glossary](../start-here/glossary.md) — locus, baulk, datum, mAE
+- [Glossary](../start-here/glossary.md) — locus and the rest of the vocabulary
+- [Wall and baulk](../archaeology/wall-and-baulk.md) and
+  [datum](../archaeology/datum.md) — baulk, the datum nail, and mAE

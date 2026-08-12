@@ -7,7 +7,7 @@ source_files:
   - poggio_webapp/pipeline/harris_render.py
   - poggio_webapp/pipeline/harris_import.py
   - poggio_webapp/backend/harris_store.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Harris Matrix

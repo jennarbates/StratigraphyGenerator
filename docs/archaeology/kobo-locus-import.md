@@ -5,8 +5,8 @@ status: current
 source_files:
   - poggio_webapp/pipeline/locus_import.py
   - poggio_webapp/backend/routes/trenches.py
-  - poggio_webapp/pipeline/site_vocab.py
-verified_against: 40e4a0d
+  - poggio_webapp/naming.py
+verified_against: ae2fc1d
 ---
 
 # Kobo locus import
@@ -141,8 +141,8 @@ operator will see in a spreadsheet.
 wanted_trench = canonical_trench(trench) if trench else ""
 ```
 
-Trench labels are compared through `site_vocab.canonical_trench`, so `T104`,
-`t104`, and `Tesoro 104` filter the same rows. Locus numbers go through
+Trench labels are compared through `naming.canonical_trench`, so `T104`,
+`t104`, and `T-104` filter the same rows. Locus numbers go through
 `canonical_locus` for the same reason.
 
 ### The import is a second source, not a better one

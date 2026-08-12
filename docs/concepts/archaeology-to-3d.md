@@ -8,7 +8,7 @@ source_files:
   - docs/workflows/03-trace-layers.md
   - docs/workflows/06-place-on-site.md
   - docs/workflows/07-create-model.md
-verified_against: a8b58f1
+verified_against: ae2fc1d
 ---
 
 # From archaeology to 3D

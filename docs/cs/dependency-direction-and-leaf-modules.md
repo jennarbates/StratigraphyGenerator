@@ -7,7 +7,7 @@ source_files:
   - poggio_webapp/naming.py
   - poggio_webapp/pipeline/site_vocab.py
   - poggio_webapp/backend/config.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Dependency direction and leaf modules

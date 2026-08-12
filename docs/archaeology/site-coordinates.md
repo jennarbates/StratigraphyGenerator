@@ -6,7 +6,8 @@ source_files:
   - poggio_webapp/pipeline/convert_coords.py
   - poggio_webapp/pipeline/build_gempy.py
   - poggio_webapp/pipeline/site_vocab.py
-verified_against: 636b160
+  - poggio_webapp/pipeline/site_grid.py
+verified_against: ae2fc1d
 ---
 
 # Site coordinates
@@ -29,6 +30,15 @@ The grid is usually local and arbitrary — origin at a convenient point, axes
 aligned to something useful — rather than a national projection. What matters is
 that it is **shared**: every measurement on the site descends from the same
 origin and the same [datum](datum.md).
+
+At Poggio Civitate the rules are concrete, and
+`poggio_webapp/pipeline/site_grid.py` is the one place that holds them. There
+are **two** local grids — the hill of Poggio Civitate and Vescovado di Murlo —
+so a bare pair of numbers is not a location until the grid is named. Grid X is
+the E/W value and is recorded first, Grid Y the N/S value; and **South and West
+are negative**, so a label of `190E/53S` reads as `(190, -53)`. Model
+coordinates *are* grid coordinates: `site_grid.grid_to_site` is the identity
+function, and exists so that assumption is written down once.
 
 Poggio Civitate's total station workflow records exactly these three, which is
 why `site_vocab` notes that a survey shot is directly comparable to what this

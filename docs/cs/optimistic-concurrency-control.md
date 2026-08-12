@@ -5,7 +5,7 @@ status: current
 source_files:
   - poggio_webapp/backend/harris_store.py
   - poggio_webapp/backend/services/harris_workspace.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Optimistic concurrency control

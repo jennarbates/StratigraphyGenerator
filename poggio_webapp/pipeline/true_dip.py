@@ -12,7 +12,8 @@ Two walls that are not parallel pin the plane down exactly. Each wall's trace
 gives a direction in space -- along the wall, tilted by that wall's apparent
 slope -- and the plane containing both directions has one normal, hence one
 true dip and one dip azimuth. This module does that solve and nothing else: it
-returns orientations and human-readable notes, and wires into no pipeline.
+returns orientations and human-readable notes; `trench_builder.build()` applies
+the solve to every merged trench build.
 
 Where a solve is not available -- a surface drawn on one wall, or two walls too
 nearly parallel to condition it -- nothing is emitted and a note says so. A

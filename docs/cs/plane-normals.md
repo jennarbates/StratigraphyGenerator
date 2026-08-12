@@ -5,7 +5,7 @@ status: current
 source_files:
   - poggio_webapp/pipeline/true_dip.py
   - poggio_webapp/pipeline/convert_coords.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Plane normals

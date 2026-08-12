@@ -7,7 +7,7 @@ source_files:
   - docs/workflows/02-prepare-image.md
   - docs/workflows/03-trace-layers.md
   - docs/workflows/03-alternative-import-and-ai.md
-verified_against: a8b58f1
+verified_against: ae2fc1d
 ---
 
 # Source drawing types

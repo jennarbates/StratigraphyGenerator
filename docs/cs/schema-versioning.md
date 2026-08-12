@@ -7,7 +7,7 @@ source_files:
   - poggio_webapp/pipeline/build_gempy.py
   - poggio_webapp/backend/services/viewer_files.py
   - poggio_webapp/pipeline/assign_markers.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Schema versioning
@@ -75,7 +75,10 @@ them would make a shape change look like an edit.
 
 ```python
 manifest = {
-    "schema_version": 1,
+    # 2 adds surfaces[].label. A version 1 manifest has no labels and is
+    # still valid: the viewer falls back to the surface name, which is what
+    # it always displayed.
+    "schema_version": 2,
     "kind": "gempy-surface-model",
     "coordinate_system": {"units": "m", "up_axis": "Z"},
     ...
@@ -96,7 +99,8 @@ manifest["volume"] = {
 ```
 
 Two independently versioned sub-documents, because the surface model and the
-volume can evolve separately.
+volume can evolve separately — and they have: the manifest is at 2 (labels
+added), the volume still at 1.
 
 The reader checks strictly — `poggio_webapp/backend/services/viewer_files.py`:
 
@@ -108,6 +112,11 @@ and manifest.get("kind") == "gempy-surface-model"
 
 `type(...) is int` rather than `isinstance` because `bool` subclasses `int` and
 `True == 1`. Without that, `{"schema_version": true}` would pass.
+
+As of this writing the sides disagree: the writer stamps 2 and the browser's
+`model3d-core.mjs` accepts `[1, 2]`, but this backend check still pins `== 1`,
+so a freshly built manifest fails it. The strictness is working as designed;
+the pin was not bumped alongside the writer.
 
 And the browser checks again — `volume3d-core.mjs`:
 

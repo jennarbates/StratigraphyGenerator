@@ -7,7 +7,7 @@ source_files:
   - poggio_webapp/pipeline/detect_features.py
   - poggio_webapp/pipeline/detect_markers.py
   - poggio_webapp/pipeline/harris_render.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Bounded caches and eviction
@@ -69,7 +69,7 @@ TASKS = OrderedDict()
 ```python
 def _evict_finished():
     """Drop the oldest finished tasks until the retention ceiling is met."""
-    for task_id in list(TASKS) :
+    for task_id in list(TASKS):
         if len(TASKS) <= MAX_RETAINED_TASKS:
             return
         if TASKS[task_id]["status"] in _FINISHED:

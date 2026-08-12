@@ -7,7 +7,8 @@ source_files:
   - poggio_webapp/pipeline/detect_features.py
   - poggio_webapp/pipeline/merge_walls.py
   - poggio_webapp/pipeline/true_dip.py
-verified_against: 636b160
+  - poggio_webapp/pipeline/manual_extraction.py
+verified_against: ae2fc1d
 ---
 
 # Greedy algorithms
@@ -175,7 +176,7 @@ is not used, and the code refuses rather than approximating.
 
 Typically O(n log n) for the sort plus O(n) or O(n²) for the pass, depending on
 whether each choice must be checked against all previous ones. Both
-deduplications here are O(k²) with k capped at 250.
+deduplications here are O(k²), with `detect_features` capping k at 250.
 
 The correctness cost is bounded and specific: greedy NMS may keep two items
 where one would do (chaining), and greedy band assignment may place a

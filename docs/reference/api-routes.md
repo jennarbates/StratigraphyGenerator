@@ -19,7 +19,8 @@ source_files:
   - poggio_webapp/backend/routes/editor.py
   - poggio_webapp/backend/routes/finds.py
   - poggio_webapp/backend/routes/text_metadata.py
-verified_against: b7a381e
+  - poggio_webapp/backend/routes/demo.py
+verified_against: ae2fc1d
 ---
 
 # API Routes
@@ -31,14 +32,18 @@ flowchart LR
   U[User-facing] --> U1[jobs, scans, preprocess, manual]
   U --> U2[processing, gempy, task_status]
   U --> U3[harris]
+  U --> U4[demo]
+  D[Linked only from the demo card] --> D1[trenches]
+  P[Page exists, but nothing links to it] --> P2[finds]
   E[Needs a key or optional package] --> E1[extraction, text_metadata]
-  P[Page exists, but nothing links to it] --> P1[trenches]
-  P --> P2[finds]
   B[Registered but unreachable] --> B1[markers]
   B --> B2[features]
 ```
 
-*A registered route is not a user-facing feature. Some have no control at all; others have a page nobody links to.*
+*A registered route is not a user-facing feature. Some have no control at all;
+others have a page nobody links to. The trenches page sits in between: the
+sidebar's demo card links to it once a demonstration is seeded, and nothing
+else does.*
 
 ## Route Reference
 
@@ -81,6 +86,10 @@ flowchart LR
 | `/api/trenches/geospatial-sheet` | POST | multipart: `file` (season CSV), optional `phase` (`opening`\|`closing`), `site_grid` | `{phase, registered, needs_wall_names, notes}` | No | experimental | Register every trench in a season from its Geospatial Spreadsheet. Reads a downloaded file and writes nothing. A trench extended mid-season, whose extra vertices are recorded unlabelled, is returned under `needs_wall_names` rather than guessed at |
 | `/api/trenches/<label>/layout` | POST | JSON: `corners`, `walls`, optional `site_grid`, `vertical` | `{trench, grid, notes}` | No | experimental | Derive a grid config from the trench's surveyed corner coordinates. Writes nothing; the config comes back for checking against the drawings |
 | `/api/trenches/<label>/loci/import` | POST | multipart: `file` (CSV export), optional `column_map`, `vertical` | `{loci, column_map, unmatched, notes}` | No | experimental | Read a downloaded Kobo Locus Entry export. Offline only — no API call is made. Column names are never guessed: an unrecognised export is refused with its own headers listed |
+| `/api/trenches/<label>/registration` | GET | none | `{trench, grid, source, notes}` | No | experimental | The grid config already derived for this trench, so the interface can load it instead of asking for values the application has worked out. `404` when none has been derived. `source` distinguishes `surveyed` from `placeholder` |
+| `/api/demo` | GET | none | `{scenarios, datasets}` | No | experimental | The demonstration scenarios, whether each can run, and which are already seeded. Seeded state is read from the jobs on disk rather than a stored flag |
+| `/api/demo/seed` | POST | JSON: `scenario`, optional `dataset` | the seed summary | No | experimental | Seed one demonstration trench. Refuses a scenario that would draw invented wall sections under a real record set. Seeds only — the build is left to the operator |
+| `/api/demo` | DELETE | none | `{removed}` | No | experimental | Remove every seeded demonstration trench, scoped to the scenarios' own labels so the operator's work is untouched |
 | `/api/jobs/<job_id>/text-extraction` | POST | JSON: `api_key`, `square_cm`, `max_output_tokens` | `{task_id}` | **Yes** | experimental | Start the field-wall text read; aborts `400` without a key |
 | `/api/jobs/<job_id>/text-extraction` | GET | none | candidate labels, or a not-started marker | No | experimental | Read back the labels the extraction proposed |
 | `/api/jobs/<job_id>/text-verification` | POST | JSON: the reviewed labels | saved verification | No | experimental | Save the human-accepted, corrected, or unreadable labels |
@@ -96,9 +105,14 @@ flowchart LR
 | `/finds/<job_id>/new` | POST | JSON: the find | saved find | No | experimental | Log a find, including for jobs with no stratigraphy |
 | `/finds/<job_id>/<find_id>` | DELETE | none | `{}` | No | experimental | Remove one find |
 | `/` | GET | none | HTML | No | supported | Render the vanilla JavaScript drawing workflow |
+| `/jobs/<job_id>` | GET | none | HTML | No | supported | Results page for one job; the index job list links here once a job is past editing |
+| `/trenches` | GET | none | HTML | No | experimental | The trenches page: jobs grouped by trench, with the combined build. Linked from the demo card once a demonstration is seeded |
 | `/visualizer` | GET | query `job=<job_id>` (optional) | HTML | No | supported | Interactive 2D extraction and 3D surface viewer |
 | `/harris` | GET | optional `source_job=<job_id>` | HTML | No | supported | Matrix dashboard; a usable source can be preselected without mutation |
 | `/harris/<matrix_id>` | GET | none | HTML | No | supported | Matrix editor shell |
+
+Flask's built-in `/static/<path:filename>` serves the frontend assets and is
+the one registered route this table does not list.
 
 ---
 
@@ -116,7 +130,8 @@ Most routes expect `job_id` to be a 12-character UUID hex string. Job folders co
 ├── 06_gempy_model/       # GemPy pickle and outputs
 ├── meta.json             # Current job state
 ├── editor_meta.json      # Manual editor state (if created)
-└── extraction_output.json # Editor extraction (if manual)
+├── extraction_output.json # Editor extraction (if manual)
+└── finds.json            # Finds logged against the job (if any)
 ```
 
 Typical request order:
@@ -162,13 +177,17 @@ Asynchronous operations:
 - **`/features/detect`** — calls Gemini Vision API; network I/O
 - **`/markers/preview`** — calls Gemini Vision API; network I/O
 - **`/markers/detect`** — calls Gemini Vision API; network I/O
+- **`/text-extraction`** — calls Gemini Vision API; network I/O
 - **`/gempy`** — builds 3D model; CPU-intensive; may take minutes
+- **`/editor/<job_id>/finalize`** — normalize → validate → convert → build
+- **`/api/trenches/<label>/build`** — merges walls, then the model build
 
 ### Task Persistence
 
 - Tasks are stored in memory only.
 - If the server restarts, running tasks are lost.
-- Completed tasks remain queryable until next restart.
+- Completed tasks remain queryable until the next restart, except that once
+  more than 200 tasks are retained the oldest finished ones are evicted.
 - Job metadata (`meta.json`) persists across restarts.
 
 ---
@@ -431,21 +450,29 @@ little-endian `uint16` transport used by the classified-cell renderer.
 
 All routes are registered as Flask Blueprints and reside in `poggio_webapp/backend/routes/`. The main application factory is in `poggio_webapp/backend/__init__.py`.
 
-Task execution uses a thread pool. Task IDs are UUIDs. Long-running Gemini calls may exceed network timeouts; the frontend retries periodically.
+Each asynchronous request starts its own daemon thread — there is no pool.
+Task IDs are UUIDs. Long-running Gemini calls may exceed network timeouts; the
+frontend retries periodically.
 
 ---
 
 ## Frontend Integration
 
 The vanilla JavaScript UI in `poggio_webapp/static/app/` calls these
-endpoints from stages:
+endpoints from stages (one module per stage under `static/app/stages/`):
 
-- **Scan stage** — `/api/jobs`, `/scan`, `/preprocess`
+- **Scan stage** — `/api/jobs`, `/scan`
+- **Preprocess stage** — `/preprocess`
 - **Extract stage** — `/extract` or `/extract/upload`
-- **Editor stage** — `/boundaries/manual` (manual tracing only)
-- **Processing stage** — `/normalize`, `/validate`, `/convert`
-- **Visualize stage** — `/gempy`, `/visualizer-files`
-- **Marker workflows** — `/markers/*` (experimental)
+- **Verify text stage** — `/text-extraction`, `/text-verification`
+- **Draw stage** — `/boundaries/manual` (manual tracing only)
+- **Normalize, Validate, and Convert stages** — `/normalize`, `/validate`,
+  `/convert`
+- **Gempy and Visualize stages** — `/gempy`, `/visualizer-files`
+- **Demo card (sidebar)** — `/api/demo`, `/api/demo/seed`, `DELETE /api/demo`
+- **Trenches page** — `/api/trenches`, `/build`, `/registration`
+- **Marker workflows** — `/markers/*` (experimental; not wired into the stage
+  flow)
 - **Harris Matrix dashboard and editor** — `/api/harris-matrices`,
   `/api/harris-source-jobs`, source import, individual suggestion review, and
   JSON/SVG exports

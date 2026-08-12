@@ -6,7 +6,7 @@ source_files:
   - poggio_webapp/pipeline/editor/validation.py
   - poggio_webapp/pipeline/editor/finalize.py
   - poggio_webapp/pipeline/editor/errors.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Structural versus schema validation
@@ -233,7 +233,8 @@ The costs:
 - **Ordering is load-bearing and invisible.** Reordering the calls in
   `_validate_editor_structure` changes which message a user sees, with no test
   failure to warn you. The module docstring is the guard.
-- **Twelve exception classes** to maintain.
+- **Fourteen exception classes** to maintain — one shared base and thirteen
+  specific rules.
 - **The browser duplicates the rules** in `canvas/grid.mjs`, so a change must be
   made twice. The trade is immediate feedback while drawing; the server remains
   the authority.

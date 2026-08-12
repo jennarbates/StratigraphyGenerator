@@ -7,7 +7,7 @@ source_files:
   - poggio_webapp/backend/services/viewer_files.py
   - poggio_webapp/pipeline/editor/geometry.py
   - poggio_webapp/static/visualizer/coordinates.mjs
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Separation of concerns
@@ -158,15 +158,15 @@ in a naming convention:
 `core.mjs`, `munsell-color.js` — each is arithmetic or validation with no
 document access.
 
-That is why **84 browser tests run headless**. See
+That is why **the browser tests run headless**, as plain `node` scripts. See
 [pure functions and testability](pure-functions-and-testability.md).
 
 ### One blueprint per concern
 
-Sixteen route modules — `scans`, `preprocess`, `extraction`, `markers`,
+Seventeen route modules — `scans`, `preprocess`, `extraction`, `markers`,
 `features`, `manual`, `processing`, `gempy`, `harris`, `trenches`, `finds`,
-`editor`, `jobs`, `pages`, `task_status`, `text_metadata`. Each covers one
-stage or one entity. See
+`editor`, `jobs`, `pages`, `task_status`, `text_metadata`, `demo`. Each covers
+one stage or one entity. See
 [blueprint and plugin registries](blueprint-and-plugin-registries.md).
 
 ## Why this and not something else
@@ -195,12 +195,12 @@ The costs:
 - **Boundaries need justifying, repeatedly.** Why is `viewer_files` a service?
   Why is `manual_extraction` pipeline rather than a route? Each is a paragraph
   in a docstring, and each of those paragraphs is a small ongoing cost.
-- **Over-separation is real.** Twelve exception classes in
+- **Over-separation is real.** Fourteen exception classes in
   `editor/errors.py` is defensible; twenty would not be.
 - **Duplication across a language boundary.** The
   [calibration](similarity-transforms.md) exists in Python twice and JavaScript
-  once, because the concern spans runtimes. Mitigated by tests pinning them
-  against each other.
+  once, because the concern spans runtimes. Mitigated by each side pinning its
+  arithmetic to fixed expected values in its own tests.
 
 ## Where else you meet it
 

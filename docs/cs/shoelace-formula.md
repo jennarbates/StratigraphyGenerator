@@ -6,7 +6,7 @@ source_files:
   - poggio_webapp/static/visualizer/layer-fill.mjs
   - poggio_webapp/pipeline/detect_features.py
   - poggio_webapp/pipeline/detect_markers.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Shoelace formula

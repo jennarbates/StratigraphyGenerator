@@ -6,7 +6,7 @@ source_files:
   - poggio_webapp/backend/routes/__init__.py
   - poggio_webapp/pipeline/editor/__init__.py
   - poggio_webapp/pipeline/site_vocab.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Blueprint and plugin registries
@@ -38,7 +38,7 @@ significant, a stray file becomes a component, and nothing shows in a diff.
 
 ```mermaid
 flowchart LR
-  M["16 route modules"] --> I["routes/__init__.py"]
+  M["17 route modules"] --> I["routes/__init__.py"]
   I --> T["BLUEPRINTS tuple"]
   T --> L["register_blueprints(app)"]
   L --> A["one loop"]
@@ -56,6 +56,7 @@ flowchart LR
 
 from flask import Flask
 
+from .demo import bp as demo_bp
 from .editor import bp as editor_bp
 from .extraction import bp as extraction_bp
 from .features import bp as features_bp
@@ -90,6 +91,7 @@ BLUEPRINTS = (
     gempy_bp,
     harris_bp,
     trenches_bp,
+    demo_bp,
 )
 
 
@@ -101,7 +103,7 @@ def register_blueprints(app: Flask) -> None:
 Three details.
 
 **Every module exports the same name, `bp`,** aliased on import. That uniformity
-is what makes the file readable — sixteen lines with one shape.
+is what makes the file readable — seventeen lines with one shape.
 
 **The tuple is ordered roughly by pipeline stage** — pages, jobs, editor, then
 scan → preprocess → extraction → features → markers → manual → processing →
@@ -175,6 +177,7 @@ than to code:
 DRAWN_FEATURE_TYPES = (
     {"key": "stone", "label": "Stone", "kind": "material",
      "material": "S", "surveyCode": "STONE"},
+    ...
     {"key": "wall", "label": "Wall", "kind": "unit",
      "unitType": "structure", "surveyCode": "WALL"},
     ...
@@ -197,14 +200,14 @@ A tuple of records plus a lookup — the same shape as `BLUEPRINTS` plus
 
 | Alternative | How it would register routes | Why it lost |
 |---|---|---|
-| **Register each by hand in `create_app`** | 16 `app.register_blueprint(...)` calls | Works, and mixes the list of components with the construction logic. Extracting the list makes the *contents* reviewable separately from the *mechanism*. |
+| **Register each by hand in `create_app`** | 17 `app.register_blueprint(...)` calls | Works, and mixes the list of components with the construction logic. Extracting the list makes the *contents* reviewable separately from the *mechanism*. |
 | **Auto-discovery by directory scan** | `pkgutil.iter_modules` over `routes/` | Adding a file is enough — and a leftover or experimental module becomes live, import order becomes significant, and the set of registered routes no longer appears in any diff. |
 | **Decorator registration** | `@register` on each blueprint | Elegant, and it makes registration a side effect of import, so an unimported module silently disappears. |
 | **An entry-point or plugin system** | `importlib.metadata.entry_points` | For genuinely third-party plugins. Every route here ships in this repository. |
 | **An explicit tuple** *(chosen)* | One list, one loop | Adding a route is a visible one-line diff, the order is deliberate, and nothing is registered by accident. |
 
 The recurring judgement is **explicit over automatic where the set is
-reviewable**. Sixteen blueprints written down is not a burden, and it means a
+reviewable**. Seventeen blueprints written down is not a burden, and it means a
 reviewer sees a new route being added rather than a new file appearing.
 
 The same repository *does* choose discovery where the set is large and

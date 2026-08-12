@@ -6,7 +6,7 @@ source_files:
   - poggio_webapp/pipeline/extract_fieldwall.py
   - poggio_webapp/pipeline/convert_coords.py
   - poggio_webapp/pipeline/validator.py
-verified_against: 40e4a0d
+verified_against: ae2fc1d
 ---
 
 # Grid tie point

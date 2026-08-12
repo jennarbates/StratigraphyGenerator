@@ -8,7 +8,8 @@ source_files:
   - docs/workflows/06-place-on-site.md
   - docs/workflows/07-create-model.md
   - docs/project/capability-status.md
-verified_against: a8b58f1
+  - poggio_webapp/pipeline/provenance.py
+verified_against: ae2fc1d
 ---
 
 # Accuracy and provenance
@@ -41,6 +42,8 @@ The repository separates several provenance types, and the current documentation
 | AI classification or transcription | An automated reading step generated or labelled an extraction. | Experimental and should be checked against the source drawing before being trusted. |
 | Placeholder values | Generated defaults used for smoke tests or documentation exercises. | Not a scientific result and should not be treated as surveyed data. |
 | Surveyed values | Real measurements or coordinates from the site. | Appropriate for scientific use when they are recorded and documented properly. |
+
+Some of these distinctions are now recorded rather than merely described. A registration config declares where its values came from — the generated starter carries `source: "placeholder"`, and a config built from survey data declares `source: "surveyed"` — and the multi-wall build refuses to run on placeholder registration. Jobs seeded for demonstration carry a `demo` block that the interface shows as a badge. And `poggio_webapp/pipeline/provenance.py` records links back to the site's system of record — Open Context and ARK URLs, Kobo submission ids, trench-book pages — validating each by its shape, never by fetching it, so a job can say which published record it came from.
 
 The app also uses labels such as supported, experimental, and backend-only to describe current capability. Those labels are a practical way to communicate confidence, but they are not a substitute for human review.
 

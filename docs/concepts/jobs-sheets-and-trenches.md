@@ -7,7 +7,10 @@ source_files:
   - poggio_webapp/backend/config.py
   - poggio_webapp/backend/routes/scans.py
   - poggio_webapp/backend/routes/trenches.py
-verified_against: d23b842
+  - poggio_webapp/backend/services/trench_builder.py
+  - poggio_webapp/naming.py
+  - poggio_webapp/storage.py
+verified_against: ae2fc1d
 ---
 
 # Jobs, sheets, and trenches
@@ -90,23 +93,30 @@ trench, so unlabelled jobs are skipped silently.
 
 ### The job
 
-`poggio_webapp/backend/jobs.py` is the whole of it — five short helpers over a
-directory:
+The storage half of `poggio_webapp/backend/jobs.py` is a handful of short
+helpers over a directory:
 
-- `job_dir()` resolves the folder and returns `404` for an unknown id.
+- `job_dir()` resolves the folder and returns `404` for an unknown id, or
+  for one that would escape the jobs root.
 - `load_meta()` / `save_meta()` read and write `meta.json`.
 - `rel_url()` builds the `/api/jobs/<id>/file?path=…` URL for a file inside
   the job.
 - `safe_job_path()` resolves a relative path under the job directory and
   refuses to escape it.
 
-There is no job model, no ORM, and no index. A job is a folder, and its
-`meta.json` is the only state.
+The rest of the module assembles the job records the API lists — status,
+artifact URLs, the `demo` provenance block carried through verbatim — by
+re-reading those same folders on demand. There is no job model, no ORM, and
+no index. A job is a folder, and its `meta.json` is the only state.
 
 ### The labels
 
-Both labels are optional form fields on upload, cleaned by `clean_label()` and
-written into `meta.json` only when non-empty:
+Both labels are optional form fields on upload, written into `meta.json` only
+when non-empty. The wall label is tidied by `clean_label()`; the trench label
+goes through `canonical_trench()`, which rewrites it into the site's required
+form — `T104`, never `T-104` — because two spellings would otherwise build two
+trenches, each holding half the walls. Grouping canonicalizes on read too, so
+jobs recorded before the rule existed still land in the right trench:
 
 | Field | Meaning | Set at |
 |---|---|---|
@@ -114,6 +124,10 @@ written into `meta.json` only when non-empty:
 | `wall_label` | Which wall of that trench this sheet records | Upload, or editor creation |
 | `sheet_type` | `illustrator` or `fieldwall` | Upload |
 | `normalized_path` | Where the cleaned extraction landed | Normalization |
+
+Upload can also record a `season`, a `locus_epoch` and a `site_grid`, which
+the multi-wall build checks before it will merge sheets, and jobs seeded by
+the demo carry a `demo` block so the interface can badge demonstration data.
 
 Wall labels matter more than they look. They become **face names**, and GemPy
 fuses faces by exact name — so two walls sharing a label would collide into
@@ -123,9 +137,13 @@ that in its notes.
 
 ### The trench
 
-`poggio_webapp/trenches/<safe-label>/` holds merged output only. It is created
-by the build, not by any upload, and its contents are derived: delete it and
-the next build recreates it from the jobs. The jobs remain the source of truth.
+`poggio_webapp/trenches/<safe-label>/` holds merged output, plus a stored
+registration in `grid_config.json` when one has been derived for the trench —
+the demo seeder writes one, and `GET /api/trenches/<label>/registration`
+serves it back so the interface can prefill real values instead of the
+starter placeholders. The directory is created by the build or the seeder,
+not by any upload, and its contents are derived: delete it and the next
+build, or the next seed, recreates it. The jobs remain the source of truth.
 
 The three writable roots, all defined in `poggio_webapp/storage.py` and created
 on import:
@@ -133,7 +151,7 @@ on import:
 | Directory | Holds | Source of truth? |
 |---|---|---|
 | `jobs/` | One folder per sheet | Yes |
-| `trenches/` | Merged multi-wall output | No — derived |
+| `trenches/` | Merged output and derived registration | No — derived |
 | `matrices/` | Harris matrices | Yes |
 
 `storage.py` is deliberately a leaf module: it imports nothing from `backend`

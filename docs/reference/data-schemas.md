@@ -8,8 +8,9 @@ source_files:
   - poggio_webapp/pipeline/extract_illustrator.py
   - poggio_webapp/pipeline/assign_markers.py
   - poggio_webapp/backend/routes/manual.py
+  - poggio_webapp/pipeline/manual_extraction.py
   - poggio_webapp/pipeline/harris_matrix.py
-verified_against: 2267711
+verified_against: ae2fc1d
 ---
 
 # Data Schemas
@@ -148,6 +149,7 @@ A coordinate on a layer or feature boundary.
 | `xCoordinateMeters` | float | optional | Horizontal distance (left to right on section) |
 | `yCoordinateMeters` | float | optional | Vertical distance (depth, positive downward) |
 | `confidence` | str | optional | AI confidence level for this point |
+| `uncertaintyCm` | float | optional | The site's ± error in centimetres; a ranged reading is a midpoint plus half the range. Never invented |
 
 ---
 
@@ -171,7 +173,9 @@ Root schema for a field-wall extraction or manual edit.
 | `loci` | list[Locus] | optional | Stratigraphic units with color readings |
 | `layers` | list[LocusLayer] | optional | Same units organized by depth order |
 | `marginalia` | list[str] | optional | Handwritten notes |
+| `textCandidates` | GeminiFieldWallTextCandidates | optional | Writing-review proposals (see below); excluded when Python reserialises the profile |
 | `source` | Literal["extraction", "manual_editor"] | optional | Default "extraction" |
+| `finds` | list[dict] | optional | Added by the human finds workflow, never by Gemini |
 
 ### Locus
 
@@ -237,6 +241,7 @@ A coordinate on a field-wall layer or feature boundary.
 | `xMeters` | float | optional | Horizontal distance on the wall |
 | `depthMeters` | float | optional | Vertical distance (positive downward) |
 | `confidence` | str | optional | AI confidence level for this point |
+| `uncertaintyCm` | float | optional | The site's ± error in centimetres; a ranged reading is a midpoint plus half the range. Never invented |
 
 ---
 
@@ -262,13 +267,22 @@ A single marker's assigned role.
 
 ### MarkerAssignmentResult
 
-The complete output of marker assignment.
+The complete output of marker assignment: per-marker classifications plus the
+label-reading parts of an ordinary field-wall extraction (geometry
+deliberately absent).
 
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
 | `trenchLabel` | str | optional | Trench identifier |
 | `faceLabel` | str | optional | Face identifier |
 | `illustrators` | list[str] | optional | Recorder names |
+| `date` | str | optional | Recording date |
+| `northArrowPresent` | bool | optional | Whether a north arrow appeared |
+| `gridSquareCm` | float | optional | Grid square side length in centimetres |
+| `gridTiePoints` | list[GridTiePoint] | optional | Transcribed grid labels |
+| `loci` | list[Locus] | optional | Loci with Munsell readings |
+| `marginalia` | list[str] | optional | Handwritten notes |
+| `assignments` | list[MarkerAssignment] | required | One entry per detected marker |
 
 ---
 
@@ -276,15 +290,18 @@ The complete output of marker assignment.
 
 ### Calibration (Manual Editor)
 
-Three-point calibration used to transform pixel coordinates to section meters.
+Three-click calibration used to transform pixel coordinates to section
+meters. The browser sends `origin_px`, `ref_px`, `lowest_px`, and
+`ref_meters`; `make_calibration` in `pipeline/manual_extraction.py` derives a
+frozen `Calibration` dataclass from them:
 
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
-| `origin_x` | float | required | X-coordinate of first calibration point (section meters) |
-| `origin_y` | float | required | Y-coordinate of first calibration point (section meters) |
-| `ux` | float | required | X-coordinate of second calibration point |
-| `uy` | float | required | Y-coordinate of second calibration point |
-| `vx` | float | required | X-coordinate of third calibration point |
+| `origin_x`, `origin_y` | float | required | Pixel coordinates of the first click (the section origin) |
+| `ux`, `uy` | float | required | Unit vector along the section's top edge, in pixel space |
+| `vx`, `vy` | float | required | Perpendicular unit vector, oriented toward the lowest click (down the section) |
+| `px_per_m` | float | required | Pixels per metre, from the reference distance |
+| `ref_x`, `ref_y` | float | required | Pixel coordinates of the second click |
 
 ---
 
@@ -486,8 +503,9 @@ extractor declining to guess.
 After a user completes an extraction or manual edit, the data flows through:
 
 1. **JSON-Schema validation** — Pydantic checks required fields and types
-2. **Custom validation** — `validator.py` checks geometric plausibility
-3. **Normalization** — Empty fields are pruned and references are resolved
+2. **Normalization** — null-like strings become real nulls and duplicated
+   feature outlines are dropped
+3. **Custom validation** — `validator.py` checks geometric plausibility
 4. **Coordinate conversion** — Section-local coordinates become site-wide
 
 All Pydantic models use the Python `|` union syntax (Python 3.10+) for optional field types.

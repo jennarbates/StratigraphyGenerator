@@ -7,7 +7,7 @@ source_files:
   - poggio_webapp/pipeline/extract_fieldwall.py
   - poggio_webapp/pipeline/extract_illustrator.py
   - poggio_webapp/pipeline/validator.py
-verified_against: 372719d
+verified_against: ae2fc1d
 ---
 
 # Synthetic documentation fixtures

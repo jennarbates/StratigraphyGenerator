@@ -5,7 +5,7 @@ status: current
 source_files:
   - poggio_webapp/pipeline/harris_matrix.py
   - poggio_webapp/pipeline/merge_walls.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Adjacency representations
@@ -157,7 +157,7 @@ A fourth representation, existing purely so the error message is actionable.
 | **Adjacency matrix** | O(1) edge lookup | O(n²) memory for a graph that is overwhelmingly empty. It would make [transitive closure](transitive-reduction.md) natural via matrix multiplication, and the reduction here is computed by reachability instead, which is cheaper on sparse input. |
 | **Edge list only** | Serialisation, set algebra | Used — for the reduction's set difference. Traversal from it would be O(E) per node lookup. |
 | **Adjacency list only** | Traversal | Used — for every DFS and for Kahn's. Set difference from it would be a nested loop. |
-| **A graph library (networkx)** | Everything | Would replace perhaps 80 lines with imports, and adds a dependency to a module whose only imports are `heapq`, `re`, `collections`, and `pydantic`. The algorithms here are short enough to read, and reading them is how a maintainer verifies the chronology logic. |
+| **A graph library (networkx)** | Everything | Would replace perhaps 80 lines with imports, and adds a dependency to a module whose only imports are `heapq`, `re`, `collections`, `typing`, and `pydantic`. The algorithms here are short enough to read, and reading them is how a maintainer verifies the chronology logic. |
 | **Several representations, converted on demand** *(chosen)* | Each operation | Conversion is O(V + E), so building an adjacency list per traversal is free relative to the traversal itself. |
 
 The point worth extracting: **converting between representations is cheap, so

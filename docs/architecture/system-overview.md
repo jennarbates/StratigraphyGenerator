@@ -10,7 +10,7 @@ source_files:
   - poggio_webapp/backend/harris_store.py
   - poggio_webapp/pipeline/harris_matrix.py
   - poggio_webapp/static/app/index.js
-verified_against: 2267711
+verified_against: ae2fc1d
 ---
 
 # System overview
@@ -75,7 +75,7 @@ This page maps the current runtime from the browser to the Flask backend, the pi
 
 ## Under the hood
 
-The current app starts from the Flask factory in `poggio_webapp/app.py`, which registers backend blueprints before handling requests. The frontend entry point in `poggio_webapp/static/app/index.js` selects a renderer for each workflow step, but the Flask server remains the authority for persistence and file output.
+The current app starts from `poggio_webapp/app.py`, which calls the Flask application factory in `poggio_webapp/backend/__init__.py` to register the backend blueprints before handling requests. The frontend entry point in `poggio_webapp/static/app/index.js` selects a renderer for each workflow step, but the Flask server remains the authority for persistence and file output.
 
 A simplified view of the current flow is:
 
@@ -92,7 +92,7 @@ flowchart LR
   HarrisRoutes --> Matrices[Matrix folders under poggio_webapp/matrices]
 ```
 
-User-facing availability and backend capability are distinct here. The UI currently exposes manual tracing and the blank-canvas editor as visible starting points, while the backend also supports additional route-driven operations such as feature detection, marker detection, and model build steps.
+User-facing availability and backend capability are distinct here. The UI currently exposes manual tracing, the blank-canvas editor, and a demonstration card that seeds a sample trench as visible starting points, while the backend also supports additional route-driven operations such as feature detection, marker detection, and model build steps.
 
 Harris Matrix import is read-only with respect to source jobs. The separate
 matrix store keeps editable labels, chronological interpretations,

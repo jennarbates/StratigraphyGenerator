@@ -9,7 +9,7 @@ source_files:
   - poggio_webapp/pipeline/assign_markers.py
   - poggio_webapp/pipeline/merge_walls.py
   - poggio_webapp/pipeline/validator.py
-verified_against: 40e4a0d
+verified_against: ae2fc1d
 ---
 
 # Locus

@@ -7,7 +7,7 @@ source_files:
   - poggio_webapp/backend/routes/features.py
   - poggio_webapp/pipeline/detect_markers.py
   - poggio_webapp/pipeline/detect_features.py
-verified_against: a8b58f1
+verified_against: ae2fc1d
 ---
 
 # Markers and features
@@ -75,7 +75,7 @@ Synthetic documentation example: the feature object below is invented for docume
 
 ## Under the hood
 
-The backend routes in `poggio_webapp/backend/routes/markers.py` and `poggio_webapp/backend/routes/features.py` implement detection-related work, while the pipeline modules in `poggio_webapp/pipeline/detect_markers.py` and `poggio_webapp/pipeline/detect_features.py` contain the logic. The current live workflow still prioritizes the manual tracing path and leaves these stages as secondary or developer-only capabilities.
+The backend routes in `poggio_webapp/backend/routes/markers.py` and `poggio_webapp/backend/routes/features.py` implement detection-related work, while the pipeline modules in `poggio_webapp/pipeline/detect_markers.py` and `poggio_webapp/pipeline/detect_features.py` contain the logic. One marker route is used indirectly: the manual tracing step calls the markers preview route to produce the rotated working image it displays. The current live workflow still prioritizes the manual tracing path and leaves these stages as secondary or developer-only capabilities.
 
 ## Next
 

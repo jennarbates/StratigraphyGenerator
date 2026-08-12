@@ -5,7 +5,7 @@ status: current
 source_files:
   - poggio_webapp/static/app/stages/draw.js
   - poggio_webapp/backend/routes/manual.py
-verified_against: 077f108
+verified_against: ae2fc1d
 ---
 
 # Trace the layers
@@ -31,10 +31,10 @@ Synthetic documentation example: the generated example images in [docs/fixtures/
    - Action: click the three calibration points in order: the top-left reference point, the top-right reference point, and the lowest point. Enter the real distance between the first two clicks in metres.
    - Artifact: the app stores calibration values that convert pixels into metres.
 3. Input: the calibrated drawing.
-   - Action: for an illustrated sheet, start the surface line, then add the lower soil lines and names. For a field sheet, start the top of each locus, then add the final bottom line below the deepest locus. Add optional internal features when you have them.
+   - Action: for an illustrated sheet, start the surface line, then add the lower soil lines and names. For a field sheet, start the top of each locus, then add the final bottom line below the deepest locus. If the earlier check-the-writing step verified locus numbers, the field-sheet flow offers a verified locus chooser that starts each top line for you. Add optional internal features when you have them.
    - Artifact: the app records boundary points, feature shapes, and optional layer or locus metadata.
 4. Input: the traced boundaries and any notes.
-   - Action: enter the trench name, the face name, and the per-layer or per-locus metadata, then save the drawing.
+   - Action: enter the trench name, the side of the trench, the grid-square size for a field sheet, and the per-layer or per-locus metadata, then save the drawing.
    - Artifact: the app builds a manual extraction JSON file and reports any warnings.
 
 <!-- SCREENSHOT: 03-trace-calibration.png

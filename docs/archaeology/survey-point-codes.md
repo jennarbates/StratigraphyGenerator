@@ -4,7 +4,7 @@ audience: beginner
 status: current
 source_files:
   - poggio_webapp/pipeline/site_vocab.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Survey point codes

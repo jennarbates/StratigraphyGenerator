@@ -7,7 +7,7 @@ source_files:
   - poggio_webapp/pipeline/merge_walls.py
   - poggio_webapp/backend/services/trench_builder.py
   - poggio_webapp/pipeline/editor/validation.py
-verified_against: 40e4a0d
+verified_against: ae2fc1d
 ---
 
 # Grid registration
@@ -150,7 +150,8 @@ def to_site(x, depth, X0=X0, Y0=Y0, Z0=Z0, sin_t=sin_t, cos_t=cos_t):
 
 ### Completeness is enforced before finalizing
 
-`poggio_webapp/pipeline/editor/validation.py`:
+`poggio_webapp/pipeline/editor/schema.py` names the four fields, and
+`poggio_webapp/pipeline/editor/validation.py` enforces them:
 
 ```python
 GRID_REGISTRATION_FIELDS = ("originX", "originY", "surfaceZ", "bearing_deg")

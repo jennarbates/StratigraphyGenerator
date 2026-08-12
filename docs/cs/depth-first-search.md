@@ -4,7 +4,7 @@ audience: developer
 status: current
 source_files:
   - poggio_webapp/pipeline/harris_matrix.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Depth-first search

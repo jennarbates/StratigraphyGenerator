@@ -5,7 +5,7 @@ status: current
 source_files:
   - poggio_webapp/pipeline/build_gempy.py
   - poggio_webapp/backend/routes/gempy.py
-verified_against: a8b58f1
+verified_against: ae2fc1d
 ---
 
 # Create the model
@@ -26,13 +26,13 @@ You need the converted CSV files from the registration step. The full GemPy buil
    - Action: use the point and orientation CSVs created in the previous step.
    - Artifact: a GemPy project file and related model outputs.
 2. Review the build settings.
-   - Series order: the app can infer the order from the surface elevations, or you can supply the order explicitly. Keep the order simple for a placeholder example.
-   - Resolution: the default build uses a $50 \times 50 \times 30$ grid.
+   - Series order: the app can infer the order from the surface elevations, or you can supply the order explicitly (youngest first, semicolon-separated). Keep the order simple for a placeholder example. The result reports where the order came from, and an elevation-sorted order is flagged as an assumption rather than evidence.
+   - Resolution: the app's model step defaults to a $50 \times 50 \times 30$ grid; the pipeline's own default, used by combined trench builds, is $100 \times 100 \times 70$.
    - Extent: the app infers an extent from the point data and padding values unless you provide one.
    - Section direction: the default is `y`.
    - Vertical exaggeration: the default is `5.0`.
 3. Let the build finish.
-   - Artifact: a `.gempy` file, a lith-block file, mesh files, and section images.
+   - Artifact: a `.gempy` file, lith-block files, mesh files, a viewer manifest, and section images.
 
 ### Synthetic example
 
@@ -41,8 +41,9 @@ For a documentation walkthrough, use a simple synthetic surface order such as `L
 ## What the application creates
 
 - `trench_model.gempy`
-- `trench_model_lith_block.npz`
+- `trench_model_lith_block.npz` and a browser-readable `trench_model_lith_block.bin`
 - one or more `.obj` mesh files in a meshes folder
+- `trench_model_viewer.json`, a manifest the 3D viewer reads, including the series-order provenance and per-wall traced polylines
 - a section image such as `trench_model_section_y.png`
 - an optional zoomed section image when the builder can create it
 
@@ -64,7 +65,7 @@ For a documentation walkthrough, use a simple synthetic surface order such as `L
 
 ## Under the hood
 
-The build step in `poggio_webapp/pipeline/build_gempy.py` reads the converted CSVs, creates a GemPy model, saves the model file, writes a lith block, exports meshes, and optionally renders section images. The plot step can fail independently of the model computation, so a missing image does not always mean the model build failed.
+The build step in `poggio_webapp/pipeline/build_gempy.py` reads the converted CSVs, creates a GemPy model, saves the model file, writes a lith block (both `.npz` and a little-endian binary volume), exports meshes, writes the viewer manifest, and optionally renders section images. The plot step can fail independently of the model computation, so a missing image does not always mean the model build failed. When a combined trench build supplies an order from a Harris matrix or the recorded layer sequence, the manifest and build log carry that provenance; a job-level build with no supplied order falls back to the elevation sort and labels it a warning.
 
 ## Next
 

@@ -8,7 +8,7 @@ source_files:
   - poggio_webapp/backend/services/trench_builder.py
   - poggio_webapp/backend/services/viewer_files.py
   - poggio_webapp/static/visualizer/layer-fill.mjs
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Fail-closed design
@@ -175,13 +175,17 @@ ambiguous line would be worse than leaving the image alone.
 
 ```python
 Bad geometry is never fatal -- it is the operator's to judge, and this
-repo's convention is to report rather than guess. A face missing from the
-config IS fatal (ValueError): convert() would silently drop that wall.
+repo's convention is to report rather than guess. Two things ARE fatal
+(ValueError), both because convert() cannot proceed on them: a face missing
+from the config, which convert() would silently drop, and a face whose
+surfaceZ is absent, which is every depth on that wall measured from
+nothing.
 ```
 
-Two categories, one rule. **Silent data loss is fatal; questionable geometry is
-a warning**, because an archaeologist may have a reason for a wall that does not
-join — an unexcavated side, a survey the software cannot know about.
+Two categories, one rule. **What convert() cannot proceed on is fatal;
+questionable geometry is a warning**, because an archaeologist may have a reason
+for a wall that does not join — an unexcavated side, a survey the software
+cannot know about.
 
 Fail-closed does not mean refuse everything. It means refuse where the software
 cannot know, and report where the human can.

@@ -7,7 +7,7 @@ source_files:
   - poggio_webapp/backend/routes/extraction.py
   - poggio_webapp/pipeline/extract_fieldwall.py
   - poggio_webapp/pipeline/extract_illustrator.py
-verified_against: a8b58f1
+verified_against: ae2fc1d
 ---
 
 # Alternative import and AI extraction
@@ -31,6 +31,8 @@ flowchart LR
 ## Before you start
 
 Manual tracing remains the main path. Use these alternatives only when you already have a data file, have been told to test AI output, or need to skip the manual drawing step for a specific reason.
+
+Two related paths are documented elsewhere. A field sheet's written labels can be read automatically and reviewed in the app's "Check the writing" step without replacing any geometry. And locus records from a downloaded Kobo Locus Entry export can be imported for a trench through `POST /api/trenches/<label>/loci/import` — see [Kobo locus import](../archaeology/kobo-locus-import.md); that import supplies locus metadata, not drawing geometry.
 
 Synthetic documentation example: the JSON below is invented for documentation and is not a real excavation record.
 
@@ -56,12 +58,12 @@ Synthetic documentation example: the JSON below is invented for documentation an
 
 1. Input: an existing JSON file.
    - Action: choose the import option from the optional alternative page. The app accepts a JSON file that matches one of the two supported extraction shapes: an illustrator-style extraction with `trenchProfiles`, or a field-wall extraction with `loci` and `layers`.
-   - Artifact: the file is installed as the current extraction so the later cleanup and validation steps can continue.
+   - Artifact: the file is installed as the current extraction so the later cleanup and validation steps can continue, and the job's sheet type is set to match the detected shape.
 2. Input: a prepared image and a Gemini API key.
    - Action: open the automatic-reading option only after preprocessing is complete. Paste a temporary API key into the browser field, choose the field-wall grid-square size if needed, and start the request. The app sends the key to the local server for that one request.
    - Artifact: a background task writes a new extraction file and reports whether it finished successfully.
 3. Input: AI output and the original drawing.
-   - Action: compare the AI result with the drawing before you trust it. The current UI labels this path as experimental, and the geometry is not treated as verified simply because the extraction finished.
+   - Action: compare the AI result with the drawing before you trust it. The UI presents this path as an optional alternative and warns that automatic reading can make mistakes, and the geometry is not treated as verified simply because the extraction finished.
    - Artifact: a saved extraction file that you can inspect, clean, and validate.
 
 ## What the application creates

@@ -6,7 +6,7 @@ source_files:
   - README.md
   - poggio_webapp/README.md
   - poggio_webapp/app.py
-verified_against: eac1f51
+verified_against: ae2fc1d
 ---
 
 # Poggio Civitate trench digitization guide
@@ -16,7 +16,7 @@ when the optional modeling tools are available, a 3D geological model.
 
 The supported beginner route is to upload an image and trace its boundaries
 manually. It does not require an API key. Start with the
-[quickstart](start-here/quickstart.md) to reach the runnable `python app.py`
+[quickstart](start-here/quickstart.md) to reach the runnable `make run`
 command, then use the chooser to confirm the right workflow.
 
 ```mermaid

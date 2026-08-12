@@ -7,7 +7,7 @@ source_files:
   - poggio_webapp/backend/routes/processing.py
   - poggio_webapp/pipeline/validator.py
   - tests/test_validator.py
-verified_against: a8b58f1
+verified_against: ae2fc1d
 ---
 
 # Check for problems

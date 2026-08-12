@@ -5,7 +5,7 @@ status: current
 source_files:
   - poggio_webapp/pipeline/site_vocab.py
   - poggio_webapp/naming.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Find identifiers

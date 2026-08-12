@@ -9,8 +9,10 @@ source_files:
   - poggio_webapp/pipeline/editor/schema.py
   - poggio_webapp/naming.py
   - poggio_webapp/pipeline/site_vocab.py
+  - poggio_webapp/pipeline/series_order.py
+  - poggio_webapp/pipeline/trench_layout.py
   - poggio_webapp/backend/services/trench_builder.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Glossary

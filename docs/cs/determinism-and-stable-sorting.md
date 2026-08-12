@@ -8,7 +8,7 @@ source_files:
   - poggio_webapp/pipeline/true_dip.py
   - poggio_webapp/pipeline/build_gempy.py
   - poggio_webapp/pipeline/detect_features.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Determinism and stable sorting
@@ -63,7 +63,7 @@ flowchart TB
 ```python
 for correlation in sorted(matrix.correlations, key=lambda item: item.id):
 for relation in sorted(matrix.relations, key=lambda item: item.id):
-for node in sorted(nodes):
+for start in sorted(nodes):
 for unit in sorted(matrix.units, key=lambda item: item.id):
 ```
 

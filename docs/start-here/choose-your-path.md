@@ -7,7 +7,7 @@ source_files:
   - poggio_webapp/static/app/stages/draw.js
   - poggio_webapp/static/app/stages/extract.js
   - poggio_webapp/static/app/index.js
-verified_against: eac1f51
+verified_against: ae2fc1d
 ---
 
 # Choose your path

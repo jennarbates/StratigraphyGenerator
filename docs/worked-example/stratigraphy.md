@@ -6,7 +6,7 @@ source_files:
   - poggio_webapp/pipeline/harris_matrix.py
   - tests/fixtures/t905-2025-loci.json
   - tests/test_t905_worked_example.py
-verified_against: 13091c9
+verified_against: ae2fc1d
 ---
 
 # T905's stratigraphy

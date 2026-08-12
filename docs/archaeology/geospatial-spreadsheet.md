@@ -7,7 +7,7 @@ source_files:
   - poggio_webapp/pipeline/trench_layout.py
   - poggio_webapp/backend/routes/trenches.py
   - tests/fixtures/geospatial-sample.csv
-verified_against: 13091c9
+verified_against: ae2fc1d
 ---
 
 # Geospatial Spreadsheet

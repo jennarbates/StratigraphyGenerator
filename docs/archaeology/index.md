@@ -13,7 +13,7 @@ source_files:
   - poggio_webapp/pipeline/geospatial_sheet.py
   - poggio_webapp/pipeline/locus_import.py
   - poggio_webapp/pipeline/provenance.py
-verified_against: 40e4a0d
+verified_against: ae2fc1d
 ---
 
 # Archaeology reference

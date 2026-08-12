@@ -4,8 +4,10 @@ audience: beginner
 status: current
 source_files:
   - poggio_webapp/pipeline/editor/finds.py
+  - poggio_webapp/backend/routes/finds.py
+  - poggio_webapp/static/finds/index.js
   - poggio_webapp/templates/finds.html
-verified_against: a8b58f1
+verified_against: ae2fc1d
 ---
 
 # Log a find
@@ -20,6 +22,8 @@ Record an artifact without changing the stratigraphic drawing, and later sync th
 
 You need an existing job or a job that has at least enough context for a face name. Finds are stored independently from the stratigraphic geometry, so they can be entered before or after the drawing is finalized.
 
+The finds page is reachable only by address: open <http://localhost:5000/finds> directly. No control elsewhere in the application links to it. See [capability status](../project/capability-status.md).
+
 ## Do this
 
 1. Open the finds page.
@@ -31,14 +35,14 @@ You need an existing job or a job that has at least enough context for a face na
 3. Describe the find.
    - Action: enter locus, elevation, and a short description.
    - Artifact: a stored find record.
-4. Save the find.
-   - Artifact: a `finds.json` file stored with the job. When the output is finalized, the find list can be copied into the finalized output payload.
+4. Choose **Log find**.
+   - Artifact: a `finds.json` file stored with the job. The find list is copied into the finalized `extraction_output.json` whenever one exists, and again when the output is finalized.
 
 ## What the application creates
 
 - A stored find entry with a generated find ID.
 - A `finds.json` file for the job.
-- A later sync into the finalized `extraction_output.json` when the output is finalized.
+- A sync into the finalized `extraction_output.json`, run when a find is logged or deleted after finalization and again when the output is finalized.
 
 ## Check your result
 
@@ -54,7 +58,7 @@ You need an existing job or a job that has at least enough context for a face na
 
 ## Under the hood
 
-The finds page writes to the job's `finds.json` file, and the editor pipeline can later copy that list into the finalized output. This is separate from the point conversion and model-building pipeline.
+The finds page posts to the routes in `poggio_webapp/backend/routes/finds.py`, which store the record in the job's `finds.json` through `poggio_webapp/pipeline/editor/finds.py` and re-sync the list into `extraction_output.json` whenever that finalized output exists. This is separate from the point conversion and model-building pipeline.
 
 ## Next
 

@@ -6,7 +6,8 @@ source_files:
   - poggio_webapp/pipeline/merge_walls.py
   - poggio_webapp/pipeline/harris_matrix.py
   - poggio_webapp/pipeline/normalizer.py
-verified_against: 636b160
+  - poggio_webapp/pipeline/assign_markers.py
+verified_against: ae2fc1d
 ---
 
 # Hash tables
@@ -112,7 +113,8 @@ if name not in order_index:
 then breaks ties in [Kahn's algorithm](topological-sorting.md), so the sort does
 not depend on any iteration order at all.
 
-The same file uses `dict.fromkeys` for order-preserving deduplication:
+`poggio_webapp/pipeline/assign_markers.py` uses `dict.fromkeys` for
+order-preserving deduplication:
 
 ```python
 for num in dict.fromkeys(n for n in listed if n):
@@ -127,7 +129,7 @@ iterating, everywhere:
 ```python
 for correlation in sorted(matrix.correlations, key=lambda item: item.id):
 for relation in sorted(matrix.relations, key=lambda item: item.id):
-for node in sorted(nodes):
+for start in sorted(nodes):
 ```
 
 Not because sorting is needed for correctness, but because the *reported* result

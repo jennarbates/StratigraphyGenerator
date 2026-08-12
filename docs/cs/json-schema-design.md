@@ -7,7 +7,7 @@ source_files:
   - poggio_webapp/pipeline/extract_illustrator.py
   - poggio_webapp/pipeline/harris_matrix.py
   - poggio_webapp/pipeline/extract_text.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # JSON and schema design

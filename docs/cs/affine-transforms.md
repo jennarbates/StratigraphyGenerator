@@ -5,7 +5,7 @@ status: current
 source_files:
   - poggio_webapp/pipeline/preprocess.py
   - poggio_webapp/pipeline/manual_extraction.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Affine transforms

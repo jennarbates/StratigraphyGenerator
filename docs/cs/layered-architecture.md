@@ -7,7 +7,7 @@ source_files:
   - poggio_webapp/backend/services/trench_builder.py
   - poggio_webapp/backend/services/editor_pipeline.py
   - poggio_webapp/pipeline/manual_extraction.py
-verified_against: 636b160
+verified_against: ae2fc1d
 ---
 
 # Layered architecture
@@ -39,7 +39,7 @@ whatever the directory names suggest.
 
 ```mermaid
 flowchart TB
-  R["routes/<br/>16 blueprints"] --> S["services/<br/>orchestration"]
+  R["routes/<br/>17 blueprints"] --> S["services/<br/>orchestration"]
   R --> P["pipeline/<br/>transformation"]
   S --> P
   R --> L["storage.py · naming.py<br/>leaf modules"]
@@ -170,9 +170,9 @@ the same reason. See
 | **Hexagonal / ports and adapters** | Interfaces at every boundary | Stronger decoupling, and the indirection is heavy for an application with one delivery mechanism and one storage backend. |
 | **Routes → services → pipeline → leaves** *(chosen)* | Four layers, one direction | Each layer is testable alone, and the framework is confined to one of them. |
 
-The payoff is measurable: **707 tests run in under three seconds**, because most
-of them call pipeline and service functions directly rather than going through
-an application.
+The payoff is measurable: most of the **1135 tests** call pipeline and service
+functions directly rather than going through an application, so a rule can be
+exercised without an HTTP request.
 
 ## What it costs
 

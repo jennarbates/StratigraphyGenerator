@@ -14,6 +14,9 @@ from pipeline import (
     trench_layout,
 )
 from pipeline import (
+    merge_walls as p_merge_walls,
+)
+from pipeline import (
     site_grid as p_site_grid,
 )
 
@@ -75,6 +78,45 @@ def get_trench_file(label):
     if not target.is_file():
         abort(404)
     return send_file(target)
+
+
+@bp.route("/api/trenches/<label>/registration")
+def get_registration(label):
+    """This trench's stored grid config, if one has been derived for it.
+
+    Of the records-derived registration sources -- a trench layout, the
+    season's Geospatial Spreadsheet, the demo seeder -- only the demo seeder
+    writes its result to the trench directory; the layout and geospatial-sheet
+    routes return a config and store nothing. Whatever did land on disk was
+    read by nothing, so the interface asked the operator to paste values the
+    application had already worked out. Worse, the
+    build answers a gridless request with the *starter placeholder*, which it
+    then refuses; a trench with a perfectly good surveyed registration on disk
+    looked, from the page, like one with no registration at all.
+
+    404 when there is none, which is the ordinary case for a trench built from
+    hand-entered values. The response carries ``source`` so the interface can
+    say which kind it is loading rather than implying every prefill is
+    surveyed.
+    """
+    path = trench_dir(label) / "grid_config.json"
+    if not path.is_file():
+        abort(404, description="no registration has been derived for this trench")
+    try:
+        stored = json.loads(path.read_text())
+    except (OSError, UnicodeError, json.JSONDecodeError) as error:
+        abort(400, description=f"this trench's registration cannot be read: {error}")
+
+    grid = stored.get("grid") if isinstance(stored, dict) else None
+    if not isinstance(grid, dict):
+        abort(400, description="this trench's registration is not a grid config")
+
+    return jsonify({
+        "trench": label,
+        "grid": grid,
+        "source": p_merge_walls.registration_source(grid) or "unknown",
+        "notes": stored.get("notes") or [],
+    })
 
 
 @bp.route("/api/trenches/<label>/layout", methods=["POST"])

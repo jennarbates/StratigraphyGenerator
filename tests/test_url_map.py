@@ -16,6 +16,9 @@ import pytest
 
 EXPECTED_RULES = {
     ("/", "GET"),
+    ("/api/demo", "DELETE"),
+    ("/api/demo", "GET"),
+    ("/api/demo/seed", "POST"),
     ("/api/harris-matrices", "GET"),
     ("/api/harris-matrices", "POST"),
     ("/api/harris-matrices/<matrix_id>", "GET"),
@@ -58,6 +61,7 @@ EXPECTED_RULES = {
     ("/api/trenches/<label>/file", "GET"),
     ("/api/trenches/<label>/layout", "POST"),
     ("/api/trenches/<label>/loci/import", "POST"),
+    ("/api/trenches/<label>/registration", "GET"),
     ("/editor/<job_id>", "GET"),
     ("/editor/<job_id>/finalize", "POST"),
     ("/editor/<job_id>/save", "POST"),

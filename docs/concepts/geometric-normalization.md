@@ -6,7 +6,7 @@ source_files:
   - poggio_webapp/pipeline/preprocess.py
   - poggio_webapp/backend/routes/preprocess.py
   - poggio_webapp/static/app/stages/preprocess.js
-verified_against: c702617
+verified_against: ae2fc1d
 ---
 
 # Geometric normalization (deskewing)
