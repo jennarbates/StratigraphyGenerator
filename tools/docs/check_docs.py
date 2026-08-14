@@ -99,6 +99,20 @@ def load_nav_paths(config_path: Path, docs_dir: Path) -> set[Path]:
     return nav_paths
 
 
+def load_draft_prefixes(config_path: Path) -> tuple[str, ...]:
+    """Load the `draft_docs` patterns, which name pages built only by serve."""
+
+    config = (
+        yaml.load(config_path.read_text(encoding="utf-8"), Loader=_MkDocsLoader) or {}
+    )
+    raw = config.get("draft_docs", "") if isinstance(config, dict) else ""
+    return tuple(
+        line.strip()
+        for line in str(raw).splitlines()
+        if line.strip() and not line.strip().startswith("#")
+    )
+
+
 def _link_target_path(
     target: str,
     markdown_path: Path,
@@ -200,17 +214,33 @@ def validate_front_matter(markdown_path: Path) -> list[Issue]:
     ]
 
 
+def _is_draft(path: Path, docs_dir: Path, draft_prefixes: Sequence[str]) -> bool:
+    # MkDocs reads `draft_docs` with gitignore semantics; this check needs
+    # only the directory-prefix form the repository uses.
+    relative = path.resolve().relative_to(docs_dir.resolve()).as_posix()
+    return any(
+        relative == prefix.rstrip("/") or relative.startswith(prefix.rstrip("/") + "/")
+        for prefix in draft_prefixes
+    )
+
+
 def find_orphan_pages(
     docs_dir: Path,
     nav_paths: set[Path],
+    draft_prefixes: Sequence[str] = (),
 ) -> list[Issue]:
-    """Report documentation pages that are absent from the MkDocs navigation."""
+    """Report documentation pages that are absent from the MkDocs navigation.
+
+    Draft pages are exempt: they are deliberately absent, because a nav entry
+    for a page that `mkdocs build` excludes would be a broken link.
+    """
 
     resolved_nav_paths = {path.resolve() for path in nav_paths}
     return [
         Issue(path, "page is absent from MkDocs navigation")
         for path in iter_markdown_files(docs_dir)
         if path.resolve() not in resolved_nav_paths
+        and not _is_draft(path, docs_dir, draft_prefixes)
     ]
 
 
@@ -220,6 +250,7 @@ def run_checks(repo_root: Path) -> list[Issue]:
     repo_root = repo_root.resolve()
     docs_dir = repo_root / "docs"
     nav_paths = load_nav_paths(repo_root / "mkdocs.yml", docs_dir)
+    draft_prefixes = load_draft_prefixes(repo_root / "mkdocs.yml")
     markdown_files = iter_markdown_files(docs_dir)
 
     issues: list[Issue] = []
@@ -237,7 +268,7 @@ def run_checks(repo_root: Path) -> list[Issue]:
         if markdown_path in markdown_file_set:
             issues.extend(validate_front_matter(markdown_path))
 
-    issues.extend(find_orphan_pages(docs_dir, nav_paths))
+    issues.extend(find_orphan_pages(docs_dir, nav_paths, draft_prefixes))
     return sorted(issues, key=lambda issue: (issue.path.as_posix(), issue.message))
 
 

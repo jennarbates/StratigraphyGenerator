@@ -10,6 +10,7 @@ from tools.docs.check_docs import (
     find_missing_image_alt_text,
     find_orphan_pages,
     iter_markdown_files,
+    load_draft_prefixes,
     load_nav_paths,
     main,
     run_checks,
@@ -247,3 +248,50 @@ def test_run_checks_checks_links_in_root_readme(tmp_path: Path) -> None:
     assert len(issues) == 1
     assert issues[0].path == tmp_path / "README.md"
     assert "missing.md" in issues[0].message
+
+
+def test_load_draft_prefixes_reads_the_draft_docs_block(tmp_path: Path) -> None:
+    config = tmp_path / "mkdocs.yml"
+    config.write_text("draft_docs: |\n  learning/\n", encoding="utf-8")
+
+    assert load_draft_prefixes(config) == ("learning/",)
+
+
+def test_load_draft_prefixes_defaults_to_empty(tmp_path: Path) -> None:
+    config = tmp_path / "mkdocs.yml"
+    config.write_text("nav:\n  - Home: index.md\n", encoding="utf-8")
+
+    assert load_draft_prefixes(config) == ()
+
+
+def test_find_orphan_pages_exempts_draft_pages(tmp_path: Path) -> None:
+    docs_dir = tmp_path / "docs"
+    write_markdown(docs_dir / "learning" / "plan.md")
+
+    assert find_orphan_pages(docs_dir, set(), ("learning/",)) == []
+
+
+def test_run_checks_accepts_draft_pages_absent_from_nav(tmp_path: Path) -> None:
+    make_repository(tmp_path)
+    write_markdown(tmp_path / "docs" / "learning" / "plan.md")
+    (tmp_path / "mkdocs.yml").write_text(
+        "draft_docs: |\n  learning/\nnav:\n  - Home: index.md\n",
+        encoding="utf-8",
+    )
+
+    assert run_checks(tmp_path) == []
+
+
+def test_run_checks_still_reports_non_draft_orphans(tmp_path: Path) -> None:
+    make_repository(tmp_path)
+    write_markdown(tmp_path / "docs" / "learning" / "plan.md")
+    orphan = write_markdown(tmp_path / "docs" / "stray.md")
+    (tmp_path / "mkdocs.yml").write_text(
+        "draft_docs: |\n  learning/\nnav:\n  - Home: index.md\n",
+        encoding="utf-8",
+    )
+
+    issues = run_checks(tmp_path)
+
+    assert [issue.path for issue in issues] == [orphan.resolve()]
+    assert "navigation" in issues[0].message

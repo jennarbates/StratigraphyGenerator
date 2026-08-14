@@ -53,6 +53,16 @@ extra_javascript:
 exclude_docs: |
   _meta/
 
+# Local-only study material. Draft pages are rendered by `mkdocs serve` and
+# excluded from `mkdocs build`, so the published site never carries them.
+# tools/docs/mkdocs_hooks.py adds the section to the navigation during serve,
+# and check_docs.py exempts draft pages from its orphan check.
+draft_docs: |
+  learning/
+
+hooks:
+  - tools/docs/mkdocs_hooks.py
+
 nav:
   - Home: index.md
   - Start here:

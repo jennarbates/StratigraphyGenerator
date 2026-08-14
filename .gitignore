@@ -45,9 +45,16 @@ tests/fixtures/t1[0-9][0-9]-*.json
 # Agent scratch docs: working notes and task contracts, not user documentation.
 # They stay on disk but out of the repository, so the root stays readable and
 # nobody mistakes a plan for a description of what the code does.
+.claude/
 00_docs/CLAUDE.md
+BACKLOG.md
 DOCUMENTATION_V2_PLAN.md
 HARRIS_MATRIX_TASK_CONTRACT.md
 PLAN_VIEW_DRAWINGS_PLAN.md
 SITE_STANDARDS_ALIGNMENT_PLAN.md
+STRATIGRAPHY_PARITY_PLAN.md
+VOICE_REMOVAL_PLAN.md
 multi_wall_agent_plan.md
+
+# Local scratch tooling, useful only on the machine it was written on.
+tools/local/
