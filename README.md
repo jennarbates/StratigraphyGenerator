@@ -397,6 +397,27 @@ None of these needs GemPy, an API key, or network access.
 
 ---
 
+## Learning course
+
+The documentation is also a syllabus. Two self-paced courses read it end to
+end, in an order where nothing is needed before it is taught.
+
+- The [study plan](docs/learning/plan.md) covers all ~225 pages in ten phases,
+  archaeology and computer science together, for someone who has taken one
+  basic programming course and knows neither field. Roughly 65–80 hours.
+- The [CS study plan](docs/learning/cs-plan.md) takes the 128 technique pages
+  alone, in ten units, and skips the archaeology entirely.
+
+Each has its own assessment pack — a pre-reading quiz, programming assignment,
+research paper, midterm, and final for every phase or unit, with answer keys in
+collapsed blocks: [assessments](docs/learning/assessments.md) and
+[CS assessments](docs/learning/cs-assessments.md). The quizzes and exams face
+the documentation; the assignments deliberately face away from it, applying the
+same ideas to recipes, jogging routes, and photo libraries, because transfer is
+the test of understanding.
+
+---
+
 ## Project
 
 ### Known limitations

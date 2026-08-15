@@ -50,6 +50,10 @@ flowchart LR
   and modeling vocabulary.
 - [Markers, features, and finds](concepts/markers-features-and-finds.md)
   separates three easily confused record types.
+- The [learning plan](learning/plan.md) reads every page of this guide in a
+  teaching order, with [assessments](learning/assessments.md) to check each
+  stage; the [CS course](learning/cs-plan.md) does the same for the technique
+  pages alone.
 
 ## Develop the project
 

@@ -1,15 +1,16 @@
-"""MkDocs hooks: reveal the local-only learning pages during `mkdocs serve`.
+"""MkDocs hooks: reveal the local-only gradebook during `mkdocs serve`.
 
-docs/learning/ holds the study plan and its assessment pack. Those pages are
-listed in mkdocs.yml's `draft_docs`, so `mkdocs build` — and with it CI, the
-`--strict` check, and the published site — leaves them out, while
-`mkdocs serve` renders them for local reading. Drafts stay out of the
-configured navigation, because a nav entry for a page the build excludes
-would be a broken link and a `--strict` failure. Without help, then, the
-served pages would be reachable only by typing their URLs; this hook adds
-their section to the navigation when, and only when, they are being served.
-(`mkdocs serve --clean` hides drafts again; the added entries then log
-warnings, and serving continues.)
+docs/learning/ holds the study plans and their assessment packs, and those
+pages are in the configured navigation like any other. The gradebook is the
+exception: the grade-assessment skill writes one reader's own exam scores into
+it, so mkdocs.yml lists it in `draft_docs` and `mkdocs build` — and with it CI,
+the `--strict` check, and the published site — leaves it out, while
+`mkdocs serve` renders it for local reading. Drafts stay out of the configured
+navigation, because a nav entry for a page the build excludes would be a broken
+link and a `--strict` failure. Without help, then, the served page would be
+reachable only by typing its URL; this hook appends it to the learning section
+when, and only when, it is being served. (`mkdocs serve --clean` hides drafts
+again; the added entry then logs a warning, and serving continues.)
 """
 
 from __future__ import annotations
@@ -18,15 +19,8 @@ from pathlib import Path
 from typing import Any
 
 SECTION_TITLE = "Learning course"
-# The gradebook is written by the grade-assessment skill on machines where
-# a course is being taken; the existence check below skips it elsewhere.
-SECTION_PAGES = (
-    ("Study plan", "learning/plan.md"),
-    ("Assessments", "learning/assessments.md"),
-    ("CS study plan", "learning/cs-plan.md"),
-    ("CS assessments", "learning/cs-assessments.md"),
-    ("Gradebook", "learning/gradebook.md"),
-)
+GRADEBOOK_TITLE = "Gradebook"
+GRADEBOOK_PAGE = "learning/gradebook.md"
 
 # `on_config` is not told which command is running, so `on_startup` records
 # it. MkDocs keeps hook modules loaded across serve's rebuilds, which makes a
@@ -43,22 +37,32 @@ def on_startup(*, command: str, dirty: bool) -> None:
 
 
 def on_config(config: Any) -> Any:
-    """Append the learning section to the navigation, during serve only."""
+    """Append the gradebook to the learning section, during serve only."""
 
     nav = config.get("nav")
     if _command != "serve" or not nav:
         return config
 
-    # The pages are not committed on every machine; a missing file is a
-    # machine without the learning material, not an error.
+    # The gradebook exists only on a machine where a course is being taken; a
+    # missing file is a reader who has not sat an exam yet, not an error.
     docs_dir = Path(config["docs_dir"])
-    pages = [
-        {title: page} for title, page in SECTION_PAGES if (docs_dir / page).exists()
-    ]
+    if not (docs_dir / GRADEBOOK_PAGE).exists():
+        return config
+
+    section = next(
+        (
+            item[SECTION_TITLE]
+            for item in nav
+            if isinstance(item, dict) and SECTION_TITLE in item
+        ),
+        None,
+    )
+    if section is None:
+        return config
 
     already_added = any(
-        isinstance(item, dict) and SECTION_TITLE in item for item in nav
+        isinstance(entry, dict) and GRADEBOOK_TITLE in entry for entry in section
     )
-    if pages and not already_added:
-        nav.append({SECTION_TITLE: pages})
+    if not already_added:
+        section.append({GRADEBOOK_TITLE: GRADEBOOK_PAGE})
     return config

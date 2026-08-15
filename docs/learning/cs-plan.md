@@ -1,3 +1,13 @@
+---
+title: CS study plan
+audience: beginner
+status: current
+source_files:
+  - mkdocs.yml
+  - poggio_webapp/pipeline/convert_coords.py
+verified_against: de07c37
+---
+
 # The computer science course
 
 A study plan through this repository's **Computer science section only** —

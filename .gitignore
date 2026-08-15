@@ -42,6 +42,12 @@ tests/fixtures/geospatial-2025.csv
 tests/fixtures/t1[0-9][0-9]-*.json
 01_scans/
 
+# One reader's own exam scores, written by the grade-assessment skill. The rest
+# of docs/learning/ is a published part of the site; this page is the exception
+# twice over -- mkdocs.yml lists it in `draft_docs` so the build never renders
+# it, and this line keeps it out of the repository as well.
+docs/learning/gradebook.md
+
 # Agent scratch docs: working notes and task contracts, not user documentation.
 # They stay on disk but out of the repository, so the root stays readable and
 # nobody mistakes a plan for a description of what the code does.

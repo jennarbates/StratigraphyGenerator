@@ -1,3 +1,13 @@
+---
+title: CS assessments
+audience: beginner
+status: current
+source_files:
+  - mkdocs.yml
+  - poggio_webapp/pipeline/convert_coords.py
+verified_against: de07c37
+---
+
 # Assessments for the computer science course
 
 A companion to [the CS study plan](cs-plan.md). Each of the ten units gets

@@ -1,3 +1,13 @@
+---
+title: Learning plan
+audience: beginner
+status: current
+source_files:
+  - mkdocs.yml
+  - poggio_webapp/app.py
+verified_against: de07c37
+---
+
 # Learning plan: the Poggio Civitate documentation
 
 A study plan for someone who has never seen this repository and has taken one

@@ -1,3 +1,13 @@
+---
+title: Assessments
+audience: beginner
+status: current
+source_files:
+  - mkdocs.yml
+  - poggio_webapp/app.py
+verified_against: de07c37
+---
+
 # Assessments for the learning plan
 
 A companion to [the learning plan](plan.md). Each of the ten phases gets
