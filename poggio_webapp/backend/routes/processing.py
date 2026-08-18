@@ -28,6 +28,7 @@ def run_normalize(job_id):
         return jsonify({"error": _friendly_error(e)}), 400
 
     meta["normalized_path"] = str(out_path)
+    meta["canonical_path"] = str(p_normalizer.canonical_path_for(out_path))
     save_meta(job_id, meta)
     return jsonify({"data": data, "log": log, "file_url": rel_url(job_id, out_path)})
 

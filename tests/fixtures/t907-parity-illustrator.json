@@ -1,0 +1,102 @@
+{
+  "metadata": {
+    "currentFilePath": "/scans/t907-north.tif",
+    "suggestedFilename": "t907-north-section.json",
+    "trenchLabel": "T907",
+    "scale": {
+      "unit": "m",
+      "valuesMarked": [0, 1],
+      "metricConversionAssumption": "bar printed in metres",
+      "confidence": "high"
+    },
+    "credits": {
+      "attributions": [{"name": "A. Fabbri", "role": "illustrator"}],
+      "year": "7/7/2015"
+    },
+    "marginalia": ["NR. 7/80"]
+  },
+  "trenchProfiles": [
+    {
+      "face": "N baulk",
+      "gridLabels": ["155.80"],
+      "gridLabelXMeters": [0.0],
+      "layers": [
+        {
+          "layerName": "Locus 1",
+          "inferredMaterial": "topsoil",
+          "description": "loose topsoil with modern root disturbance",
+          "visualPattern": "stipple",
+          "featuresInLayer": [
+            {
+              "feature": "stone",
+              "description": "single limestone block",
+              "shapePoints": null,
+              "approxXMeters": 0.4,
+              "approxYMeters": 0.15,
+              "approxWidthMeters": 0.2,
+              "approxHeightMeters": 0.12,
+              "confidence": "medium"
+            }
+          ],
+          "topBoundary": [
+            {"xCoordinateMeters": 0.0, "yCoordinateMeters": 0.0, "confidence": "high", "uncertaintyCm": null},
+            {"xCoordinateMeters": 1.0, "yCoordinateMeters": 0.02, "confidence": "high", "uncertaintyCm": null}
+          ],
+          "bottomBoundary": [
+            {"xCoordinateMeters": 0.0, "yCoordinateMeters": 0.3, "confidence": "high", "uncertaintyCm": 2.0},
+            {"xCoordinateMeters": 1.0, "yCoordinateMeters": 0.34, "confidence": "high", "uncertaintyCm": 2.0}
+          ]
+        },
+        {
+          "layerName": "Locus 2",
+          "inferredMaterial": "silty clay",
+          "description": "compact silty fill",
+          "visualPattern": "diagonal hatch",
+          "featuresInLayer": [],
+          "topBoundary": null,
+          "bottomBoundary": [
+            {"xCoordinateMeters": 0.0, "yCoordinateMeters": 0.55, "confidence": "medium", "uncertaintyCm": 3.0},
+            {"xCoordinateMeters": 1.0, "yCoordinateMeters": 0.58, "confidence": "medium", "uncertaintyCm": 3.0}
+          ]
+        },
+        {
+          "layerName": "Locus 3",
+          "inferredMaterial": "burnt clay",
+          "description": "burnt destruction layer",
+          "visualPattern": "cross hatch",
+          "featuresInLayer": [
+            {
+              "feature": "ash lens",
+              "description": "charcoal-rich lens",
+              "shapePoints": [
+                {"xCoordinateMeters": 0.2, "yCoordinateMeters": 0.62, "confidence": "low", "uncertaintyCm": null},
+                {"xCoordinateMeters": 0.5, "yCoordinateMeters": 0.66, "confidence": "low", "uncertaintyCm": null}
+              ],
+              "approxXMeters": null,
+              "approxYMeters": null,
+              "approxWidthMeters": null,
+              "approxHeightMeters": null,
+              "confidence": "low"
+            }
+          ],
+          "topBoundary": null,
+          "bottomBoundary": [
+            {"xCoordinateMeters": 0.0, "yCoordinateMeters": 0.8, "confidence": "low", "uncertaintyCm": null},
+            {"xCoordinateMeters": 1.0, "yCoordinateMeters": 0.83, "confidence": "low", "uncertaintyCm": null}
+          ]
+        }
+      ]
+    }
+  ],
+  "legend": [
+    {"visualPattern": "stipple", "material": "topsoil"},
+    {"visualPattern": "diagonal hatch", "material": "silty clay"},
+    {"visualPattern": "cross hatch", "material": "burnt clay"}
+  ],
+  "inferred_notes": ["scale bar calibrated from the printed 1 m mark"],
+  "rawTranscription": "North baulk of T907 with three layers above bedrock.",
+  "source": "extraction",
+  "finds": [
+    {"face_id": "N baulk", "x": 0.5, "y": 0.4, "locus": "2", "label": "SF-1"}
+  ]
+}

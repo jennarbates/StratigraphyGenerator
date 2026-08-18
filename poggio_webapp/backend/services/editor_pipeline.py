@@ -108,6 +108,7 @@ def run_editor_pipeline(job_id):
     meta.update(
         {
             "normalized_path": str(normalized_path),
+            "canonical_path": str(normalizer.canonical_path_for(normalized_path)),
             "normalization_log": normalization_log,
             "status": "validating",
             "stage": "validating",

@@ -1,0 +1,99 @@
+{
+  "trenchLabel": "T907",
+  "faceLabel": "N baulk",
+  "illustrators": ["A. Fabbri"],
+  "date": "7/7/2015",
+  "northArrowPresent": true,
+  "gridSquareCm": 10.0,
+  "gridTiePoints": [
+    {"rawText": "155.80", "approxXMeters": 0.0}
+  ],
+  "loci": [
+    {
+      "locusNumber": "1",
+      "munsell": {"raw": "10YR 5/3", "colorName": "brown"},
+      "description": "loose topsoil with modern root disturbance",
+      "confidence": "high"
+    },
+    {
+      "locusNumber": "2",
+      "munsell": {"raw": "7.5YR 4/4", "colorName": "dark brown"},
+      "description": "compact silty fill",
+      "confidence": "medium"
+    },
+    {
+      "locusNumber": "3",
+      "munsell": {"raw": "5YR 3/2", "colorName": "dark reddish brown"},
+      "description": "burnt destruction layer",
+      "confidence": "high"
+    }
+  ],
+  "layers": [
+    {
+      "locusNumber": "1",
+      "topBoundary": [
+        {"xMeters": 0.0, "depthMeters": 0.0, "confidence": "high", "uncertaintyCm": null},
+        {"xMeters": 1.0, "depthMeters": 0.02, "confidence": "high", "uncertaintyCm": null}
+      ],
+      "bottomBoundary": [
+        {"xMeters": 0.0, "depthMeters": 0.3, "confidence": "high", "uncertaintyCm": 2.0},
+        {"xMeters": 1.0, "depthMeters": 0.34, "confidence": "high", "uncertaintyCm": 2.0}
+      ],
+      "featuresInLayer": [
+        {
+          "feature": "stone",
+          "description": "single limestone block",
+          "shapePoints": null,
+          "approxXMeters": 0.4,
+          "approxDepthMeters": 0.15,
+          "approxWidthMeters": 0.2,
+          "approxHeightMeters": 0.12,
+          "confidence": "medium"
+        }
+      ]
+    },
+    {
+      "locusNumber": "2",
+      "topBoundary": [
+        {"xMeters": 0.0, "depthMeters": 0.3, "confidence": "high", "uncertaintyCm": 2.0},
+        {"xMeters": 1.0, "depthMeters": 0.34, "confidence": "high", "uncertaintyCm": 2.0}
+      ],
+      "bottomBoundary": [
+        {"xMeters": 0.0, "depthMeters": 0.55, "confidence": "medium", "uncertaintyCm": 3.0},
+        {"xMeters": 1.0, "depthMeters": 0.58, "confidence": "medium", "uncertaintyCm": 3.0}
+      ],
+      "featuresInLayer": []
+    },
+    {
+      "locusNumber": "3",
+      "topBoundary": [
+        {"xMeters": 0.0, "depthMeters": 0.55, "confidence": "medium", "uncertaintyCm": 3.0},
+        {"xMeters": 1.0, "depthMeters": 0.58, "confidence": "medium", "uncertaintyCm": 3.0}
+      ],
+      "bottomBoundary": [
+        {"xMeters": 0.0, "depthMeters": 0.8, "confidence": "low", "uncertaintyCm": null},
+        {"xMeters": 1.0, "depthMeters": 0.83, "confidence": "low", "uncertaintyCm": null}
+      ],
+      "featuresInLayer": [
+        {
+          "feature": "ash lens",
+          "description": "charcoal-rich lens",
+          "shapePoints": [
+            {"xMeters": 0.2, "depthMeters": 0.62, "confidence": "low", "uncertaintyCm": null},
+            {"xMeters": 0.5, "depthMeters": 0.66, "confidence": "low", "uncertaintyCm": null}
+          ],
+          "approxXMeters": null,
+          "approxDepthMeters": null,
+          "approxWidthMeters": null,
+          "approxHeightMeters": null,
+          "confidence": "low"
+        }
+      ]
+    }
+  ],
+  "marginalia": ["NR. 7/80"],
+  "source": "extraction",
+  "finds": [
+    {"face_id": "N baulk", "x": 0.5, "y": 0.4, "locus": "2", "label": "SF-1"}
+  ]
+}
