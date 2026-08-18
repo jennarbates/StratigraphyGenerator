@@ -19,7 +19,7 @@ def run_gempy(job_id):
 
     try:
         from pipeline import build_gempy as p_build_gempy
-    except Exception as e:
+    except ImportError as e:
         return jsonify(
             {
                 "error": f"gempy import failed: {e}. Install with "

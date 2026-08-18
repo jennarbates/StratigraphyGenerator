@@ -145,7 +145,7 @@ def _header_width(matrix, warning_text):
     text_widths = [
         _estimated_text_width(matrix.title, size=24),
         _estimated_text_width(
-            f"Site: {matrix.site or '—'}  •  Trench: {matrix.trench or '—'}",
+            f"Site: {matrix.site or 'n/a'}  •  Trench: {matrix.trench or 'n/a'}",
             size=13,
         ),
         _estimated_text_width(
@@ -298,7 +298,7 @@ def render_harris_svg(matrix: HarrisMatrix) -> str:
     )
     _append_text(
         header,
-        f"Site: {matrix.site or '—'}  •  Trench: {matrix.trench or '—'}",
+        f"Site: {matrix.site or 'n/a'}  •  Trench: {matrix.trench or 'n/a'}",
         x=_PAGE_MARGIN,
         y=64,
         size=13,

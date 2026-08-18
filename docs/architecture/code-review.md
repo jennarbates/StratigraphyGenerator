@@ -20,7 +20,7 @@ verified_against: ae2fc1d
 # Codebase review
 
 An architectural read of the whole repository: what the structure is, what it
-does unusually well, and the register of problems found — including the ones
+does unusually well, and the register of problems found, including the ones
 already fixed and how.
 
 This page exists because a review that lives in a chat log is a review nobody
@@ -30,7 +30,7 @@ can act on six months later.
 
 ```mermaid
 flowchart TB
-  Routes["backend/routes/<br/>17 blueprints — HTTP parsing and persistence"]
+  Routes["backend/routes/<br/>17 blueprints, HTTP parsing and persistence"]
   Services["backend/services/<br/>work that chains several pipeline stages"]
   Pipeline["pipeline/<br/>pure transformation, no Flask"]
   Storage["storage.py · naming.py<br/>leaf modules"]
@@ -62,8 +62,8 @@ previously left four modules holding private copies a test could not redirect.
 That constraint would normally live in one person's head and be broken within a
 quarter.
 
-`naming.py` keeps two functions that look interchangeable and are not —
-`safe_filename` is path-safe, `clean_label` explicitly is not — with a
+`naming.py` keeps two functions that look interchangeable and are not
+(`safe_filename` is path-safe, `clean_label` explicitly is not), with a
 documented exploit as the reason.
 
 ### It refuses rather than guesses
@@ -73,7 +73,7 @@ documented exploit as the reason.
 | Walls contradict each other on layer order | `ValueError` naming the surfaces on the [cycle](../cs/cycle-detection.md) |
 | Two walls within 10° of parallel | Emits no true-dip orientation and says why |
 | Grid config still on starter placeholders | Refuses the merged build outright |
-| A face missing from the grid config | `ValueError` — `convert()` would silently drop that wall |
+| A face missing from the grid config | `ValueError`: `convert()` would silently drop that wall |
 
 ### It hunts for the signature of its own past failures
 
@@ -81,7 +81,7 @@ The [coefficient of variation](../cs/coefficient-of-variation.md) and
 constant-offset checks in `validator.py` exist because an extraction prompt
 already forbade fabrication and fabrication happened anyway. The checks are
 skipped for manual tracing, because a human working on a grid legitimately
-produces regular spacing — a non-obvious exemption that shows the rule was
+produces regular spacing, a non-obvious exemption that shows the rule was
 thought through rather than copied.
 
 ### Determinism is treated as a requirement
@@ -101,7 +101,7 @@ through coordinate conversion runs on a machine that has never seen GemPy.
 
 Four checkers run in CI: links and front matter, module coverage, the visual
 manifest, and README synchronisation. `check_coverage.py` requires a module's
-**full path** to appear in the corpus, with the reason recorded — matching a
+**full path** to appear in the corpus, with the reason recorded: matching a
 bare name would let ordinary English cover a module by accident, "which is
 exactly how multi-wall trench support reached `main` with no page describing
 it."
@@ -128,7 +128,7 @@ and cites a source. Very little research software tells you what it cannot do.
 
 `job_id` arrives straight off the URL. A Flask string converter rejects a
 slash but not a dot, so `job_id = ".."` resolved `JOBS_DIR / ".."` to the
-application root — and `safe_job_path()` then measured containment against that
+application root, and `safe_job_path()` then measured containment against that
 *already-escaped* base, so its own check passed.
 
 ```
@@ -161,7 +161,7 @@ already appears in the project's own capability record.
 
 ## Verdict
 
-For a research and heritage codebase this sits well above the norm — closer to
+For a research and heritage codebase this sits well above the norm, closer to
 a well-run product team's standards than to typical academic software. The
 layering is real, the determinism is deliberate, the tests are fast and
 meaningful, and the documentation has mechanical guarantees rather than good
@@ -175,9 +175,9 @@ output are this careful about the line between measurement and interpretation.
 
 ## Related concepts
 
-- [Pipeline walkthrough](pipeline-walkthrough.md) — the stage-by-stage tour.
-- [System overview](system-overview.md) and [backend](backend.md) — the
+- [Pipeline walkthrough](pipeline-walkthrough.md): the stage-by-stage tour.
+- [System overview](system-overview.md) and [backend](backend.md): the
   structure in normal documentation form.
-- [Capability status](../project/capability-status.md) — the authoritative
+- [Capability status](../project/capability-status.md): the authoritative
   per-capability record.
-- [Computer science concepts](../cs/index.md) — every technique named above.
+- [Computer science concepts](../cs/index.md): every technique named above.

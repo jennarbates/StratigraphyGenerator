@@ -10,7 +10,7 @@ verified_against: ae2fc1d
 
 # Plane normals
 
-A plane's orientation described by the single direction perpendicular to it —
+A plane's orientation described by the single direction perpendicular to it,
 and how that direction is converted into the dip and azimuth a geologist writes
 down.
 
@@ -25,8 +25,8 @@ planes at angle θ. All of a plane's orientation is in one vector.
 
 For a geological surface, orientation is conventionally written as two angles:
 
-- **Dip** — how steeply it tilts, 0° for horizontal, 90° for vertical.
-- **Dip azimuth** — the compass bearing of the downhill direction.
+- Dip: how steeply it tilts, 0° for horizontal, 90° for vertical.
+- Dip azimuth: the compass bearing of the downhill direction.
 
 Both come from the normal. For a normal `(x, y, z)` normalised and pointing
 **upward**:
@@ -49,7 +49,7 @@ east. Swapping the arguments performs that conversion. See
 ```mermaid
 flowchart TB
   N["normal vector (x, y, z)"] --> U{"z < 0?"}
-  U -->|yes| F["negate all three<br/>— force it to point up"]
+  U -->|yes| F["negate all three,<br/>force it to point up"]
   U -->|no| K["keep"]
   F --> D["dip = arccos(z)"]
   K --> D
@@ -115,7 +115,7 @@ known consequence of [floating-point](floating-point-representation.md)
 arithmetic.
 
 **The negative-zero case.** After the sign flip, `x` and `y` can be `-0.0`, and
-`atan2(-0.0, -0.0)` returns π — due south. A perfectly flat surface would be
+`atan2(-0.0, -0.0)` returns π, due south. A perfectly flat surface would be
 reported as dipping south rather than as having no dip direction. Returning
 `0.0` explicitly avoids a fabricated bearing.
 
@@ -125,8 +125,8 @@ remove the orientation's influence on the model, it would aim that influence
 north. Since near-horizontal layers are the *normal* case in archaeological
 stratigraphy, that would bias almost every model.
 
-The single-wall path in `convert_coords.py` cannot use a normal at all — one
-wall does not determine a plane — so it derives an apparent dip directly from
+The single-wall path in `convert_coords.py` cannot use a normal at all (one
+wall does not determine a plane), so it derives an apparent dip directly from
 the slope:
 
 ```python
@@ -143,7 +143,7 @@ else:
 | Alternative | How it would represent orientation | Why it lost |
 |---|---|---|
 | **Strike and dip** | Strike is the horizontal line in the plane, dip is perpendicular to it | The traditional field notation, and it is ambiguous without a convention (right-hand rule, or a separate dip direction letter). GemPy wants dip and dip azimuth, so this is what the CSV must carry. |
-| **Two apparent dips** | Report each wall's own measurement | What the pipeline does when it *cannot* solve — and it is known to be wrong in a systematic way: apparent dip is always shallower than true dip, and two of them disagree. |
+| **Two apparent dips** | Report each wall's own measurement | What the pipeline does when it *cannot* solve, and it is known to be wrong in a systematic way: apparent dip is always shallower than true dip, and two of them disagree. |
 | **A rotation matrix or quaternion** | Full orientation as 9 or 4 numbers | Over-specified. A plane has no notion of rotation *about* its normal, so those extra degrees of freedom are meaningless here. |
 | **Plane equation coefficients** `ax + by + cz = d` | Keep the algebraic form | `(a, b, c)` *is* the normal, and `d` is position, which orientation does not need. This is the same thing plus an unused number. |
 | **Normal → dip and azimuth** *(chosen)* | Two angles from three numbers | Matches what GemPy consumes and what a geologist writes on a field sheet. |
@@ -154,34 +154,34 @@ One square root, one `acos`, one `atan2`. Negligible.
 
 The costs are all in edge cases, and the function handles four of them
 explicitly. That density of guards in fifteen lines is not over-engineering: each
-one corresponds to a real input — parallel walls, reversed pairing order,
-floating-point overshoot, a perfectly flat surface — and each would otherwise
+one corresponds to a real input (parallel walls, reversed pairing order,
+floating-point overshoot, a perfectly flat surface), and each would otherwise
 produce a plausible wrong number rather than an error.
 
 The deeper limitation is that a normal describes a **plane**, not a surface. A
 real stratigraphic boundary is curved, so the solved orientation is the best
 single-plane summary of it. That is exactly what GemPy's orientation seeds are
-meant to be — a local gradient hint, not a claim that the layer is flat.
+meant to be: a local gradient hint, not a claim that the layer is flat.
 
 ## Where else you meet it
 
-- **3D graphics.** Every lit surface has a normal; smooth shading interpolates
+- 3D graphics. Every lit surface has a normal; smooth shading interpolates
   them across a triangle.
-- **Structural geology and mining**, where dip and dip azimuth are the standard
+- Structural geology and mining, where dip and dip azimuth are the standard
   notation for every measured plane.
-- **Collision detection**, where a contact normal determines the response
+- Collision detection, where a contact normal determines the response
   direction.
-- **CAD and manufacturing**, where face normals define which side is material.
-- **Ray tracing**, where reflection is computed by mirroring a ray about the
+- CAD and manufacturing, where face normals define which side is material.
+- Ray tracing, where reflection is computed by mirroring a ray about the
   normal.
 
 ## Related pages
 
-- [Cross product](cross-product.md) — how the normal is obtained.
-- [Compass bearings versus mathematical angles](compass-bearings-vs-mathematical-angles.md) —
+- [Cross product](cross-product.md): how the normal is obtained.
+- [Compass bearings versus mathematical angles](compass-bearings-vs-mathematical-angles.md):
   why `atan2(x, y)`.
-- [Floating-point representation](floating-point-representation.md) — why the
+- [Floating-point representation](floating-point-representation.md): why the
   `acos` argument is clamped.
-- [Ordinary least squares](ordinary-least-squares.md) — how each wall's slope is
+- [Ordinary least squares](ordinary-least-squares.md): how each wall's slope is
   measured.
-- [Apparent and true dip](../archaeology/index.md) — the archaeological meaning.
+- [Apparent and true dip](../archaeology/index.md): the archaeological meaning.

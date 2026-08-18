@@ -1,4 +1,4 @@
-/* Trench Digitization Pipeline — frontend bootstrap. */
+/* Frontend bootstrap for the Trench Digitization Pipeline. */
 
 import("./app/index.js").catch((error) => {
   console.error("Could not start frontend:", error);

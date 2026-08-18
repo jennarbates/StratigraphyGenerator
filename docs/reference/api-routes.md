@@ -85,10 +85,10 @@ else does.*
 | `/api/trenches/<label>/file` | GET | query `path=<rel>` | binary | No | experimental | Retrieve a file from the trench folder, refusing to escape it |
 | `/api/trenches/geospatial-sheet` | POST | multipart: `file` (season CSV), optional `phase` (`opening`\|`closing`), `site_grid` | `{phase, registered, needs_wall_names, notes}` | No | experimental | Register every trench in a season from its Geospatial Spreadsheet. Reads a downloaded file and writes nothing. A trench extended mid-season, whose extra vertices are recorded unlabelled, is returned under `needs_wall_names` rather than guessed at |
 | `/api/trenches/<label>/layout` | POST | JSON: `corners`, `walls`, optional `site_grid`, `vertical` | `{trench, grid, notes}` | No | experimental | Derive a grid config from the trench's surveyed corner coordinates. Writes nothing; the config comes back for checking against the drawings |
-| `/api/trenches/<label>/loci/import` | POST | multipart: `file` (CSV export), optional `column_map`, `vertical` | `{loci, column_map, unmatched, notes}` | No | experimental | Read a downloaded Kobo Locus Entry export. Offline only — no API call is made. Column names are never guessed: an unrecognised export is refused with its own headers listed |
+| `/api/trenches/<label>/loci/import` | POST | multipart: `file` (CSV export), optional `column_map`, `vertical` | `{loci, column_map, unmatched, notes}` | No | experimental | Read a downloaded Kobo Locus Entry export. Offline only. No API call is made. Column names are never guessed: an unrecognised export is refused with its own headers listed |
 | `/api/trenches/<label>/registration` | GET | none | `{trench, grid, source, notes}` | No | experimental | The grid config already derived for this trench, so the interface can load it instead of asking for values the application has worked out. `404` when none has been derived. `source` distinguishes `surveyed` from `placeholder` |
 | `/api/demo` | GET | none | `{scenarios, datasets}` | No | experimental | The demonstration scenarios, whether each can run, and which are already seeded. Seeded state is read from the jobs on disk rather than a stored flag |
-| `/api/demo/seed` | POST | JSON: `scenario`, optional `dataset` | the seed summary | No | experimental | Seed one demonstration trench. Refuses a scenario that would draw invented wall sections under a real record set. Seeds only — the build is left to the operator |
+| `/api/demo/seed` | POST | JSON: `scenario`, optional `dataset` | the seed summary | No | experimental | Seed one demonstration trench. Refuses a scenario that would draw invented wall sections under a real record set. Seeds only: the build is left to the operator |
 | `/api/demo` | DELETE | none | `{removed}` | No | experimental | Remove every seeded demonstration trench, scoped to the scenarios' own labels so the operator's work is untouched |
 | `/api/jobs/<job_id>/text-extraction` | POST | JSON: `api_key`, `square_cm`, `max_output_tokens` | `{task_id}` | **Yes** | experimental | Start the field-wall text read; aborts `400` without a key |
 | `/api/jobs/<job_id>/text-extraction` | GET | none | candidate labels, or a not-started marker | No | experimental | Read back the labels the extraction proposed |
@@ -173,14 +173,14 @@ Returns:
 
 Asynchronous operations:
 
-- **`/extract`** — calls Gemini Vision API; network I/O
-- **`/features/detect`** — calls Gemini Vision API; network I/O
-- **`/markers/preview`** — calls Gemini Vision API; network I/O
-- **`/markers/detect`** — calls Gemini Vision API; network I/O
-- **`/text-extraction`** — calls Gemini Vision API; network I/O
-- **`/gempy`** — builds 3D model; CPU-intensive; may take minutes
-- **`/editor/<job_id>/finalize`** — normalize → validate → convert → build
-- **`/api/trenches/<label>/build`** — merges walls, then the model build
+- `/extract`: calls Gemini Vision API; network I/O
+- `/features/detect`: calls Gemini Vision API; network I/O
+- `/markers/preview`: calls Gemini Vision API; network I/O
+- `/markers/detect`: calls Gemini Vision API; network I/O
+- `/text-extraction`: calls Gemini Vision API; network I/O
+- `/gempy`: builds 3D model; CPU-intensive; may take minutes
+- `/editor/<job_id>/finalize`: normalize → validate → convert → build
+- `/api/trenches/<label>/build`: merges walls, then the model build
 
 ### Task Persistence
 
@@ -294,7 +294,7 @@ Posting with a filled-in `grid` starts the build:
 deposit recorded under different numbers on different walls. `series_order` is
 derived from the walls when omitted.
 
-The build refuses rather than guessing in seven cases — unlabelled jobs,
+The build refuses rather than guessing in seven cases: unlabelled jobs,
 un-normalized walls, duplicate wall labels, placeholder registration, faces
 missing from the grid, zero interface points, and contradictory layer order.
 Each returns `400` with a specific message. See [combine walls into one
@@ -318,11 +318,11 @@ All error responses return HTTP 4xx or 5xx with JSON:
 
 Common errors:
 
-- `400` — Missing required parameter or precondition not met (e.g., "run preprocess first")
-- `400` — API key missing (`GEMINI_API_KEY` not set and not provided in request)
-- `400` — File type not supported (e.g., `.bmp` instead of `.png`)
-- `400` — Invalid JSON input (e.g., grid_config malformed)
-- `404` — Job ID or file path not found
+- `400`: Missing required parameter or precondition not met (e.g., "run preprocess first")
+- `400`: API key missing (`GEMINI_API_KEY` not set and not provided in request)
+- `400`: File type not supported (e.g., `.bmp` instead of `.png`)
+- `400`: Invalid JSON input (e.g., grid_config malformed)
+- `404`: Job ID or file path not found
 
 ---
 
@@ -450,7 +450,7 @@ little-endian `uint16` transport used by the classified-cell renderer.
 
 All routes are registered as Flask Blueprints and reside in `poggio_webapp/backend/routes/`. The main application factory is in `poggio_webapp/backend/__init__.py`.
 
-Each asynchronous request starts its own daemon thread — there is no pool.
+Each asynchronous request starts its own daemon thread. There is no pool.
 Task IDs are UUIDs. Long-running Gemini calls may exceed network timeouts; the
 frontend retries periodically.
 
@@ -461,18 +461,18 @@ frontend retries periodically.
 The vanilla JavaScript UI in `poggio_webapp/static/app/` calls these
 endpoints from stages (one module per stage under `static/app/stages/`):
 
-- **Scan stage** — `/api/jobs`, `/scan`
-- **Preprocess stage** — `/preprocess`
-- **Extract stage** — `/extract` or `/extract/upload`
-- **Verify text stage** — `/text-extraction`, `/text-verification`
-- **Draw stage** — `/boundaries/manual` (manual tracing only)
-- **Normalize, Validate, and Convert stages** — `/normalize`, `/validate`,
+- Scan stage: `/api/jobs`, `/scan`
+- Preprocess stage: `/preprocess`
+- Extract stage: `/extract` or `/extract/upload`
+- Verify text stage: `/text-extraction`, `/text-verification`
+- Draw stage: `/boundaries/manual` (manual tracing only)
+- Normalize, Validate, and Convert stages: `/normalize`, `/validate`,
   `/convert`
-- **Gempy and Visualize stages** — `/gempy`, `/visualizer-files`
-- **Demo card (sidebar)** — `/api/demo`, `/api/demo/seed`, `DELETE /api/demo`
-- **Trenches page** — `/api/trenches`, `/build`, `/registration`
-- **Marker workflows** — `/markers/*` (experimental; not wired into the stage
+- Gempy and Visualize stages: `/gempy`, `/visualizer-files`
+- Demo card (sidebar): `/api/demo`, `/api/demo/seed`, `DELETE /api/demo`
+- Trenches page: `/api/trenches`, `/build`, `/registration`
+- Marker workflows: `/markers/*` (experimental; not wired into the stage
   flow)
-- **Harris Matrix dashboard and editor** — `/api/harris-matrices`,
+- Harris Matrix dashboard and editor: `/api/harris-matrices`,
   `/api/harris-source-jobs`, source import, individual suggestion review, and
   JSON/SVG exports

@@ -12,7 +12,7 @@ verified_against: ae2fc1d
 
 # Feature
 
-A discrete thing drawn inside a [layer](layer.md) — a stone, a lens, a void, a
+A discrete thing drawn inside a [layer](layer.md): a stone, a lens, a void, a
 patch of burning. It belongs to the layer; it never defines the layer's edge.
 
 ## What it is
@@ -23,9 +23,9 @@ Each is a **feature**.
 
 Two properties define it:
 
-- **It is inside a layer.** A feature belongs to one stratigraphic unit and does
+- It is inside a layer. A feature belongs to one stratigraphic unit and does
   not span the boundary between two.
-- **It does not define a boundary.** Drawing a stone does not change where the
+- It does not define a boundary. Drawing a stone does not change where the
   layer's edges run. This is the distinction that matters most in the data model.
 
 Beyond that, "feature" is a broad category. This project's vocabulary covers
@@ -33,14 +33,14 @@ materials (stone, tile, bone, pottery), stratigraphic things drawn in section
 (wall, cut, interface, natural, void), and intrusions (a tree stump).
 
 Note the word is used differently across archaeological traditions. In some, a
-"feature" is a major non-portable structure — a hearth, a posthole. Here it means
+"feature" is a major non-portable structure (a hearth, a posthole). Here it means
 anything discrete drawn within a layer.
 
 ## The picture
 
 ```mermaid
 flowchart TB
-  L["Locus 2 — the layer"]
+  L["Locus 2, the layer"]
   L --> F1["stone (material: S)"]
   L --> F2["charcoal lens"]
   L --> F3["void"]
@@ -53,8 +53,8 @@ Features carry information the layer description cannot. A layer of "silty clay"
 containing three large stones and a charcoal lens tells a different story from
 the same silty clay containing nothing.
 
-Some are **evidence of process** — a burnt lens where something was fired, a void
-where a timber rotted. Others are **content** — tile fragments large enough to
+Some are **evidence of process**: a burnt lens where something was fired, a void
+where a timber rotted. Others are **content**: tile fragments large enough to
 draw individually.
 
 They also connect the drawing to the find record. `site_vocab` gives each
@@ -91,13 +91,13 @@ validator warns when neither is present:
 ```python
 report.warn(
     fwhere,
-    "no shapePoints and no approx* coords — geometry may be "
+    "no shapePoints and no approx* coords. Geometry may be "
     "trapped in the description string",
 )
 ```
 
-"Trapped in the description string" is a good diagnosis of a real problem —
-geometry written as prose is geometry nothing can use.
+"Trapped in the description string" is a good diagnosis of a real problem.
+Geometry written as prose is geometry nothing can use.
 
 ### The vocabulary is the site's, not the software's
 
@@ -170,7 +170,7 @@ was not used.
 
 `normalizer.dedupe_floor` drops a "floor" feature that duplicates the deepest
 layer's bottom boundary, and `dedupe_cross_layer_features` keeps a repeated
-feature in only the deepest layer — both appending to a log.
+feature in only the deepest layer, both appending to a log.
 
 ## What it is not
 
@@ -180,7 +180,7 @@ feature in only the deepest layer — both appending to a log.
 | **[Marker](marker.md)** | A marker is a pencil dot at a boundary vertex. A feature is a thing in the deposit. |
 | **[Layer](layer.md)** | A feature sits inside a layer and never defines its edge. |
 | **[Cut](cut.md)** | A cut *can* be drawn as a feature on a section, and it is also a stratigraphic unit with its own relationships. `site_vocab` types it `"unit"` for that reason. |
-| **Structure** | A masonry wall is drawn as a feature and is a structural unit in the Harris sense — hence `"unitType": "structure"`. |
+| **Structure** | A masonry wall is drawn as a feature and is a structural unit in the Harris sense, hence `"unitType": "structure"`. |
 
 ## Getting it wrong
 
@@ -202,10 +202,10 @@ find or a stratigraphic unit.
 
 ## Related pages
 
-- [Layer](layer.md) — what contains it.
-- [Find](find.md) — the recovered-object record.
-- [Marker](marker.md) — the boundary vertex.
-- [Find identifiers](find-identifiers.md) — the bulk-material letters.
-- [Markers, features, and finds](../concepts/markers-features-and-finds.md) — the
+- [Layer](layer.md): what contains it.
+- [Find](find.md): the recovered-object record.
+- [Marker](marker.md): the boundary vertex.
+- [Find identifiers](find-identifiers.md): the bulk-material letters.
+- [Markers, features, and finds](../concepts/markers-features-and-finds.md): the
   three compared.
-- [Markers and features](../workflows/03-markers-and-features.md) — the workflow.
+- [Markers and features](../workflows/03-markers-and-features.md): the workflow.

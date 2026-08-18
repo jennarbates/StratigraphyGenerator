@@ -11,7 +11,7 @@ verified_against: ae2fc1d
 # Heaps and priority queues
 
 A collection that always hands back its smallest element next. Used in both
-topological sorts here — not for speed, but to make the answer the same every
+topological sorts here, not for speed, but to make the answer the same every
 time.
 
 ## What it is
@@ -27,7 +27,7 @@ peek  O(1)
 heapify a list  O(n)
 ```
 
-Python's `heapq` operates on a plain list, so there is no wrapper object — which
+Python's `heapq` operates on a plain list, so there is no wrapper object, which
 is why heap usage in this codebase looks like ordinary list code with three
 function calls.
 
@@ -40,9 +40,9 @@ the same element. A plain list or set gives no such guarantee.
 ```mermaid
 flowchart TB
   R["ready set: {C, A, B}"] --> Q{"which comes next?"}
-  Q -->|"plain set"| S["whichever the hash<br/>order happens to yield<br/>— irreproducible"]
-  Q -->|"plain list"| L["insertion order<br/>— depends on how edges were read"]
-  Q -->|"min-heap"| H["the smallest key<br/>— the same every run"]
+  Q -->|"plain set"| S["whichever the hash<br/>order happens to yield,<br/>irreproducible"]
+  Q -->|"plain list"| L["insertion order,<br/>depends on how edges were read"]
+  Q -->|"min-heap"| H["the smallest key,<br/>the same every run"]
 ```
 
 ## Where this project uses it
@@ -70,7 +70,7 @@ while ready:
             heapq.heappush(ready, order_index[later])
 ```
 
-The heap holds **integers — first-seen positions** — not names, and
+The heap holds **integers (first-seen positions)**, not names, and
 `by_index` maps back. That indirection is the interesting decision.
 
 Sorting by name would put `Locus 10` before `Locus 2`, because string
@@ -97,7 +97,7 @@ while ready:
 ```
 
 Here the heap holds node IDs directly, and that is fine because unit IDs are
-[content-addressed hashes](content-addressed-identifiers.md) —
+[content-addressed hashes](content-addressed-identifiers.md),
 `unit-<12 hex chars>`. They are stable for a given unit and carry no misleading
 ordering, since no reader expects hex digests to sort meaningfully.
 
@@ -110,16 +110,16 @@ The question is what the *ready set* should be in Kahn's algorithm.
 | Alternative | Which ready node comes next | Why it lost |
 |---|---|---|
 | **A plain `set`** | Whatever hash order yields | Non-deterministic. The same matrix could produce two different orders and two different diagrams on two runs, making saves impossible to diff. |
-| **A `list` used as a queue** | Insertion order — the BFS default | Deterministic *given a fixed input order*, and the input order depends on how edges were read out of a dict, which reintroduces the problem one level down. |
-| **A `list` used as a stack** | Most recently readied | Same objection, and it produces a depth-first order that groups a chain together — arguably nicer to read, and equally dependent on arrival order. |
+| **A `list` used as a queue** | Insertion order, the BFS default | Deterministic *given a fixed input order*, and the input order depends on how edges were read out of a dict, which reintroduces the problem one level down. |
+| **A `list` used as a stack** | Most recently readied | Same objection, and it produces a depth-first order that groups a chain together: arguably nicer to read, and equally dependent on arrival order. |
 | **Sort the whole ready set each iteration** | Smallest | Correct and O(n log n) *per iteration* rather than O(log n) per operation. |
-| **Min-heap** *(chosen)* | Smallest key | Deterministic, O(log n), and the key can be chosen to mean something — document order or a stable ID. |
+| **Min-heap** *(chosen)* | Smallest key | Deterministic, O(log n), and the key can be chosen to mean something: document order or a stable ID. |
 
 The comment in `merge_walls` states the reasoning directly: *"so whenever several
 surfaces are simultaneously available the earliest-seen one wins and the output
 is stable."*
 
-That is the whole argument. Kahn's algorithm has a genuine choice at every step —
+That is the whole argument. Kahn's algorithm has a genuine choice at every step:
 several nodes are legitimately ready, and the archaeology does not order them.
 The heap does not make one *more correct*; it makes the same one get chosen
 every time.
@@ -127,16 +127,16 @@ every time.
 ## What it costs
 
 O(n log n) total for n pushes and pops, against O(n) for a plain list. On a
-matrix of a few hundred units that is microseconds — the log factor is the price
+matrix of a few hundred units that is microseconds. The log factor is the price
 of reproducibility, and it is cheap.
 
 Two things to know:
 
-- **`heapq` is a min-heap only.** For maximum-first, negate the key. This
+- `heapq` is a min-heap only. For maximum-first, negate the key. This
   codebase does exactly that elsewhere, without a heap:
   `cand.sort(key=lambda entry: -entry["diam"])` in
   [non-maximum suppression](non-maximum-suppression.md).
-- **The heap is not sorted.** Only the smallest element is at a known position;
+- The heap is not sorted. Only the smallest element is at a known position;
   printing the underlying list shows a partially ordered array, which surprises
   people debugging it.
 
@@ -148,19 +148,19 @@ principle drives `min()` as the
 
 ## Where else you meet it
 
-- **Dijkstra's and A\* shortest path**, where the frontier is a priority queue.
-- **Task schedulers and event loops**, ordering by deadline.
-- **Huffman coding**, repeatedly merging the two least frequent symbols.
-- **Heapsort**, and `heapq.nlargest` / `nsmallest` for top-k queries.
-- **Operating system run queues**, ordering processes by priority.
+- Dijkstra's and A\* shortest path, where the frontier is a priority queue.
+- Task schedulers and event loops, ordering by deadline.
+- Huffman coding, repeatedly merging the two least frequent symbols.
+- Heapsort, and `heapq.nlargest` / `nsmallest` for top-k queries.
+- Operating system run queues, ordering processes by priority.
 
 ## Related pages
 
-- [Topological sorting](topological-sorting.md) — the algorithm both heaps
+- [Topological sorting](topological-sorting.md): the algorithm both heaps
   serve.
-- [Determinism and stable sorting](determinism-and-stable-sorting.md) — the
+- [Determinism and stable sorting](determinism-and-stable-sorting.md): the
   property being bought.
-- [Union-Find](union-find.md) — another place a deterministic tie-break is
+- [Union-Find](union-find.md): another place a deterministic tie-break is
   chosen over an asymptotic optimisation.
-- [Content-addressed identifiers](content-addressed-identifiers.md) — why unit
+- [Content-addressed identifiers](content-addressed-identifiers.md): why unit
   IDs are safe to use as heap keys.

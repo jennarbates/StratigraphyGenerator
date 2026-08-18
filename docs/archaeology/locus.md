@@ -14,15 +14,15 @@ verified_against: ae2fc1d
 
 # Locus
 
-The excavation's own identifier for one recorded thing — a deposit, a cut, a
+The excavation's own identifier for one recorded thing: a deposit, a cut, a
 surface. It is the number an excavator writes on the sheet, and everything
 downstream hangs off it.
 
 ## What it is
 
 A locus (plural *loci*) is a numbered unit of excavation. When an excavator
-recognises that the soil has changed — a different colour, a different texture,
-a different inclusion — they declare a new locus, give it the next number, and
+recognises that the soil has changed (a different colour, a different texture,
+a different inclusion), they declare a new locus, give it the next number, and
 record it: its Munsell colour, its description, what was found in it, and where
 its edges are.
 
@@ -79,7 +79,7 @@ key that joins them.
 A locus appears in two places in a `FieldWallProfile` document, and they are
 joined by the number.
 
-**`loci[]`** — what the locus *is*:
+**`loci[]`**, what the locus *is*:
 
 ```json
 {
@@ -90,7 +90,7 @@ joined by the number.
 }
 ```
 
-**`layers[]`** — where the locus *runs*:
+**`layers[]`**, where the locus *runs*:
 
 ```json
 {
@@ -140,7 +140,7 @@ layer existed in `merge_walls` to force the readings to agree so the identities
 would. Taking the colour out of the identity removed the failure and about
 sixty lines with it.
 
-The colour survives as a **display label**, carried separately —
+The colour survives as a **display label**, carried separately.
 `convert_coords.surface_labels()` returns `{surface_id: display label}` for
 anything user-facing, and only where the two differ.
 
@@ -168,9 +168,9 @@ And in the marker-classification prompt, `poggio_webapp/pipeline/assign_markers.
 
 | Not a… | Because |
 |---|---|
-| **[Layer](index.md)** | On a field sheet they coincide, and this project's `layers[]` array is keyed by `locusNumber`. But *layer* is a description of what you see — a band in the section — while *locus* is an excavation's numbered decision about it. An illustrator sheet has layers with names and hatch patterns and **no locus numbers at all**. |
+| **[Layer](index.md)** | On a field sheet they coincide, and this project's `layers[]` array is keyed by `locusNumber`. But *layer* is a description of what you see (a band in the section), while *locus* is an excavation's numbered decision about it. An illustrator sheet has layers with names and hatch patterns and **no locus numbers at all**. |
 | **[Feature](index.md)** | A stone, a lens, a void drawn *inside* a locus. It belongs to a locus; it does not define one. Features live in `featuresInLayer` and never contribute a boundary. |
-| **[Find](index.md)** | An object recovered *from* a locus. A find records `locus` as one of its fields — that is the relationship. A find is a point, not a unit. |
+| **[Find](index.md)** | An object recovered *from* a locus. A find records `locus` as one of its fields. That is the relationship. A find is a point, not a unit. |
 | **[Marker](index.md)** | A pencil dot on the sheet marking one measured vertex of a locus boundary. Many markers describe one locus's edge. |
 | **Phase or period** | A locus is a single recorded unit. Grouping loci into phases is a later interpretive step this application does not do. |
 | **Surface name in the model** | The model surface `Locus 2` is *derived* from the locus number by `convert_coords.surface_id()`. Renaming it in the CSV does not rename the locus. |
@@ -191,7 +191,7 @@ not lost, and says so:
 
 And `convert_coords.fieldwall_to_profiles()` warns when it has to fall back:
 
-> `locus 2 has no topBoundary — using its bottomBoundary as a legacy fallback;`
+> `locus 2 has no topBoundary, using its bottomBoundary as a legacy fallback;`
 > `re-extract to avoid a one-line locus shift`
 
 **Forgetting the final base line.** If nothing closes the deepest locus, it has
@@ -201,13 +201,13 @@ no bottom boundary. The manual tracer refuses outright:
 
 and marker assembly warns:
 
-> `no markers classified as the final bottom line — the deepest locus has no`
+> `no markers classified as the final bottom line, so the deepest locus has no`
 > `bottom boundary`
 
 **A locus in `layers[]` with no entry in `loci[]`.** The geometry exists but the
 Munsell does not, so the locus has no colour recorded. Since
 [surface identity is the locus number alone](#the-name-that-reaches-the-model),
-this no longer splits a deposit into two model surfaces — it is now a
+this no longer splits a deposit into two model surfaces. It is now a
 completeness problem rather than a modelling one. The validator still warns:
 
 > `layer references locus 2, which has no entry in loci[] (no Munsell reading)`
@@ -216,7 +216,7 @@ completeness problem rather than a modelling one. The validator still warns:
 sheets do this; T104 has two entries numbered 5. The project takes the first and
 says so rather than merging them:
 
-> `locus 5 appears 2 times in loci[] with different Munsell readings — the`
+> `locus 5 appears 2 times in loci[] with different Munsell readings. The`
 > `converter will use the first`
 
 **Reusing a locus number on a different wall for a different deposit.** Nothing
@@ -226,16 +226,16 @@ Locus numbers must be unique across the trench, not per wall.
 
 ## Related pages
 
-- [Glossary](../start-here/glossary.md) — the short definition.
-- [Layers and boundaries](../concepts/layers-and-boundaries.md) — how a locus's
+- [Glossary](../start-here/glossary.md): the short definition.
+- [Layers and boundaries](../concepts/layers-and-boundaries.md): how a locus's
   edges become geometry.
-- [Markers, features, and finds](../concepts/markers-features-and-finds.md) —
+- [Markers, features, and finds](../concepts/markers-features-and-finds.md):
   the three records a locus is confused with.
-- [Trace the layers](../workflows/03-trace-layers.md) — the workflow that
+- [Trace the layers](../workflows/03-trace-layers.md): the workflow that
   records locus tops.
-- [Combine walls into one trench](../workflows/09-multi-wall-trench.md) — where
+- [Combine walls into one trench](../workflows/09-multi-wall-trench.md): where
   locus numbering across walls starts to matter.
-- [Validation rules](../reference/validation-rules.md) — every message quoted
+- [Validation rules](../reference/validation-rules.md): every message quoted
   above, in full.
-- [Data schemas](../reference/data-schemas.md) — the complete
+- [Data schemas](../reference/data-schemas.md): the complete
   `FieldWallProfile` shape.

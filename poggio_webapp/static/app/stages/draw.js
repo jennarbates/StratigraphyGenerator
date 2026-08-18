@@ -49,7 +49,7 @@ export function renderDraw() {
       <div class="stage-kicker">Step 4 of 9</div>
       <h2>Trace the layers</h2>
       <p class="lede">You’ll click directly on the drawing to show where each
-      soil layer begins and ends. Nothing has to be perfect—you can undo any
+      soil layer begins and ends. Nothing has to be perfect. You can undo any
       misplaced point.</p>
 
       <div class="plain-note">
@@ -286,7 +286,7 @@ export function renderDraw() {
           : choice.locusNumber;
         option.textContent = choice.available
           ? choice.label
-          : `${choice.label} — top already started`;
+          : `${choice.label} (top already started)`;
         select.appendChild(option);
       });
 

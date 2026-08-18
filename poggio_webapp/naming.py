@@ -41,7 +41,7 @@ def safe_filename(name, fallback="untitled"):
     the result onto a storage root. A trench labelled ``".."`` resolved one
     level up and made every file under poggio_webapp/ readable through
     /api/trenches/<label>/file, whose containment check then compared against
-    the escaped directory. Names like ``"T104.2"`` are unaffected — only a
+    the escaped directory. Names like ``"T104.2"`` are unaffected, because only a
     component that is *nothing but* dots is rejected.
     """
     cleaned = _UNSAFE.sub("_", str(name)).strip("_")

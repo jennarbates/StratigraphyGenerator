@@ -13,7 +13,7 @@ verified_against: ae2fc1d
 # Immutability and defensive copying
 
 Never modify what you were given. A discipline that removes a whole class of
-bugs — and, in the Harris code, makes a failed operation roll back for free.
+bugs and, in the Harris code, makes a failed operation roll back for free.
 
 ## What it is
 
@@ -22,7 +22,7 @@ the caller's data, whether or not the caller expected that.
 
 Two remedies:
 
-**Immutable types.** `frozen=True` dataclasses, `tuple`, `frozenset` — mutation
+**Immutable types.** `frozen=True` dataclasses, `tuple`, `frozenset`: mutation
 is impossible, so the question does not arise.
 
 **Defensive copying.** Take a private copy at the boundary and work on that. The
@@ -41,7 +41,7 @@ flowchart TB
   C --> W["transform the copy"]
   W --> V{"still valid?"}
   V -->|yes| R["return the copy"]
-  V -->|no| E["raise — the caller's<br/>matrix was never touched"]
+  V -->|no| E["raise, the caller's<br/>matrix was never touched"]
 ```
 
 ## Where this project uses it
@@ -65,7 +65,7 @@ def merge_extractions(sheets, correlation=None):
 ```
 
 One copy, at the top, with the guarantee stated in the docstring. Everything
-below is free to mutate — and several helpers do, in place:
+below is free to mutate, and several helpers do, in place:
 
 ```python
 def _apply_correlation(label, sheet, parsed, notes):
@@ -118,7 +118,7 @@ is revalidated**, and if accepting it would introduce a
 [cycle](cycle-detection.md) the function raises.
 
 Because every change happened on `reviewed`, the caller's matrix is untouched.
-There is no undo code, no rollback log, no compensating transaction — the
+There is no undo code, no rollback log, no compensating transaction: the
 discarded copy *is* the rollback. That is the cleanest expression of
 transactionality available without a database.
 
@@ -149,7 +149,7 @@ def _unique_source_refs(source_refs) -> list[SourceRef]:
 ```
 
 A shallow list copy would share the `SourceRef` objects with the input. Copying
-each element is what makes the returned list genuinely independent — the
+each element is what makes the returned list genuinely independent: the
 distinction between a shallow and a deep copy, applied deliberately.
 
 ### Immutable value objects
@@ -181,7 +181,7 @@ class SectionCoordinateTransform:
 A [calibration](similarity-transforms.md) is a **fact about one photograph**.
 Nothing downstream should be able to adjust it, and `frozen=True` makes that
 structural rather than conventional. `frozenset` serves the same purpose for
-module-level constants — `_FINISHED` in `tasks.py`, `_FIELD_WALL_FIELDS` in
+module-level constants: `_FINISHED` in `tasks.py`, `_FIELD_WALL_FIELDS` in
 `harris_import.py`.
 
 ## Why this and not something else
@@ -191,11 +191,11 @@ module-level constants — `_FINISHED` in `tasks.py`, `_FIELD_WALL_FIELDS` in
 | **Mutate in place, document it** | "This function modifies its argument" | Callers forget. Aliasing bugs are found far from their cause, and there is no rollback if a later step fails. |
 | **Copy-on-write** | Copy lazily, on first mutation | Efficient for large structures rarely modified. Complex to implement correctly in Python, and these documents are kilobytes. |
 | **Persistent data structures** | Structural sharing (like Clojure or Immer) | The principled answer, and it needs a library and reshapes every access pattern. |
-| **Fully immutable models** | Every change returns a new object | Pydantic supports frozen models. It would make `_apply_correlation` awkward — every helper would have to thread a new object back out — for no gain over one copy at the boundary. |
+| **Fully immutable models** | Every change returns a new object | Pydantic supports frozen models. It would make `_apply_correlation` awkward (every helper would have to thread a new object back out) for no gain over one copy at the boundary. |
 | **Deep copy at the entry point** *(chosen)* | One copy, then mutate freely inside | Cheap at this scale, one clear ownership boundary, and it gives rollback for free. |
 
-The pattern this project settles on — **copy at the boundary, mutate within,
-return the copy only on success** — is a small transaction system built from one
+The pattern this project settles on (**copy at the boundary, mutate within,
+return the copy only on success**) is a small transaction system built from one
 call and a docstring.
 
 ## What it costs
@@ -205,38 +205,38 @@ microseconds and happens once per operation.
 
 It would matter for a very large document, and neither the extraction JSON nor
 the matrix approaches that. The
-[lithology volume](binary-serialisation.md), which *is* large, is never copied —
-it is written straight to disk.
+[lithology volume](binary-serialisation.md), which *is* large, is never copied.
+It is written straight to disk.
 
 The costs:
 
-- **Deep versus shallow is easy to confuse.** `copy.copy` on a nested dict
+- Deep versus shallow is easy to confuse. `copy.copy` on a nested dict
   shares the inner objects. `_unique_source_refs` copies elements explicitly for
   exactly this reason.
-- **`frozen=True` is shallow.** A frozen dataclass holding a list still permits
+- `frozen=True` is shallow. A frozen dataclass holding a list still permits
   the list to be mutated. Every field on the frozen classes here is a `float`.
-- **Copying is not free at scale**, so the boundary must be chosen deliberately
+- Copying is not free at scale, so the boundary must be chosen deliberately
   rather than applied everywhere.
-- **It is a convention, not a guarantee** for the dict-based paths — nothing
+- It is a convention, not a guarantee for the dict-based paths: nothing
   stops a future helper mutating a caller's dict. The docstrings are the
   enforcement, which is why they say "Inputs are never mutated" explicitly.
 
 ## Where else you meet it
 
-- **React and Redux**, where state updates must be immutable for change
+- React and Redux, where state updates must be immutable for change
   detection to work.
-- **Functional languages** — Haskell, Elm, and Clojure make it the default.
-- **Java's `Collections.unmodifiableList`** and `record` types.
-- **Rust's ownership system**, which enforces at compile time what this achieves
+- Functional languages: Haskell, Elm, and Clojure make it the default.
+- Java's `Collections.unmodifiableList` and `record` types.
+- Rust's ownership system, which enforces at compile time what this achieves
   by discipline.
-- **Database transactions**, where a rollback restores a pre-image — the same
+- Database transactions, where a rollback restores a pre-image, the same
   idea with the copy kept by the engine.
 
 ## Related pages
 
-- [Idempotency](idempotency.md) — the companion property in the same modules.
-- [Race conditions](race-conditions.md) — what shared mutable state causes.
-- [Optimistic concurrency control](optimistic-concurrency-control.md) — the
+- [Idempotency](idempotency.md): the companion property in the same modules.
+- [Race conditions](race-conditions.md): what shared mutable state causes.
+- [Optimistic concurrency control](optimistic-concurrency-control.md): the
   transaction this copying completes.
-- [Pure functions and testability](pure-functions-and-testability.md) — why
+- [Pure functions and testability](pure-functions-and-testability.md): why
   no-mutation functions are easy to test.

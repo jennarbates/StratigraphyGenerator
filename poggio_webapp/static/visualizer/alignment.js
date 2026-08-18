@@ -1,13 +1,13 @@
-// --- overlay alignment ----------------------------------------------------
+// overlay alignment
 // The SVG's meter-space viewBox is stretched over a rectangle of the image.
-// Default: the whole image (the pre-webapp assumption — true for cropped
+// Default: the whole image (the pre-webapp assumption, true for cropped
 // scans, wrong for photos with margins). ALIGN holds that rectangle as
 // fractions of the image, user-adjustable by dragging a box.
 //
 // Keyed per actual loaded image (state.imageKey), NOT just ?job=. The file
 // pickers / drag-drop path never set ?job=, so keying on job alone meant
 // every locally-loaded image collapsed onto one shared "viz_align_manual"
-// box — align image A, then load image B, and B silently inherits A's box
+// box: align image A, then load image B, and B silently inherits A's box
 // (wrong scale, wrong crop, no visible reason why). Falls back to ?job= and
 // then "manual" only when state.imageKey hasn't been set yet.
 import { hasExactCalibration } from "./alignment-policy.mjs";
@@ -26,7 +26,7 @@ function isValid(a){
     a.x+a.w<=1.001 && a.y+a.h<=1.001;
 }
 
-// Re-reads ALIGN for whichever image is current. Cheap — call it any time
+// Re-reads ALIGN for whichever image is current. Cheap, so call it any time
 // before applying, not just once at load, since imageKey can change mid-session.
 function refresh(){
   const key = alignKey();
@@ -38,7 +38,7 @@ function refresh(){
     if(saved){
       const parsed = JSON.parse(saved);
       // a corrupt or sliver-thin saved box would make the overlay invisible
-      // with no hint why — snap back to full-image and forget it
+      // with no hint why, so snap back to full-image and forget it
       if(isValid(parsed)) loaded = parsed;
       else localStorage.removeItem(key);
     }
@@ -97,7 +97,7 @@ document.addEventListener("mousedown", e=>{
     if(hasExactCalibration(state.calibration)) return;
     const x=Math.min(x0,ev.clientX), y=Math.min(y0,ev.clientY);
     const w=Math.abs(ev.clientX-x0), h=Math.abs(ev.clientY-y0);
-    if(w<10 || h<10) return;              // accidental click — ignore
+    if(w<10 || h<10) return;              // ignore accidental clicks
     ALIGN = {
       x:(x-r0.left)/r0.width,  y:(y-r0.top)/r0.height,
       w:w/r0.width,            h:h/r0.height,

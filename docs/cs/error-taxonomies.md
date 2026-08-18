@@ -13,8 +13,8 @@ verified_against: ae2fc1d
 
 # Error taxonomies
 
-Not every problem is the same kind of problem. Classifying them — by severity,
-by who can fix them, by whether they block — is what turns a pile of failures
+Not every problem is the same kind of problem. Classifying them (by severity,
+by who can fix them, by whether they block) is what turns a pile of failures
 into something a user can act on.
 
 ## What it is
@@ -39,8 +39,8 @@ worth reading as a design decision rather than as plumbing.
 ```mermaid
 flowchart TB
   P["a problem"] --> S{"does it block<br/>the next step?"}
-  S -->|yes| E["ERROR — refuse"]
-  S -->|no| W["WARNING — report, continue"]
+  S -->|yes| E["ERROR, refuse"]
+  S -->|no| W["WARNING, report and continue"]
   E --> A{"who can fix it?"}
   A -->|"the user's drawing"| U["message naming the layer and x"]
   A -->|"the operator's config"| O["message naming the field"]
@@ -75,7 +75,7 @@ if above is not None and y < above - monotonic_tolerance_m:
     report.err(
         where,
         f"bottom at x={x} (depth {y:.2f}) is ABOVE "
-        f"{prev_name}'s bottom (depth {above:.2f}) — layers cross",
+        f"{prev_name}'s bottom (depth {above:.2f}): layers cross",
     )
 ```
 
@@ -86,12 +86,12 @@ if above is not None and abs(y - above) > top_continuity_tolerance_m:
     report.warn(
         where,
         f"top at x={x} (depth {y:.2f}) is far from "
-        f"{prev_name} bottom (depth {above:.2f}) — "
+        f"{prev_name} bottom (depth {above:.2f}): "
         f"possible void/overlap",
     )
 ```
 
-Layers crossing is physically impossible. A void is not — it can be real. **The
+Layers crossing is physically impossible. A void is not. It can be real. **The
 severity encodes the archaeology**, not the software's confidence.
 
 Every message carries `where` and the actual numbers, so a user can find the
@@ -131,7 +131,7 @@ reasons: a caller can catch the whole family or one specific case, and the
 string at the raise site.
 
 Inheriting from `ValueError` means existing `except ValueError` handlers still
-work — a taxonomy layered onto the standard hierarchy rather than replacing it.
+work, a taxonomy layered onto the standard hierarchy rather than replacing it.
 
 ### Attribution: a refusal versus a missing dependency
 
@@ -197,7 +197,7 @@ if code == 429:
     )
 if code in (400, 401, 403):
     return (
-        f"Gemini rejected the request ({code}) — usually an invalid or "
+        f"Gemini rejected the request ({code}), usually an invalid or "
         "restricted API key... Retrying "
         "with the same key will keep failing."
     )
@@ -245,7 +245,7 @@ raise InvalidMatrixError(
 
 | Alternative | How it would report | Why it lost |
 |---|---|---|
-| **One exception type, message strings** | `raise ValueError("...")` | Callers must match on message text to distinguish cases — brittle and untestable. |
+| **One exception type, message strings** | `raise ValueError("...")` | Callers must match on message text to distinguish cases, which is brittle and untestable. |
 | **Error codes only** | Numeric or string codes | Machine-readable, unreadable to a person. The Harris issues carry **both** a code and a message for exactly this reason. |
 | **Errors only, no warnings** | Everything blocks | A void between layers can be real. Blocking on it would make the validator unusable on genuine data. |
 | **Warnings only** | Nothing blocks | Crossing layers would reach the model, where they are physically impossible and would corrupt the interpolation. |
@@ -262,35 +262,35 @@ Nothing at runtime.
 
 The costs:
 
-- **Thirteen exception classes** is a lot of file for a lot of one-line classes.
+- Thirteen exception classes is a lot of file for a lot of one-line classes.
   The payoff is that each carries its rule's meaning and can be caught
   individually.
-- **The severity split must be maintained.** Every new check needs a judgement,
+- The severity split must be maintained. Every new check needs a judgement,
   and a wrong one either blocks valid work or lets invalid data through.
-- **Two-audience messages need writing.** `_friendly_error` is 40 lines of prose
-  for four error codes — genuinely expensive to produce, and the difference
+- Two-audience messages need writing. `_friendly_error` is 40 lines of prose
+  for four error codes, genuinely expensive to produce, and the difference
   between a usable tool and a stack trace.
-- **Codes are a contract.** An interface highlighting `"cycle"` breaks if the
+- Codes are a contract. An interface highlighting `"cycle"` breaks if the
   code is renamed.
 
 ## Where else you meet it
 
-- **Compilers**, which distinguish errors from warnings and give each a code —
+- Compilers, which distinguish errors from warnings and give each a code.
   `rustc --explain E0382` is this taken to its conclusion.
-- **HTTP status codes**, splitting client errors (4xx) from server errors (5xx)
+- HTTP status codes, splitting client errors (4xx) from server errors (5xx)
   by attribution.
-- **Linters**, with severity levels and per-rule identifiers.
-- **Medical triage**, the original taxonomy of severity under limited attention.
-- **Aviation**, which separates advisories, cautions, and warnings by required
+- Linters, with severity levels and per-rule identifiers.
+- Medical triage, the original taxonomy of severity under limited attention.
+- Aviation, which separates advisories, cautions, and warnings by required
   response time.
 
 ## Related pages
 
-- [Fail-closed design](fail-closed-design.md) — what an error causes.
-- [Validation at trust boundaries](validation-at-trust-boundaries.md) — where
+- [Fail-closed design](fail-closed-design.md): what an error causes.
+- [Validation at trust boundaries](validation-at-trust-boundaries.md): where
   they are raised.
-- [Structural versus schema validation](structural-vs-schema-validation.md) —
+- [Structural versus schema validation](structural-vs-schema-validation.md):
   ordering checks so the message is right.
-- [Retry budgets](retry-budgets.md) — the recoverability axis.
-- [Validation rules](../reference/validation-rules.md) — every code, in one
+- [Retry budgets](retry-budgets.md): the recoverability axis.
+- [Validation rules](../reference/validation-rules.md): every code, in one
   table.

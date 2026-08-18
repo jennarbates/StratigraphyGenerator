@@ -1,5 +1,5 @@
 """
-extract_fieldwall.py — adapted from 03_extraction/extractFieldWall.py.
+Adapted from 03_extraction/extractFieldWall.py.
 
 Same schema/prompt as the original script (for modern hand-drawn field
 recording sheets, Locus number + Munsell color instead of a hatch legend).
@@ -19,11 +19,11 @@ from pydantic.json_schema import SkipJsonSchema
 from pipeline._extract_common import generate_with_retry
 from pipeline.extract_text import BoundingBox
 
-# See extract_illustrator.py — same rationale: locally-generated preprocessed
+# See extract_illustrator.py for the same rationale: locally-generated preprocessed
 # scans, not untrusted uploads, so raise PIL's decompression-bomb cap.
 Image.MAX_IMAGE_PIXELS = None
 
-# See extract_illustrator.py — preprocessing's upscale is tuned for scan line
+# See extract_illustrator.py: preprocessing's upscale is tuned for scan line
 # resolution, not for what Gemini needs; cap the longest side before sending
 # regardless of upscale factor so a big field photo doesn't turn into a
 # multi-hundred-megapixel payload.
@@ -185,7 +185,7 @@ SCALE
 ============================================================
 The bold grid squares on this sheet are {square_cm} cm per side (given by
 the recorder, not something to re-derive). Minor grid lines subdivide each
-bold square evenly — count them to get the subdivision, don't assume a
+bold square evenly. Count them to get the subdivision, don't assume a
 count. Use the grid itself as the ruler; there is no separate printed scale
 bar on this kind of sheet.
 
@@ -195,7 +195,7 @@ LOCUS + MUNSELL, NOT A HATCH LEGEND
 This sheet records material with a **Locus number** per layer (e.g. "Locus
 3") and a **Munsell soil color** written in a list at the edge of the sheet
 (e.g. "10YR 5/3 brown") in a list at the edge of the sheet (hue, value/chroma,
-color name). This is NOT a fill-pattern legend — do not invent a
+color name). This is NOT a fill-pattern legend, so do not invent a
 `visualPattern` description. Read each locus's Munsell notation and color name
 VERBATIM into `loci[]`, exactly as written, including hue/value/chroma
 punctuation. If a color name is not given alongside the code, leave
@@ -207,7 +207,7 @@ GRID TIE-IN / COORDINATE LABELS
 Numbers or stake labels along the top or side of the wall that look like
 site-grid coordinates, elevations, or survey tie-ins go VERBATIM into
 `gridTiePoints[].rawText`. Do NOT interpret what they mean (northing vs.
-easting vs. elevation vs. something else) — that is a site-records question
+easting vs. elevation vs. something else). That is a site-records question
 for a human, not something to infer from the drawing. Only fill
 `approxXMeters` if it is unambiguous which point along the face the label
 marks; otherwise leave null.
@@ -230,13 +230,13 @@ These boxes locate writing only; never use them for boundaries, markers,
 features, or any other geometry.
 
 ============================================================
-BOUNDARIES — FIND THE MARKED POINTS, DON'T ESTIMATE A CURVE
+BOUNDARIES: FIND THE MARKED POINTS, DON'T ESTIMATE A CURVE
 ============================================================
 On this kind of sheet, each boundary line is a polyline connecting
 individually-marked points: the recorder shot or measured each vertex and
 marked it with a small circle/dot directly on the line, then connected the
 dots with straight segments. Your job is NOT to sample the line's shape at
-your own chosen intervals — it is to find every circle marker actually
+your own chosen intervals; it is to find every circle marker actually
 drawn on each boundary and report its (x, depth) position. The line
 between consecutive markers is straight by construction; you do not need
 to (and should not) add extra points between them to make the curve look
@@ -246,24 +246,24 @@ How to do this correctly:
   - Scan each boundary line specifically for small circle/dot marks sitting
     ON the line. Each one is a real measured point.
   - Report exactly one boundary point per circle marker you can actually
-    see, at its real position — not one every fixed grid interval.
-  - Circle spacing along a real boundary is IRREGULAR — some segments
+    see, at its real position, not one every fixed grid interval.
+  - Circle spacing along a real boundary is IRREGULAR: some segments
     between markers are short, some long, depending on where the recorder
     chose to shoot a point (usually where the line bends). If your
     reported points come out evenly spaced (e.g. every 0.08m or every
     grid line), you have reverted to estimating instead of finding the
-    actual markers — stop and re-scan for the real dot positions.
+    actual markers. Stop and re-scan for the real dot positions.
   - If a stretch of boundary has no visible circle markers, do not invent
-    one — leave that stretch to whatever markers bound it. Undercounting
+    one. Leave that stretch to whatever markers bound it. Undercounting
     real markers is far better than adding a fabricated one.
   - Two different loci's boundaries should almost never have circles at
     the same x-positions as each other, since each was measured
     independently. If your output shows the same x-spacing pattern
     repeating across multiple loci, that is a sign you are generating a
-    template rather than reading the actual marker positions on each line
-    — go back and re-examine each boundary on its own.
+    template rather than reading the actual marker positions on each line.
+    Go back and re-examine each boundary on its own.
 
-LOCUS ASSOCIATION — DO NOT SHIFT THE LABELS DOWN ONE LINE:
+LOCUS ASSOCIATION (DO NOT SHIFT THE LABELS DOWN ONE LINE):
   - A locus is named by its TOP boundary on the field sheet.
   - The shallowest named line is `topBoundary` of the first locus. Do not
     treat it as an unlabelled surface and assign that locus number to the
@@ -290,7 +290,7 @@ UNCERTAINTY
 ============================================================
 Faded, obscured, or ambiguous handwriting/geometry: set the field to null
 and explain why in that item's `confidence`. Uncertainty is per point/locus,
-not global — don't null out the whole drawing because one number is hard to
+not global, so don't null out the whole drawing because one number is hard to
 read.
 
 ============================================================
@@ -350,7 +350,7 @@ def run_extraction(
             max_output_tokens=max_output_tokens,
             # 2.5-flash "thinks" before writing any JSON by default; on a
             # dense sheet that reasoning alone can push the request past
-            # Google's server-side deadline (504). Cap it — raise or drop
+            # Google's server-side deadline (504). Cap it. Raise or drop
             # this if extraction quality visibly suffers, set 0 to disable
             # thinking entirely.
             thinking_config=types.ThinkingConfig(thinking_budget=1024),

@@ -33,7 +33,7 @@ too.
 A layout is therefore: **corners in order around the pit**, each with a grid
 label like `190E/53S` (or numeric `gridX`/`gridY`) and an elevation; plus
 **wall names**, one per edge. The last wall closes back to the first corner. A
-corner's `label` is its *grid* label, parsed by `site_grid.label_to_grid` —
+corner's `label` is its *grid* label, parsed by `site_grid.label_to_grid`,
 never a corner name like `NW`, which is a different thing the
 [Geospatial Spreadsheet](geospatial-spreadsheet.md) keeps under `corner`.
 
@@ -47,7 +47,7 @@ flowchart LR
 ```
 
 Note the direction of travel. Everywhere else in this application, registration
-is something an operator supplies. Here it is **derived** — the survey already
+is something an operator supplies. Here it is **derived**, because the survey already
 knows where the walls are.
 
 ## Why excavation records it
@@ -119,7 +119,7 @@ def bearing_degrees(start, end):
 `atan2(east, north)` and not `atan2(north, east)`. That argument order is the
 whole difference between a [compass bearing and a mathematical
 angle](bearing-and-azimuth.md), and it is stated here as an *obligation to
-match another module* rather than as a preference — see
+match another module* rather than as a preference. See
 [compass bearings versus mathematical angles](../cs/compass-bearings-vs-mathematical-angles.md).
 
 ### It refuses a shape that is not a trench
@@ -138,7 +138,7 @@ def _self_intersects(points):
 Transposing the two southern corners in the list above still gives four
 distinct points and four edges. Nothing about the numbers is wrong. The result
 is a bow-tie, and two
-of the derived walls would run diagonally across the trench — producing a model
+of the derived walls would run diagonally across the trench, producing a model
 that builds cleanly and places half the evidence in the wrong place. See
 [line segment intersection](../cs/line-segment-intersection.md).
 
@@ -177,7 +177,7 @@ config = {
 starts at `"placeholder"` and a build refuses it; a derived one carries real
 coordinates and says so, so the refusal lets it through. The declaration is
 stored rather than inferred precisely so nothing has to recognise the starter's
-number pattern — see [grid registration](grid-registration.md).
+number pattern (see [grid registration](grid-registration.md)).
 
 Nothing is written to disk. The route returns the config for the operator to
 check:
@@ -185,7 +185,7 @@ check:
 > Nothing is written: the config comes back for the operator to check against
 > the drawings and pass to the build.
 
-which is why every wall gets a note giving its length and bearing — a wall that
+which is why every wall gets a note giving its length and bearing: a wall that
 comes back as 12 m when the trench is 4 m across is a transposition the operator
 will catch by reading.
 
@@ -206,8 +206,8 @@ will catch by reading.
 self-intersection check exists for. It is refused rather than registered.
 
 **Listing corners in the wrong rotational direction.** Every bearing is then
-180° out and each wall's origin is at its far end. Nothing detects this — the
-shape is still a valid trench — so the per-wall notes are what an operator has
+180° out and each wall's origin is at its far end. Nothing detects this (the
+shape is still a valid trench), so the per-wall notes are what an operator has
 to read.
 
 **Naming fewer walls than corners.** Each edge needs a name, because the name is
@@ -224,11 +224,11 @@ are surveyed-looking and wrong.
 
 ## Related pages
 
-- [Grid registration](grid-registration.md) — what this derives.
-- [Site coordinates](site-coordinates.md) — the space the corners live in.
-- [Bearing and azimuth](bearing-and-azimuth.md) — the convention the walls use.
-- [Datum](datum.md) and [Elevation](elevation.md) — where `surfaceZ` comes from.
-- [Line segment intersection](../cs/line-segment-intersection.md) — the bow-tie
+- [Grid registration](grid-registration.md): what this derives.
+- [Site coordinates](site-coordinates.md): the space the corners live in.
+- [Bearing and azimuth](bearing-and-azimuth.md): the convention the walls use.
+- [Datum](datum.md) and [Elevation](elevation.md): where `surfaceZ` comes from.
+- [Line segment intersection](../cs/line-segment-intersection.md): the bow-tie
   check.
-- [Place on site](../workflows/06-place-on-site.md) — the workflow step this
+- [Place on site](../workflows/06-place-on-site.md): the workflow step this
   replaces.

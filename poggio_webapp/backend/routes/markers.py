@@ -6,7 +6,7 @@ from pathlib import Path
 
 from flask import Blueprint, abort, jsonify, request
 
-from ..errors import _friendly_error
+from ..errors import PIPELINE_INPUT_ERRORS, _friendly_error
 from ..jobs import job_dir, load_meta, rel_url, save_meta
 from ..tasks import start_task
 
@@ -35,7 +35,7 @@ def markers_preview(job_id):
         return jsonify(
             {
                 "error": "marker detection works on photo scans, not "
-                "PDFs — upload the photo directly"
+                "PDFs. Upload the photo directly"
             }
         ), 400
     body = request.get_json(force=True, silent=True) or {}
@@ -48,7 +48,7 @@ def markers_preview(job_id):
         w, h = p_detect_markers.write_rotated_preview(
             meta["scan_path"], rotate, str(out_path)
         )
-    except Exception as e:
+    except PIPELINE_INPUT_ERRORS as e:
         return jsonify({"error": str(e)}), 400
     meta["marker_rotate"] = rotate
     save_meta(job_id, meta)
@@ -65,7 +65,7 @@ def markers_detect(job_id):
         if body.get(k) in (None, "", []):
             return jsonify(
                 {
-                    "error": f"{k} is required — click the wall's "
+                    "error": f"{k} is required. Click the wall's "
                     "top-left, top-right, and lowest point, "
                     "and give the real width between the top "
                     "corners"
@@ -87,12 +87,12 @@ def markers_detect(job_id):
             min_marker_paper_mm=float(body.get("min_marker_paper_mm", 0.5)),
             max_marker_paper_mm=float(body.get("max_marker_paper_mm", 2.5)),
         )
-    except Exception as e:
+    except PIPELINE_INPUT_ERRORS as e:
         return jsonify({"error": str(e)}), 400
 
     markers_path = out_dir / "markers.json"
     markers_path.write_text(json.dumps(result["markers"]))
-    # Not the final markers_path used downstream — /markers/confirm
+    # Not the final markers_path used downstream: /markers/confirm
     # overwrites this once a person has reviewed the candidates. Keeping it
     # here too means "confirm" is optional: assign still works on the raw
     # CV output if someone skips straight past review.
@@ -171,7 +171,7 @@ def markers_confirm(job_id):
 def markers_assign(job_id):
     """Async (calls Gemini): classify the confirmed markers into
     top-of-locus/final-base/noise and read the sheet's labels. Does NOT
-    assemble geometry or install an extraction yet — the result is a
+    assemble geometry or install an extraction yet. The result is a
     proposal for the user to review/correct; call /markers/finalize with
     the (possibly edited) result to actually build the extraction."""
     meta = load_meta(job_id)
@@ -193,9 +193,7 @@ def markers_assign(job_id):
     markers = json.loads(Path(meta["markers_path"]).read_text())
     rotated = job_dir(job_id) / "03_extraction" / "marker_source_rotated.png"
     if not rotated.exists():
-        abort(
-            400, description="rotated working image missing — re-run marker detection"
-        )
+        abort(400, description="rotated working image missing. Re-run marker detection")
 
     try:
         from pipeline import assign_markers as p_assign_markers
@@ -232,7 +230,7 @@ def markers_finalize(job_id):
     result_dict = body.get("result")
     if not result_dict or not result_dict.get("assignments"):
         return jsonify(
-            {"error": "no classification to finalize — run /markers/assign first"}
+            {"error": "no classification to finalize. Run /markers/assign first"}
         ), 400
 
     markers = json.loads(Path(meta["markers_path"]).read_text())
@@ -243,7 +241,7 @@ def markers_finalize(job_id):
         raw_json, warning = p_assign_markers.finalize_assignments(
             markers, result_dict, str(out_path)
         )
-    except Exception as e:
+    except PIPELINE_INPUT_ERRORS as e:
         return jsonify({"error": _friendly_error(e)}), 400
 
     meta["extraction_path"] = str(out_path)

@@ -22,9 +22,9 @@ Code is grouped into layers, each depending only on those below it:
 
 ```
 routes/     HTTP parsing, status codes, serialisation
-services/   orchestration — chaining several stages, transactions
-pipeline/   transformation — pure domain logic
-storage.py  leaf modules — no dependencies of their own
+services/   orchestration: chaining several stages, transactions
+pipeline/   transformation: pure domain logic
+storage.py  leaf modules: no dependencies of their own
 ```
 
 The rule is **acyclic dependencies**: a lower layer never imports an upper one.
@@ -71,8 +71,8 @@ with the reasoning in the module docstring:
 > without an app, and what stopped this from being another 110-line view
 > function.
 
-The route does the translation and nothing else —
-`poggio_webapp/backend/routes/trenches.py`:
+The route does the translation and nothing else
+(`poggio_webapp/backend/routes/trenches.py`):
 
 ```python
 @bp.route("/api/trenches/<label>/build", methods=["POST"])
@@ -87,8 +87,8 @@ def build_trench(label):
 ```
 
 Six lines. Parse, delegate, map errors to status codes. Every archaeological
-rule — placeholder registration, wall label clashes, contradictory stratigraphy,
-[locus numbering epochs](../archaeology/index.md) — lives in the service, where
+rule (placeholder registration, wall label clashes, contradictory stratigraphy,
+[locus numbering epochs](../archaeology/index.md)) lives in the service, where
 a test can call it directly.
 
 The module header states the whole file's job:
@@ -140,7 +140,7 @@ except ValueError as error:
 > updated at each step so a browser polling /api/jobs/<id>/status sees progress
 > even across a server restart.
 
-A service exists because the *sequence* is the thing worth naming — four
+A service exists because the *sequence* is the thing worth naming: four
 pipeline stages plus persistence plus a background task. `harris_workspace.py`
 gives the same reason:
 
@@ -165,7 +165,7 @@ the same reason. See
 | Alternative | How it would organise the trench build | Why it lost |
 |---|---|---|
 | **Everything in the route** | One 110-line view function | Named in the docstring as what was escaped. The rules could only be exercised through an HTTP request, so testing a refusal meant building a request context. |
-| **Two layers — routes and pipeline** | No service tier | Where does "load, transform, save at the same revision" live? Duplicated across routes, or pushed into the pipeline, which would then need `storage` and threading. |
+| **Two layers: routes and pipeline** | No service tier | Where does "load, transform, save at the same revision" live? Duplicated across routes, or pushed into the pipeline, which would then need `storage` and threading. |
 | **Layers by feature** | `trenches/{routes,logic,storage}` | Vertical slicing keeps related code together and is a genuine alternative. Here several features share the same pipeline stages, so a horizontal split matches the actual reuse. |
 | **Hexagonal / ports and adapters** | Interfaces at every boundary | Stronger decoupling, and the indirection is heavy for an application with one delivery mechanism and one storage backend. |
 | **Routes → services → pipeline → leaves** *(chosen)* | Four layers, one direction | Each layer is testable alone, and the framework is confined to one of them. |
@@ -180,37 +180,37 @@ More files, and one more hop to follow when reading.
 
 The costs:
 
-- **Indirection.** A trench build touches a route, a service, three pipeline
+- Indirection. A trench build touches a route, a service, three pipeline
   modules, and two leaves. The [algorithm index](../architecture/algorithm-index.md)
   exists partly to make that navigable.
-- **Layer boundaries need judgement.** `viewer_files.py` is a *service* rather
+- Layer boundaries need judgement. `viewer_files.py` is a *service* rather
   than a pipeline module, and the docstring justifies it: "It lives in services
   rather than pipeline because it builds /api/jobs/<id>/file URLs, which is a
   web concern."
-- **Nothing enforces the rule mechanically.** No import linter forbids
+- Nothing enforces the rule mechanically. No import linter forbids
   `from flask import ...` in `pipeline/`. It holds by review and by the fact
   that tests would need an app context.
-- **Thin routes can look pointless** until you try to test the rules without
+- Thin routes can look pointless until you try to test the rules without
   them.
 
 ## Where else you meet it
 
-- **The OSI network model**, the canonical layering.
-- **MVC and its descendants**, separating presentation from domain.
-- **Domain-driven design**, whose application/domain/infrastructure split this
+- The OSI network model, the canonical layering.
+- MVC and its descendants, separating presentation from domain.
+- Domain-driven design, whose application/domain/infrastructure split this
   closely resembles.
-- **Operating systems**, layering user space over kernel over hardware.
-- **Clean and hexagonal architecture**, which push the same idea further with
+- Operating systems, layering user space over kernel over hardware.
+- Clean and hexagonal architecture, which push the same idea further with
   dependency inversion at every boundary.
 
 ## Related pages
 
-- [Dependency direction and leaf modules](dependency-direction-and-leaf-modules.md) —
+- [Dependency direction and leaf modules](dependency-direction-and-leaf-modules.md):
   keeping the graph acyclic.
-- [Separation of concerns](separation-of-concerns.md) — the principle beneath.
-- [Application factory](application-factory.md) — how the web layer is
+- [Separation of concerns](separation-of-concerns.md): the principle beneath.
+- [Application factory](application-factory.md): how the web layer is
   assembled.
-- [Pure functions and testability](pure-functions-and-testability.md) — the
+- [Pure functions and testability](pure-functions-and-testability.md): the
   payoff.
-- [Backend architecture](../architecture/backend.md) — the layers in this
+- [Backend architecture](../architecture/backend.md): the layers in this
   project.

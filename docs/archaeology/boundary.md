@@ -13,11 +13,11 @@ verified_against: ae2fc1d
 
 The line where one deposit ends and the next begins. Recorded as an ordered
 sequence of measured points, and the single most important geometry in this
-application — every model surface comes from one.
+application: every model surface comes from one.
 
 ## What it is
 
-A boundary — also called an **interface** — is the surface separating two
+A boundary (also called an **interface**) is the surface separating two
 stratigraphic units. In a [profile](trench-profile.md) drawing it appears as a
 line.
 
@@ -28,8 +28,8 @@ Recorded as an ordered list of points:
 ```
 
 with `x` along the [face](face.md) and depth down from its top edge. Between the
-points, a straight line — see
-[piecewise-linear functions](../cs/piecewise-linear-functions.md).
+points, a straight line (see
+[piecewise-linear functions](../cs/piecewise-linear-functions.md)).
 
 An interface is a **moment**, not a thing. It is the surface that existed when
 one deposit stopped accumulating and before the next began. It has no thickness
@@ -69,8 +69,8 @@ several walls is exactly what GemPy does.
 ]
 ```
 
-Four fields per point, plus an optional `uncertaintyCm` — the recorder's ± in
-centimetres — when one was entered. `confidence` records **how it was
+Four fields per point, plus an optional `uncertaintyCm` (the recorder's ± in
+centimetres) when one was entered. `confidence` records **how it was
 obtained**; `sourcePixel` keeps the pixel it was clicked at, so the browser
 overlay redraws it exactly rather than round-tripping through metres.
 
@@ -99,7 +99,7 @@ bands = [
 ```
 
 Which line gets named is a recording convention, and getting it backwards shifts
-every locus by one — see [locus](locus.md).
+every locus by one. See [locus](locus.md).
 
 ### Points are sorted along the face
 
@@ -133,7 +133,7 @@ if (x is None or y is None) and not conf:
     )
 ```
 
-A point the recorder could not read is legitimate — a point that is simply
+A point the recorder could not read is legitimate. A point that is simply
 missing is not. **Null means "not recorded", never zero.**
 
 ### Boundaries become interface points
@@ -173,14 +173,14 @@ interval rather than read off the recorder's marks. The validator warns, using
 the [coefficient of variation](../cs/coefficient-of-variation.md):
 
 > boundary vertices are evenly spaced every 0.3 m (12 points, spacing variation
-> 0.000) — this is the signature of points estimated at a fixed interval rather
+> 0.000). This is the signature of points estimated at a fixed interval rather
 > than read off the recorder's marked vertices
 
 **One boundary copied down.** Two layers with identical shapes offset by a
 constant:
 
 > layers 'Locus 2' and 'Locus 3' have identical boundary shapes offset by a
-> constant 0.12 m — almost certainly one boundary copied down, not two traced
+> constant 0.12 m, almost certainly one boundary copied down, not two traced
 > ones
 
 Both checks are **skipped for manual tracing**, because a human clicking along
@@ -189,19 +189,19 @@ graph paper legitimately produces regular spacing.
 **Too few points.** Two points make a straight line; a real interface undulates.
 Marker assembly warns below two:
 
-> locus 3: only 1 marker(s) on its top boundary — too few to draw a line
+> locus 3: only 1 marker(s) on its top boundary, too few to draw a line
 
-**Tracing beyond the drawing.** Nothing is extrapolated —
+**Tracing beyond the drawing.** Nothing is extrapolated:
 [clamping](../cs/piecewise-linear-functions.md) at the recorded ends is
 deliberate.
 
 ## Related pages
 
-- [Layer](layer.md) — what boundaries bound.
-- [Marker](marker.md) — one recorded vertex.
-- [Interface point](interface-point.md) — a boundary point in site coordinates.
-- [Orientation seed](orientation-seed.md) — its fitted slope.
-- [Layers and boundaries](../concepts/layers-and-boundaries.md) — the concept
+- [Layer](layer.md): what boundaries bound.
+- [Marker](marker.md): one recorded vertex.
+- [Interface point](interface-point.md): a boundary point in site coordinates.
+- [Orientation seed](orientation-seed.md): its fitted slope.
+- [Layers and boundaries](../concepts/layers-and-boundaries.md): the concept
   page.
-- [Validation rules](../reference/validation-rules.md) — every check quoted
+- [Validation rules](../reference/validation-rules.md): every check quoted
   above.

@@ -85,32 +85,32 @@ flowchart LR
 ## Route and service layers
 
 The extraction of routes out of `poggio_webapp/app.py` is complete.
-`app.py` now only builds the application and runs it — it defines no routes at
+`app.py` now only builds the application and runs it. It defines no routes at
 all, and its module docstring says that anything you are about to add there
 belongs in a blueprint instead. These blueprints and the four service modules
 are the newest part of that structure:
 
-- `poggio_webapp/backend/routes/editor.py` — the manual drawing editor and its
+- `poggio_webapp/backend/routes/editor.py`: the manual drawing editor and its
   model-build lifecycle.
-- `poggio_webapp/backend/routes/finds.py` — finds logged against a job.
-- `poggio_webapp/backend/routes/demo.py` — seeds and removes the
+- `poggio_webapp/backend/routes/finds.py`: finds logged against a job.
+- `poggio_webapp/backend/routes/demo.py`: seeds and removes the
   demonstration trenches through the `poggio_webapp/demo/` package. Seeding is
   fast enough to answer in the request; the build is deliberately left to the
   operator on the trenches page, because watching one trench refuse and the
   other build is the demonstration.
-- `poggio_webapp/backend/services/editor_pipeline.py` — drives a finalized
+- `poggio_webapp/backend/services/editor_pipeline.py`: drives a finalized
   editor session through normalize → validate → convert → build. The build is
   asynchronous, and `meta.json` is updated at each step, so a browser polling
   the job's status sees progress even across a server restart.
-- `poggio_webapp/backend/services/harris_workspace.py` — read-modify-write
+- `poggio_webapp/backend/services/harris_workspace.py`: read-modify-write
   transactions against a stored matrix: load at an expected revision,
   transform, save at that same revision. The domain work already lived in the
   pipeline and store modules; what was still inside the view functions was the
   *sequence*, and both flows are optimistic-concurrency transactions.
-- `poggio_webapp/backend/services/trench_builder.py` — groups per-wall jobs by
+- `poggio_webapp/backend/services/trench_builder.py`: groups per-wall jobs by
   their shared trench label, runs the merge layer over their normalized
   extractions, and hands the result to the model builder.
-- `poggio_webapp/backend/services/viewer_files.py` — reads and validates a
+- `poggio_webapp/backend/services/viewer_files.py`: reads and validates a
   job's 3D viewer manifest. A manifest that is malformed, points outside the
   job directory, or names artifacts that are not there degrades to a smaller
   payload rather than handing the browser a broken reference.

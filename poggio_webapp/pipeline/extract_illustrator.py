@@ -1,5 +1,5 @@
 """
-extract_illustrator.py — adapted from 03_extraction/renameImages.py.
+Adapted from 03_extraction/renameImages.py.
 
 Same schema and prompt as the original single-agent script. Adapted to:
   - accept an API key explicitly (rather than only reading GEMINI_API_KEY at
@@ -19,13 +19,13 @@ from pydantic import BaseModel
 from pipeline._extract_common import generate_with_retry
 
 # These are locally-generated preprocessed scans (this app's own 02_preprocess
-# output, often upscaled 2x+), not untrusted uploads from the internet — raise
+# output, often upscaled 2x+), not untrusted uploads from the internet, so raise
 # PIL's default decompression-bomb cap so a legitimately large sheet doesn't
 # get rejected as a suspected attack.
 Image.MAX_IMAGE_PIXELS = None
 
 # Preprocessing's upscale is tuned for keeping thin ink lines from vanishing
-# on LOW-DPI scans — it has nothing to do with what Gemini needs to read the
+# on LOW-DPI scans. It has nothing to do with what Gemini needs to read the
 # drawing, and an upscale factor picked for a scan can produce an enormous
 # image on an already high-res photo (e.g. a 4284x5712 field photo at 3x+
 # upscale). Sending that whole thing as base64 makes the request slow to the
@@ -42,9 +42,7 @@ def _cap_for_sending(img, max_dim=MAX_SEND_DIMENSION):
     return img.resize((int(w * scale), int(h * scale)), Image.LANCZOS)
 
 
-# ---------------------------------------------------------------------------
 # SCHEMA (unchanged from renameImages.py)
-# ---------------------------------------------------------------------------
 
 
 class Scale(BaseModel):
@@ -149,11 +147,11 @@ STEP 1 - SCALE  (calibrate before measuring)
 ============================================================
 A word next to the scale bar is NOT automatically a unit. Units are short
 measurement abbreviations (M, m, cm, ft, in). A capitalized surname (e.g.
-"PECK") beside a year is a PERSON'S NAME/signature, not a unit — do NOT invent a
+"PECK") beside a year is a PERSON'S NAME/signature, not a unit, so do NOT invent a
 conversion for it.
 - If it is a real unit: read the bar's printed values verbatim into `scale`.
 - If it is a name/signature or initials: put it in `credits.attributions` as
-  {{name, role}} (role ONLY if the drawing states it, else null — don't guess a
+  {{name, role}} (role ONLY if the drawing states it, else null; do not guess a
   role). Also transcribe the raw text verbatim into `metadata.marginalia`.
 - Any signature/number/date string (e.g. "NR. 7/80") goes verbatim into
   `metadata.marginalia`; don't force its meaning. If a year is clearly legible,
@@ -293,7 +291,7 @@ def run_extraction(
             max_output_tokens=max_output_tokens,
             # 2.5-flash "thinks" before writing any JSON by default; on a
             # dense sheet that reasoning alone can push the request past
-            # Google's server-side deadline (504). Cap it — raise or drop
+            # Google's server-side deadline (504). Cap it. Raise or drop
             # this if extraction quality visibly suffers, set 0 to disable
             # thinking entirely.
             thinking_config=types.ThinkingConfig(thinking_budget=1024),

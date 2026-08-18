@@ -43,10 +43,10 @@ history, and here a pixel's fate depends on what it is attached to.
 ```mermaid
 flowchart TB
   M["gradient magnitude"] --> H{"above high?"}
-  H -->|yes| S["STRONG — keep"]
+  H -->|yes| S["STRONG, keep"]
   H -->|no| L{"above low?"}
   L -->|no| X["discard"]
-  L -->|yes| W["WEAK — undecided"]
+  L -->|yes| W["WEAK, undecided"]
   W --> C{"connected to a strong pixel<br/>through weak pixels?"}
   C -->|yes| K["keep"]
   C -->|no| X
@@ -65,7 +65,7 @@ case B:  ...nothing weak weak nothing...        → discarded
 ```
 
 Identical magnitudes, opposite outcomes. No single threshold can distinguish
-them, because the difference is not in the pixels — it is in their neighbours.
+them, because the difference is not in the pixels. It is in their neighbours.
 
 ## Where this project uses it
 
@@ -80,7 +80,7 @@ chosen, and the two call sites do it differently.
 edges = cv2.Canny(gray, 50, 150)
 ```
 
-Low 50, high 150 — the ratio Canny himself recommended. Fixed values are fine
+Low 50, high 150: the ratio Canny himself recommended. Fixed values are fine
 because the consumer is the [Hough transform](hough-line-transform.md), which
 votes: extra noise pixels vote for no line in particular, and the
 [median](median-and-robust-statistics.md) over detected angles absorbs the rest.
@@ -111,7 +111,7 @@ Every clause is defending a specific failure:
 
 The third is the one that protects hysteresis itself. If `high` fell to `low`,
 there would be no weak band, no connectivity rule, and Canny would silently
-degrade to single-threshold detection — with no error and a plausible-looking
+degrade to single-threshold detection, with no error and a plausible-looking
 result. A 30-level minimum gap guarantees the mechanism stays engaged.
 
 The [median](median-and-robust-statistics.md) is used rather than the mean
@@ -122,9 +122,9 @@ the median is unmoved by a dark legend block or a shadowed corner.
 
 | Alternative | How it would work here | Why it lost |
 |---|---|---|
-| **Single threshold** | One cut on gradient magnitude | Cannot be set correctly. High breaks faint boundary lines into dashes; low admits paper texture. The choice this project faces — faded 1980 ink alongside crisp modern pencil, sometimes on the same sheet — has no single right value. |
+| **Single threshold** | One cut on gradient magnitude | Cannot be set correctly. High breaks faint boundary lines into dashes; low admits paper texture. The choice this project faces (faded 1980 ink alongside crisp modern pencil, sometimes on the same sheet) has no single right value. |
 | **[Otsu](otsu-thresholding.md) on the gradient magnitude** | Choose one threshold automatically | Removes the tuning, keeps the single-threshold limitation, and gradient magnitude histograms are heavily skewed rather than bimodal, which is where Otsu is weakest. |
-| **Hysteresis** *(chosen)* | Two thresholds plus connectivity | Resolves ambiguity with evidence — the pixel's neighbours — rather than with a number. |
+| **Hysteresis** *(chosen)* | Two thresholds plus connectivity | Resolves ambiguity with evidence (the pixel's neighbours) rather than with a number. |
 | **[Adaptive thresholding](adaptive-thresholding.md) on the gradient** | A local threshold per neighbourhood | Handles varying edge strength across the sheet, and it has no connectivity notion, so an isolated faint speck in a quiet region is *promoted* rather than rejected. Exactly backwards for this purpose. |
 | **Keep everything, filter later by shape** | No threshold; reject bad contours downstream | Shifts the problem to [contour tracing](contour-tracing.md), which would return thousands of texture contours. The shape filter already has to reject a lot; giving it noise as well makes its thresholds do two jobs. |
 
@@ -138,39 +138,39 @@ introduces a [cycle](cycle-detection.md) rather than by a confidence score.
 ## What it costs
 
 O(n) for the classification plus a connected-components walk over the weak
-pixels — linear overall, one extra pass.
+pixels: linear overall, one extra pass.
 
 The cost is a second parameter, and worse, one whose **ratio** to the first
 matters more than either value. Canny suggested 1:2 to 1:3. `preprocess.py`
 uses exactly 1:3; `detect_features.py` computes roughly 1:2.3 from the median,
 with a floor to keep them apart.
 
-Hysteresis does not guarantee closed contours — an edge that fades below the
+Hysteresis does not guarantee closed contours: an edge that fades below the
 low threshold along its whole width still breaks. Hence
 [morphological closing](morphological-closing.md) immediately after.
 
 ## Where else you meet it
 
-- **Thermostats.** Turning on at 19°C and off at 21°C rather than both at 20°C
+- Thermostats. Turning on at 19°C and off at 21°C rather than both at 20°C
   is hysteresis, preventing rapid cycling.
-- **Schmitt triggers** in electronics — the same idea in hardware, for
+- Schmitt triggers in electronics: the same idea in hardware, for
   debouncing a noisy signal.
-- **UI scroll and drag thresholds**, where a gesture must exceed one distance to
+- UI scroll and drag thresholds, where a gesture must exceed one distance to
   start and fall below a smaller one to stop.
-- **Object tracking**, where a track is created at high confidence and
+- Object tracking, where a track is created at high confidence and
   maintained at lower confidence.
-- **Alerting systems**, which fire above one level and clear below another to
+- Alerting systems, which fire above one level and clear below another to
   avoid flapping.
 
 ## Related pages
 
-- [Canny edge detection](canny-edge-detection.md) — the algorithm this
+- [Canny edge detection](canny-edge-detection.md): the algorithm this
   completes.
-- [Edge thinning](edge-thinning-non-maximum-suppression.md) — the preceding
+- [Edge thinning](edge-thinning-non-maximum-suppression.md): the preceding
   stage.
-- [Median and robust statistics](median-and-robust-statistics.md) — how the
+- [Median and robust statistics](median-and-robust-statistics.md): how the
   thresholds are derived.
 - [Global thresholding](global-thresholding.md) and
-  [Otsu](otsu-thresholding.md) — the single-threshold alternatives.
-- [Connected components](connected-components.md) — the connectivity rule at
+  [Otsu](otsu-thresholding.md): the single-threshold alternatives.
+- [Connected components](connected-components.md): the connectivity rule at
   the heart of stage five.

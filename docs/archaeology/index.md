@@ -23,7 +23,7 @@ Every archaeological term this project uses, one page each, in depth.
 The [glossary](../start-here/glossary.md) gives you a paragraph per term, which
 is what you want while you are working. These pages are the other thing: what
 the term means in excavation practice, why the practice exists, exactly which
-field in this project's data holds it, and — most importantly — which
+field in this project's data holds it, and, most importantly, which
 neighbouring term it is constantly confused with.
 
 That last part is not padding. This application makes distinctions that a
@@ -48,7 +48,7 @@ Every page has the same seven sections.
 
 ## The catalogue
 
-Thirty-eight terms. **Phasing** — grouping units into periods of activity — is
+Thirty-eight terms. **Phasing** (grouping units into periods of activity) is
 deliberately absent: it is a later interpretive step this application does not
 perform, and several pages below say so where it would otherwise be assumed.
 
@@ -76,9 +76,9 @@ perform, and several pages below say so where it would otherwise be assumed.
 
 ## Related concepts
 
-- [Glossary](../start-here/glossary.md) — the one-paragraph version of every
+- [Glossary](../start-here/glossary.md): the one-paragraph version of every
   term below.
-- [From archaeology to 3D](../concepts/archaeology-to-3d.md) — how these terms
+- [From archaeology to 3D](../concepts/archaeology-to-3d.md): how these terms
   become geometry.
-- [Computer science concepts](../cs/index.md) — the same treatment for the
+- [Computer science concepts](../cs/index.md): the same treatment for the
   techniques, for readers who know the excavation and not the code.

@@ -798,7 +798,7 @@ function reportPoint(prefix, point) {
 
   coordinateReport.textContent = (
     `${prefix}: (${xMeters.toFixed(3)}m, ${yMeters.toFixed(3)}m)`
-    + ` — snap ${snapToggle.checked ? "on" : "off"}`
+    + ` · snap ${snapToggle.checked ? "on" : "off"}`
   );
 }
 

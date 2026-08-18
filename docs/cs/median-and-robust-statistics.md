@@ -21,7 +21,7 @@ take the middle.
 
 Its defining property is a **breakdown point of 50%**: up to half the data can
 be arbitrarily corrupted before the median moves outside the range of the good
-values. The mean's breakdown point is 0% — one bad value can move it anywhere.
+values. The mean's breakdown point is 0%: one bad value can move it anywhere.
 
 ```
 values:   3.1  3.0  3.2  2.9  47.0
@@ -45,8 +45,8 @@ So the question is never "which is better" but **"do I trust every input?"**
 ```mermaid
 flowchart TB
   Q["summarising a set of values"] --> T{"is every value trustworthy?"}
-  T -->|yes| M["MEAN — uses all the data,<br/>more efficient"]
-  T -->|no| Med["MEDIAN — ignores the<br/>contaminating minority"]
+  T -->|yes| M["MEAN, uses all the data,<br/>more efficient"]
+  T -->|no| Med["MEDIAN, ignores the<br/>contaminating minority"]
   M --> E1["mean depth of a locus boundary<br/>(every point is a real vertex)"]
   Med --> E2["deskew angle<br/>(diagonal strokes contaminate)"]
   Med --> E3["paper tone<br/>(legend block and shadows contaminate)"]
@@ -82,12 +82,12 @@ hatching, the edge of the table the photograph was taken on. The ±15° filter
 removes the obviously wrong ones and cannot remove a diagonal stroke at 12°.
 
 A mean over that set would be dragged by every survivor. The median needs more
-than half the surviving lines to be wrong before it moves — and on a section
+than half the surviving lines to be wrong before it moves, and on a section
 drawing, most near-horizontal strong lines really are the horizontal features of
 the sheet.
 
 Note the two early returns. `lines is None` and `not angles` both give **0.0 and
-no rotation** — the honest answer when there is no evidence, rather than a guess
+no rotation**: the honest answer when there is no evidence, rather than a guess
 from a single line. See [fail-closed design](fail-closed-design.md).
 
 ### Deriving Canny thresholds from paper tone
@@ -107,8 +107,8 @@ upper_threshold = int(
 )
 ```
 
-The intensity distribution of a drawing is strongly **bimodal** — a large peak
-at paper tone and a small one at ink — and often skewed further by a dark legend
+The intensity distribution of a drawing is strongly **bimodal** (a large peak
+at paper tone and a small one at ink), and often skewed further by a dark legend
 block or a shadowed corner.
 
 The mean of that distribution sits between the peaks, where nothing is. The
@@ -144,19 +144,19 @@ measurements.**
 
 ## Why this and not something else
 
-| Alternative | Breakdown point | Why it lost — or won |
+| Alternative | Breakdown point | Why it lost, or won |
 |---|---|---|
 | **Mean** | 0% | Uses all the data and is more efficient on clean input. One diagonal stroke or one dark legend block moves it. Used here where inputs are trusted. |
 | **Median** *(chosen for contaminated input)* | 50% | Ignores up to half the data being wrong. Costs a sort and some statistical efficiency. |
 | **Trimmed mean** | tunable | Drop the top and bottom k%, average the rest. A reasonable middle ground, and it needs a trim fraction chosen and justified. |
-| **Mode** | — | The most common value. For the paper-tone problem it is arguably *more* correct than the median, and it needs binning, and the bin width becomes a parameter. The median approximates it well on a strongly unimodal-plus-tail distribution. |
-| **RANSAC** | very high | Randomly sample, count inliers, keep the best consensus. Handles far worse contamination and is **randomised**, so two runs can differ — and [determinism](determinism-and-stable-sorting.md) is a design requirement in this repository. |
+| **Mode** | n/a | The most common value. For the paper-tone problem it is arguably *more* correct than the median, and it needs binning, and the bin width becomes a parameter. The median approximates it well on a strongly unimodal-plus-tail distribution. |
+| **RANSAC** | very high | Randomly sample, count inliers, keep the best consensus. Handles far worse contamination and is **randomised**, so two runs can differ, and [determinism](determinism-and-stable-sorting.md) is a design requirement in this repository. |
 | **Weighted mean by Hough vote count** | 0% | Would weight stronger lines more, which sounds principled. A long diagonal has many votes, so it would weight the contamination *up*. |
 
 The generalisable rule: **choose the estimator by how you expect the input to
 fail, not by which is more sophisticated.** Both places using the median have a
-one-line justification available — "these values include lines that are not the
-sheet's horizontal," "most of the sheet is paper" — and that justification is
+one-line justification available ("these values include lines that are not the
+sheet's horizontal," "most of the sheet is paper"), and that justification is
 what makes the choice reviewable.
 
 ## What it costs
@@ -166,41 +166,41 @@ O(n log n) for a full sort, or O(n) with quickselect, which NumPy's
 
 The costs:
 
-- **Statistical efficiency.** About 64% of the mean's on clean normal data. The
+- Statistical efficiency: about 64% of the mean's on clean normal data. The
   deskew estimate is slightly noisier than a mean over uncontaminated angles
-  would be — and there is no uncontaminated set to average.
-- **It ignores most of the data.** Where every value carries information, that
+  would be, and there is no uncontaminated set to average.
+- It ignores most of the data. Where every value carries information, that
   is waste.
-- **Not differentiable**, so it cannot be used inside a closed-form fit. That is
+- Not differentiable, so it cannot be used inside a closed-form fit. That is
   why [least squares](ordinary-least-squares.md) is mean-based, and why a robust
   regression would need an iterative method.
-- **Angles need care.** Median over circular quantities is ill-defined near the
+- Angles need care. Median over circular quantities is ill-defined near the
   wraparound. This code avoids the issue entirely by filtering to ±15° first, so
   all values are on one branch.
 
 ## Where else you meet it
 
-- **Median filtering** in image processing, which removes salt-and-pepper noise
-  while preserving edges — the same robustness, applied spatially.
-- **Reporting incomes and house prices**, where the median is quoted precisely
+- Median filtering in image processing, which removes salt-and-pepper noise
+  while preserving edges: the same robustness, applied spatially.
+- Reporting incomes and house prices, where the median is quoted precisely
   because the mean is dragged by a few very large values.
-- **Latency monitoring**, where p50 and p99 are reported instead of a mean,
+- Latency monitoring, where p50 and p99 are reported instead of a mean,
   because one 30-second request would dominate it.
-- **Sensor fusion**, where a median over redundant sensors survives one failing.
-- **Robust regression** — RANSAC, Theil–Sen, least median of squares — the
+- Sensor fusion, where a median over redundant sensors survives one failing.
+- Robust regression (RANSAC, Theil–Sen, least median of squares): the
   regression analogues of this page.
-- **Benchmarking**, where the median run time is reported to discount one
+- Benchmarking, where the median run time is reported to discount one
   unlucky scheduling hiccup.
 
 ## Related pages
 
-- [Mean and variance](mean-and-variance.md) — the non-robust alternative, and
+- [Mean and variance](mean-and-variance.md): the non-robust alternative, and
   where it is correct here.
-- [Hough line transform](hough-line-transform.md) — the contaminated input the
+- [Hough line transform](hough-line-transform.md): the contaminated input the
   median cleans up.
-- [Canny edge detection](canny-edge-detection.md) — the thresholds derived from
+- [Canny edge detection](canny-edge-detection.md): the thresholds derived from
   the median.
-- [Ordinary least squares](ordinary-least-squares.md) — a mean-based fit, and
+- [Ordinary least squares](ordinary-least-squares.md): a mean-based fit, and
   why it is acceptable there.
-- [Coefficient of variation](coefficient-of-variation.md) — another statistic
+- [Coefficient of variation](coefficient-of-variation.md): another statistic
   used against untrusted input.

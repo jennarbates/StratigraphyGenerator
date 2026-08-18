@@ -18,8 +18,8 @@ attempt spends the user's metered quota, an attempt count is the wrong limit.
 The usual retry bound is a count: try five times, then give up. That is right
 when a retry is free.
 
-When a retry costs something — money, quota, a multi-megabyte upload, the user's
-time — the count alone is insufficient. Five attempts against a fast-failing
+When a retry costs something (money, quota, a multi-megabyte upload, the user's
+time), the count alone is insufficient. Five attempts against a fast-failing
 service is 15 seconds; five against a service that times out after two minutes
 each is ten minutes and five full image uploads.
 
@@ -35,11 +35,11 @@ it?" stops before spending anything more.
 ```mermaid
 flowchart TB
   F["attempt fails"] --> T{"transient status?"}
-  T -->|no| S1["stop — retrying cannot help"]
+  T -->|no| S1["stop, retrying cannot help"]
   T -->|yes| A{"attempts remaining?"}
-  A -->|no| S2["stop — count exhausted"]
+  A -->|no| S2["stop, count exhausted"]
   A -->|yes| B{"elapsed + next wait<br/>within the budget?"}
-  B -->|no| S3["stop — budget would be exceeded"]
+  B -->|no| S3["stop, budget would be exceeded"]
   B -->|yes| W["wait, retry"]
 ```
 
@@ -56,8 +56,8 @@ def generate_with_retry(
     """...
     max_total_seconds caps the whole retry loop's wall clock. Every retry
     re-sends the full image as input tokens, so an outage at Google's end
-    shouldn't be allowed to quietly spend the user's quota five times over —
-    past the budget we stop and tell them, rather than keep paying to fail."""
+    shouldn't be allowed to quietly spend the user's quota five times over.
+    Past the budget we stop and tell them, rather than keep paying to fail."""
     t0 = time.time()
     for attempt in range(max_attempts):
         try:
@@ -78,7 +78,7 @@ def generate_with_retry(
                 if progress_cb and code in TRANSIENT_STATUS_CODES:
                     progress_cb(
                         f"giving up after {attempt + 1} attempt(s) / "
-                        f"{elapsed:.0f}s — not retrying further to "
+                        f"{elapsed:.0f}s. Not retrying further to "
                         "avoid spending more quota on a failing "
                         "request."
                     )
@@ -87,7 +87,7 @@ def generate_with_retry(
 
 The docstring states the cost model explicitly: **"Every retry re-sends the full
 image as input tokens."** That single fact is why an attempt count is not
-enough — a request that spends 30 seconds uploading before failing costs far
+enough: a request that spends 30 seconds uploading before failing costs far
 more than one that fails instantly, and only a wall-clock bound distinguishes
 them.
 
@@ -109,18 +109,18 @@ if code in (504, 503, 500, 502):
     return (
         f"Gemini's servers failed with a {code} on every retry attempt. "
         "This is a problem on Google's side, not with your scan or this "
-        "app. What to do: (1) wait 15–30 minutes and try once more — "
-        "don't hammer re-run, each attempt re-sends the whole image and "
-        "uses your quota; (2) if it persists, check Google's status at "
+        "app. What to do: (1) wait 15–30 minutes and try once more "
+        "(don't hammer re-run: each attempt re-sends the whole image and "
+        "uses your quota); (2) if it persists, check Google's status at "
         "https://status.cloud.google.com and the AI Studio forum; "
-        "(3) as a workaround, shrink the request — lower "
+        "(3) as a workaround, shrink the request: lower "
         "max_output_tokens, or reduce MAX_SEND_DIMENSION in the "
         "extraction module. If it still fails after a day, report it "
         "on this project's issue tracker with the log above."
     )
 ```
 
-"Don't hammer re-run" is a retry budget expressed as advice — and it gives the
+"Don't hammer re-run" is a retry budget expressed as advice, and it gives the
 same reason the code gives itself.
 
 The quota case goes further and says retrying is *pointless*:
@@ -133,7 +133,7 @@ if code == 429:
     )
 ```
 
-429 is in `TRANSIENT_STATUS_CODES`, so the machine does retry it — a 429 can be
+429 is in `TRANSIENT_STATUS_CODES`, so the machine does retry it: a 429 can be
 a momentary rate limit rather than an exhausted daily cap. But once the retries
 are spent, the human is told the distinction and told not to repeat them.
 
@@ -159,35 +159,35 @@ Two extra comparisons per attempt.
 
 The costs:
 
-- **The budget can cut short a retry that would have succeeded.** 600 seconds is
+- The budget can cut short a retry that would have succeeded. 600 seconds is
   generous; a genuinely slow recovery is sacrificed to bounding the spend. A
   deliberate trade, and stated.
-- **Wall clock is a proxy for cost**, not a measurement. A fast expensive request
+- Wall clock is a proxy for cost, not a measurement. A fast expensive request
   and a slow cheap one are treated alike.
-- **The user's manual retries are unbounded.** Nothing prevents clicking re-run
+- The user's manual retries are unbounded. Nothing prevents clicking re-run
   twenty times; the only defence is the error message asking them not to. A rate
   limit on the route would be stronger, and would also block legitimate use of a
   local single-user tool.
-- **`time.time()` is wall clock**, so a system clock adjustment mid-retry
+- `time.time()` is wall clock, so a system clock adjustment mid-retry
   distorts the budget. `time.monotonic()` would be the strictly correct choice.
   Irrelevant in practice over a ten-minute window, and worth knowing.
 
 ## Where else you meet it
 
-- **Google's SRE practice**, where client-side retry budgets are standard —
+- Google's SRE practice, where client-side retry budgets are standard,
   capped as a fraction of total requests to prevent retry storms.
-- **Envoy and Istio**, which implement retry budgets as a first-class
+- Envoy and Istio, which implement retry budgets as a first-class
   configuration.
-- **Circuit breakers** (Hystrix, resilience4j), the related pattern for
+- Circuit breakers (Hystrix, resilience4j), the related pattern for
   continuous call rates.
-- **CI systems**, which cap total job time rather than only step count.
-- **Cloud cost controls**, where a spend limit stops runaway automation.
+- CI systems, which cap total job time rather than only step count.
+- Cloud cost controls, where a spend limit stops runaway automation.
 
 ## Related pages
 
-- [Exponential backoff](exponential-backoff.md) — the retry strategy this bounds.
-- [Error taxonomies](error-taxonomies.md) — transient versus permanent, and the
+- [Exponential backoff](exponential-backoff.md): the retry strategy this bounds.
+- [Error taxonomies](error-taxonomies.md): transient versus permanent, and the
   user-facing translation.
-- [Fail-closed design](fail-closed-design.md) — what happens after the budget is
+- [Fail-closed design](fail-closed-design.md): what happens after the budget is
   spent.
-- [Troubleshooting](../reference/troubleshooting.md) — the messages a user sees.
+- [Troubleshooting](../reference/troubleshooting.md): the messages a user sees.

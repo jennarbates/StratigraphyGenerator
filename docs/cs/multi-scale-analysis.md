@@ -18,7 +18,7 @@ photo and a 40-megapixel one.
 
 ## What it is
 
-Detection thresholds are usually written in pixels — minimum area, minimum
+Detection thresholds are usually written in pixels: minimum area, minimum
 width, kernel size. Pixels are a property of the **camera**, not of the subject.
 The same drawing photographed at two resolutions gives two different answers
 from the same code.
@@ -30,7 +30,7 @@ Multi-scale analysis breaks that coupling:
 3. Multiply every coordinate by the inverse scale to report at full resolution.
 
 The thresholds now apply to a canonical image. Output precision is limited by
-the working resolution — which is a real cost, and one to be weighed
+the working resolution, which is a real cost, and one to be weighed
 deliberately per detector.
 
 ## The picture
@@ -38,7 +38,7 @@ deliberately per detector.
 ```mermaid
 flowchart LR
   Full["input: 4284 × 5712"] --> Down["resize to longest side 2200<br/>scale = 0.385"]
-  Down --> Det["detect: contours, boxes, shape filters<br/>— all thresholds apply HERE"]
+  Down --> Det["detect: contours, boxes, shape filters.<br/>All thresholds apply HERE"]
   Det --> Up["multiply coordinates by 1 / 0.385"]
   Up --> Out["results in full-resolution coordinates"]
   Full -.-> Out
@@ -59,7 +59,7 @@ this prevents.
 
 ## Where this project uses it
 
-### The feature detector — normalise, detect, scale back
+### The feature detector: normalise, detect, scale back
 
 `poggio_webapp/pipeline/detect_features.py`:
 
@@ -122,7 +122,7 @@ raw_candidates.append({
 })
 ```
 
-Note `area_px` is scaled by `inverse_scale` **squared** — area is a
+Note `area_px` is scaled by `inverse_scale` **squared**, because area is a
 two-dimensional quantity. Getting that wrong is a classic and quiet bug.
 
 Debug overlays are drawn on the **original**, so what the reviewer sees is
@@ -132,7 +132,7 @@ full-resolution:
 debug_image = original.copy()
 ```
 
-### The extraction modules — a different reason, same mechanism
+### The extraction modules: a different reason, same mechanism
 
 `poggio_webapp/pipeline/extract_illustrator.py`:
 
@@ -169,14 +169,14 @@ cannot support the precision:
 if mm_px < 2:
     raise RuntimeError(
         "photo resolution too low for marker detection "
-        f"({mm_px:.1f} px per paper mm) — retake closer or "
+        f"({mm_px:.1f} px per paper mm). Retake closer or "
         "at higher resolution"
     )
 ```
 
 Its coordinates become measurements that pass through the pipeline verbatim, so
 a half-pixel of round-trip error is not acceptable. It achieves
-resolution-independence the other way — by expressing every threshold in
+resolution-independence the other way, by expressing every threshold in
 **paper millimetres** converted through the calibration. See
 [structuring elements](structuring-elements.md).
 
@@ -195,18 +195,18 @@ measurement.
 
 The generalisable rule is the one running through this whole subsystem:
 **express thresholds in units of the subject, not units of the sensor.** There
-are two ways to obey it — normalise the image, or convert the threshold — and
+are two ways to obey it (normalise the image, or convert the threshold), and
 this repository uses each where it fits.
 
 ## What it costs
 
-The resize is O(source pixels), one pass — cheaper than most later stages, and
+The resize is O(source pixels), one pass. It is cheaper than most later stages, and
 it makes everything downstream ~3.8× faster on a 4284 px input.
 
 The cost is precision. A detection located on the 2200 px grid carries up to
 half a small-pixel of error, which maps back to a bit over one full-resolution
 pixel. For proposals a human adjusts, immaterial. For coordinates that become
-metres, unacceptable — hence the split between the two detectors.
+metres, unacceptable, hence the split between the two detectors.
 
 The second cost is a discipline requirement: **every** coordinate leaving the
 analysis stage must be scaled, and areas must be scaled squared. Missing one
@@ -214,21 +214,21 @@ produces output that is wrong by a constant factor and looks entirely plausible.
 
 ## Where else you meet it
 
-- **Image pyramids** in SIFT, SURF, and Viola–Jones face detection.
-- **Mipmapping** in graphics, which is a pyramid built for the same reason.
-- **Wavelet analysis**, decomposing a signal at multiple scales at once.
-- **Web mapping**, where tiles are pre-rendered at fixed zoom levels.
-- **Machine-learning inference**, where inputs are resized to a fixed
-  network resolution and boxes are scaled back — the identical pattern.
+- Image pyramids in SIFT, SURF, and Viola–Jones face detection.
+- Mipmapping in graphics, which is a pyramid built for the same reason.
+- Wavelet analysis, decomposing a signal at multiple scales at once.
+- Web mapping, where tiles are pre-rendered at fixed zoom levels.
+- Machine-learning inference, where inputs are resized to a fixed
+  network resolution and boxes are scaled back, the identical pattern.
 
 ## Related pages
 
-- [Area-averaging downsampling](area-averaging-downsampling.md) — the correct
+- [Area-averaging downsampling](area-averaging-downsampling.md): the correct
   filter for the shrink.
-- [Structuring elements](structuring-elements.md) — the other way to achieve
+- [Structuring elements](structuring-elements.md): the other way to achieve
   resolution independence.
-- [Bounding boxes](bounding-boxes.md) — the coordinates that get scaled back.
-- [Ramer–Douglas–Peucker](ramer-douglas-peucker.md) — the polygon that gets
+- [Bounding boxes](bounding-boxes.md): the coordinates that get scaled back.
+- [Ramer–Douglas–Peucker](ramer-douglas-peucker.md): the polygon that gets
   scaled back.
-- [Raster images and pixels](raster-images-and-pixels.md) — why pixels are not
+- [Raster images and pixels](raster-images-and-pixels.md): why pixels are not
   measurements.

@@ -13,7 +13,7 @@ verified_against: ae2fc1d
 # Bounded caches and eviction
 
 Any store that grows with use and never shrinks will eventually exhaust memory.
-A bound plus an eviction policy is the fix — and *what* to evict is the
+A bound plus an eviction policy is the fix, and *what* to evict is the
 interesting part.
 
 ## What it is
@@ -44,7 +44,7 @@ flowchart TB
   C -->|yes| S["scan oldest-first"]
   S --> F{"is it finished?"}
   F -->|yes| E["evict it"]
-  F -->|no| Skip["skip — a poller is waiting on it"]
+  F -->|no| Skip["skip, a poller is waiting on it"]
   E --> C
   Skip --> S
 ```
@@ -53,7 +53,7 @@ flowchart TB
 
 ### The task table
 
-`poggio_webapp/backend/tasks.py` — a finished task keeps its whole log, and a
+In `poggio_webapp/backend/tasks.py`, a finished task keeps its whole log, and a
 GemPy build logs steadily:
 
 ```python
@@ -83,7 +83,7 @@ free.
 
 **Only finished tasks are evicted.** The browser polls `/api/tasks/<id>` while a
 build runs; evicting a running task would make that poll 404 and lose the build's
-status. So the scan checks `status in _FINISHED` and skips anything else — which
+status. So the scan checks `status in _FINISHED` and skips anything else, which
 means the ceiling can be *exceeded* if 200 builds run at once. Overshooting a
 memory bound is a far better failure than losing a live task.
 
@@ -117,7 +117,7 @@ if len(kept) >= MAX_CANDIDATES:
     break
 ```
 
-The list is sorted by score first, so the break keeps the **best** 250 —
+The list is sorted by score first, so the break keeps the **best** 250:
 score-based eviction, expressed as a bounded greedy pass. See
 [non-maximum suppression](non-maximum-suppression.md).
 
@@ -135,7 +135,7 @@ near_misses = near_misses[:300]
 ```
 
 Filter by plausibility, rank by quality, cap. The bound protects the *interface*
-rather than memory — thousands of red dots would make the review page unusable.
+rather than memory, because thousands of red dots would make the review page unusable.
 
 `poggio_webapp/pipeline/harris_render.py` takes the fourth option and refuses:
 
@@ -160,7 +160,7 @@ For the task table:
 |---|---|---|
 | **Unbounded** | Never evict | The status quo before the fix, and a slow leak: every log line of every build, forever. |
 | **TTL sweep** | Drop tasks older than an hour | Time-based rather than pressure-based, so a burst of 10 000 builds in an hour still exhausts memory. It also needs a background thread or a check on every access. |
-| **LRU** | Evict least recently polled | Would keep tasks a browser is still watching — genuinely appealing. It needs access tracking, and the natural pattern here is that a task is polled until it finishes and then never again, which makes FIFO-over-finished equivalent and simpler. |
+| **LRU** | Evict least recently polled | Would keep tasks a browser is still watching, which is genuinely appealing. It needs access tracking, and the natural pattern here is that a task is polled until it finishes and then never again, which makes FIFO-over-finished equivalent and simpler. |
 | **Persist to disk** | Write task state to the job directory | Would survive restart, which is the *other* documented limitation. A larger change, and the files a build writes already survive; only the status is lost. |
 | **FIFO over finished tasks** *(chosen)* | Oldest finished first, never a running one | Bounded memory, no background thread, and structurally incapable of evicting a live task. |
 
@@ -171,39 +171,39 @@ hard.
 
 ## What it costs
 
-`_evict_finished` is O(n) in the worst case — a scan when over the ceiling —
+`_evict_finished` is O(n) in the worst case (a scan when over the ceiling)
 and runs only at submission. At 200 entries, nothing.
 
 The costs:
 
-- **The ceiling is soft.** With 200 concurrent running builds, memory grows past
+- The ceiling is soft. With 200 concurrent running builds, memory grows past
   it. Deliberate.
-- **History is lost.** A task submitted 201 builds ago is gone, so a stale
+- History is lost. A task submitted 201 builds ago is gone, so a stale
   browser tab polling it gets a 404. Acceptable: task state is already documented
   as not surviving a restart.
-- **The bound is a constant**, not configurable. 200 tasks of log text is a few
+- The bound is a constant, not configurable. 200 tasks of log text is a few
   megabytes.
-- **Candidate caps hide data.** `MAX_CANDIDATES = 250` silently drops the
+- Candidate caps hide data. `MAX_CANDIDATES = 250` silently drops the
   251st-best feature. The mitigation is ranking first, so what is dropped is
   what scored worst.
 
 ## Where else you meet it
 
-- **CPU and CDN caches**, where LRU and its approximations are standard.
-- **`functools.lru_cache`** in Python, and memoisation generally.
-- **Redis `maxmemory-policy`**, which offers exactly this menu of policies.
-- **Log rotation**, which is TTL or size-based eviction of files.
-- **Connection pools**, bounding a resource that would otherwise grow with load.
-- **Object detectors**, which cap output boxes after ranking — the same
+- CPU and CDN caches, where LRU and its approximations are standard.
+- `functools.lru_cache` in Python, and memoisation generally.
+- Redis `maxmemory-policy`, which offers exactly this menu of policies.
+- Log rotation, which is TTL or size-based eviction of files.
+- Connection pools, bounding a resource that would otherwise grow with load.
+- Object detectors, which cap output boxes after ranking, the same
   score-based truncation as `MAX_CANDIDATES`.
 
 ## Related pages
 
-- [Locks and critical sections](locks-and-critical-sections.md) — why eviction
+- [Locks and critical sections](locks-and-critical-sections.md): why eviction
   happens under a lock.
-- [Race conditions](race-conditions.md) — what the lock prevents.
-- [Non-maximum suppression](non-maximum-suppression.md) — the ranked truncation.
-- [Fail-closed design](fail-closed-design.md) — refusing rather than truncating,
+- [Race conditions](race-conditions.md): what the lock prevents.
+- [Non-maximum suppression](non-maximum-suppression.md): the ranked truncation.
+- [Fail-closed design](fail-closed-design.md): refusing rather than truncating,
   in the renderer.
-- [Asynchronous tasks](../architecture/asynchronous-tasks.md) — the task
+- [Asynchronous tasks](../architecture/asynchronous-tasks.md): the task
   lifecycle.

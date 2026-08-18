@@ -13,15 +13,15 @@
  */
 
 const FIELDS = [
-  { key: "ox", label: "Click 1 — x px", value: 220 },
-  { key: "oy", label: "Click 1 — y px", value: 180 },
-  { key: "rx", label: "Click 2 — x px", value: 1180 },
-  { key: "ry", label: "Click 2 — y px", value: 196 },
-  { key: "lx", label: "Click 3 — x px", value: 700 },
-  { key: "ly", label: "Click 3 — y px", value: 900 },
+  { key: "ox", label: "Click 1 x (px)", value: 220 },
+  { key: "oy", label: "Click 1 y (px)", value: 180 },
+  { key: "rx", label: "Click 2 x (px)", value: 1180 },
+  { key: "ry", label: "Click 2 y (px)", value: 196 },
+  { key: "lx", label: "Click 3 x (px)", value: 700 },
+  { key: "ly", label: "Click 3 y (px)", value: 900 },
   { key: "refM", label: "Real distance, clicks 1→2 (m)", value: 4 },
-  { key: "px", label: "Point to convert — x px", value: 760 },
-  { key: "py", label: "Point to convert — y px", value: 520 },
+  { key: "px", label: "Point x (px)", value: 760 },
+  { key: "py", label: "Point y (px)", value: 520 },
   { key: "originX", label: "originX (m)", value: 0 },
   { key: "originY", label: "originY (m)", value: 0 },
   { key: "surfaceZ", label: "surfaceZ (m)", value: 100 },
@@ -29,7 +29,7 @@ const FIELDS = [
 ];
 
 const GROUPS = [
-  { title: "Calibration — the three clicks", keys: ["ox", "oy", "rx", "ry", "lx", "ly", "refM"] },
+  { title: "Calibration: the three clicks", keys: ["ox", "oy", "rx", "ry", "lx", "ly", "refM"] },
   { title: "The point you want to convert", keys: ["px", "py"] },
   { title: "Registration for this face", keys: ["originX", "originY", "surfaceZ", "bearing"] },
 ];

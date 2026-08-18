@@ -11,7 +11,7 @@ verified_against: 636b160
 
 # Grayscale conversion
 
-Collapsing three colour numbers into one brightness number — the first thing
+Collapsing three colour numbers into one brightness number. The first thing
 almost every stage of this pipeline does, and the first thing it throws away.
 
 ## What it is
@@ -40,7 +40,7 @@ flowchart LR
   Lum["luminance-weighted<br/>0.299·200 + 0.587·40 + 0.114·40 = 88"]
   P --> Avg
   P --> Lum
-  Avg --> Note["both are 'mid grey' —<br/>but the weighted value tracks<br/>what the eye actually reports"]
+  Avg --> Note["both are 'mid grey',<br/>but the weighted value tracks<br/>what the eye actually reports"]
   Lum --> Note
 ```
 
@@ -61,7 +61,7 @@ if img is None:
 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 ```
 
-Everything after that line — background flattening, deskew, CLAHE, sharpening —
+Everything after that line (background flattening, deskew, CLAHE, sharpening)
 operates on one channel.
 
 `poggio_webapp/pipeline/detect_features.py` does the same, then blurs:
@@ -73,7 +73,7 @@ gray = cv2.GaussianBlur(gray, (3, 3), 0)
 
 `poggio_webapp/pipeline/detect_markers.py` is the interesting exception: it
 converts to grayscale **and** keeps the colour channels, because it needs both
-"how dark" and "how red" — see
+"how dark" and "how red". See
 [colour-channel arithmetic](colour-channel-arithmetic.md).
 
 ## Why this and not something else
@@ -85,8 +85,8 @@ is a brightness distinction, not a colour one.
 |---|---|---|
 | **Work in full colour throughout** | Run every filter on three channels | Triples the memory and the work for information no downstream stage uses. Canny, Hough, thresholding, and contour tracing are all defined on single-channel input; OpenCV would convert internally anyway, just repeatedly. |
 | **Plain channel average** | `(B + G + R) / 3` | Cheaper by two multiplications and perceptually wrong. On a sheet with coloured annotation it changes which marks survive thresholding. |
-| **Take a single channel** — e.g. green only | `img[:, :, 1]` | Free, and a defensible trick for some documents: green is the highest-weighted channel anyway. It discards real information though, and a mark that happens to be green-dominant vanishes. |
-| **Luminance in a perceptual space** (CIE L\*) | Convert to Lab, keep L | More perceptually uniform, and the uniformity buys nothing here — no stage compares two grey levels for perceived *difference*, only against a threshold. Costs a full colour-space conversion. |
+| **Take a single channel** (e.g. green only) | `img[:, :, 1]` | Free, and a defensible trick for some documents: green is the highest-weighted channel anyway. It discards real information though, and a mark that happens to be green-dominant vanishes. |
+| **Luminance in a perceptual space** (CIE L\*) | Convert to Lab, keep L | More perceptually uniform, and the uniformity buys nothing here: no stage compares two grey levels for perceived *difference*, only against a threshold. Costs a full colour-space conversion. |
 | **Decolourisation that maximises contrast** (e.g. `cv2.decolor`) | Choose weights per image to preserve the most structure | Genuinely better on images where the signal is a colour distinction. Here the signal is dark-on-light, and the weights become image-dependent, which breaks reproducibility. |
 
 The last row is the argument that matters for this repository: a
@@ -97,25 +97,25 @@ different pixels. Fixed weights are boring and reproducible, and
 ## What it costs
 
 O(pixels), one pass, three multiplies and two adds each. It *reduces* memory to
-one third, so it pays for itself immediately — which is why it happens before
+one third, so it pays for itself immediately, which is why it happens before
 the expensive filtering rather than after.
 
 ## Where else you meet it
 
-- **Black-and-white photo filters** in every phone camera app.
-- **OCR** — nearly every text recogniser converts to grayscale, then binarises.
-- **Video compression** — the Y in YCbCr *is* this luminance, stored at full
+- Black-and-white photo filters in every phone camera app.
+- OCR: nearly every text recogniser converts to grayscale, then binarises.
+- Video compression: the Y in YCbCr *is* this luminance, stored at full
   resolution while the colour channels are subsampled.
-- **Barcode and QR scanning**, which is a thresholding problem on grayscale.
-- **Accessibility contrast checking** uses a close relative (relative luminance
+- Barcode and QR scanning, which is a thresholding problem on grayscale.
+- Accessibility contrast checking uses a close relative (relative luminance
   with a gamma correction) to decide whether text is readable.
 
 ## Related pages
 
-- [Colour spaces and channels](colour-spaces-and-channels.md) — what is being
+- [Colour spaces and channels](colour-spaces-and-channels.md): what is being
   collapsed.
-- [Colour-channel arithmetic](colour-channel-arithmetic.md) — when the project
+- [Colour-channel arithmetic](colour-channel-arithmetic.md): when the project
   deliberately does *not* collapse.
-- [Bit depth and dynamic range](bit-depth-and-dynamic-range.md) — what a single
+- [Bit depth and dynamic range](bit-depth-and-dynamic-range.md): what a single
   channel can hold.
-- [Global thresholding](global-thresholding.md) — the usual next step.
+- [Global thresholding](global-thresholding.md): the usual next step.

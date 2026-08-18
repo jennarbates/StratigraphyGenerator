@@ -106,9 +106,7 @@ export function renderSidebar() {
   }
 }
 
-// ---------------------------------------------------------------------------
 // step navigation footer
-// ---------------------------------------------------------------------------
 
 export function goToStep(id) {
   state.current = id;

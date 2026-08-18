@@ -21,7 +21,7 @@ A **vector** is a pair (or triple) of numbers describing a displacement:
 vector is a **difference between** positions. Subtracting two points gives a
 vector; that is the operation that starts nearly every calculation here.
 
-Its **magnitude** — its length — is the Pythagorean distance:
+Its **magnitude** (its length) is the Pythagorean distance:
 
 ```
 ‖v‖ = √(vₓ² + v_y²)             two dimensions
@@ -30,9 +30,9 @@ Its **magnitude** — its length — is the Pythagorean distance:
 
 Two everyday operations:
 
-- **Scaling** — multiply both components; the direction is unchanged, the length
+- Scaling: multiply both components; the direction is unchanged, the length
   scales.
-- **Adding** — add componentwise; the displacements compose.
+- Adding: add componentwise; the displacements compose.
 
 One performance note that appears repeatedly in real code: **comparing lengths
 does not require computing them.** Since squaring is monotonic for non-negative
@@ -68,7 +68,7 @@ ux, uy = dx / pixel_span, dy / pixel_span
 px_per_m = (pixel_span / ref_meters,)
 ```
 
-`math.hypot` rather than `math.sqrt(dx*dx + dy*dy)` — it is written to avoid
+`math.hypot` rather than `math.sqrt(dx*dx + dy*dy)`: it is written to avoid
 intermediate overflow and underflow, and it is clearer. The degenerate check
 comes first, because a zero-length vector has no direction and everything after
 would divide by zero.
@@ -82,7 +82,7 @@ ref_dist_px = math.hypot(rx - ox, ry - oy)
 if ref_dist_px < 20:
     raise RuntimeError(
         "the top-left and top-right clicks are almost the "
-        "same pixel — click the wall's two top corners"
+        "same pixel. Click the wall's two top corners"
     )
 ```
 
@@ -101,7 +101,7 @@ is_separate = all(
 
 Squared distance against a squared threshold. Over hundreds of candidates each
 compared against everything kept, that is thousands of square roots avoided for
-no loss of exactness — and it is *more* exact, since no rounding is introduced.
+no loss of exactness, and it is *more* exact, since no rounding is introduced.
 
 ### Distance in site coordinates
 
@@ -118,7 +118,7 @@ tolerance in metres** that a person reads and reasons about. Clarity beats the
 saved square root when the comparison runs a handful of times and the constant
 is meaningful to a human.
 
-Two idioms, each chosen for its context — the hot loop uses squares, the
+Two idioms, each chosen for its context: the hot loop uses squares, the
 readable rule uses the real distance.
 
 ## Why this and not something else
@@ -140,7 +140,7 @@ correctness.
 The costs that actually bite are conceptual:
 
 **Zero-length vectors have no direction.** Every place this project derives a
-direction from a difference guards against it first — the `pixel_span < 2` and
+direction from a difference guards against it first: the `pixel_span < 2` and
 `ref_dist_px < 20` checks above, and in `detect_markers.py`:
 
 ```python
@@ -154,22 +154,22 @@ always deriving vectors from named subtractions.
 
 ## Where else you meet it
 
-- **Physics**, where velocity, force, and acceleration are all vectors.
-- **Game engines** — every position, velocity, and normal.
-- **Machine learning**, where an embedding is a vector and similarity is
+- Physics, where velocity, force, and acceleration are all vectors.
+- Game engines: every position, velocity, and normal.
+- Machine learning, where an embedding is a vector and similarity is
   measured by [dot product](dot-product.md) or cosine.
-- **Navigation**, where a course is a vector and dead reckoning is vector
+- Navigation, where a course is a vector and dead reckoning is vector
   addition.
-- **Computer graphics**, where lighting is computed from surface normals and
+- Computer graphics, where lighting is computed from surface normals and
   light-direction vectors.
 
 ## Related pages
 
-- [Unit vectors and normalisation](unit-vectors-and-normalisation.md) — turning
+- [Unit vectors and normalisation](unit-vectors-and-normalisation.md): turning
   a vector into pure direction.
-- [Dot product](dot-product.md) — combining two vectors into a number.
-- [Cross product](cross-product.md) — combining two 3D vectors into a third.
-- [Similarity transforms](similarity-transforms.md) — what calibration builds
+- [Dot product](dot-product.md): combining two vectors into a number.
+- [Cross product](cross-product.md): combining two 3D vectors into a third.
+- [Similarity transforms](similarity-transforms.md): what calibration builds
   from these.
-- [Coordinate spaces](../concepts/coordinate-spaces.md) — the spaces vectors
+- [Coordinate spaces](../concepts/coordinate-spaces.md): the spaces vectors
   move points between.

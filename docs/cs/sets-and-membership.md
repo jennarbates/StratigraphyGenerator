@@ -12,7 +12,7 @@ verified_against: ae2fc1d
 # Sets and membership
 
 An unordered collection with no duplicates and O(1) membership testing. Used
-here for allowlists, for "have I seen this," and — most interestingly — for set
+here for allowlists, for "have I seen this," and (most interestingly) for set
 *algebra* that expresses an algorithm in one line.
 
 ## What it is
@@ -23,7 +23,7 @@ A set stores distinct values with no order. Built on the same
 - `x in s` is O(1)
 - adding a duplicate is a no-op
 - `|`, `&`, `-`, `^` give union, intersection, difference, and symmetric
-  difference — each O(size)
+  difference (each O(size))
 
 The last point is what makes sets more than a deduplicating list. Whole
 algorithms reduce to one operator.
@@ -65,7 +65,7 @@ for edge in sorted(edges - reduced_edges):
 ```
 
 `edges - reduced_edges` is the entire computation. With lists it would be a
-nested loop; with sets it is one operator — and `sorted()` around it restores
+nested loop; with sets it is one operator, and `sorted()` around it restores
 determinism for the reported output.
 
 `poggio_webapp/pipeline/merge_walls.py` uses the same idiom to report
@@ -136,7 +136,7 @@ def _is_editor_envelope(state) -> bool:
     return isinstance(state, dict) and bool(EDITOR_ENVELOPE_KEYS.intersection(state))
 ```
 
-"Does this payload carry any of the envelope keys?" — one intersection, no loop.
+"Does this payload carry any of the envelope keys?" One intersection, no loop.
 
 ### Seen-tracking
 
@@ -155,7 +155,7 @@ for job_id in job_ids:
 
 Two sets for two different questions: what has already been imported, and what
 this request has already handled. Requesting the same job twice in one call is
-silently deduplicated rather than double-importing — part of what makes the
+silently deduplicated rather than double-importing, part of what makes the
 operation [idempotent](idempotency.md).
 
 ### Frozen sets for constants
@@ -166,7 +166,7 @@ operation [idempotent](idempotency.md).
 _FIELD_WALL_FIELDS = frozenset({"faceLabel", "gridSquareCm", "loci", "trenchLabel"})
 ```
 
-`frozenset` is immutable and hashable — the right type for a module-level
+`frozenset` is immutable and hashable, the right type for a module-level
 constant nobody should mutate. `backend/tasks.py` uses one for the same reason:
 
 ```python
@@ -177,9 +177,9 @@ _FINISHED = frozenset({"done", "error"})
 
 | Alternative | How it would work here | Why it lost |
 |---|---|---|
-| **List with `in`** | `if ext in ALLOWED_LIST` | O(n) per check instead of O(1), and it permits duplicates that mean nothing. For a six-element extension list the speed is irrelevant; the *intent* is not — a set says "membership is the only question." |
+| **List with `in`** | `if ext in ALLOWED_LIST` | O(n) per check instead of O(1), and it permits duplicates that mean nothing. For a six-element extension list the speed is irrelevant; the *intent* is not: a set says "membership is the only question." |
 | **Nested loops for difference** | `[e for e in edges if e not in reduced]` | O(n·m) instead of O(n), and it buries a one-line idea in a comprehension. |
-| **Sorted list with `bisect`** | O(log n) membership, ordered | Keeps order for free, which this codebase values — and it makes every insertion O(n) and the set algebra manual. Sorting at the point of output is cheaper. |
+| **Sorted list with `bisect`** | O(log n) membership, ordered | Keeps order for free, which this codebase values, and it makes every insertion O(n) and the set algebra manual. Sorting at the point of output is cheaper. |
 | **Dictionary with dummy values** | `{k: None}` | What a set is, with noise. |
 | **Sets, sorted at every output point** *(chosen)* | O(1) membership, one-operator algebra | Fast, expressive, and the ordering concern is handled where order is observable rather than by choosing a slower container. |
 
@@ -190,30 +190,30 @@ stored elements.
 
 The costs:
 
-- **Unspecified iteration order.** Every place a set's contents reach the user —
-  a warning list, a diagram, an error message — this codebase wraps it in
+- Unspecified iteration order. Every place a set's contents reach the user
+  (a warning list, a diagram, an error message), this codebase wraps it in
   `sorted()`. Missing one produces output that varies between runs on identical
   input.
-- **Elements must be hashable**, so tuples not lists.
-- **Sets discard multiplicity.** Where a count matters — how many relations
-  assert an edge — `harris_matrix` uses a `defaultdict(list)` instead, and
+- Elements must be hashable, so tuples not lists.
+- Sets discard multiplicity. Where a count matters (how many relations
+  assert an edge), `harris_matrix` uses a `defaultdict(list)` instead, and
   `merge_walls` keeps plain dicts of lists.
 
 ## Where else you meet it
 
-- **SQL** `DISTINCT`, `UNION`, `INTERSECT`, and `EXCEPT` are these operators.
-- **Access control**, where permissions are set membership.
-- **Feature flags and tag filtering.**
-- **Search engines**, where a boolean query is set intersection over posting
+- SQL `DISTINCT`, `UNION`, `INTERSECT`, and `EXCEPT` are these operators.
+- Access control, where permissions are set membership.
+- Feature flags and tag filtering.
+- Search engines, where a boolean query is set intersection over posting
   lists.
-- **Version control**, where "which files changed" is a set difference.
+- Version control, where "which files changed" is a set difference.
 
 ## Related pages
 
-- [Hash tables](hash-tables.md) — the underlying structure.
-- [Determinism and stable sorting](determinism-and-stable-sorting.md) — why
+- [Hash tables](hash-tables.md): the underlying structure.
+- [Determinism and stable sorting](determinism-and-stable-sorting.md): why
   every observable iteration is sorted.
-- [Transitive reduction](transitive-reduction.md) — the set-difference
+- [Transitive reduction](transitive-reduction.md): the set-difference
   algorithm.
-- [Input sanitisation](input-sanitisation.md) — allowlists as sets.
-- [Idempotency](idempotency.md) — what the seen-tracking sets protect.
+- [Input sanitisation](input-sanitisation.md): allowlists as sets.
+- [Idempotency](idempotency.md): what the seen-tracking sets protect.

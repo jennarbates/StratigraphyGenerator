@@ -82,7 +82,7 @@ no database row, and no parent folder. The grouping is derived by reading every
 job's `meta.json` on demand.
 
 A fourth job uploaded without a trench label simply does not participate. It is
-not an error — most jobs are single sheets that were never assigned to a
+not an error: most jobs are single sheets that were never assigned to a
 trench, so unlabelled jobs are skipped silently.
 
 ![Four separately drawn walls positioned by their registration to enclose one rectangular pit](../assets/diagrams/w09-walls-to-pit.svg)
@@ -104,8 +104,8 @@ helpers over a directory:
 - `safe_job_path()` resolves a relative path under the job directory and
   refuses to escape it.
 
-The rest of the module assembles the job records the API lists — status,
-artifact URLs, the `demo` provenance block carried through verbatim — by
+The rest of the module assembles the job records the API lists (status,
+artifact URLs, the `demo` provenance block carried through verbatim) by
 re-reading those same folders on demand. There is no job model, no ORM, and
 no index. A job is a folder, and its `meta.json` is the only state.
 
@@ -114,7 +114,7 @@ no index. A job is a folder, and its `meta.json` is the only state.
 Both labels are optional form fields on upload, written into `meta.json` only
 when non-empty. The wall label is tidied by `clean_label()`; the trench label
 goes through `canonical_trench()`, which rewrites it into the site's required
-form — `T104`, never `T-104` — because two spellings would otherwise build two
+form (`T104`, never `T-104`), because two spellings would otherwise build two
 trenches, each holding half the walls. Grouping canonicalizes on read too, so
 jobs recorded before the rule existed still land in the right trench:
 
@@ -130,7 +130,7 @@ the multi-wall build checks before it will merge sheets, and jobs seeded by
 the demo carry a `demo` block so the interface can badge demonstration data.
 
 Wall labels matter more than they look. They become **face names**, and GemPy
-fuses faces by exact name — so two walls sharing a label would collide into
+fuses faces by exact name, so two walls sharing a label would collide into
 one surface. The build treats duplicates as fatal rather than guessing, and
 derives a label from the sheet type and job id when one is missing, recording
 that in its notes.
@@ -138,8 +138,8 @@ that in its notes.
 ### The trench
 
 `poggio_webapp/trenches/<safe-label>/` holds merged output, plus a stored
-registration in `grid_config.json` when one has been derived for the trench —
-the demo seeder writes one, and `GET /api/trenches/<label>/registration`
+registration in `grid_config.json` when one has been derived for the trench.
+The demo seeder writes one, and `GET /api/trenches/<label>/registration`
 serves it back so the interface can prefill real values instead of the
 starter placeholders. The directory is created by the build or the seeder,
 not by any upload, and its contents are derived: delete it and the next
@@ -151,23 +151,23 @@ on import:
 | Directory | Holds | Source of truth? |
 |---|---|---|
 | `jobs/` | One folder per sheet | Yes |
-| `trenches/` | Merged output and derived registration | No — derived |
+| `trenches/` | Merged output and derived registration | No (derived) |
 | `matrices/` | Harris matrices | Yes |
 
 `storage.py` is deliberately a leaf module: it imports nothing from `backend`
 or `pipeline`, so both layers can depend on it without inverting the dependency
-direction. Read the paths through the module — `storage.JOBS_DIR`, never
+direction. Read the paths through the module: `storage.JOBS_DIR`, never
 `from storage import JOBS_DIR`. The `from` form binds the value at import time,
 which previously left several modules holding private copies that a test could
 not redirect.
 
 ## Related concepts
 
-- [Source drawing types](source-drawing-types.md) — why one format is
+- [Source drawing types](source-drawing-types.md): why one format is
   multi-face and the other is not.
-- [Coordinate spaces](coordinate-spaces.md) — what a face name is registered
+- [Coordinate spaces](coordinate-spaces.md): what a face name is registered
   against.
-- [Files and artifacts](../architecture/files-and-artifacts.md) — what each
+- [Files and artifacts](../architecture/files-and-artifacts.md): what each
   stage writes into a job folder.
-- [Combine walls into one trench](../workflows/09-multi-wall-trench.md) — the
+- [Combine walls into one trench](../workflows/09-multi-wall-trench.md): the
   workflow this model exists to support.

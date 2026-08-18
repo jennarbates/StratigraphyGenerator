@@ -13,19 +13,19 @@ verified_against: de07c37
 A companion to [the learning plan](plan.md). Each of the ten phases gets
 five assessments:
 
-1. a **pre-reading quiz** — taken before opening any page of the phase;
-2. a **programming assignment**;
-3. a **research paper assignment**;
-4. a **midterm exam** — taken partway through the phase, where noted;
-5. a **final exam** — taken at the end, replacing or extending the plan's
+1. A pre-reading quiz: taken before opening any page of the phase;
+2. A programming assignment;
+3. A research paper assignment;
+4. A midterm exam: taken partway through the phase, where noted;
+5. A final exam: taken at the end, replacing or extending the plan's
    checkpoint.
 
 ## The design rule
 
 Quizzes and exams face the documentation: they test what the docs teach,
 using the project's own material. **Programming and research assignments face
-away from it**: same subject, entirely different domain — cooking, fitness
-tracking, photo libraries, orienteering, movie nights. That is deliberate.
+away from it**: same subject, entirely different domain (cooking, fitness
+tracking, photo libraries, orienteering, movie nights). That is deliberate.
 If you can only apply an idea to trenches, you memorized the docs. If you can
 apply it to a jogging route or a recipe box, you learned the idea. Transfer
 is the test of digestion.
@@ -49,22 +49,22 @@ The plan alone is 65–80 hours. These assessments add roughly **55–75 hours**
 (most of it the programming assignments). The combined total, 120–155 hours,
 is a university semester course. If that is more than you want, the natural
 trims are: skip the research papers (−15 h), or do only the phase finals and
-the capstone. Do not trim the programming assignments — they are where the
+the capstone. Do not trim the programming assignments; they are where the
 digestion happens.
 
 ## Ground rules
 
-- **Self-graded.** Answer keys sit in collapsed blocks. Finish before you
+- Self-graded. Answer keys sit in collapsed blocks. Finish before you
   open them.
-- **Pass bar is 80%** on every exam unless stated otherwise, all questions
+- Pass bar is 80% on every exam unless stated otherwise, all questions
   equal weight. Below the bar: reread the pages the missed questions cite,
   wait a day, retake.
-- **Timing is honor system.** The times are calibrated; running long is
+- Timing is honor system. The times are calibrated; running long is
   information, not failure.
-- **Criteria keys.** Essay questions get a list of what a good answer
+- Criteria keys. Essay questions get a list of what a good answer
   contains rather than a model answer. Grade yourself against the list.
-- **Where a key says "verify against \<page\>",** that page is authoritative
-  and this pack is not. The docs' own rule — the source wins — applies to
+- Where a key says "verify against \<page\>", that page is authoritative
+  and this pack is not. The docs' own rule (the source wins) applies to
   this file too.
 - Pre-reading quizzes are **diagnostic, not graded**. Wrong answers cost
   nothing; they tell you what to slow down for. Take them closed-book,
@@ -72,7 +72,7 @@ digestion happens.
 
 ---
 
-## Phase 0 — Setup
+## Phase 0: Setup
 
 *Subject: the command line, Python environments, dependency isolation,
 running a local application.*
@@ -82,13 +82,13 @@ running a local application.*
 1. You run `cd docs`, then `cd ..`. What directory are you in now?
 2. A file lives at `/Users/you/projects/app/data.json` and your terminal is
    "standing in" `/Users/you`. Write a relative path to the file.
-3. What does `python3 --version` do — and why might `python` and `python3`
+3. What does `python3 --version` do, and why might `python` and `python3`
    behave differently on the same machine?
 4. True or false: installing a Python package for project A can break
    project B.
 5. What does it mean for a program to be "listening on port 5000"?
 6. In one sentence: what is a dependency?
-7. `make run` — what kind of tool is `make`?
+7. `make run`: what kind of tool is `make`?
 8. What does Ctrl+C do in a terminal?
 9. What is an environment variable, loosely?
 10. A command prints `command not found`. Name two possible causes.
@@ -96,40 +96,40 @@ running a local application.*
 <details markdown="1">
 <summary>Answer key</summary>
 
-1. Back where you started — `..` means the parent directory.
+1. Back where you started: `..` means the parent directory.
 2. `projects/app/data.json`.
 3. Prints the interpreter's version; `python` and `python3` can point at two
    different installations (or `python` may not exist at all).
-4. True — if both share one Python environment, their package versions can
+4. True. If both share one Python environment, their package versions can
    conflict. This is the whole reason virtual environments exist.
 5. It has claimed that port number and accepts network connections to it;
    only one program can hold a port at a time.
-6. Code your code needs but did not write — a library someone else maintains.
+6. Code your code needs but did not write: a library someone else maintains.
 7. A task runner: it executes named recipes (like `run` or `test`) defined
    in a file called `Makefile`.
-8. Interrupts the running program — how you stop a server.
+8. Interrupts the running program, which is how you stop a server.
 9. A named value the operating system hands to programs, which they can read
    to change behavior (for example `PORT`).
 10. The program isn't installed; or it's installed but not on the shell's
     search path (or you typo'd it).
 
 **Scoring guidance:** 7+ correct, proceed. Below 6, spend an hour with any
-introductory shell tutorial first — Phase 0 will go from frustrating to easy.
+introductory shell tutorial first, and Phase 0 will go from frustrating to easy.
 
 </details>
 
-### Programming assignment — Habit Tracker CLI (3–5 hours)
+### Programming assignment: Habit Tracker CLI (3–5 hours)
 
 Build a command-line habit tracker. Personal productivity, zero archaeology.
 
 **Spec:**
 
-- `python habits.py add "Stretch"` — register a habit.
-- `python habits.py done "Stretch"` — record a completion for today.
-- `python habits.py report` — print a table: habit, total completions,
+- `python habits.py add "Stretch"` registers a habit.
+- `python habits.py done "Stretch"` records a completion for today.
+- `python habits.py report` prints a table: habit, total completions,
   current daily streak.
 - Data persists in a single `habits.json` between runs.
-- Use one third-party package — `rich` is suggested for the table — so that
+- Use one third-party package (`rich` is suggested for the table) so that
   the assignment forces a real dependency.
 
 **The actual point** (worth more than the features):
@@ -148,10 +148,10 @@ Build a command-line habit tracker. Personal productivity, zero archaeology.
 Makefile 25 · README quickstart with honest Common problems 25 · code
 readability 10.
 
-### Research paper — The Day Eleven Lines Broke the Internet (1,000–1,500 words)
+### Research paper: The Day Eleven Lines Broke the Internet (1,000–1,500 words)
 
-In March 2016, a developer unpublished a package called `left-pad` — eleven
-lines of code — and build systems across the industry stopped working.
+In March 2016, a developer unpublished a package called `left-pad`, eleven
+lines of code, and build systems across the industry stopped working.
 Research the incident and write it up for a reader who has never installed a
 package.
 
@@ -165,14 +165,14 @@ contemporaneous news account or postmortem.
 transitive dependency risk 30 · the three mitigations correctly
 distinguished 25 · sources cited 15.
 
-### Midterm exam — terminal practical (20 minutes, open notes)
+### Midterm exam: terminal practical (20 minutes, open notes)
 
 Do these in a scratch directory, not in the repository. Each item is
 self-checking: the expected evidence is listed.
 
 1. Print your current directory. *(Evidence: `pwd` output.)*
 2. Count the Markdown files in the repository's `docs/cs/` directory using
-   any command. *(Evidence: the number — it should be 129.)*
+   any command. *(Evidence: the number, which should be 129.)*
 3. Create a virtual environment in the scratch directory, activate it, and
    prove activation. *(Evidence: `(venv)` prefix, or `which python` pointing
    into the venv.)*
@@ -187,7 +187,7 @@ self-checking: the expected evidence is listed.
 
 Pass: 5 of 6 without a search engine.
 
-### Final exam — the broken-setup clinic (30 minutes, closed notes)
+### Final exam: the broken-setup clinic (30 minutes, closed notes)
 
 Six scenarios. For each: diagnose the cause in one sentence, then give one
 command (or observation) that would confirm the diagnosis.
@@ -201,7 +201,7 @@ command (or observation) that would confirm the diagnosis.
 5. You ran `pip install -r poggio_webapp/requirements.txt` **without** an
    active venv. It succeeded. Why is this still a problem?
 6. You created the virtual environment inside `poggio_webapp/` instead of
-   the repository root. `python` works fine there — but which things break,
+   the repository root. `python` works fine there, but which things break,
    and why?
 
 <details markdown="1">
@@ -212,15 +212,15 @@ command (or observation) that would confirm the diagnosis.
 2. The venv is not active in this terminal (each new terminal needs
    `source .venv/bin/activate`). Confirm: prompt lacks `(.venv)`, or
    `which python` points outside the repo.
-3. Port 5000 is already held by another program — on macOS, commonly the
-   AirPlay Receiver. Confirm/fix: `PORT=5001 make run` and browse to 5001.
+3. Port 5000 is already held by another program (on macOS, commonly the
+   AirPlay Receiver). Confirm/fix: `PORT=5001 make run` and browse to 5001.
 4. Python isn't installed; install 3.11+ from python.org.
 5. The packages went into the shared user/system environment: they can
    conflict with other projects, and the isolation that makes this project
    reproducible is gone.
 6. Every `make` target looks for `.venv` at the repository root, so
-   `make run`, `make test`, and `make docs` all fail to find their tools —
-   the quickstart warns about exactly this. Fix: recreate it at the root.
+   `make run`, `make test`, and `make docs` all fail to find their tools.
+   The quickstart warns about exactly this. Fix: recreate it at the root.
 
 Pass: 5 of 6.
 
@@ -228,7 +228,7 @@ Pass: 5 of 6.
 
 ---
 
-## Phase 1 — Orientation
+## Phase 1: Orientation
 
 *Subject: what the system claims, how the documentation is organized,
 pipelines as a way of thinking, capability status.*
@@ -255,15 +255,15 @@ pipelines as a way of thinking, capability status.*
 
 1. Collection → sorting → transport → local sorting → delivery, or similar.
    The point: multi-stage systems with hand-offs are everywhere.
-2. Existence versus reachability — code can exist with no route to it from
+2. Existence versus reachability: code can exist with no route to it from
    the interface. This project labels that state `backend-only`.
 3. Texture/relief, true color under other light, scale, the back of the
    canvas... any two. Every representation loses something.
 4. The behavior is the truth; either the docs get corrected or the behavior
-   is a bug — but you debug against reality, not prose.
+   is a bug, but you debug against reality, not prose.
 5. A plain-text format for structured data: nested objects (`{}`), lists
    (`[]`), strings, and numbers.
-6. So no one ever mistakes practice data for real evidence — invented
+6. So no one ever mistakes practice data for real evidence. Invented
    coordinates must never end up in a scientific record.
 7. A secret string identifying/authorizing your access to an external
    service; the software asks because the service bills or rate-limits use.
@@ -272,10 +272,10 @@ pipelines as a way of thinking, capability status.*
 
 </details>
 
-### Programming assignment — The Group Chat Anthropologist (4–6 hours)
+### Programming assignment: The Group Chat Anthropologist (4–6 hours)
 
 Build a five-stage text pipeline that turns a messy chat export (or any raw
-text: meeting notes, a movie script) into a report — and, more importantly,
+text: meeting notes, a movie script) into a report and, more importantly,
 leaves an inspectable trail.
 
 **Stages:** 1 strip timestamps/metadata → 2 normalize speaker names
@@ -294,19 +294,19 @@ write) → 3 drop noise lines (joins, reactions, empty) → 4 compute counts
 - `python pipeline.py run` executes all stages; `python pipeline.py inspect 3`
   prints stage 3's manifest entry and the first 10 lines of its artifact.
 
-This is the shape of the project's job pipeline — staged artifacts you can
-inspect between steps — applied to text analytics.
+This is the shape of the project's job pipeline (staged artifacts you can
+inspect between steps) applied to text analytics.
 
 **Rubric (100):** stages correct and isolated 35 · artifacts + manifest 30 ·
 `inspect` command 15 · README and code clarity 20.
 
-### Research paper — Audit Someone Else's Documentation (1,200–1,800 words)
+### Research paper: Audit Someone Else's Documentation (1,200–1,800 words)
 
 Pick an open-source project you actually use (a game emulator, a note-taking
 app, a CLI tool). From its documentation, extract **five concrete claims**
 ("supports export to PDF", "works offline"). Test each one. Assign each a
-status from this project's vocabulary — supported, experimental,
-backend-only, broken/blocked, or stale — with your evidence.
+status from this project's vocabulary (supported, experimental,
+backend-only, broken/blocked, or stale) with your evidence.
 
 **Deliverable:** a short paper containing a capability table (claim, status,
 evidence) plus a discussion: where had the docs drifted from the software,
@@ -358,7 +358,7 @@ correct use of the status vocabulary 20 · discussion of drift 20.
 
 ### Final exam (45 minutes, closed docs)
 
-**Part A — routing scenarios.** For each person, name the right path and
+**Part A: routing scenarios.** For each person, name the right path and
 one sentence of justification.
 
 1. A student has a hand-drawn field sheet, no API key.
@@ -367,38 +367,38 @@ one sentence of justification.
    image, and you have a Gemini key.
 4. Someone wants the automated marker detection reviewed in the browser.
 
-**Part B — navigation.** Name the specific section (and page, if you can)
+**Part B: navigation.** Name the specific section (and page, if you can)
 you would open to answer:
 
 5. "What field holds a boundary's points in the saved data?"
 6. "Why does the app normalize geometry before validating it?"
 7. "Is the 3D model build dependable enough to demo tomorrow?"
 
-**Part C — comprehension.**
+**Part C: comprehension.**
 
 8. Name the five front-matter fields the docs' pages carry, and what the
    last two are for.
-9. **Essay (5–8 sentences):** Explain to a museum curator what this
+9. Essay (5–8 sentences): Explain to a museum curator what this
    application does, what it deliberately does not do, and why a successful
    validation still isn't a scientific conclusion.
 
 <details markdown="1">
 <summary>Answer key</summary>
 
-1. Manual tracing — the supported path; field sheets are explicitly
+1. Manual tracing: the supported path; field sheets are explicitly
    suited to it.
-2. JSON import — but continue to the checking step; import verifies shape,
+2. JSON import, but continue to the checking step; import verifies shape,
    not full validity.
-3. AI-assisted extraction — experimental; output is a transcription to
+3. AI-assisted extraction (experimental); output is a transcription to
    review against the drawing, not evidence.
-4. No path — that workflow is backend-only with no UI entry point; the
+4. No path: that workflow is backend-only with no UI entry point; the
    honest answer is "not currently possible in the browser," citing
    capability status.
 5. Reference → data schemas.
 6. Concepts → geometric normalization.
 7. Project → capability status (model building is experimental; GemPy is
    optional and not installed by default).
-8. `title`, `audience`, `status`, `source_files`, `verified_against` — the
+8. `title`, `audience`, `status`, `source_files`, `verified_against`. The
    last two name the described source files and the commit the page was
    checked against, so disagreements can be resolved against the code.
 9. Criteria: turns trench-wall drawings into structured, checkable data
@@ -412,7 +412,7 @@ you would open to answer:
 
 ---
 
-## Phase 2 — Hands-on: the pipeline
+## Phase 2. Hands-on: the pipeline
 
 *Subject: staged workflows, structured data, normalization versus
 validation, jobs and artifacts, provenance.*
@@ -443,14 +443,14 @@ Given this JSON:
 <summary>Answer key</summary>
 
 1. One layer; `[0, 0]`.
-2. No — JSON requires double quotes. (Python dictionaries accept single
+2. No. JSON requires double quotes. (Python dictionaries accept single
    quotes, which is exactly why the confusion exists.)
-3. Top-left, y grows downward — the opposite of graph paper. This will
-   matter constantly.
+3. Top-left, y grows downward, which is the opposite of graph paper. This
+   will matter constantly.
 4. Cleaning/normalizing *changes* data into a canonical form without
    changing meaning; checking/validating *detects* problems without
    changing anything. The docs hold this line strictly.
-5. No — string comparison knows nothing about units. Something must
+5. No, because string comparison knows nothing about units. Something must
    normalize before anything can compare.
 6. Refuse clearly (or load with loud warnings). Half-understood data that
    loads silently becomes trusted data. You'll meet this as "fail closed"
@@ -463,15 +463,15 @@ Given this JSON:
 
 </details>
 
-### Programming assignment — The Recipe Box Digitizer (6–8 hours)
+### Programming assignment: The Recipe Box Digitizer (6–8 hours)
 
-The project's pipeline — capture → normalize → validate → convert — applied
+The project's pipeline (capture → normalize → validate → convert) applied
 to cooking.
 
 **Input:** three real recipes you like, typed up as plain text exactly as
 their sources wrote them (inconsistent units and all).
 
-**Stage 1, capture:** parse each into JSON with this schema —
+**Stage 1, capture:** parse each into JSON with this schema:
 `{"name": str, "servings": int, "ingredients": [{"quantity": number,
 "unit": str, "item": str}], "steps": [str]}`.
 
@@ -485,7 +485,7 @@ apply.
 Suggested rules: positive quantities; units from a known list; servings a
 positive integer; no duplicate ingredients; no empty steps; every
 ingredient mentioned by at least one step (report as a warning, not an
-error — decide why the severities differ and write it down).
+error; decide why the severities differ and write it down).
 
 **Stage 4, convert:** rescale any recipe to a different serving count, and
 emit one aggregated shopping list across all three recipes (same item +
@@ -495,40 +495,40 @@ same unit merge; incompatible units must *not* silently merge).
 messages that locate the problem 25 · conversion and honest aggregation 15 ·
 README 10.
 
-### Research paper — When Paper Becomes Data (1,500–2,500 words)
+### Research paper: When Paper Becomes Data (1,500–2,500 words)
 
-Pick one field that digitizes historical paper records — ship logbooks
+Pick one field that digitizes historical paper records: ship logbooks
 (the Old Weather project), herbarium sheets, baseball scorecards,
 19th-century weather registers, parish registers. Research how its records
 go from paper to database and write for a reader from that field.
 
 **Must cover:** what the paper record holds; what the digital schema keeps
-and what it drops; who checks the transcription and how; and — the heart of
-it — one concrete error type that would pass every automated check and
+and what it drops; who checks the transcription and how; and, the heart of
+it, one concrete error type that would pass every automated check and
 still be wrong. **At least 5 sources.**
 
 **Rubric (100):** faithful description of the paper record 25 · schema
 gains/losses analysis 30 · review process 20 · the validates-cleanly-but-
 wrong example 25.
 
-### Midterm exam (45 minutes, closed docs — take after workflow 05)
+### Midterm exam (45 minutes, closed docs: take after workflow 05)
 
 1. Name workflow steps 01 through 05, in order, from memory.
 2. What is a *job*, where does it live on disk, and what happens to old
    jobs when you finish?
-3. What is the prepare-image stage *for*? (Not what it does — what it's
+3. What is the prepare-image stage *for*? (Not what it does, but what it's
    for.)
 4. Importing a JSON file succeeded. Name the two things import actually
    verified, and the thing it did not do.
 5. A traced boundary crosses itself. Which workflow step is designed to
    catch that?
-6. Classify each as **marker**, **feature**, or **find** — or "none of the
-   three": a bronze coin · a hearth · a drawn, numbered cross on the field
+6. Classify each as **marker**, **feature**, or **find** (or "none of the
+   three"): a bronze coin · a hearth · a drawn, numbered cross on the field
    sheet · a scatter of pottery fragments · a posthole · the sheet's north
    arrow.
 7. You import a JSON file into a job where you had already traced manually.
    What does the choose-your-path page warn about this?
-8. "Success means the application could read the data" — finish the
+8. "Success means the application could read the data": finish the
    sentence's warning, and give one concrete example.
 
 <details markdown="1">
@@ -539,38 +539,38 @@ wrong example 25.
 2. A local working directory holding one drawing's files and derived data,
    under `poggio_webapp/jobs/`; old job directories are **not** removed
    automatically.
-3. To make the drawing legible for tracing/extraction — better contrast,
-   corrected orientation, higher working resolution — so later stages act
+3. To make the drawing legible for tracing/extraction (better contrast,
+   corrected orientation, higher working resolution) so later stages act
    on the clearest possible source.
 4. Verified: the file is JSON, and it matches one of the application's two
-   top-level data shapes. Not done: full validation — you must still run
+   top-level data shapes. Not done: full validation, so you must still run
    the checking step.
-5. Check for problems (05) — validation.
+5. Check for problems (05): validation.
 6. Find · feature · marker · find(s) · feature · none of the three (sheet
-   furniture — it informs orientation, but it is not a marker/feature/find
+   furniture: it informs orientation, but it is not a marker/feature/find
    record). Verify the borderline cases against
    `concepts/markers-features-and-finds.md`.
 7. Importing (or automatic reading) can **replace** manual data already in
-   the job — choose one source deliberately.
+   the job, so choose one source deliberately.
 8. "...not that the archaeological interpretation is correct." Example: a
    cleanly validated trace whose layer labels were transcribed onto the
-   wrong boundaries — structurally perfect, archaeologically wrong.
+   wrong boundaries: structurally perfect, archaeologically wrong.
 
 </details>
 
 ### Final exam (60 minutes, closed docs + one practical)
 
-**Part A — your job, box by box.** For each of the seven pipeline boxes,
+**Part A: your job, box by box.** For each of the seven pipeline boxes,
 state in one sentence what it concretely did to the data in the job you ran
 during the tutorial. ("Normalize: straightened my tilted scan and rescaled
-coordinates so the grid squares came out uniform" — your own sentences,
+coordinates so the grid squares came out uniform." Your own sentences,
 your own job.)
 
-**Part B — the distinction that matters (5–8 sentences).** Normalize versus
+**Part B: the distinction that matters (5–8 sentences).** Normalize versus
 validate: what each may and may not do, why the order matters, one example
 of each from this application.
 
-**Part C — failure triage.** Name the pipeline stage where each problem
+**Part C: failure triage.** Name the pipeline stage where each problem
 belongs, and the doc page you'd open:
 
 1. A PDF upload fails at the very first step.
@@ -579,7 +579,7 @@ belongs, and the doc page you'd open:
 3. The trace looks perfect on screen, but placed on site the trench is ten
    times too wide.
 
-**Part D — practical.** Rerun workflows 01–05 on a second synthetic
+**Part D: practical.** Rerun workflows 01–05 on a second synthetic
 fixture, docs open, in under 30 minutes. Checklist: job created · ≥2 layers
 traced · cleanup applied · validation passes · you can state where the job
 directory is.
@@ -594,9 +594,9 @@ B. Criteria: normalize edits toward canonical form and must not change
 meaning · validate detects and reports but must not edit · normalize first,
 so validation judges the canonical form · examples: unit/orientation
 cleanup vs. self-intersection or missing-label errors.
-C. 1: Prepare/add-drawing — PDF needs Poppler; quickstart's Common
-problems. 2: Build model — GemPy optional/experimental; capability status.
-3: Convert/place-on-site — scale registration; `archaeology/scale-and-dpi.md`
+C. 1: Prepare/add-drawing (PDF needs Poppler); quickstart's Common
+problems. 2: Build model (GemPy optional/experimental); capability status.
+3: Convert/place-on-site (scale registration); `archaeology/scale-and-dpi.md`
 or workflow 06.
 D. Pass = all checklist items.
 
@@ -604,7 +604,7 @@ D. Pass = all checklist items.
 
 ---
 
-## Phase 3 — The worked example and trench anatomy
+## Phase 3: The worked example and trench anatomy
 
 *Subject: reading a case study critically, evidence versus interpretation,
 the trench vocabulary and its is-not distinctions.*
@@ -614,7 +614,7 @@ the trench vocabulary and its is-not distinctions.*
 1. A layer cake sits undisturbed. Which layer went on first?
 2. What is a cross-section? Give an everyday example.
 3. "There is a black, ashy layer here" versus "the town burned down in the
-   war" — what kind of statement is each?
+   war": what kind of statement is each?
 4. Why do archaeologists dig straight-sided, rectangular holes instead of
    just following the interesting bits?
 5. Excavation removes soil permanently. What follows about record-keeping?
@@ -628,19 +628,19 @@ the trench vocabulary and its is-not distinctions.*
 
 1. The bottom one. You already believe the law of superposition; this phase
    names it.
-2. A vertical slice showing internal layers — a cut cake, a road cutting, a
+2. A vertical slice showing internal layers: a cut cake, a road cutting, a
    sliced sandwich.
 3. The first is evidence (observable now); the second is interpretation
    (an explanatory claim). Keeping them separate is the discipline's core
    habit, and this application's.
-4. Straight walls give you readable vertical sections — the trench's own
+4. Straight walls give you readable vertical sections. The trench's own
    walls become the record of what you dug through. Control beats
    curiosity.
 5. The records *are* the site afterward; excavation is destructive, so
    recording standards carry the entire burden of proof.
 6. No. That is why the worked example keeps insisting on what the record
    can and cannot support.
-7. A defined unit of excavation/recording — "that place in the trench."
+7. A defined unit of excavation/recording, "that place in the trench."
    The precise project meaning arrives in this phase.
 8. Color distinguishes deposits (ash, clay, topsoil) and is evidence for
    how they formed; standardized color (Munsell) makes two people's records
@@ -648,7 +648,7 @@ the trench vocabulary and its is-not distinctions.*
 
 </details>
 
-### Programming assignment — The Trifle Inspector (5–7 hours)
+### Programming assignment: The Trifle Inspector (5–7 hours)
 
 Stratigraphic modeling with a controlled vocabulary, applied to dessert.
 (If dessert isn't your thing, the same brief works for a lasagna or the
@@ -660,7 +660,7 @@ sediment layers in a jar of muddy water.)
   from a controlled vocabulary: `sponge`, `custard`, `jelly`, `cream`,
   `fruit-compote`.
 - **Boundaries** between adjacent layers: `sharp` or `blended`.
-- **Inclusions** — a whole raspberry, a chocolate shard — each belonging to
+- **Inclusions** (a whole raspberry, a chocolate shard), each belonging to
   exactly one layer.
 - One **scoop event**: someone took a spoonful (a *cut* truncating one or
   more layers) and the hole was later refilled (a *fill* referencing that
@@ -682,19 +682,19 @@ no cut). Your validator must catch both plants.
 **Rubric (100):** model and schema documentation 30 · validator and message
 quality 30 · renderer 25 · fixtures and README 15.
 
-### Research paper — Controlled Vocabularies Elsewhere (1,500–2,000 words)
+### Research paper: Controlled Vocabularies Elsewhere (1,500–2,000 words)
 
 Pick one: Linnaean taxonomy (biology), ICD codes (medicine), MARC or Dewey
 (libraries), or standard phraseology (aviation). Write about it as a
 controlled vocabulary: what confusions it exists to prevent, one documented
 incident or cost of getting a term wrong, and how the field handles the
-"what it is not" problem — the confusable near-neighbors.
+"what it is not" problem, the confusable near-neighbors.
 
 **At least 4 sources.** Rubric (100): the vocabulary explained on its own
 terms 30 · the incident, with evidence 30 · near-neighbor analysis 25 ·
 writing for an outside reader 15.
 
-### Midterm exam (40 minutes, closed docs — take after the worked example, before the anatomy cluster)
+### Midterm exam (40 minutes, closed docs: take after the worked example, before the anatomy cluster)
 
 1. What did *registering* T905 establish, and why does everything after
    depend on it?
@@ -713,13 +713,14 @@ writing for an outside reader 15.
 <details markdown="1">
 <summary>Answer key (criteria)</summary>
 
-1. Criteria: its position/orientation in the site coordinate system — the
+1. Criteria: its position/orientation in the site coordinate system, the
    link between drawing measurements and real survey control. Everything
    downstream converts through it. Verify details against
    `worked-example/registration.md`.
 2. Criteria: that measured geometry is not automatically archaeological
-   truth — measurements carry uncertainty and the geometry supports only
-   what was actually measured. Verify against `worked-example/the-sounding.md`.
+   truth, because measurements carry uncertainty and the geometry supports
+   only what was actually measured. Verify against
+   `worked-example/the-sounding.md`.
 3. Any specific limit the finds-and-limits page names, stated with its
    reason (e.g., a spatial precision the recording never captured). Verify
    against `worked-example/finds-and-limits.md`.
@@ -727,28 +728,28 @@ writing for an outside reader 15.
    I · E.
 5. Criteria: real records have gaps, ambiguity, and limits; fixtures are
    clean by construction. The worked example teaches you to read what the
-   record *cannot* say — the skill fixtures can't exercise.
+   record *cannot* say: the skill fixtures can't exercise.
 
 </details>
 
 ### Final exam (60 minutes, closed docs)
 
-**Part A — the sketch.** Draw a trench in cross-section from memory and
+**Part A: the sketch.** Draw a trench in cross-section from memory and
 label: wall, baulk, face, three layers, one boundary, one cut, its fill,
 and natural. (Ugly is fine; correct is required.)
 
-**Part B — is-not drills.** One or two sentences each:
+**Part B: is-not drills.** One or two sentences each:
 
 1. Locus vs. layer.
-2. Cut vs. fill — and which is younger.
+2. Cut vs. fill, and which is younger.
 3. Wall vs. baulk vs. face.
 4. Natural vs. just "the deepest layer we found."
 
-**Part C — consequences.** A recorder logs a pit's fill as an ordinary
+**Part C: consequences.** A recorder logs a pit's fill as an ordinary
 layer in the stack. What breaks downstream, and in which pipeline stage
 would it surface, if at all?
 
-**Part D — modeling.** Write a free-form JSON-ish record of this profile:
+**Part D: modeling.** Write a free-form JSON-ish record of this profile:
 two layers; the upper one contains a stone; a pit cuts through the upper
 layer into the lower; the pit contains a distinct fill. Grading is on the
 distinctions, not the syntax.
@@ -762,18 +763,18 @@ B1. A locus is the recording unit assigned by the excavator; a layer is a
 depositional stratum. Every layer may be a locus; not every locus is a
 layer (a cut can be a locus). Verify against `archaeology/locus.md`.
 B2. A cut is the *event/surface* of removal; the fill is material deposited
-into it afterward — the fill is younger than the cut, and the cut is
+into it afterward, so the fill is younger than the cut, and the cut is
 younger than everything it truncates.
 B3. The wall is the trench's vertical side; a baulk is a deliberately
 unexcavated partition left standing (to preserve a readable section); the
 face is the specific drawn/recorded vertical surface.
-B4. Natural is the undisturbed, pre-human deposit — a geological claim
+B4. Natural is the undisturbed, pre-human deposit: a geological claim
 about formation, not a statement about where digging stopped.
-C. Criteria: the chronology inverts — a fill is younger than every layer
+C. Criteria: the chronology inverts (a fill is younger than every layer
 its cut truncates, but recorded as a plain layer it reads as older than
-what's above it; relationship-based outputs (series order, Harris matrix)
+what's above it); relationship-based outputs (series order, Harris matrix)
 silently inherit the error; validation may pass because the data is
-structurally clean — the docs' "validates cleanly and means something
+structurally clean, the docs' "validates cleanly and means something
 else."
 D. Must show: layers ordered; stone as an inclusion/feature *within* a
 layer, not a layer; the cut as its own entity truncating both layers...
@@ -783,7 +784,7 @@ layer, not a layer; the cut as its own entity truncating both layers...
 
 ---
 
-## Phase 4 — Chronology and survey
+## Phase 4: Chronology and survey
 
 *Subject: relative dating from relationships; reference frames, bearings,
 elevations, and scale.*
@@ -791,13 +792,13 @@ elevations, and scale.*
 ### Pre-reading quiz (10 minutes)
 
 1. Laundry has piled on a chair all week. Where is Tuesday's shirt relative
-   to Thursday's — and what everyday event breaks that rule?
+   to Thursday's, and what everyday event breaks that rule?
 2. A pit is dug through a floor. Which is younger, pit or floor?
 3. Trench A has a distinctive red-clay layer. Trench B, twenty meters away,
    has one too. Same layer?
 4. What compass degree number is due east?
 5. Does "sea level" mean the same height everywhere on Earth?
-6. What is a benchmark, in the surveying sense — guess?
+6. What is a benchmark, in the surveying sense? Guess.
 7. A ball released on a tilted table rolls in one particular direction.
    What's special about that direction relative to all others on the table?
 8. Your map says "1:20." What does that mean?
@@ -805,28 +806,28 @@ elevations, and scale.*
 <details markdown="1">
 <summary>Answer key</summary>
 
-1. Tuesday's is lower — unless someone rummaged (disturbed the pile). You
+1. Tuesday's is lower, unless someone rummaged (disturbed the pile). You
    just derived the law of superposition *and* its caveat.
-2. The pit — a cut is younger than whatever it cuts through.
-3. Maybe — asserting it is *correlation*, and it needs justification
+2. The pit: a cut is younger than whatever it cuts through.
+3. Maybe. Asserting it is *correlation*, and it needs justification
    (physical continuity or strong matching evidence), not assumption.
 4. 090.
-5. No — it varies with tides, currents, gravity, and by how each country
+5. No. It varies with tides, currents, gravity, and by how each country
    defines its vertical datum. Phase 4's paper is about exactly this.
 6. A fixed physical point of precisely known elevation/position that other
    measurements reference.
-7. It is the steepest direction — every other direction on the table is
+7. It is the steepest direction: every other direction on the table is
    less steep. That is true dip; any other direction shows an apparent dip.
-8. One unit on the map is twenty of the same unit in reality — 1 cm on
+8. One unit on the map is twenty of the same unit in reality, so 1 cm on
    paper is 20 cm of trench.
 
 </details>
 
-### Programming assignment — Essay Forensics & Treasure Hunt (6–8 hours)
+### Programming assignment: Essay Forensics & Treasure Hunt (6–8 hours)
 
 Two small programs, two domains, no archaeology.
 
-**Part A — Who edited when.** A shared essay was edited by many hands.
+**Part A: Who edited when.** A shared essay was edited by many hands.
 You receive observations, one per line: `Maya over Sam` ("Maya's edit sits
 on top of Sam's"). Write a program that outputs:
 
@@ -837,12 +838,12 @@ on top of Sam's"). Write a program that outputs:
 - the order plus an `AMBIGUOUS` list of pairs the observations cannot
   order.
 
-Constraint: no graph libraries, no reading ahead — invent your own method.
+Constraint: no graph libraries, no reading ahead. Invent your own method.
 (A hint you may use if stuck: repeatedly find someone no one claims to be
 over.) In Phase 7 you will learn the formal name of what you invented, and
 it will be a good day.
 
-**Part B — Treasure hunt.** A walk log:
+**Part B: Treasure hunt.** A walk log:
 
 ```
 start 0 0
@@ -853,7 +854,7 @@ go bearing 150 distance 42
 
 Compute each waypoint's coordinates and print the path plus the final
 distance back to start ("closing error"). Use, with azimuth in degrees from
-north, clockwise: `x += d·sin(az)`, `y += d·cos(az)` — and note in your
+north, clockwise: `x += d·sin(az)`, `y += d·cos(az)`, and note in your
 README *why* the sine and cosine look swapped compared with math class.
 Add a datum feature: given a benchmark elevation (say 100.00 m) and a rod
 reading below it at each waypoint, report absolute elevations.
@@ -862,7 +863,7 @@ reading below it at each waypoint, report absolute elevations.
 Part B waypoints and closing error correct 45 · README including the
 swapped-trig explanation 10.
 
-### Research paper — Where Is Zero? (1,500–2,500 words)
+### Research paper: Where Is Zero? (1,500–2,500 words)
 
 Every measuring field must define its zero. Pick one and go deep: vertical
 datums in mapping (NGVD29 vs. NAVD88), GPS heights (ellipsoid vs. geoid),
@@ -870,7 +871,7 @@ altitude in aviation (QNH, QFE, flight levels), or floor levels in
 construction. Explain how the zero is defined, who maintains it, and what
 happens at the boundaries between systems.
 
-**Required:** one real incident of datum confusion with consequences — the
+**Required:** one real incident of datum confusion with consequences. The
 Laufenburg bridge between Germany and Switzerland (a 54 cm surprise caused
 by a sign error in reconciling two national sea levels) is a fine choice if
 your field doesn't offer its own. **At least 5 sources.**
@@ -878,7 +879,7 @@ your field doesn't offer its own. **At least 5 sources.**
 **Rubric (100):** the zero precisely explained 35 · maintenance and
 conversion story 25 · the incident, accurately told 25 · sources 15.
 
-### Midterm exam (45 minutes, closed docs — take after the chronology cluster)
+### Midterm exam (45 minutes, closed docs: take after the chronology cluster)
 
 Units in a sounding: L1 (topsoil) lies above L2; L2 lies above L3; a pit P
 cuts L2; F fills P; L1 seals (lies above) both P and F. Elsewhere, in an
@@ -893,10 +894,10 @@ the above.
    things that violate the precondition.
 6. What justifies correlating "the same" layer across two trenches, and
    what does mere resemblance justify?
-7. The archaeology reference deliberately omits one classic concept —
+7. The archaeology reference deliberately omits one classic concept:
    grouping units into periods of activity. Name it, and say why it is
    absent from this application.
-8. What does a Harris matrix show that a section drawing does not — and
+8. What does a Harris matrix show that a section drawing does not, and
    what does it throw away?
 
 <details markdown="1">
@@ -907,18 +908,18 @@ the above.
 2. Oldest L3; youngest L1.
 3. Yes: P cuts L2, so P is later than L2; F fills P, so F is later than P;
    therefore F is later than L2.
-4. No — no recorded relationship connects the soundings. It would take a
-   stratigraphic link or a justified correlation.
+4. No, because no recorded relationship connects the soundings. It would
+   take a stratigraphic link or a justified correlation.
 5. In an *undisturbed* sequence, lower deposits are earlier. Violations:
    cuts (pits, ditches), burrowing animals/roots, collapse or dumping that
-   inverts material — anything post-depositional.
+   inverts material; anything post-depositional.
 6. Physical continuity (trace it through) or strong matching evidence
    argued explicitly; resemblance alone justifies only a hypothesis to
    test.
-7. Phasing — it is a later interpretive step, and the application records
+7. Phasing. It is a later interpretive step, and the application records
    relationships without performing interpretation.
 8. Shows pure temporal/stratigraphic relations (topology); throws away
-   geometry — thickness, shape, position. The drawing is the geometry; the
+   geometry: thickness, shape, position. The drawing is the geometry; the
    matrix is the order.
 
 </details>
@@ -930,17 +931,17 @@ the above.
    are they equal?
 3. The site datum is 151.00 m. A point measures 1.37 m below it. Elevation?
    A second datum sits at 100.00 m and a point reads 0.85 below. Elevation?
-4. A drawing is 1:20. A boundary segment is 5 cm on paper — real length?
+4. A drawing is 1:20. A boundary segment is 5 cm on paper. Real length?
    At 1:50, a 3 cm segment?
 5. A sheet was scanned at 300 DPI. A feature is 150 pixels wide on the
-   scan. How wide is it on paper, and — at 1:20 — in reality?
+   scan. How wide is it on paper, and (at 1:20) in reality?
    (2.54 cm to the inch.)
 6. Interpret `10YR 5/3`: name the three parts and what the notation buys
    two archaeologists on different continents.
 7. Match to purpose, one line each: interface point · orientation seed ·
    grid tie point · survey point code.
 8. Why does converting a drawing to site coordinates need *both* a scale
-   and an orientation — what goes wrong with only one?
+   and an orientation? What goes wrong with only one?
 
 <details markdown="1">
 <summary>Answer key</summary>
@@ -951,25 +952,25 @@ the above.
 3. 149.63 m · 99.15 m.
 4. 1.00 m · 1.50 m.
 5. 150 px ÷ 300 DPI = 0.5 in = 1.27 cm on paper; × 20 = 25.4 cm real.
-6. Hue 10YR, value 5, chroma 3 — a standardized color reference (Munsell)
+6. Hue 10YR, value 5, chroma 3: a standardized color reference (Munsell)
    so both record the *same* color name for the same soil, independent of
    light, screen, or vocabulary.
-7. Criteria (verify against the four pages): interface point — a measured
-   point on a boundary/interface between deposits; orientation seed — the
+7. Criteria (verify against the four pages): interface point, a measured
+   point on a boundary/interface between deposits; orientation seed, the
    initial orientation reference from which a face's direction is
-   established; grid tie point — a point linking the local drawing/trench
-   grid to the site grid; survey point code — the shorthand identifying
+   established; grid tie point, a point linking the local drawing/trench
+   grid to the site grid; survey point code, the shorthand identifying
    what kind of thing a surveyed point records.
 8. Scale without orientation places sizes correctly but rotates the trench
    arbitrarily; orientation without scale points it correctly at the wrong
-   size. Placement is position + rotation + scale — a similarity
+   size. Placement is position + rotation + scale: a similarity
    transform, as Phase 7 will name it.
 
 </details>
 
 ---
 
-## Phase 5 — How the software is built
+## Phase 5: How the software is built
 
 *Subject: client/server architecture, routes, background work, files as
 interfaces, reading reference material.*
@@ -996,37 +997,37 @@ interfaces, reading reference material.*
    renders. Any faithful sketch passes.
 2. The browser is the client; the server is the program listening on a
    port (here: Flask on 5000).
-3. To the server's storage — files or a database on the machine running
+3. To the server's storage: files or a database on the machine running
    the app. (In this project: JSON files under a job directory.)
-4. A URL pattern mapped to a handler function — `POST /vote` runs the
+4. A URL pattern mapped to a handler function. `POST /vote` runs the
    vote-recording code.
 5. The request (and the user's browser) hangs, times out, blocks other
    work. Fix shape: start background work, return a job id immediately,
    let the client poll status. This is exactly the project's async-task
    design.
-6. Lost updates — the second write overwrites the first, or a reader sees
+6. Lost updates: the second write overwrites the first, or a reader sees
    a half-written file. Phase 8 makes this precise.
 7. HTML pages are for humans in browsers; JSON endpoints are for programs
    (including the app's own frontend JavaScript).
-8. Encoding expectations so they're checked forever — a safety net that
+8. Encoding expectations so they're checked forever, a safety net that
    lets you change code without re-verifying everything by hand.
 
 </details>
 
-### Programming assignment — Movie Night (6–8 hours)
+### Programming assignment: Movie Night (6–8 hours)
 
 A small Flask app for choosing a movie with friends. You installed Flask in
 Phase 0's quickstart; now you write one.
 
 **Routes:**
 
-- `GET /` — an HTML page listing candidate movies and current votes (a
+- `GET /`: an HTML page listing candidate movies and current votes (a
   bare-bones template is fine).
-- `POST /vote` — accepts `{"title": ...}` as JSON, records one vote.
-- `GET /results` — JSON standings, sorted by votes.
-- `POST /poster/start` — begins "generating a poster" (fake it:
+- `POST /vote`: accepts `{"title": ...}` as JSON, records one vote.
+- `GET /results`: JSON standings, sorted by votes.
+- `POST /poster/start`: begins "generating a poster" (fake it:
   a background thread that sleeps ~10 s), returns `{"job_id": ...}`.
-- `GET /poster/status/<job_id>` — `{"status": "queued" | "working" |
+- `GET /poster/status/<job_id>`: `{"status": "queued" | "working" |
   "done"}`.
 
 **Requirements:**
@@ -1035,19 +1036,19 @@ Phase 0's quickstart; now you write one.
   standings.
 - Poster jobs tracked in an in-memory dict keyed by id. Leave a
   `# TODO: what happens if two requests write votes.json at once?` where it
-  belongs — Phase 8 comes back for it.
+  belongs. Phase 8 comes back for it.
 - **Three pytest tests** using Flask's test client: a vote is recorded ·
   results are sorted · a poster job eventually reaches `done`.
 - README containing a **route reference table**: method, path, request
-  body, response shape — written like a reference page, because next phase
+  body, response shape, written like a reference page, because next phase
   you'll write one for someone else's API.
 
 **Rubric (100):** routes correct 35 · persistence survives restart 20 ·
 job status lifecycle 20 · tests 15 · README route table 10.
 
-### Research paper — A Reference for Someone Else's API (deliverable is a reference document, not an essay)
+### Research paper: A Reference for Someone Else's API (deliverable is a reference document, not an essay)
 
-Pick a free public API — PokéAPI, Open-Meteo, your city's transit feed.
+Pick a free public API: PokéAPI, Open-Meteo, your city's transit feed.
 Using only real calls you make (browser or `curl`), write the reference
 page its users deserve: base URL · at least five endpoints with method,
 parameters, and response schema (as tables) · error behavior you *provoked*
@@ -1060,16 +1061,16 @@ had to discover by experiment?
 **Rubric (100):** accuracy of five endpoints 40 · provoked-error section
 20 · schema tables usable by a stranger 25 · reflection 15.
 
-### Midterm exam (45 minutes, closed docs — take after the architecture section)
+### Midterm exam (45 minutes, closed docs: take after the architecture section)
 
 1. Draw the system from memory: browser frontend, Flask backend, pipeline
-   modules, job directories, background tasks — with arrows for who talks
+   modules, job directories, background tasks, with arrows for who talks
    to whom.
 2. Put a job's lifecycle in order, from upload to downloadable output.
 3. Which part of the system: renders the tracing canvas? · decides that a
    polygon self-intersects? · owns the job directory layout? · runs the
    slow model build without freezing the browser?
-4. Why do asynchronous tasks exist in this design — what breaks without
+4. Why do asynchronous tasks exist in this design? What breaks without
    them?
 5. What kinds of files accumulate in a job directory over a run?
    (Categories, not exact names.)
@@ -1088,7 +1089,7 @@ had to discover by experiment?
    `architecture/system-overview.md`.
 2. Criteria: job created on upload → source stored → prepared image →
    traced/imported data → normalized → validated → converted → model/output
-   artifacts — each stage adding artifacts to the same job. Verify against
+   artifacts, each stage adding artifacts to the same job. Verify against
    `architecture/job-lifecycle.md`.
 3. Frontend · pipeline (validation logic) · backend (job/file management) ·
    background tasks.
@@ -1098,7 +1099,7 @@ had to discover by experiment?
    (traced/normalized); validation reports; converted coordinates; model
    and export outputs. Verify against `architecture/files-and-artifacts.md`.
 6. Same content, two sort orders: CS section is by *subject* (textbook
-   order); the index is by *source module* — reach for it when you're
+   order); the index is by *source module*. Reach for it when you're
    reading a file and want to know what's in it.
 7. Because implemented-but-unreachable features exist; without checking,
    you can spend days building something that already exists backend-only.
@@ -1107,19 +1108,19 @@ had to discover by experiment?
 
 ### Final exam (60 minutes: Part A closed 30 min, Part B open-docs 30 min)
 
-**Part A — closed.**
+**Part A: closed.**
 
 1. The backend and the pipeline are separate layers. What belongs in each,
    and name one benefit of keeping pipeline code importable without a
    running server.
-2. `make test` — what does it run, and what must be true of your terminal
+2. `make test`: what does it run, and what must be true of your terminal
    for it to work?
 3. Give one reason the frontend is organized as explicit stages/steps
    rather than one big page.
 4. A request writes a file while a background task reads it. In one
    sentence, why is this design worth flagging for Phase 8?
 
-**Part B — open-docs speed lookups.** Six questions, five minutes each.
+**Part B: open-docs speed lookups.** Six questions, five minutes each.
 Answer *and* cite the page you found it on. The skill under test is
 navigation, so a right answer without its page is half credit.
 
@@ -1135,15 +1136,15 @@ navigation, so a right answer without its page is half credit.
 <summary>Answer key</summary>
 
 1. Backend: HTTP routes, request handling, job/file management. Pipeline:
-   the computation — image processing, normalization, validation,
-   conversion. Benefit: pipeline functions can be tested (and reasoned
-   about) directly, no server, no browser — pure inputs and outputs.
+   the computation (image processing, normalization, validation,
+   conversion). Benefit: pipeline functions can be tested (and reasoned
+   about) directly, no server, no browser, pure inputs and outputs.
 2. The pytest suite over `tests/`; the repo-root venv must exist with dev
    tools installed (and be the one `make` finds).
 3. Criteria: each stage maps to a pipeline step with its own artifacts and
    checks; users can stop/resume; the UI mirrors the job lifecycle.
-4. Concurrent access to shared files invites races and half-read states —
-   deferred, deliberately, to Phase 8.
+4. Concurrent access to shared files invites races and half-read states
+   (deferred, deliberately, to Phase 8).
 5–10. Graded by citation: the answers live in `reference/api-routes.md`,
 `reference/data-schemas.md`, `reference/validation-rules.md`,
 `reference/output-files.md`, `reference/configuration.md` (or the
@@ -1154,9 +1155,9 @@ quickstart's `PORT=5001 make run`), and `reference/troubleshooting.md`
 
 ---
 
-## Phase 6 — Seeing like a computer
+## Phase 6: Seeing like a computer
 
-*Subject: image processing — pixels through shape description.*
+*Subject: image processing, pixels through shape description.*
 
 ### Pre-reading quiz (10 minutes)
 
@@ -1168,7 +1169,7 @@ quickstart's `PORT=5001 make run`), and `reference/troubleshooting.md`
    average of its neighbors.
 6. What is an "edge" in an image, in terms of pixel values?
 7. A histogram of an image shows what?
-8. You threshold a photographed page — every pixel darker than a cutoff
+8. You threshold a photographed page: every pixel darker than a cutoff
    becomes black, the rest white. One corner of the photo was in shadow.
    What happens, and what would you *want* instead?
 
@@ -1177,46 +1178,46 @@ quickstart's `PORT=5001 make run`), and `reference/troubleshooting.md`
 
 1. The smallest square of the image grid; typically three numbers (red,
    green, blue intensities, 0–255 each).
-2. You are seeing the individual grid squares — there is no more detail
+2. You are seeing the individual grid squares. There is no more detail
    below one pixel.
-3. Yellow — screens mix light (additive), not paint.
-4. One number per pixel — brightness only.
+3. Yellow, because screens mix light (additive), not paint.
+4. One number per pixel: brightness only.
 5. True. That is a box blur, and it is where Phase 6 begins.
 6. A sharp change in brightness between neighboring pixels.
-7. How many pixels have each brightness value — the image's tonal
+7. How many pixels have each brightness value, the image's tonal
    distribution.
 8. The shadowed corner falls entirely below the cutoff and goes solid
    black, text and paper alike. You'd want the cutoff to adapt to each
-   neighborhood — which is exactly what adaptive thresholding and CLAHE
+   neighborhood, which is exactly what adaptive thresholding and CLAHE
    exist for.
 
 </details>
 
-### Programming assignment — Filters & the Candy Census (10–14 hours; the biggest so far)
+### Programming assignment: Filters & the Candy Census (10–14 hours; the biggest so far)
 
 Implement the classics yourself, then use them to count candy. Rules:
-**Pillow (or equivalent) for loading and saving only** — every operation on
+**Pillow (or equivalent) for loading and saving only**. Every operation on
 pixels is your own loops. NumPy optional; if you use it, still no calls to
 anyone else's filter/threshold/label functions. Work on images ≤ 500 px on
 the long side, and don't worry about speed.
 
-**Part A — the filter suite**, applied to a photo you took:
+**Part A: the filter suite**, applied to a photo you took:
 
-1. Grayscale (luminosity-weighted, not the plain average — say why in the
-   README).
+1. Grayscale (luminosity-weighted, not the plain average, and say why in
+   the README).
 2. A general 3×3 **convolution engine**: takes any kernel, handles edges
    somehow (your choice, documented).
 3. Through the engine: box blur, the Gaussian-ish kernel
-   `[[1,2,1],[2,4,2],[1,2,1]]/16`, sharpen, and Sobel x and y — combined
+   `[[1,2,1],[2,4,2],[1,2,1]]/16`, sharpen, and Sobel x and y, combined
    into a gradient-magnitude image.
 4. Global threshold (fixed cutoff) producing a black/white image, plus
    invert. Stretch goal: implement Otsu to pick the cutoff automatically.
 5. A contact sheet: original plus every result, labeled.
 
-**Part B — the candy census.** Photograph 15–30 candies (or coins,
+**Part B: the candy census.** Photograph 15–30 candies (or coins,
 buttons) scattered on plain paper, no touching. Then, with your own code:
 threshold to a binary mask → find connected components via flood fill
-(iterative, with your own stack — recursion will overflow; this is
+(iterative, with your own stack, because recursion will overflow; this is
 foreshadowing) → for each blob compute area, bounding box, centroid, and
 circularity `4πA/P²` → report a count, grouped by color (mean RGB inside
 each blob) and size bucket.
@@ -1228,27 +1229,27 @@ what happened and which Phase 6 technique (morphology) exists to help.
 your photo 30 · the broken-case analysis 10 · contact sheet and README 10 ·
 code clarity 10.
 
-### Research paper — One Technique, Another World (1,500–2,500 words)
+### Research paper: One Technique, Another World (1,500–2,500 words)
 
 Pick one, research where it came from and who depends on it now:
 
-- **CLAHE** — invented for medical imaging; how it reveals detail in
+- CLAHE: invented for medical imaging; how it reveals detail in
   X-rays without amplifying noise to lies.
-- **JPEG** — why compression happens in 8×8 blocks, and why text scans
+- JPEG: why compression happens in 8×8 blocks, and why text scans
   ring and smear.
-- **Image stacking in astronomy** — how averaging many bad photos makes one
+- Image stacking in astronomy: how averaging many bad photos makes one
   good one.
-- **Fingerprint enhancement** — ridge cleanup as industrial-strength
+- Fingerprint enhancement: ridge cleanup as industrial-strength
   morphology.
 
-**Mandatory:** one hand-worked 3×3 numeric example somewhere in the paper —
+**Mandatory:** one hand-worked 3×3 numeric example somewhere in the paper,
 your own arithmetic, shown. **At least 5 sources**, one from the field that
 uses the technique (not a programming tutorial).
 
 **Rubric (100):** technique correct in your own words 30 · the field's need
 explained on the field's terms 30 · the worked example 25 · sources 15.
 
-### Midterm exam (60 minutes, closed docs, calculator allowed — take after the Morphology cluster)
+### Midterm exam (60 minutes, closed docs, calculator allowed: take after the Morphology cluster)
 
 1. Convolve the center pixel: neighborhood
    `[[10,10,10],[10,100,10],[10,10,10]]`, box-blur kernel (all ones, ÷9).
@@ -1272,12 +1273,12 @@ explained on the field's terms 30 · the worked example 25 · sources 15.
 <summary>Answer key</summary>
 
 1. (8×10 + 100)/9 = 180/9 = **20**. The speck was averaged away toward its
-   neighbors — blur suppresses isolated detail.
-2. 5×100 − 4×10 = **460** (clamps to 255). Sharpen — it exaggerates the
+   neighbors. Blur suppresses isolated detail.
+2. 5×100 − 4×10 = **460** (clamps to 255). Sharpen: it exaggerates the
    center's difference from its neighbors.
-3. Sum 1: preserves overall brightness — a smoothing/blurring family.
-   Sum 0: responds only to *change*, zero on flat regions — an edge/detail
-   detector.
+3. Sum 1: preserves overall brightness (a smoothing/blurring family).
+   Sum 0: responds only to *change*, zero on flat regions (an edge/detail
+   detector).
 4. The eye's sensitivity: green contributes most to perceived brightness,
    blue least; equal weights would look wrong.
 5. It tries every threshold and picks the one best separating the
@@ -1285,13 +1286,13 @@ explained on the field's terms 30 · the worked example 25 · sources 15.
 6. Erosion: the square shrinks to its single center pixel; the isolated
    pixel vanishes. Dilation: the square grows to 5×5; the isolated pixel
    becomes 3×3.
-6b. Opening = erosion then dilation — removes specks smaller than the
+6b. Opening = erosion then dilation, which removes specks smaller than the
    element while restoring surviving shapes. Closing = dilation then
-   erosion — fills gaps/holes smaller than the element.
+   erosion, which fills gaps/holes smaller than the element.
 7. Illumination varies across the scan (shadow, curl), so one global
    cutoff can't be right everywhere; and faint grid lines sit close to
    paper tone. Address with adaptive thresholding, CLAHE or illumination
-   flattening (homomorphic correction) — any two.
+   flattening (homomorphic correction). Any two.
 
 </details>
 
@@ -1301,12 +1302,12 @@ explained on the field's terms 30 · the worked example 25 · sources 15.
    sentence why the last stage uses *two* thresholds.
 2. An L-shaped region: a 4×4 pixel square with its top-right 2×2 corner
    missing. Area? Perimeter (edge-length walk)? Then circularity `4πA/P²`
-   (two decimals) — and why is a circle exactly 1?
+   (two decimals), and why is a circle exactly 1?
 3. Two boxes: A spans (0,0)–(4,4), B spans (2,0)–(6,4). Compute IoU.
 4. Non-maximum suppression, in the detection sense: what problem does it
    solve, and what does IoU have to do with it?
 5. Ramer–Douglas–Peucker with ε = 0.5 on the polyline (0,0) → (2, 0.1) →
-   (4,0) → (4,4): which points survive, and why — walk the recursion.
+   (4,0) → (4,4): which points survive, and why. Walk the recursion.
 6. Why analyze a drawing at multiple scales rather than one?
 7. Design question: microscope slide, dark roughly-circular cells on a
    bright background, some debris. Compose a counting pipeline from this
@@ -1317,21 +1318,21 @@ explained on the field's terms 30 · the worked example 25 · sources 15.
 
 1. Gaussian smoothing → gradient (Sobel) → non-maximum suppression
    (thinning) → hysteresis. Two thresholds so weak edges are kept only when
-   connected to strong ones — one cutoff either drops real faint edges or
+   connected to strong ones. One cutoff either drops real faint edges or
    keeps noise.
 2. Area 12. Perimeter 16 (4 + 4 + 2 + 2 + 2 + 2). Circularity
    4π·12/16² = 150.8/256 ≈ **0.59**. A circle encloses the most area per
-   perimeter — the formula is normalized so that optimum equals 1.
+   perimeter, and the formula is normalized so that optimum equals 1.
 3. Intersection (2,0)–(4,4) = 8; union 16 + 16 − 8 = 24; IoU = **1/3**.
 4. A detector fires many overlapping candidates for one object; NMS keeps
-   the best-scoring one and suppresses neighbors that overlap it too much —
-   "too much" measured by IoU.
+   the best-scoring one and suppresses neighbors that overlap it too much
+   ("too much" measured by IoU).
 5. Farthest point from chord (0,0)–(4,4) is (4,0), distance ≈ 2.83 > ε →
    keep, recurse. On (0,0)–(4,0): the point (2, 0.1) deviates 0.1 < ε →
    dropped. On (4,0)–(4,4): nothing between. Survivors: **(0,0), (4,0),
    (4,4)**.
 6. Features live at different sizes (fine hatching vs. layer outlines);
-   one scale's noise is another's signal — small-scale passes catch
+   one scale's noise is another's signal: small-scale passes catch
    detail, coarse passes catch structure.
 7. Criteria (order matters): grayscale → contrast/illumination fix if
    needed → blur (suppress debris noise) → threshold (Otsu or adaptive;
@@ -1344,7 +1345,7 @@ explained on the field's terms 30 · the worked example 25 · sources 15.
 
 ---
 
-## Phase 7 — Geometry, math, and graphs
+## Phase 7: Geometry, math, and graphs
 
 *Subject: vectors, transforms, computational geometry, statistics, graph
 algorithms.*
@@ -1352,16 +1353,16 @@ algorithms.*
 ### Pre-reading quiz (10 minutes)
 
 1. Plot (2,3): how far right, how far up?
-2. Legs 3 and 4 — hypotenuse?
+2. Legs 3 and 4: hypotenuse?
 3. What two things define a vector, informally?
 4. You can rotate the map, or turn yourself. Same result? What changed in
    each case?
 5. Speeds from a GPS jog: {4, 5, 5, 6, 30} m/s. Mean? Median? Which
-   describes the run — and what is the 30?
+   describes the run, and what is the 30?
 6. A subway map: what are the nodes and what are the edges?
 7. Socks before shoes, shirt before jacket. What kind of problem is
    "getting dressed in a valid order"?
-8. Straight-line distance versus walking distance in a city — why do they
+8. Straight-line distance versus walking distance in a city: why do they
    differ, and which is the vector one?
 
 <details markdown="1">
@@ -1370,26 +1371,26 @@ algorithms.*
 1. Right 2, up 3.
 2. 5.
 3. A length (magnitude) and a direction.
-4. Same relative result — you rotated the *frame* or the *object*.
+4. Same relative result: you rotated the *frame* or the *object*.
    Coordinate transforms are always one of these two, and confusing them
    is the classic bug.
-5. Mean 10, median 5. The median describes the run; 30 is a glitch —
-   your first robust statistic.
+5. Mean 10, median 5. The median describes the run; 30 is a glitch.
+   Your first robust statistic.
 6. Stations; the track segments connecting them.
-7. Ordering items under before/after constraints — you solved it by hand
+7. Ordering items under before/after constraints. You solved it by hand
    in Phase 4; this phase names it (topological sorting).
 8. The straight line is the vector's magnitude; streets constrain the
-   path — graph distance versus geometric distance.
+   path: graph distance versus geometric distance.
 
 </details>
 
-### Programming assignment — Run Tracker & Degree Planner (10–14 hours)
+### Programming assignment: Run Tracker & Degree Planner (10–14 hours)
 
 Two programs. Formulas are supplied; the implementations are yours. No
 libraries beyond `math` (and file I/O).
 
-**Part A — Run tracker** (fitness domain). Input: a CSV of `t, x, y`
-points from a jog — synthesize your own plausible loop of 200+ points, and
+**Part A: Run tracker** (fitness domain). Input: a CSV of `t, x, y`
+points from a jog. Synthesize your own plausible loop of 200+ points, and
 plant one GPS glitch (a point 500 m off the path).
 
 Compute and report:
@@ -1408,11 +1409,11 @@ Supplied formulas: `|v| = √(vx² + vy²)` · 2D cross for orientation
 when orientations of (A,B,C)/(A,B,D) differ and (C,D,A)/(C,D,B) differ ·
 shoelace `area = ½|Σ(xᵢyᵢ₊₁ − xᵢ₊₁yᵢ)|`.
 
-**Part B — Degree planner** (academic domain). Input: a text file of
+**Part B: Degree planner** (academic domain). Input: a text file of
 `COURSE requires COURSE` lines for a made-up major (≥ 12 courses, ≥ 1
 diamond dependency; also produce a second input with a deliberate cycle).
 
-1. Output a valid course order — and recognize aloud (in the README) that
+1. Output a valid course order, and recognize aloud (in the README) that
    this is Phase 4's essay-forensics algorithm, now with its real name.
 2. Detect the cycle in the second input and print the loop itself.
 3. Minimum number of semesters if you can take unlimited parallel courses
@@ -1423,19 +1424,19 @@ diamond dependency; also produce a second input with a deliberate cycle).
 10, shoelace + closed-loop 10, self-intersection 5 · B: topo order 15,
 cycle named 10, semesters 10, unlocks 5 · README quality across both 10.
 
-### Research paper — The Name in the Method (1,500–2,500 words)
+### Research paper: The Name in the Method (1,500–2,500 words)
 
 These techniques carry their history in their names. Pick one origin story,
 tell it properly, and end with one modern, non-obvious place it runs today:
 
-- **Kriging** — Danie Krige, 1950s Witwatersrand gold mines: estimating ore
+- Kriging: Danie Krige, 1950s Witwatersrand gold mines: estimating ore
   between boreholes. (The project uses its descendants to interpolate
-  geology between measured points — mention this in one sentence, then
+  geology between measured points. Mention this in one sentence, then
   leave the project alone.)
-- **Least squares** — Gauss, 1801, and the rediscovery of the asteroid
+- Least squares: Gauss, 1801, and the rediscovery of the asteroid
   Ceres from a handful of noisy observations.
-- **Graph theory** — Euler, 1736, and the seven bridges of Königsberg.
-- **Topological sorting** — how `make` (which you've used since Phase 0)
+- Graph theory: Euler, 1736, and the seven bridges of Königsberg.
+- Topological sorting: how `make` (which you've used since Phase 0)
   decides what to build first.
 
 **Mandatory:** a small worked toy example of the method, by hand, in the
@@ -1446,17 +1447,17 @@ in translation, Krige's 1951 paper, a `make` manual...).
 idea explained to a classmate 30 · the worked example 25 · the modern
 sighting 15.
 
-### Midterm exam (60 minutes, closed docs, calculator allowed — take after the Computational geometry cluster)
+### Midterm exam (60 minutes, closed docs, calculator allowed: take after the Computational geometry cluster)
 
 1. u = (2,1), v = (1,3). Compute u·v. What does its sign tell you about
    the angle between them?
 2. Normalize (3,4). Why does the pipeline care about unit vectors at all?
-3. Project the point (2,3) onto the x-axis direction (1,0) — and state, in
+3. Project the point (2,3) onto the x-axis direction (1,0), and state, in
    one sentence, what "projection" buys you when a measured point must be
    expressed *along a wall*.
 4. Rotate (1,0) by 90° counterclockwise about the origin. Where does it
    land?
-5. Why homogeneous coordinates — what does the extra 1 make possible?
+5. Why homogeneous coordinates? What does the extra 1 make possible?
 6. Shoelace: area of the triangle (0,0), (4,0), (0,3)?
 7. Signed area: what does its sign encode, and name one thing the pipeline
    can standardize with it.
@@ -1469,10 +1470,10 @@ sighting 15.
 
 1. 2·1 + 1·3 = **5**; positive → angle under 90° (they point broadly the
    same way).
-2. (0.6, 0.8) — divide by the magnitude, 5. Unit vectors carry pure
+2. (0.6, 0.8): divide by the magnitude, 5. Unit vectors carry pure
    direction, so scaling and projecting stay honest (dot with a unit
    vector = length along it).
-3. (2,0) — the dot product with the unit direction gives the distance
+3. (2,0). The dot product with the unit direction gives the distance
    *along* it. That is exactly how "how far along the wall is this point"
    becomes a number.
 4. (0,1).
@@ -1480,10 +1481,10 @@ sighting 15.
    multiplication, so a whole transform chain composes into one matrix.
 6. ½|0(0−3) + 4(3−0) + 0(0−0)| = **6**.
 7. Traversal orientation: counterclockwise positive, clockwise negative.
-   Standardizing polygon winding (so all boundaries run the same way) —
+   Standardizing polygon winding (so all boundaries run the same way),
    and the orientation test underlies intersection checks.
 8. Cast a ray from the point; odd crossings = inside. Headache: the ray
-   grazing a vertex or running along an edge — implementations must break
+   grazing a vertex or running along an edge, so implementations must break
    ties carefully.
 9. 90 − 60 = **30°**. (Two conventions: compass measures clockwise from
    north; math counterclockwise from east. The pipeline converts;
@@ -1494,21 +1495,21 @@ sighting 15.
 ### Final exam (75 minutes, closed docs, calculator allowed)
 
 1. Data {1, 3, 3, 5}: mean, population variance, standard deviation, and
-   coefficient of variation (two decimals). What is CV *for* — why divide?
+   coefficient of variation (two decimals). What is CV *for*? Why divide?
 2. Same data with an outlier appended: {1, 3, 3, 5, 40}. Mean and median
    now? One sentence: why the pipeline prefers medians when scans contain
    glitches.
-3. Ordinary least squares in one sentence — what exactly is minimized?
+3. Ordinary least squares in one sentence: what exactly is minimized?
    And its known weakness, connecting to question 2.
 4. Kriging versus straight linear interpolation between measured points:
    what does kriging weight by, and what does it report that plain
    interpolation cannot?
 5. Edges: A→B, A→C, B→D, C→D, A→D. Is this a DAG? Give two valid
-   topological orders. Is a unique order guaranteed in general — when is
+   topological orders. Is a unique order guaranteed in general? When is
    it?
 6. Same graph: which edge does transitive reduction delete, and why is the
    result "the same" ordering information?
-7. How does DFS detect a cycle — what's the tell?
+7. How does DFS detect a cycle? What's the tell?
 8. Union-Find: the two operations, and one sentence on what it computes
    fast that repeated searching computes slowly.
 9. BFS versus DFS: which finds fewest-hop connections, and why does the
@@ -1523,37 +1524,37 @@ sighting 15.
    Dividing by the mean makes spread unitless/relative, so you can compare
    variability across quantities of different size.
 2. Mean 10.4, median 3. One wild point drags the mean anywhere; the median
-   barely moves — robustness under glitches.
+   barely moves: robustness under glitches.
 3. It minimizes the sum of squared vertical residuals between points and
-   the fitted line. Squaring makes outliers dominate — the same fragility
+   the fitted line. Squaring makes outliers dominate, the same fragility
    as the mean.
 4. Weights by spatial correlation (near, correlated points count more, per
    a fitted model of how similarity decays with distance) and reports an
    uncertainty estimate alongside each value.
-5. Yes — no cycles. A,B,C,D and A,C,B,D. Not unique in general; unique
+5. Yes: no cycles. A,B,C,D and A,C,B,D. Not unique in general; unique
    only when at every step exactly one vertex has no remaining
    prerequisites (a full chain forces the order).
-6. A→D — it is implied by A→B→D (and A→C→D). Reduction deletes only edges
+6. A→D: it is implied by A→B→D (and A→C→D). Reduction deletes only edges
    whose ordering constraint survives via longer paths, so reachability is
    unchanged; the Harris matrix is drawn this way to show only direct
    relationships.
 7. Reaching a vertex that is still on the current exploration path (a
-   back edge) — you've walked into your own ancestry.
+   back edge). You've walked into your own ancestry.
 8. `find` (which group?) and `union` (merge groups). It maintains
-   connected groupings incrementally in near-constant amortized time —
+   connected groupings incrementally in near-constant amortized time,
    answering "same component?" without re-walking the graph each time.
-9. BFS — it explores in rings of increasing distance. Flood fill visits
+9. BFS. It explores in rings of increasing distance. Flood fill visits
    everything reachable within a region; with a queue it *is* BFS (with a
    stack, DFS) over the pixel-adjacency graph.
 10. A rank of relative age/order: everything in a row is later than the
-    rows above it connect to — position encodes the partial order, which
+    rows above it connect to. Position encodes the partial order, which
     is the matrix's whole message.
 
 </details>
 
 ---
 
-## Phase 8 — Engineering the system
+## Phase 8: Engineering the system
 
 *Subject: data structures in anger, hashing, concurrency, reliability,
 validation, security, and scientific computing practice.*
@@ -1581,62 +1582,62 @@ validation, security, and scientific computing practice.*
 
 1. One wins and the other's work is lost; or a merge (clean or
    conflicted); or duplicates. "Last write wins" silently is the scary
-   one — that's a lost update.
+   one: that's a lost update.
 2. Writes are buffered; ejecting flushes them. Pull early and the file is
-   half-written — the exact problem atomic writes solve.
+   half-written, the exact problem atomic writes solve.
 3. A fixed-size fingerprint computed from data; same data, same
    fingerprint.
-4. Bad for you (battery, blocked UI) and worse for the struggling server —
+4. Bad for you (battery, blocked UI) and worse for the struggling server:
    a stampede of retries can keep it down. Hence backing off, with a
    budget.
 5. So a database breach doesn't reveal passwords: a good hash runs one
    way.
-6. `..` climbs directories — a filename that *navigates* can escape the
+6. `..` climbs directories, so a filename that *navigates* can escape the
    folder you meant to confine it to (path traversal).
-7. `[1,2,3]` — `b` is another name for the same list, not a copy. Shared
+7. `[1,2,3]`: `b` is another name for the same list, not a copy. Shared
    mutable state in one line; Phase 8 is about what it does at scale.
 8. Missing, complete, or half-written. Half-written is worst: it exists,
    parses as damaged, and can be trusted by the next reader.
 
 </details>
 
-### Programming assignment — Twin Finder & the Unbreakable Journal (8–12 hours)
+### Programming assignment: Twin Finder & the Unbreakable Journal (8–12 hours)
 
 Two tools, two domains.
 
-**Part A — Photo Twin Finder** (photo-library domain). Point it at a folder
+**Part A: Photo Twin Finder** (photo-library domain). Point it at a folder
 tree of images (seed one with deliberate duplicates under different names
 and subfolders).
 
 1. Walk the tree; compute each file's SHA-256 (`hashlib`, reading in
-   chunks — note in the README why not `f.read()` the whole file).
+   chunks, and note in the README why not `f.read()` the whole file).
 2. Group by digest in a dict; report every duplicate set and the bytes
    reclaimable.
 3. **The tool never deletes.** It writes `report.json` and prints a
    summary. Write one README paragraph on why a *reporting* tool is the
-   right default for other people's photos — you are practicing fail-safe
+   right default for other people's photos. You are practicing fail-safe
    design, not just politeness.
-4. Stretch: copy unique files into a content-addressed store —
-   `store/ab/cdef123...` named by digest — and observe that duplicates
+4. Stretch: copy unique files into a content-addressed store
+   (`store/ab/cdef123...` named by digest) and observe that duplicates
    collapse by construction. (You have just reinvented the trick Git and
    this project's artifact naming both use.)
 
-**Part B — The Unbreakable Journal** (journaling domain). A CLI diary that
+**Part B: The Unbreakable Journal** (journaling domain). A CLI diary that
 refuses to lose data.
 
 1. Entries in one JSON file with a top-level `schema_version`.
-2. **Atomic saves**: write to a temp file in the same directory, flush,
+2. Atomic saves: write to a temp file in the same directory, flush,
    then `os.replace` onto the real file. Prove it: add a `--crash`
    flag that kills the process mid-save, and show the journal survives.
-3. **Migration**: v1 entries lack `tags`; on load, migrate v1 → v2 (adding
+3. Migration: v1 entries lack `tags`; on load, migrate v1 → v2 (adding
    `"tags": []`), bump the version, and keep a `.bak` of the pre-migration
    file.
-4. **Validation on load**: a corrupted file (truncate one by hand) is
-   rejected with a clear message naming the problem — never a stack trace,
+4. Validation on load: a corrupted file (truncate one by hand) is
+   rejected with a clear message naming the problem, never a stack trace,
    never a silent empty journal.
-5. **Flaky sync**: a provided-by-you stub `cloud_sync(entry)` raises a
+5. Flaky sync: a provided-by-you stub `cloud_sync(entry)` raises a
    `TemporaryError` 60% of the time. Sync with exponential backoff plus
-   jitter, a retry budget of 5, and idempotency — entries carry stable
+   jitter, a retry budget of 5, and idempotency: entries carry stable
    ids, and the stub, which you also write, must dedupe by id so that a
    retry after a "failure" that actually succeeded doesn't double-post.
 
@@ -1644,18 +1645,18 @@ refuses to lose data.
 10, stretch 5 · B: atomic + crash test 20, migration 10, validation-on-load
 10, backoff/budget/idempotent sync 15 · README 5.
 
-### Research paper — Anatomy of a Failure (1,800–2,500 words)
+### Research paper: Anatomy of a Failure (1,800–2,500 words)
 
 Pick one famous software failure and explain it through this phase's
 vocabulary:
 
-- **Therac-25** (1985–87) — radiation therapy machine; race conditions and
+- Therac-25 (1985–87): radiation therapy machine; race conditions and
   the removal of hardware interlocks.
-- **Knight Capital** (2012) — $440M in 45 minutes; deployment, dead code,
+- Knight Capital (2012): $440M in 45 minutes; deployment, dead code,
   and configuration reuse.
-- **Northeast blackout** (2003) — a race condition in an alarm system, and
+- Northeast blackout (2003): a race condition in an alarm system, and
   55 million people in the dark.
-- **Ariane 5, flight 501** (1996) — reused code, an unvalidated
+- Ariane 5, flight 501 (1996): reused code, an unvalidated
   conversion, and an exploding rocket.
 
 **Required:** narrate the failure accurately; explain it using **at least
@@ -1669,7 +1670,7 @@ force report for the blackout; the Lions inquiry report for Ariane).
 **Rubric (100):** accurate narrative 30 · correct use of three concepts
 35 · the prevention argument 20 · sources incl. primary 15.
 
-### Midterm exam (45 minutes, closed docs — take after the Reliability cluster)
+### Midterm exam (45 minutes, closed docs: take after the Reliability cluster)
 
 1. Membership test in a list versus a set: how does each scale as the
    collection grows, and what makes the set fast?
@@ -1678,8 +1679,8 @@ force report for the blackout; the Lions inquiry report for Ariane).
 3. Content-addressed naming: what does "the name is the hash of the
    content" buy? Two distinct benefits.
 4. Define a race condition, and describe the one you left as a TODO in
-   Movie Night (Phase 5) — what interleaving loses a vote?
-5. Python has the GIL — one thread runs Python bytecode at a time. Why do
+   Movie Night (Phase 5): what interleaving loses a vote?
+5. Python has the GIL (one thread runs Python bytecode at a time). Why do
    race conditions happen anyway?
 6. The atomic write pattern: list its steps, and state why the rename must
    stay on the same filesystem.
@@ -1693,31 +1694,31 @@ force report for the blackout; the Lions inquiry report for Ariane).
 <details markdown="1">
 <summary>Answer key</summary>
 
-1. List: scan everything — cost grows with length (O(n)). Set: hash the
-   item, jump to its bucket — roughly constant on average. The hash
+1. List: scan everything, so cost grows with length (O(n)). Set: hash the
+   item, jump to its bucket, roughly constant on average. The hash
    function is what buys the shortcut.
 2. Any three: deterministic; fixed-size output; tiny input change flips
    the output completely (avalanche); infeasible to invert; collisions
    infeasible to construct.
-3. Identical content gets identical names — deduplication is automatic;
-   and the name verifies the content — corruption or tampering is
+3. Identical content gets identical names, so deduplication is automatic;
+   and the name verifies the content, so corruption or tampering is
    detectable by rehashing. (Also: safe caching.)
 4. Two operations interleave on shared state so the outcome depends on
    timing. Movie Night: two requests both read `votes.json` (n), both
-   write n+1 — one vote evaporates. Read-modify-write without exclusion.
-5. The GIL serializes bytecodes, not logical operations — threads can
+   write n+1, and one vote evaporates. Read-modify-write without exclusion.
+5. The GIL serializes bytecodes, not logical operations. Threads can
    still interleave *between* the read and the write, and I/O releases the
    GIL constantly.
 6. Write to a temp file in the same directory → flush (and fsync if you
    mean it) → `os.replace` over the target. Rename is atomic only within
-   a filesystem; across devices it becomes copy-then-delete — a window.
+   a filesystem; across devices it becomes copy-then-delete, a window.
 7. Doing it twice equals doing it once. Without it, a retry after a
    timeout whose request actually succeeded performs the action twice
    (double vote, double charge).
 8. Waits 0.5, 1, 2, 4 → **4 s** before the 4th retry. Jitter staggers
    many clients so they don't stampede in sync. The budget caps total
    attempts so a dead service fails fast instead of hanging forever.
-9. The least-recently-used entry — assuming recent use predicts future
+9. The least-recently-used entry, assuming recent use predicts future
    use.
 
 </details>
@@ -1759,21 +1760,21 @@ force report for the blackout; the Lions inquiry report for Ariane).
    newer reader recognize and migrate old data (old → new, on load, with a
    backup) instead of misparsing it silently.
 4. `name=../../../../etc/passwd` (or any `..` path) escapes the jobs
-   directory — read/overwrite of arbitrary files. Fixes (any two):
+   directory: read/overwrite of arbitrary files. Fixes (any two):
    resolve the joined path and require it to start with the jobs dir's
    resolved path; reject separators/`..` outright; use a generated id →
    path lookup instead of user-supplied names.
 5. A tiny compressed input that expands enormously (a 10 KB PNG describing
    a 100-megapixel image), exhausting memory/disk. Defense: cap declared
    dimensions/decoded size *before* decoding, and fail closed.
-6. Downward/inward only — UI depends on application logic, which depends
+6. Downward/inward only: UI depends on application logic, which depends
    on core modules; a leaf imports no application layer above it. The
-   pipeline-as-leaf runs with plain inputs and outputs — no server, no
-   browser — so tests call it directly.
+   pipeline-as-leaf runs with plain inputs and outputs (no server, no
+   browser), so tests call it directly.
 7. Phase one: stage the extraction as a *proposal* artifact; between:
    a human compares it against the drawing; phase two: commit into the
    job's real data only on approval. Right for AI extraction because its
-   failure mode is plausible fabrication — invented geometry that only a
+   failure mode is plausible fabrication, invented geometry that only a
    human comparing against the source can catch.
 8. Criteria: measured values inherit evidence; interpolated values inherit
    assumptions · downstream users can't weigh a value without knowing
@@ -1786,11 +1787,11 @@ force report for the blackout; the Lions inquiry report for Ariane).
 
 ---
 
-## Phase 9 — Synthesis
+## Phase 9: Synthesis
 
 *Subject: everything, at once, on purpose.*
 
-### Pre-reading quiz — calibration inventory (15 minutes)
+### Pre-reading quiz: calibration inventory (15 minutes)
 
 Rate your confidence 1–5 in each area, *then* take the five spot checks.
 
@@ -1808,12 +1809,12 @@ write pattern.
 
 Azimuth: 045. The rest you can now self-verify against Phases 1, 3, 4, 6,
 and 8 above. The real result is the *calibration*: any area you rated 4+
-whose spot check you missed goes on your review list before the capstone —
-misplaced confidence, not ignorance, is what this quiz hunts.
+whose spot check you missed goes on your review list before the capstone.
+Misplaced confidence, not ignorance, is what this quiz hunts.
 
 </details>
 
-### Programming assignment — capstone: A Digitizer for Something Else Entirely (15–20 hours)
+### Programming assignment, capstone: A Digitizer for Something Else Entirely (15–20 hours)
 
 Build a miniature end-to-end digitizer for a paper record type with **no
 connection to archaeology**. Pick one: knitting charts · baseball
@@ -1824,14 +1825,14 @@ Your pipeline must include, each requirement naming the phase that taught
 it:
 
 1. **Image preparation** of a photo/scan of the record, using your Phase 6
-   filter suite (grayscale, contrast, threshold — whatever the source
+   filter suite (grayscale, contrast, threshold, whatever the source
    needs).
 2. **Guided manual capture** (Phase 2): a CLI or simple form that walks a
-   person through transcribing the record into structured JSON — you are
+   person through transcribing the record into structured JSON. You are
    the tracing stage.
 3. **A documented schema** with `schema_version` (Phases 2, 8).
 4. **Normalization** rules, written down (Phase 2).
-5. **Validation**: ≥ 5 rules with located messages *and* a severity split —
+5. Validation: ≥ 5 rules with located messages *and* a severity split,
    errors versus warnings (Phases 2, 8).
 6. **One real unit/frame conversion** (Phases 4, 7): knitting gauge
    (stitches → centimeters), scorecard innings → a game timeline, garden
@@ -1842,7 +1843,7 @@ it:
 9. **A report or visualization** a person from the domain would recognize
    (text rendering fine; Phase 6 skills welcome).
 10. **A README** with a quickstart in the workflow-page shape *and* an
-    honest capability table — supported / experimental / not-implemented —
+    honest capability table (supported / experimental / not-implemented)
     for your own tool (Phases 0, 1).
 
 **Rubric (100):** pipeline completeness end to end 30 · schema +
@@ -1852,7 +1853,7 @@ validation quality 20 · provenance + atomicity + honest capability table
 This is the proof of digestion the whole pack aims at: the project's
 architecture, rebuilt from understanding, pointed at a different world.
 
-### Research paper — Digitization in the Wild (2,000–3,000 words)
+### Research paper: Digitization in the Wild (2,000–3,000 words)
 
 Pick a real, large digitization effort: **Old Weather** (citizen
 transcription of ship logbooks for climate science) · **Google Books /
@@ -1866,24 +1867,24 @@ filled, and are fills flagged?) · synthetic/real separation (test data ever
 near real data?).
 
 Close with a verdict: what should this effort adopt from the principles,
-and — seriously considered — what should the principles learn from the
+and, seriously considered, what should the principles learn from the
 effort's scale? **At least 6 sources.**
 
 **Rubric (100):** the effort described accurately 25 · all six principles
 applied with evidence 45 · the two-way verdict 20 · sources 10.
 
-### Midterm exam — the integration matrix (60 minutes, closed docs)
+### Midterm exam: the integration matrix (60 minutes, closed docs)
 
-**Part A.** Draw a table: seven rows (the pipeline boxes), four columns —
-workflow page · concept page · one CS technique · one archaeology term.
+**Part A.** Draw a table: seven rows (the pipeline boxes), four columns
+(workflow page · concept page · one CS technique · one archaeology term).
 Fill all 28 cells from memory. Any defensible entry counts; a cell you can
 argue is a cell you own.
 
-**Part B — confusable pairs, rapid fire.** One distinguishing sentence
+**Part B: confusable pairs, rapid fire.** One distinguishing sentence
 each: marker/feature · feature/find · locus/layer · apparent/true dip ·
 normalize/validate · wall/baulk · cut/fill · measured/interpolated.
 
-**Part C — navigation, rapid fire.** Name the section (page if you can)
+**Part C: navigation, rapid fire.** Name the section (page if you can)
 for: a schema field's type · whether model building is dependable · what
 erosion does · what a baulk is · why the app stages AI output for review ·
 the exact validation message wording.
@@ -1891,14 +1892,14 @@ the exact validation message wording.
 <details markdown="1">
 <summary>Answer key</summary>
 
-A. Sample defensible row set (yours may differ): Prepare — workflow 02 /
-source drawing types / CLAHE / scale and DPI · Trace — workflow 03 / layers
-and boundaries / contour tracing / boundary · Normalize — workflow 04 /
+A. Sample defensible row set (yours may differ): Prepare: workflow 02 /
+source drawing types / CLAHE / scale and DPI · Trace: workflow 03 / layers
+and boundaries / contour tracing / boundary · Normalize: workflow 04 /
 geometric normalization / similarity transforms / orientation seed ·
-Validate — workflow 05 / accuracy and provenance / polygon
-self-intersection / stratigraphic relationships · Convert — workflow 06 /
-coordinate spaces / affine transforms / datum · Build — workflow 07 / from
-archaeology to 3D / spatial interpolation & kriging / true dip · View —
+Validate: workflow 05 / accuracy and provenance / polygon
+self-intersection / stratigraphic relationships · Convert: workflow 06 /
+coordinate spaces / affine transforms / datum · Build: workflow 07 / from
+archaeology to 3D / spatial interpolation & kriging / true dip · View:
 workflow 08 / jobs, sheets, and trenches / JSON & schema design /
 provenance links. Pass: ≥ 24 defensible cells.
 B. Pass: 7 of 8 crisp. (Every pair appears in Phases 2–8 keys above;
@@ -1910,14 +1911,14 @@ rules). Pass: 5 of 6.
 
 </details>
 
-### Final exam — the course final (three parts; ~3 hours total, sittings may be split)
+### Final exam: the course final (three parts; ~3 hours total, sittings may be split)
 
-**Part A — comprehensive written (90 minutes, closed docs, calculator
+**Part A: comprehensive written (90 minutes, closed docs, calculator
 allowed).** Twenty-five questions; pass ≥ 20.
 
 1. The seven pipeline boxes, in order.
 2. The four input routes and each one's capability status.
-3. A doc page and its source file disagree — which wins, and which
+3. A doc page and its source file disagree: which wins, and which
    front-matter field points where?
 4. The synthetic-data rule, in one sentence.
 5. Define locus so it doesn't just mean "layer."
@@ -1928,7 +1929,7 @@ allowed).** Twenty-five questions; pass ≥ 20.
 9. Datum 204.10 m; a surface lies 2.45 m below. Elevation?
 10. A 1:20 drawing scanned at 300 DPI: how many pixels represent one real
     meter?
-11. `7.5YR 6/4` — name the parts.
+11. `7.5YR 6/4`: name the parts.
 12. Which architectural component decides a trace is invalid, and which
     component told the browser about it?
 13. Why does the slow model build run as a background task?
@@ -1944,12 +1945,12 @@ allowed).** Twenty-five questions; pass ≥ 20.
     transitive reduction remove?
 22. Two files, one SHA-256 digest: conclude what, with what confidence?
 23. The atomic write pattern, three steps.
-24. Why must retried operations be idempotent — one concrete disaster if
+24. Why must retried operations be idempotent? One concrete disaster if
     not?
 25. Two-phase commit with review: why is the human between the phases not
     optional for AI-extracted geometry?
 
-**Part B — essays (45 minutes, closed docs; both).**
+**Part B: essays (45 minutes, closed docs; both).**
 
 1. *What this application refuses to do, and why that is its best
    feature.* Cover: interpretation, placeholder coordinates, fabrication
@@ -1959,7 +1960,7 @@ allowed).** Twenty-five questions; pass ≥ 20.
    every stage that could reject it, and every artifact it appears in
    along the way. (10–15 sentences.)
 
-**Part C — practical (45 minutes, docs closed until you're stuck).**
+**Part C: practical (45 minutes, docs closed until you're stuck).**
 A fresh synthetic fixture, the full pipeline, alone. Checklist: job
 created · image prepared · ≥ 2 layers + 1 feature captured · cleanup run ·
 validation clean · placed with (synthetic) coordinates · model built or
@@ -1967,31 +1968,31 @@ its absence correctly explained via capability status · outputs located on
 disk and their provenance stated.
 
 <details markdown="1">
-<summary>Answer key — Part A</summary>
+<summary>Answer key: Part A</summary>
 
 1. Prepare → trace/import/extract → normalize → validate → convert →
    build → view. 2. Manual/supported · import/supported · AI/experimental ·
    marker workflow/backend-only. 3. The code; `source_files` (with
    `verified_against`). 4. Labeled-synthetic data is invented, safe for
-   practice, never evidence. 5. The excavator's defined recording unit —
+   practice, never evidence. 5. The excavator's defined recording unit,
    which may be a deposit, a cut, or another unit of observation, not only
    a stratum. 6. To preserve standing sections (readable stratigraphy) and
    access/control while digging. 7. Bedding → floor → pit (cut) →
-   pit-fill → topsoil — oldest first: bedding, floor, pit, fill, topsoil.
+   pit-fill → topsoil. Oldest first: bedding, floor, pit, fill, topsoil.
    8. 150. 9. 201.65 m. 10. 1 m real = 5 cm paper = 5/2.54 in × 300 ≈
    **591 px**. 11. Hue 7.5YR, value 6, chroma 4. 12. The pipeline decides;
    the backend (routes/status) told the browser. 13. So the request
    returns immediately and the browser polls status instead of hanging.
-   14. 9/9 = **1** — isolated pixels are annihilated by averaging; blur is
+   14. 9/9 = **1**: isolated pixels are annihilated by averaging; blur is
    noise suppression. 15. Picks the threshold maximizing between-class
    variance of the histogram. 16. Specks: opening. Gaps: closing.
    17. Smooth (Gaussian) → gradient (Sobel) → non-max suppression →
    hysteresis. 18. Intersection 1; union 4+4−1=7; **1/7**. 19. (5/13,
-   12/13). 20. **12**. 21. Only A,B,C; remove A→C. 22. Same content —
+   12/13). 20. **12**. 21. Only A,B,C; remove A→C. 22. Same content,
    for practical purposes certain (engineered collisions infeasible,
    accidental ones astronomically unlikely). 23. Temp file, same
    directory → write + flush → atomic rename over target. 24. A retry
-   after a success-that-looked-like-failure repeats the action — the
+   after a success-that-looked-like-failure repeats the action: the
    double-charged card, the double-posted entry. 25. Because extraction
    can fabricate plausible geometry; only comparison against the source
    drawing catches it, so commit must wait on that comparison.
@@ -2015,8 +2016,8 @@ day.
 ## After the final
 
 Passing Part A at 20/25 with both essays meeting criteria and a clean
-Part C run means the plan's goal — *learn, understand, and digest all of
-the information in the documentation* — is met, with receipts: ten
+Part C run means the plan's goal (*learn, understand, and digest all of
+the information in the documentation*) is met, with receipts: ten
 programs, ten papers, and a capstone that rebuilt the project's ideas in a
 world of your choosing.
 

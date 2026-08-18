@@ -27,13 +27,13 @@ scale.
 
 A third quantity connects them and is what the software actually uses:
 
-**Pixels per metre** — how many pixels correspond to one metre of *trench*. It
+**Pixels per metre**: how many pixels correspond to one metre of *trench*. It
 comes from [calibration](../cs/similarity-transforms.md): two clicks a known real
 distance apart.
 
 A fourth appears in the marker detector:
 
-**Pixels per paper millimetre** — how finely the *paper* is sampled, derived from
+**Pixels per paper millimetre**: how finely the *paper* is sampled, derived from
 pixels-per-metre and the grid square size. Marker sizes are physical properties
 of pencil dots, so they are expressed in paper millimetres.
 
@@ -45,7 +45,7 @@ flowchart TB
   P --> S["photographed"]
   S --> Px["pixels"]
   Px --> C["calibration:<br/>2 clicks + 1 real distance"]
-  C --> M["px_per_m — metres of trench"]
+  C --> M["px_per_m, metres of trench"]
   M --> MM["× square_cm ÷ 1000<br/>→ px per paper mm"]
   MM --> F["marker size filters,<br/>in units of the paper"]
 ```
@@ -56,7 +56,7 @@ flowchart TB
 is a shape.
 
 **DPI** decides whether the drawing survives digitisation. A boundary line drawn
-at 0.3 mm wide is roughly 3.5 pixels at 300 DPI and one pixel at 90 DPI — and one
+at 0.3 mm wide is roughly 3.5 pixels at 300 DPI and one pixel at 90 DPI. One
 pixel is what disappears under any resampling.
 
 The project's own driving case: Trench 23 was "scanned well below the 300 DPI the
@@ -78,7 +78,7 @@ if pixel_span < 2:
 px_per_m = (pixel_span / ref_meters,)
 ```
 
-One division. The `ref_meters` comes from the user — read off a
+One division. The `ref_meters` comes from the user, read off a
 [tie point](grid-tie-point.md), a scale bar, or the graph-paper grid.
 
 Stored so the browser can reproduce it:
@@ -108,7 +108,7 @@ mm_px = px_per_m * float(square_cm) / 1000.0
 if mm_px < 2:
     raise RuntimeError(
         "photo resolution too low for marker detection "
-        f"({mm_px:.1f} px per paper mm) — retake closer or "
+        f"({mm_px:.1f} px per paper mm). Retake closer or "
         "at higher resolution"
     )
 ```
@@ -117,10 +117,10 @@ and the module explains the units choice:
 
 > Marker size limits are given in PAPER millimeters (how big the pencil dot
 > is on the sheet) and converted through square_cm, assuming one bold grid
-> square is 1 cm of paper -- standard for mm graph paper.
+> square is 1 cm of paper, the standard for mm graph paper.
 
 So `min_marker_paper_mm=0.5` and `line_kill_paper_mm=0.35` are numbers a person
-holding the drawing can check with a ruler — resolution-independent by
+holding the drawing can check with a ruler, resolution-independent by
 construction. See
 [structuring elements](../cs/structuring-elements.md).
 
@@ -161,7 +161,7 @@ else:
 ```
 
 Upscaling **cannot add detail that was not captured**. It redistributes what is
-there so thin lines survive later processing — see
+there so thin lines survive later processing. See
 [Lanczos resampling](../cs/lanczos-resampling.md). A drawing scanned too coarsely
 is not recoverable.
 
@@ -183,7 +183,7 @@ counter-example the upscale exists for.
 
 **Calibrating on too short a distance.** Two clicks close together make every
 derived metre sensitive to a pixel of click error. Refused below 2 px, and below
-20 px in the CV path — but "not refused" is not the same as "accurate."
+20 px in the CV path, but "not refused" is not the same as "accurate."
 
 **Assuming a bold grid square is 1 cm.** Standard for mm graph paper and stated
 as an assumption. A sheet with a different ruling gives wrong paper-millimetre
@@ -198,12 +198,12 @@ processing. It cannot recover a line that fell below one pixel.
 
 ## Related pages
 
-- [Recording sheet](recording-sheet.md) — what is being scanned.
-- [Grid tie point](grid-tie-point.md) — a source of the real distance.
-- [Grid registration](grid-registration.md) — the next conversion.
-- [Similarity transforms](../cs/similarity-transforms.md) — the calibration
+- [Recording sheet](recording-sheet.md): what is being scanned.
+- [Grid tie point](grid-tie-point.md): a source of the real distance.
+- [Grid registration](grid-registration.md): the next conversion.
+- [Similarity transforms](../cs/similarity-transforms.md): the calibration
   geometry.
-- [Lanczos resampling](../cs/lanczos-resampling.md) — the upscale.
-- [Drawing guidelines](../reference/drawing-guidelines.md) — the DPI
+- [Lanczos resampling](../cs/lanczos-resampling.md): the upscale.
+- [Drawing guidelines](../reference/drawing-guidelines.md): the DPI
   recommendation.
-- [Prepare the image](../workflows/02-prepare-image.md) — the workflow step.
+- [Prepare the image](../workflows/02-prepare-image.md): the workflow step.

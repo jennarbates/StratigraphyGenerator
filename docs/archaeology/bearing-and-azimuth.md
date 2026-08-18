@@ -12,7 +12,7 @@ verified_against: ae2fc1d
 # Bearing and azimuth
 
 A compass direction, measured clockwise from north. The convention every angle in
-this project follows — and the one that disagrees with what `sin` and `cos`
+this project follows, and the one that disagrees with what `sin` and `cos`
 assume.
 
 ## What it is
@@ -34,14 +34,14 @@ throughout.
 
 Two bearings are recorded here, for different things:
 
-- **`bearing_deg`** on a [face](face.md) — the direction the wall's local **+x**
+- `bearing_deg` on a [face](face.md): the direction the wall's local **+x**
   axis points.
-- **`azimuth`** on an [orientation seed](orientation-seed.md) — the direction a
+- `azimuth` on an [orientation seed](orientation-seed.md): the direction a
   surface **dips downhill**.
 
 The trap is that mathematics measures angles **counter-clockwise from east**,
 which is what `sin`, `cos`, and `atan2(y, x)` assume. Compass and mathematical
-conventions differ in both the zero direction and the rotation sense — see
+conventions differ in both the zero direction and the rotation sense. See
 [compass bearings versus mathematical angles](../cs/compass-bearings-vs-mathematical-angles.md).
 
 ## The picture
@@ -110,7 +110,7 @@ def to_site(x, depth, X0=X0, Y0=Y0, Z0=Z0, sin_t=sin_t, cos_t=cos_t):
     return X, Y, Z
 ```
 
-`sin` on X, `cos` on Y. The convention is restated wherever it recurs —
+`sin` on X, `cos` on Y. The convention is restated wherever it recurs.
 `poggio_webapp/pipeline/merge_walls.py`:
 
 ```python
@@ -142,7 +142,7 @@ def _dip_from_normal(normal):
     return dip, math.degrees(math.atan2(x, y)) % 360.0
 ```
 
-`atan2(x, y)`, not the habitual `atan2(y, x)` — and the docstring says so,
+`atan2(x, y)`, not the habitual `atan2(y, x)`, and the docstring says so,
 because it is exactly the line someone tidying up would "fix".
 
 ### Used as a quality measure
@@ -175,7 +175,7 @@ if "bearing_deg" not in missing_fields and not 0 <= bearing <= 360:
 | **[Dip](apparent-and-true-dip.md)** | Dip is how steeply a surface tilts; azimuth is which horizontal direction it tilts *toward*. Two numbers describing one orientation. |
 | **Strike** | Strike is the horizontal line *in* a dipping plane, 90° from the dip azimuth. Traditional in field geology; GemPy wants dip azimuth. |
 | **Magnetic bearing** | Unless stated. Magnetic north differs from grid north by a declination that changes with time and place. |
-| **A face's normal** | `bearing_deg` is where the wall's **+x axis** points — along the wall, not perpendicular to it. |
+| **A face's normal** | `bearing_deg` is where the wall's **+x axis** points: along the wall, not perpendicular to it. |
 
 ## Getting it wrong
 
@@ -199,9 +199,9 @@ wall is mirrored along its length.
 
 ## Related pages
 
-- [Grid registration](grid-registration.md) — where `bearing_deg` is entered.
-- [Site coordinates](site-coordinates.md) — the space it maps into.
-- [Apparent and true dip](apparent-and-true-dip.md) — where azimuth appears.
-- [Orientation seed](orientation-seed.md) — what carries a dip azimuth.
-- [Compass bearings versus mathematical angles](../cs/compass-bearings-vs-mathematical-angles.md) —
+- [Grid registration](grid-registration.md): where `bearing_deg` is entered.
+- [Site coordinates](site-coordinates.md): the space it maps into.
+- [Apparent and true dip](apparent-and-true-dip.md): where azimuth appears.
+- [Orientation seed](orientation-seed.md): what carries a dip azimuth.
+- [Compass bearings versus mathematical angles](../cs/compass-bearings-vs-mathematical-angles.md):
   the full treatment.

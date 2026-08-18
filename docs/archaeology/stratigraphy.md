@@ -21,8 +21,8 @@ arrangement says about the order of events.
 
 Its core claim is simple: **the arrangement of deposits records the sequence of
 the events that produced them.** A layer of destruction debris over a floor means
-the building burned after the floor was laid. That inference — from spatial
-arrangement to temporal order — is the whole method.
+the building burned after the floor was laid. That inference, from spatial
+arrangement to temporal order, is the whole method.
 
 Three things follow, and each shapes this software:
 
@@ -54,7 +54,7 @@ Archaeology dates things by association. An object's date comes from the deposit
 it was found in; the deposit's date comes from its position in the sequence. Break
 the stratigraphy and the dating goes with it.
 
-The sequence is also the *history* — not merely a filing system for finds. That a
+The sequence is also the *history*, not merely a filing system for finds. That a
 floor was laid, used, burned, robbed, and buried is the site's story, and it is
 read off the layers.
 
@@ -97,8 +97,8 @@ class HarrisRelation(_HarrisModel):
     notes: HumanText | None
 ```
 
-`evidence` is **required**. A relation without a stated reason is not storable —
-see [JSON schema design](../cs/json-schema-design.md).
+`evidence` is **required**. A relation without a stated reason is not storable.
+See [JSON schema design](../cs/json-schema-design.md).
 
 A contradiction is an error, and the message names the units on the
 [cycle](../cs/cycle-detection.md):
@@ -123,13 +123,13 @@ Crossing layers are physically impossible, so
 report.err(
     where,
     f"bottom at x={x} (depth {y:.2f}) is ABOVE "
-    f"{prev_name}'s bottom (depth {above:.2f}) — layers cross",
+    f"{prev_name}'s bottom (depth {above:.2f}): layers cross",
 )
 ```
 
 while a gap is only a **warning**, because a void can be real. That severity
-split *is* the stratigraphy, encoded — see
-[error taxonomies](../cs/error-taxonomies.md).
+split *is* the stratigraphy, encoded (see
+[error taxonomies](../cs/error-taxonomies.md)).
 
 ## What it is not
 
@@ -150,7 +150,7 @@ data structure requiring one manufactures a claim.
 a trench are not necessarily the same. This is why
 [correlation](correlation.md) is always human-confirmed here:
 
-> Correlation — the interpretation that two units are the same deposit — is
+> Correlation, the interpretation that two units are the same deposit, is
 > separate and always human-confirmed; equal labels never merge on their own.
 
 **Trusting the model over the record.** The 3D model is interpolated. It renders
@@ -162,16 +162,16 @@ actual recorded points over it:
 > guess.
 
 **Assuming locus numbers are comparable across time.** A trench reopened after a
-gap may restart numbering — see
+gap may restart numbering. See
 [locus numbering epochs](locus-numbering-epochs.md).
 
 ## Related pages
 
-- [Law of superposition](law-of-superposition.md) — the founding principle.
-- [Harris Matrix](harris-matrix.md) — how the sequence is drawn.
-- [Stratigraphic relationships](stratigraphic-relationships.md) — the
+- [Law of superposition](law-of-superposition.md): the founding principle.
+- [Harris Matrix](harris-matrix.md): how the sequence is drawn.
+- [Stratigraphic relationships](stratigraphic-relationships.md): the
   vocabulary.
-- [Layer](layer.md), [cut](cut.md), [fill](fill.md) — the units.
-- [Directed acyclic graphs](../cs/directed-acyclic-graphs.md) — the data
+- [Layer](layer.md), [cut](cut.md), [fill](fill.md): the units.
+- [Directed acyclic graphs](../cs/directed-acyclic-graphs.md): the data
   structure.
-- [From archaeology to 3D](../concepts/archaeology-to-3d.md) — the pipeline.
+- [From archaeology to 3D](../concepts/archaeology-to-3d.md): the pipeline.

@@ -12,12 +12,12 @@ verified_against: ae2fc1d
 # Trench profile
 
 The drawing of a vertical trench wall, showing the sequence of deposits in
-section. It is the primary evidence this whole application processes — and, for
+section. It is the primary evidence this whole application processes and, for
 an excavated trench, often the only evidence left.
 
 ## What it is
 
-A trench profile — also called a **section drawing** — records one vertical face
+A trench profile, also called a **section drawing**, records one vertical face
 of a trench: the layers visible in it, where their boundaries run, what is
 embedded in them, and how deep each sits.
 
@@ -53,14 +53,14 @@ that relationship survives.
 
 It also does something a photograph cannot: it **records an interpretation**. A
 photograph of a trench wall shows a continuous surface of soil. The drawing says
-where the excavator judged one deposit to end and another to begin — which is
+where the excavator judged one deposit to end and another to begin, which is
 the archaeological content.
 
 ## How this project stores it
 
 Two schemas, matching the two drawing traditions.
 
-**`ArchaeologicalDiagram`** — an illustrated sheet, possibly several faces:
+**`ArchaeologicalDiagram`** is an illustrated sheet, possibly several faces:
 
 ```json
 {
@@ -83,7 +83,7 @@ Two schemas, matching the two drawing traditions.
 }
 ```
 
-**`FieldWallProfile`** — a modern field sheet, exactly one wall:
+**`FieldWallProfile`** is a modern field sheet, exactly one wall:
 
 ```json
 {
@@ -140,17 +140,17 @@ perspective. A sheet photographed obliquely is keystoned, and the error grows
 with distance from the calibration points. Photograph square-on.
 
 **Assuming boundaries are objective.** They are the recorder's judgement. The
-project keeps `confidence` on every point for this reason — `"human-traced"`,
-`"human-verified"` — so a later reader knows what kind of claim each is.
+project keeps `confidence` on every point for this reason (`"human-traced"`,
+`"human-verified"`), so a later reader knows what kind of claim each is.
 
 ## Related pages
 
-- [Trench](trench.md) — what is being sectioned.
-- [Wall and baulk](wall-and-baulk.md) — the physical face drawn.
-- [Face](face.md) — the modelled representation.
-- [Recording sheet](recording-sheet.md) — the two sheet traditions.
-- [Boundary](boundary.md) — the lines a profile records.
-- [Source drawing types](../concepts/source-drawing-types.md) — the two formats
+- [Trench](trench.md): what is being sectioned.
+- [Wall and baulk](wall-and-baulk.md): the physical face drawn.
+- [Face](face.md): the modelled representation.
+- [Recording sheet](recording-sheet.md): the two sheet traditions.
+- [Boundary](boundary.md): the lines a profile records.
+- [Source drawing types](../concepts/source-drawing-types.md): the two formats
   compared.
-- [Drawing guidelines](../reference/drawing-guidelines.md) — how to draw an
+- [Drawing guidelines](../reference/drawing-guidelines.md): how to draw an
   extractable sheet.

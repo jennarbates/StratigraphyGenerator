@@ -47,10 +47,10 @@ function renderGridConfigForm(cfg) {
   const faces = Object.keys(cfg.faces || {});
   let html = `
     <div class="table-explainer">
-      <span><strong>Map position X</strong> — east/west position</span>
-      <span><strong>Map position Y</strong> — north/south position</span>
-      <span><strong>Ground height Z</strong> — height above the site datum</span>
-      <span><strong>Direction</strong> — compass bearing in degrees</span>
+      <span><strong>Map position X</strong>: east/west position</span>
+      <span><strong>Map position Y</strong>: north/south position</span>
+      <span><strong>Ground height Z</strong>: height above the site datum</span>
+      <span><strong>Direction</strong>: compass bearing in degrees</span>
     </div>`;
   html += `<div class="table-wrap grid-config-table"><table class="data-table"><thead><tr>
     <th>Trench face</th><th>Map position X</th><th>Map position Y</th><th>Ground height Z</th><th>Direction</th>

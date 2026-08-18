@@ -20,8 +20,8 @@ project's vocabulary:
 
 | Kind | Means |
 |---|---|
-| `above` | the younger lies over the older — plain [superposition](law-of-superposition.md) |
-| `cuts` | the younger truncated the older — a [cut](cut.md) through it |
+| `above` | the younger lies over the older (plain [superposition](law-of-superposition.md)) |
+| `cuts` | the younger truncated the older (a [cut](cut.md) through it) |
 | `fills` | the younger is the [fill](fill.md) of the older cut |
 | `precedes` | the younger is later, by a relationship not of the other kinds |
 | `other` | a relationship the recorder describes in the evidence text |
@@ -30,7 +30,7 @@ project's vocabulary:
 one unit lies over another. `cuts` says the younger **removed part of** the
 older, which is a much stronger observation and usually a much sharper date.
 
-Every relationship is **directed** — younger to older — and **transitive**: if A
+Every relationship is **directed** (younger to older) and **transitive**: if A
 is above B and B above C, then A is above C, whether or not anyone recorded it.
 
 ## The picture
@@ -83,10 +83,10 @@ Three fields worth dwelling on.
 
 **`evidence` is required.** Not optional, unlike `notes`. A chronological
 assertion without a stated reason cannot be stored. That is a schema encoding an
-epistemic standard — see
+epistemic standard; see
 [JSON schema design](../cs/json-schema-design.md).
 
-**`source` records who asserted it** — `"manual"` for a person,
+**`source` records who asserted it**: `"manual"` for a person,
 `"suggestion"` for an accepted machine proposal. Provenance travels with the
 claim.
 
@@ -131,7 +131,7 @@ errors.append(_issue(
 ```
 
 That last one is subtle and important. If two units are
-[correlated](correlation.md) — asserted to be the *same* deposit — then a
+[correlated](correlation.md), asserted to be the *same* deposit, then a
 relationship between them says a deposit is younger than itself. The check
 catches a contradiction that only arises from the *combination* of two
 individually reasonable assertions.
@@ -165,7 +165,7 @@ consecutive layers in one source share a recorded boundary within tolerance:
 _ORDERING_REASON = "Consecutive source layers share a recorded boundary."
 ```
 
-and always as `kind="above"` — never `cuts` or `fills`, which require judgement
+and always as `kind="above"`, never `cuts` or `fills`, which require judgement
 the geometry cannot supply.
 
 ## What it is not
@@ -181,7 +181,7 @@ the geometry cannot supply.
 ## Getting it wrong
 
 **Using `above` where `cuts` belongs.** Both are valid, and `cuts` records that
-the younger unit truncated the older — a stronger and more useful statement.
+the younger unit truncated the older, a stronger and more useful statement.
 
 **Recording a relationship between correlated units.** Individually reasonable,
 jointly contradictory. Caught as `relation-within-correlation`.
@@ -199,9 +199,9 @@ refuses to save, naming the units and the specific relation IDs on the loop.
 
 ## Related pages
 
-- [Harris Matrix](harris-matrix.md) — where relationships are drawn.
-- [Law of superposition](law-of-superposition.md) — what `above` encodes.
-- [Cut](cut.md) and [fill](fill.md) — what `cuts` and `fills` encode.
-- [Correlation](correlation.md) — the other kind of assertion.
-- [Cycle detection](../cs/cycle-detection.md) — how contradictions are found.
-- [Directed acyclic graphs](../cs/directed-acyclic-graphs.md) — the structure.
+- [Harris Matrix](harris-matrix.md): where relationships are drawn.
+- [Law of superposition](law-of-superposition.md): what `above` encodes.
+- [Cut](cut.md) and [fill](fill.md): what `cuts` and `fills` encode.
+- [Correlation](correlation.md): the other kind of assertion.
+- [Cycle detection](../cs/cycle-detection.md): how contradictions are found.
+- [Directed acyclic graphs](../cs/directed-acyclic-graphs.md): the structure.

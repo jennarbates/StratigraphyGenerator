@@ -10,7 +10,7 @@ verified_against: ae2fc1d
 
 # Directed acyclic graphs
 
-A directed graph with no cycles. The structure a valid chronology must have —
+A directed graph with no cycles. The structure a valid chronology must have,
 and the constraint that turns "these walls disagree" from a vague worry into a
 detectable, reportable error.
 
@@ -25,7 +25,7 @@ exactly what excavation evidence gives you.
 
 **It can be [topologically sorted](topological-sorting.md).** A sequence exists
 in which every node appears before all its successors. Acyclicity is not merely
-sufficient — it is *necessary*: a cycle makes no such sequence possible.
+sufficient, it is *necessary*: a cycle makes no such sequence possible.
 
 **It has a unique [transitive reduction](transitive-reduction.md).** The minimal
 edge set with the same reachability is unique for a DAG, which is what makes a
@@ -33,7 +33,7 @@ Harris Matrix diagram well defined rather than a matter of taste.
 
 For archaeology the acyclicity requirement has a physical meaning: a cycle would
 say a deposit is both younger and older than another. That cannot happen. A
-cycle in the data is therefore always an error — a mis-recorded relationship, or
+cycle in the data is therefore always an error: a mis-recorded relationship, or
 a correlation asserting that two units are the same when the stratigraphy says
 otherwise.
 
@@ -41,14 +41,14 @@ otherwise.
 
 ```mermaid
 flowchart TB
-  subgraph dag["a DAG — valid chronology"]
+  subgraph dag["a DAG, valid chronology"]
     direction TB
     A1["Locus 1"] --> B1["Locus 2"]
     A1 --> C1["Locus 3"]
     B1 --> D1["Locus 4"]
     C1 --> D1
   end
-  subgraph cyc["a cycle — impossible"]
+  subgraph cyc["a cycle, impossible"]
     direction TB
     A2["Locus 1"] --> B2["Locus 2"]
     B2 --> C2["Locus 3"]
@@ -91,7 +91,7 @@ The `else` is the point: order and display edges are computed **only** when the
 graph is acyclic, because neither is defined otherwise. A cyclic matrix produces
 an error and two empty lists rather than a partial answer.
 
-The error names the offending relation IDs, not just the units — so a user can
+The error names the offending relation IDs, not just the units, so a user can
 go and fix the specific assertion.
 
 Acyclicity is checked on every load and every save:
@@ -140,7 +140,7 @@ if len(order) < len(order_index):
     raise ValueError(_cycle_message(order, order_index, successors, faces_by_surface))
 ```
 
-`_cycle_message` then does something careful — it isolates the surfaces actually
+`_cycle_message` then does something careful. It isolates the surfaces actually
 *on* the cycle rather than everything downstream of it:
 
 ```python
@@ -162,15 +162,15 @@ return (
 )
 ```
 
-The message tells the operator *what* contradicts, *where*, and *what to do* —
-and states plainly that nothing was guessed.
+The message tells the operator *what* contradicts, *where*, and *what to do*.
+It states plainly that nothing was guessed.
 
 ## Why this and not something else
 
 | Alternative | How it would handle a contradiction | Why it lost |
 |---|---|---|
 | **Allow cycles, break them arbitrarily** | Drop one edge and carry on | Silently discards an archaeologist's recorded observation and invents an order. The worst outcome: a confident model built on a contradiction nobody was told about. |
-| **Allow cycles, warn** | Report and continue with a best-effort order | Better, and there is no defensible best effort — every choice of which edge to drop is a different chronology. |
+| **Allow cycles, warn** | Report and continue with a best-effort order | Better, and there is no defensible best effort: every choice of which edge to drop is a different chronology. |
 | **Require a total order up front** | Make the user rank everything | Forces relationships the evidence does not support. |
 | **Require acyclicity, refuse otherwise** *(chosen)* | Error naming the cycle and the relations on it | The contradiction is real and the person who recorded it is the one who can resolve it. |
 
@@ -178,24 +178,24 @@ The two modules answer identically, in different words. `merge_walls`: *"Guessin
 an order there would invent stratigraphy, so it refuses."* `harris_matrix`:
 error, empty order, empty display edges.
 
-That consistency is a design position, not a coincidence — see
+That consistency is a design position, not a coincidence. See
 [fail-closed design](fail-closed-design.md) and
 [codebase review](../architecture/code-review.md).
 
 ## What it costs
 
 Checking acyclicity is one [depth-first search](depth-first-search.md), O(V + E).
-It runs on every load, every save, and every suggestion acceptance — cheap
+It runs on every load, every save, and every suggestion acceptance. It is cheap
 enough that it never needs to be skipped.
 
 The costs are all borne by the user, and deliberately:
 
-- **A cyclic matrix cannot be saved.** Work in progress that has become
+- A cyclic matrix cannot be saved. Work in progress that has become
   contradictory is rejected rather than stored. Harsh, and the alternative is a
   store that can hold invalid states.
-- **A cyclic merge cannot be built.** The operator must fix the layer order or
+- A cyclic merge cannot be built. The operator must fix the layer order or
   supply an explicit correlation.
-- **Detection does not say which edge is wrong.** It names every relation on the
+- Detection does not say which edge is wrong. It names every relation on the
   cycle; deciding which one is the mistake requires the excavation record.
 
 The last is inherent. Three mutually contradictory statements contain at least
@@ -203,21 +203,21 @@ one error, and nothing in the data says which.
 
 ## Where else you meet it
 
-- **Build systems.** Make, Bazel, and every package manager reject dependency
+- Build systems. Make, Bazel, and every package manager reject dependency
   cycles for the same reason.
-- **Spreadsheets**, where a circular reference is exactly this error.
-- **Git**, whose commit history is a DAG — a cycle would mean a commit was its
+- Spreadsheets, where a circular reference is exactly this error.
+- Git, whose commit history is a DAG: a cycle would mean a commit was its
   own ancestor.
-- **Task scheduling and project planning**, where PERT and critical-path
+- Task scheduling and project planning, where PERT and critical-path
   analysis run on a DAG.
-- **Blockchains**, and DAG-based ledgers.
-- **Neural network computation graphs**, where a cycle would make
+- Blockchains, and DAG-based ledgers.
+- Neural network computation graphs, where a cycle would make
   backpropagation undefined.
 
 ## Related pages
 
-- [Graphs and terminology](graphs-and-terminology.md) — the vocabulary.
-- [Cycle detection](cycle-detection.md) — how the check is performed.
-- [Topological sorting](topological-sorting.md) — what acyclicity enables.
-- [Transitive reduction](transitive-reduction.md) — the unique minimal edge set.
-- [Harris Matrix](../archaeology/index.md) — the archaeological structure.
+- [Graphs and terminology](graphs-and-terminology.md): the vocabulary.
+- [Cycle detection](cycle-detection.md): how the check is performed.
+- [Topological sorting](topological-sorting.md): what acyclicity enables.
+- [Transitive reduction](transitive-reduction.md): the unique minimal edge set.
+- [Harris Matrix](../archaeology/index.md): the archaeological structure.

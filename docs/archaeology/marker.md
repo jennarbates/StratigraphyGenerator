@@ -11,7 +11,7 @@ verified_against: 636b160
 # Marker
 
 A small deliberate dot the recorder puts on a field sheet at a measured boundary
-vertex. Not a stone, not a find — a *measurement mark*, and the only thing on the
+vertex. Not a stone, not a find: a *measurement mark*, and the only thing on the
 sheet that computer vision here is allowed to locate.
 
 ## What it is
@@ -25,10 +25,10 @@ Each marker is one measured vertex. Together they define the
 
 They are physically distinctive, and that is what makes them findable:
 
-- **small** — around 0.5 to 2.5 mm on the paper
-- **round**
-- **filled** — a solid disk, not an outline
-- **on a boundary line**, often touching it
+- small: around 0.5 to 2.5 mm on the paper
+- round
+- filled: a solid disk, not an outline
+- on a boundary line, often touching it
 
 Every one of those properties becomes a filter in the detector.
 
@@ -45,7 +45,7 @@ flowchart LR
 ## Why excavation records it
 
 A drawn line is an interpretation of a continuous edge. The markers are the
-points where the recorder **actually measured** — the evidence beneath the line.
+points where the recorder **actually measured**, the evidence beneath the line.
 
 That distinction is what makes them worth detecting. A boundary traced by eye is
 one person's rendering; a boundary read off its markers is the recorded
@@ -55,7 +55,7 @@ It is also why the CV path exists at all. From
 `poggio_webapp/pipeline/detect_markers.py`:
 
 > Finds the recorder's circle-marked vertex points on a field-wall photo with
-> computer vision instead of asking an LLM to trace boundaries — **CV cannot
+> computer vision instead of asking an LLM to trace boundaries. **CV cannot
 > fabricate a marker that isn't on the paper**, which is exactly the failure
 > mode Gemini tracing runs on T104-style sheets kept exhibiting.
 
@@ -95,8 +95,8 @@ else:
 ```
 
 with defaults `min_marker_paper_mm=0.5`, `max_marker_paper_mm=2.5`,
-`min_circularity=0.65`, `min_solidity=0.9`. Each rejects a different impostor —
-see [circularity](../cs/circularity.md), [solidity](../cs/solidity.md), and
+`min_circularity=0.65`, `min_solidity=0.9`. Each rejects a different impostor.
+See [circularity](../cs/circularity.md), [solidity](../cs/solidity.md), and
 [fill ratio](../cs/extent-and-fill-ratio.md).
 
 The docstring names the target precisely:
@@ -114,7 +114,7 @@ long non-circular contour.
 if mm_px < 2:
     raise RuntimeError(
         "photo resolution too low for marker detection "
-        f"({mm_px:.1f} px per paper mm) — retake closer or "
+        f"({mm_px:.1f} px per paper mm). Retake closer or "
         "at higher resolution"
     )
 ```
@@ -134,8 +134,8 @@ ranked by circularity and capped at 300.
 
 ### Coordinates are immutable downstream
 
-`poggio_webapp/pipeline/assign_markers.py` classifies each marker — top of locus
-N, final base, or noise — and assembles the extraction with the coordinates
+`poggio_webapp/pipeline/assign_markers.py` classifies each marker (top of locus
+N, final base, or noise) and assembles the extraction with the coordinates
 untouched:
 
 ```python
@@ -162,7 +162,7 @@ marginalia.append(
 
 | Not a… | Because |
 |---|---|
-| **[Feature](feature.md)** | A feature is a thing in the deposit — a stone, a lens. A marker is a measurement mark on paper. A drawn stone's *outline* is round and is rejected because it is not filled. |
+| **[Feature](feature.md)** | A feature is a thing in the deposit: a stone, a lens. A marker is a measurement mark on paper. A drawn stone's *outline* is round and is rejected because it is not filled. |
 | **[Find](find.md)** | A find is a recovered object with an identifier. |
 | **[Boundary](boundary.md)** | Many markers describe one boundary. The marker is one vertex. |
 | **[Interface point](interface-point.md)** | An interface point is a boundary point in *site* coordinates. A marker is in pixels and face-local metres. |
@@ -174,7 +174,7 @@ marginalia.append(
 size band; too faint and thresholding misses them. See the
 [drawing guidelines](../reference/drawing-guidelines.md).
 
-**Drawing hollow circles.** The fill test rejects an outline, on purpose —
+**Drawing hollow circles.** The fill test rejects an outline, on purpose,
 because a drawn stone is a round outline and must not be admitted.
 
 **Photographing at too low a resolution.** Refused outright below 2 px per paper
@@ -190,12 +190,12 @@ a filter with no second opinion.
 
 ## Related pages
 
-- [Boundary](boundary.md) — what markers collectively define.
-- [Feature](feature.md) and [find](find.md) — the two records confused with it.
-- [Morphological opening](../cs/morphological-opening.md) — how a dot on a line
+- [Boundary](boundary.md): what markers collectively define.
+- [Feature](feature.md) and [find](find.md): the two records confused with it.
+- [Morphological opening](../cs/morphological-opening.md): how a dot on a line
   is separated.
-- [Circularity](../cs/circularity.md), [solidity](../cs/solidity.md) — the shape
+- [Circularity](../cs/circularity.md), [solidity](../cs/solidity.md): the shape
   filters.
-- [Human-in-the-loop review](../cs/human-in-the-loop-review.md) — the division of
+- [Human-in-the-loop review](../cs/human-in-the-loop-review.md): the division of
   labour.
-- [Markers and features](../workflows/03-markers-and-features.md) — the workflow.
+- [Markers and features](../workflows/03-markers-and-features.md): the workflow.

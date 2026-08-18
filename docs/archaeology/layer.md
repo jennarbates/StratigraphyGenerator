@@ -18,7 +18,7 @@ thing you actually see when you look at a trench wall.
 ## What it is
 
 Looking at a trench wall you see stripes: a dark band at the top, a lighter one
-below, a stony one below that. Each band is a **layer** — a body of material
+below, a stony one below that. Each band is a **layer**: a body of material
 distinguishable from what is above and below it.
 
 A layer is defined by its **edges**. In this project's data model a layer is
@@ -29,7 +29,7 @@ The relationship to [locus](locus.md) depends on the recording tradition:
 - On a **field sheet**, layer and locus coincide: the band *is* the locus, and
   `layers[]` is keyed by `locusNumber`.
 - On an **illustrator sheet**, layers have names and hatch patterns and **no
-  locus numbers at all** — they are described, not numbered.
+  locus numbers at all**; they are described, not numbered.
 
 So *layer* is what you see, and *locus* is an excavation's numbered decision
 about it.
@@ -50,7 +50,7 @@ Layers are the **units of the sequence**. Each was deposited at a moment, one
 after another, and their order in the section is their order in time. Recording
 the bands is recording the chronology.
 
-They are also where finds come from. An object's layer is what dates it — the
+They are also where finds come from. An object's layer is what dates it, the
 central inferential move in stratigraphic archaeology.
 
 ## How this project stores it
@@ -83,7 +83,7 @@ Field-wall shape:
 ### Order is meaning
 
 `layers[]` is **ordered top to bottom**, which is young to old. That ordering is
-data, not presentation — `merge_walls` reads it as stratigraphic constraints:
+data, not presentation. `merge_walls` reads it as stratigraphic constraints:
 
 ```python
 for earlier, later in zip(sequence, sequence[1:]):
@@ -113,7 +113,7 @@ Reorders, and **says so**.
 
 ### Layers share their boundaries
 
-One traced line usually serves twice — as one layer's bottom and the next's top.
+One traced line usually serves twice, as one layer's bottom and the next's top.
 `manual_extraction.build_illustrator`:
 
 ```python
@@ -135,8 +135,8 @@ surface = layer.get("inferredMaterial") or layer.get("layerName") or "unknown"
 
 GemPy fuses interface points by **exact string match** on this name, so the same
 deposit on two walls must produce the identical string. For a field sheet that
-name is `convert_coords.surface_id(locusNumber)` — `Locus 6`, the locus number
-alone — so two walls fuse on the number and a differing
+name is `convert_coords.surface_id(locusNumber)` (`Locus 6`, the locus number
+alone), so two walls fuse on the number and a differing
 [Munsell reading](munsell-colour.md) cannot split them.
 
 ## What it is not
@@ -145,8 +145,8 @@ alone — so two walls fuse on the number and a differing
 |---|---|
 | **[Locus](locus.md)** | On a field sheet they coincide; conceptually a layer is what you see and a locus is a numbered decision. Illustrator sheets have layers and no loci. |
 | **[Boundary](boundary.md)** | The boundary is the *line*; the layer is the band between two of them. |
-| **[Feature](feature.md)** | A feature sits *inside* a layer — a stone, a lens, a void. It never defines the layer's edge. |
-| **[Cut](cut.md)** | A cut is the *absence* of material — a hole dug through layers. A layer is material present. |
+| **[Feature](feature.md)** | A feature sits *inside* a layer: a stone, a lens, a void. It never defines the layer's edge. |
+| **[Cut](cut.md)** | A cut is the *absence* of material, a hole dug through layers. A layer is material present. |
 | **Surface (model)** | The GemPy surface is derived from the layer's boundary. Renaming it in the CSV does not rename the layer. |
 | **Context / stratigraphic unit** | A broader term covering layers, cuts, and structures. A layer is one kind. |
 
@@ -159,13 +159,13 @@ reorders and warns; an extraction that lists them out of order produces a
 **Crossing layers.** Physically impossible, so the validator makes it an
 **error**:
 
-> bottom at x=1.2 (depth 0.55) is ABOVE Locus 2's bottom (depth 0.48) — layers
+> bottom at x=1.2 (depth 0.55) is ABOVE Locus 2's bottom (depth 0.48): layers
 > cross
 
-**A gap between layers**, by contrast, is only a **warning** — a void can be
+**A gap between layers**, by contrast, is only a **warning**, because a void can be
 real:
 
-> top at x=0.8 (depth 0.42) is far from Locus 1 bottom (depth 0.31) — possible
+> top at x=0.8 (depth 0.42) is far from Locus 1 bottom (depth 0.31): possible
 > void/overlap
 
 That severity split is [the archaeology speaking through the code](../cs/error-taxonomies.md).
@@ -180,10 +180,10 @@ layer. The distinction is whether it defines an edge.
 
 ## Related pages
 
-- [Locus](locus.md) — the numbered decision.
-- [Boundary](boundary.md) — the lines that define it.
-- [Feature](feature.md) — what sits inside it.
-- [Stratigraphy](stratigraphy.md) — why order is meaning.
-- [Layers and boundaries](../concepts/layers-and-boundaries.md) — the concept
+- [Locus](locus.md): the numbered decision.
+- [Boundary](boundary.md): the lines that define it.
+- [Feature](feature.md): what sits inside it.
+- [Stratigraphy](stratigraphy.md): why order is meaning.
+- [Layers and boundaries](../concepts/layers-and-boundaries.md): the concept
   page.
-- [Trace the layers](../workflows/03-trace-layers.md) — the workflow.
+- [Trace the layers](../workflows/03-trace-layers.md): the workflow.

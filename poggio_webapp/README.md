@@ -1,21 +1,21 @@
-# Trench Digitization Pipeline — web application
+# Trench Digitization Pipeline: web application
 
 The Flask application and the pipeline modules behind it.
 
 **This file covers installing and running the app.** How to *use* it, what each
 stage does, and why it works that way live in the documentation guide:
 
-- [Quickstart](../docs/start-here/quickstart.md) — the same setup, with context
-- [Workflow overview](../docs/workflows/overview.md) — every step, in order
-- [Architecture](../docs/architecture/system-overview.md) — how the pieces fit
-- [API routes](../docs/reference/api-routes.md) — every endpoint
-- [Troubleshooting](../docs/reference/troubleshooting.md) — when something fails
+- [Quickstart](../docs/start-here/quickstart.md): the same setup, with context
+- [Workflow overview](../docs/workflows/overview.md): every step, in order
+- [Architecture](../docs/architecture/system-overview.md): how the pieces fit
+- [API routes](../docs/reference/api-routes.md): every endpoint
+- [Troubleshooting](../docs/reference/troubleshooting.md): when something fails
 
 The [root README](../README.md) is the illustrated tour of the whole project.
 
 ## Setup
 
-From the repository root — not from this folder. The virtual environment
+From the repository root, not from this folder. The virtual environment
 belongs at the top of the repository, because every `make` target looks for it
 there:
 
@@ -34,7 +34,7 @@ The test and lint targets need their own tools:
 pip install pytest ruff
 ```
 
-The 3D model build needs GemPy — a heavy install kept out of
+The 3D model build needs GemPy, a heavy install kept out of
 `requirements.txt` so the rest of the pipeline works without it:
 
 ```bash
@@ -61,7 +61,7 @@ make run
 ```
 
 Open <http://localhost:5000> and leave the terminal running. `make run` is
-`cd poggio_webapp && ../.venv/bin/python app.py` — the app must start with this
+`cd poggio_webapp && ../.venv/bin/python app.py`. The app must start with this
 folder as its working directory, which is why the target exists.
 
 | Variable | Effect |
@@ -123,11 +123,11 @@ The authoritative record is
 capability and cites its source. The short version:
 
 - Starter registration values are smoke-test placeholders; the config declares
-  `"source": "placeholder"`, and only the multi-wall build refuses it — a
+  `"source": "placeholder"`, and only the multi-wall build refuses it. A
   single-sheet build still accepts it.
 - AI extraction is experimental: it needs a key and network access, and has no
   end-to-end test.
-- Marker detection and feature detection are backend-only — the routes exist
+- Marker detection and feature detection are backend-only: the routes exist
   and are tested, but no browser control reaches them. The multi-wall trenches
   page works and is tested, but only the demo card links to it.
 - Task state lives in process memory, so a restart loses the status of a

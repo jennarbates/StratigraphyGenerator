@@ -14,7 +14,7 @@ export function renderMarkers() {
         <p class="lede">This step only applies to <strong>field recording
         sheets</strong>, where the recorder marks each measured vertex with a
         small circle that computer vision can find. Illustrator sheets have no
-        such markers — continue straight to <strong>03 · Extraction</strong>.</p>
+        such markers. Continue straight to <strong>03 · Extraction</strong>.</p>
       </div>`;
     return;
   }
@@ -23,7 +23,7 @@ export function renderMarkers() {
     <div class="panel">
       <h2>03 · Mark vertices</h2>
       <p class="lede">Finds the recorder's circle-marked vertices with computer
-      vision — which can't invent a dot that isn't on the paper. No network
+      vision, which can't invent a dot that isn't on the paper. No network
       call, no API key. The confirmed points feed the Extraction step, where
       Gemini only <em>labels</em> them.</p>
 
@@ -41,7 +41,7 @@ export function renderMarkers() {
         <span class="label-text">Bold grid square size (cm)</span>
         <input type="number" id="mkSquareCm" placeholder="e.g. 20" step="0.5" min="0.1"
                value="${mk.squareCm ?? ""}">
-        <span class="hint">Human-confirmed, not re-derived from the image — measure the sheet's bold squares by hand.</span>
+        <span class="hint">Measure the sheet's bold squares by hand. This is human-confirmed, not re-derived from the image.</span>
       </label>
       <div class="btn-row">
         <button class="secondary" id="mkShow">1 · Show photo &amp; click reference points</button>
@@ -66,10 +66,10 @@ export function renderMarkers() {
 
       <div id="mkReviewWrap" style="display:none">
         <h3 style="margin-top:22px">Review detected markers</h3>
-        <p class="hint">Click a dot to accept/reject it — green = CV-accepted,
+        <p class="hint">Click a dot to accept or reject it. Green = CV-accepted,
         red = CV-rejected, blue = manually added. Turn on "add feature" and
         click empty space to mark a vertex CV missed. (These dots are
-        boundary <em>markers</em> — stones, cuts, and lenses belong in
+        boundary <em>markers</em>; stones, cuts, and lenses belong in
         <strong>03 · Features</strong> instead.)</p>
         <div class="btn-row">
           <button class="secondary" id="mkAddMode">+ Add marker</button>
@@ -99,7 +99,7 @@ export function renderMarkers() {
     "Click the wall's TOP-LEFT corner (x=0, depth=0).",
     "Now click the wall's TOP-RIGHT corner.",
     "Now click the LOWEST point of the drawn wall.",
-    "All 3 points set — adjust by clicking again from the start, or continue below.",
+    "All 3 points set. Click again from the start to adjust, or continue below.",
   ];
   const COLORS = ["#c0269a", "#d17a1f", "#2a7ab5"];
   let addMode = false;
@@ -117,8 +117,8 @@ export function renderMarkers() {
 
   function showConfirmedBanner() {
     document.getElementById("mkConfirmed").innerHTML = mk.confirmed.length
-      ? banner("ok", `<strong>${mk.confirmed.length}</strong> markers confirmed — ` +
-                     `continue to <strong>03 · Extraction</strong> to classify and ` +
+      ? banner("ok", `<strong>${mk.confirmed.length}</strong> markers confirmed. ` +
+                     `Continue to <strong>03 · Extraction</strong> to classify and ` +
                      `build the extraction.`)
       : "";
   }
@@ -174,7 +174,7 @@ export function renderMarkers() {
     const resEl = document.getElementById("mkResult");
     const sc = parseFloat(document.getElementById("mkSquareCm").value);
     const refM = parseFloat(document.getElementById("mkRefM").value);
-    if (!sc) { errEl().innerHTML = banner("err", "Bold grid square size (cm) is required — see the field above."); return; }
+    if (!sc) { errEl().innerHTML = banner("err", "Bold grid square size (cm) is required."); return; }
     if (!refM) { errEl().innerHTML = banner("err", "Real width between the top corners is required."); return; }
     mk.squareCm = sc; mk.refM = refM;
     try {
@@ -187,7 +187,7 @@ export function renderMarkers() {
         banner("ok", `Found <strong>${r.n_accepted}</strong> candidate features inside the wall ` +
           `(${r.n_rejected_in_box} rejected by size/shape filters, of which the ` +
           `${r.rejected.length} nearest misses are shown in red; scale ${r.px_per_m} px/m). ` +
-          `Review them below — CV's filters aren't always right, and it can't ` +
+          `Review them below. CV's filters aren't always right, and it can't ` +
           `mark a vertex that never got a filled-in dot.`) +
         `<div class="btn-row"><a class="secondary" style="text-decoration:none" ` +
         `href="${r.debug_image_url}" target="_blank"><button class="secondary">` +
@@ -199,7 +199,7 @@ export function renderMarkers() {
         ...r.rejected.map(m => ({ ...m, accepted: false, manual: false })),
       ];
       // a fresh detection makes any previously confirmed set (and anything
-      // built from it) stale — the server has already overwritten markers_path
+      // built from it) stale. The server has already overwritten markers_path
       mk.confirmed = []; mk.boundaryResult = null; mk.classifyById = null;
       delete state.completed.markers;
       invalidateDownstream("markers");
@@ -238,8 +238,8 @@ export function renderMarkers() {
         transform:translate(-50%,-50%);left:${f.pixel_x*sx}px;top:${f.pixel_y*sy}px;
         border:3px solid ${color};background:rgba(255,255,255,.15);
         cursor:pointer;box-sizing:border-box;`;
-      d.title = f.manual ? "manually added — click to remove"
-                          : `circularity ${f.circularity} — click to ${f.accepted ? "reject" : "accept"}`;
+      d.title = f.manual ? "manually added. Click to remove"
+                          : `circularity ${f.circularity}. Click to ${f.accepted ? "reject" : "accept"}`;
       d.addEventListener("click", (ev) => {
         ev.stopPropagation();
         if (f.manual) { mk.features = mk.features.filter(x => x !== f); }
@@ -293,7 +293,7 @@ export function renderMarkers() {
     } catch (e) { errEl().innerHTML = errorBanner(e); }
   });
 
-  // --- restore whatever was in progress when the user last left this step ---
+  // restore whatever was in progress when the user last left this step
   if (mk.previewImageUrl) showPickWrap();
   if (mk.previewImageUrl && mk.features.length) showReviewWrap();
   showConfirmedBanner();

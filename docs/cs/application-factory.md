@@ -103,7 +103,7 @@ blueprints are registered, and the two error handlers are attached.
 The **error handlers are the payoff of centralisation.** Every route in every
 blueprint can call `abort(400, description="...")` and know it becomes JSON,
 because one handler covers them all. The catch-all logs the traceback and returns
-a generic 500 — so an unexpected exception never leaks a stack trace to the
+a generic 500, so an unexpected exception never leaks a stack trace to the
 browser while still being recorded. See
 [error taxonomies](error-taxonomies.md).
 
@@ -113,8 +113,8 @@ browser while still being recorded. See
 """Trench Digitization Pipeline backend entry point.
 
 Every route lives in a blueprint under backend/routes/ and is registered by
-backend.create_app(). Nothing should be added directly to the app object here —
-if you are about to, it belongs in a blueprint.
+backend.create_app(). Nothing should be added directly to the app object here.
+If you are about to, it belongs in a blueprint.
 """
 
 import os
@@ -134,7 +134,7 @@ if __name__ == "__main__":
 
 "Nothing should be added directly to the app object here" is the invariant that
 keeps the entry point trivial. `debug` defaults to **off** and must be enabled
-explicitly — Flask's debugger executes arbitrary code from the browser, so
+explicitly. Flask's debugger executes arbitrary code from the browser, so
 defaulting it on would be a remote-execution hole.
 
 ### What it buys the tests
@@ -164,7 +164,7 @@ different application from the one that ran.
 
 **Order of fixtures.** `app` depends on `storage_dirs`, which redirects the
 storage roots to a temporary directory *before* the app is constructed. With a
-module-level app, the paths would already be bound — which is exactly the
+module-level app, the paths would already be bound, which is exactly the
 problem [late binding](late-binding-vs-import-time-binding.md) solves for
 `storage`, and the factory solves for the app.
 
@@ -205,10 +205,10 @@ See [blueprint and plugin registries](blueprint-and-plugin-registries.md).
 
 | Alternative | How it would build the app | Why it lost |
 |---|---|---|
-| **Module-level `app`** | `app = Flask(__name__)` at import | Simplest for a script. One global instance, configured at import, with no way for a test to build a differently-configured one — and it invites routes being attached in the entry point, which is how twelve of them escaped the factory before. |
+| **Module-level `app`** | `app = Flask(__name__)` at import | Simplest for a script. One global instance, configured at import, with no way for a test to build a differently-configured one, and it invites routes being attached in the entry point, which is how twelve of them escaped the factory before. |
 | **A class** | `class Application:` with methods | Equivalent, and heavier for something constructed once. |
 | **A DI container** | Register components, resolve on demand | Powerful for many interchangeable implementations. There is one application and one storage backend. |
-| **`create_app(config)`** | Parameterise the factory | The common extension, and this project has no configuration to vary — the storage roots are already redirectable via [late binding](late-binding-vs-import-time-binding.md), which is what the tests actually need. |
+| **`create_app(config)`** | Parameterise the factory | The common extension, and this project has no configuration to vary: the storage roots are already redirectable via [late binding](late-binding-vs-import-time-binding.md), which is what the tests actually need. |
 | **A no-argument factory** *(chosen)* | `create_app()` | Minimal, testable, and the invariant "everything is registered here" is easy to state and to check. |
 
 The deciding property is **testability without a running server**. 1135 tests
@@ -220,34 +220,34 @@ One extra function and one indirection.
 
 The costs:
 
-- **Two-step import.** `from backend import create_app`, then call it. Trivial,
+- Two-step import: `from backend import create_app`, then call it. Trivial,
   and it surprises people expecting a module-level `app`.
-- **Deployment needs the call.** A WSGI server must be pointed at `app:app`,
+- Deployment needs the call. A WSGI server must be pointed at `app:app`,
   which `app.py` provides, or at a factory-aware entry point.
-- **The invariant is not enforced.** Nothing stops a future contributor writing
+- The invariant is not enforced. Nothing stops a future contributor writing
   `@app.route` in `app.py`. The docstring is the guard, and the fact that it was
   needed once is why it is stated so directly.
-- **No configuration parameter yet.** Adding one later is easy; not adding one
+- No configuration parameter yet. Adding one later is easy; not adding one
   speculatively is the right default.
 
 ## Where else you meet it
 
-- **Flask's own documentation**, which recommends this pattern for anything
+- Flask's own documentation, which recommends this pattern for anything
   beyond a single-file example.
-- **Django's `get_wsgi_application()`** and app registry.
-- **FastAPI**, where the app object is commonly built in a factory for the same
+- Django's `get_wsgi_application()` and app registry.
+- FastAPI, where the app object is commonly built in a factory for the same
   test reasons.
-- **The factory pattern** generally, in the Gang of Four sense.
-- **Dependency injection frameworks** — Spring, .NET's host builder — which are
+- The factory pattern generally, in the Gang of Four sense.
+- Dependency injection frameworks (Spring, .NET's host builder), which are
   this idea with a container attached.
 
 ## Related pages
 
-- [Blueprint and plugin registries](blueprint-and-plugin-registries.md) — how
+- [Blueprint and plugin registries](blueprint-and-plugin-registries.md): how
   routes are collected.
-- [Late binding versus import-time binding](late-binding-vs-import-time-binding.md) —
+- [Late binding versus import-time binding](late-binding-vs-import-time-binding.md):
   the related fix for storage paths.
-- [Pure functions and testability](pure-functions-and-testability.md) — the
+- [Pure functions and testability](pure-functions-and-testability.md): the
   wider goal.
-- [Layered architecture](layered-architecture.md) — what the web layer contains.
-- [Backend architecture](../architecture/backend.md) — this project's layout.
+- [Layered architecture](layered-architecture.md): what the web layer contains.
+- [Backend architecture](../architecture/backend.md): this project's layout.

@@ -1,5 +1,5 @@
 """
-preprocess.py — clean an archival trench-drawing scan so a vision model (or a
+Clean an archival trench-drawing scan so a vision model (or a
 human) can resolve the boundary lines more accurately.
 
 Adapted from the original CLI script into an importable function for the web

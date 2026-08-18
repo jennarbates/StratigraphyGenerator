@@ -13,8 +13,8 @@ verified_against: ae2fc1d
 # Separation of concerns
 
 Each piece of code answers one kind of question. In this repository the
-principle is applied at an unusual place — between what a machine may decide and
-what a person must — and that boundary is the project's central design idea.
+principle is applied at an unusual place (between what a machine may decide and
+what a person must), and that boundary is the project's central design idea.
 
 ## What it is
 
@@ -26,7 +26,7 @@ The usual test is a sentence: *"this module does X."* If the sentence needs an
 "and", there are probably two modules.
 
 The interesting question is always **which axis to separate along**. The obvious
-ones are technical — presentation, logic, storage. This project also separates
+ones are technical: presentation, logic, storage. This project also separates
 along an epistemic axis: *who is entitled to decide this?*
 
 ## The picture
@@ -51,15 +51,16 @@ flowchart TB
 `poggio_webapp/pipeline/assign_markers.py` opens by stating the division:
 
 ```python
-"""assign_markers.py — close the gap detect_field_wall_markers left open: decide
+"""
+Close the gap detect_field_wall_markers left open: decide
 which locus/boundary each CV-detected marker belongs to.
 
 Division of labor, per the note at the bottom of the original tool:
-  - the marker COORDINATES come from computer vision and are immutable —
+  - the marker COORDINATES come from computer vision and are immutable:
     they pass through this module verbatim, byte for byte
   - Gemini only CLASSIFIES each fixed point (top boundary of locus N /
     final section base / noise) and reads the sheet's labels (loci Munsell
-    colors, tie points, metadata) — a task it did fine on even in the runs
+    colors, tie points, metadata), a task it did fine on even in the runs
     whose geometry was fabricated
 The final FieldWallProfile JSON is then assembled deterministically here,
 so there is no path by which the model can invent, move, or drop a vertex:
@@ -149,12 +150,12 @@ say it*.
 The frontend splits by file extension, which is a separation of concerns encoded
 in a naming convention:
 
-- `.mjs` — pure functions, testable under `node --test`
-- `.js` — DOM shells that consume them
+- `.mjs`: pure functions, testable under `node --test`
+- `.js`: DOM shells that consume them
 
 `coordinates.mjs`, `layer-fill.mjs`, `viewbox.mjs`, `view-mode.mjs`,
 `schema-core.mjs`, `model3d-core.mjs`, `volume3d-core.mjs`, `grid.mjs`,
-`core.mjs`, `munsell-color.js` — each is arithmetic or validation with no
+`core.mjs`, `munsell-color.js`: each is arithmetic or validation with no
 document access.
 
 That is why **the browser tests run headless**, as plain `node` scripts. See
@@ -162,7 +163,7 @@ That is why **the browser tests run headless**, as plain `node` scripts. See
 
 ### One blueprint per concern
 
-Seventeen route modules — `scans`, `preprocess`, `extraction`, `markers`,
+Seventeen route modules: `scans`, `preprocess`, `extraction`, `markers`,
 `features`, `manual`, `processing`, `gempy`, `harris`, `trenches`, `finds`,
 `editor`, `jobs`, `pages`, `task_status`, `text_metadata`, `demo`. Each covers
 one stage or one entity. See
@@ -173,14 +174,14 @@ one stage or one entity. See
 | Alternative | How it would organise marker assignment | Why it lost |
 |---|---|---|
 | **One module doing detection, classification, and assembly** | A single `extract_markers.py` | The guarantee "the model cannot move a point" would be a code-reading exercise rather than a structural fact. Any future edit could break it silently. |
-| **Let the model return geometry, validate afterwards** | Ask for coordinates, check them | This is what was tried, and what failed — the extraction prompt forbade fabrication and fabrication happened anyway. See [fabrication detection](fabrication-detection.md). |
+| **Let the model return geometry, validate afterwards** | Ask for coordinates, check them | This is what was tried, and what failed: the extraction prompt forbade fabrication and fabrication happened anyway. See [fabrication detection](fabrication-detection.md). |
 | **Separate by technical layer only** | routes / services / pipeline | Necessary and insufficient. The CV/model boundary cuts *across* those layers and is the one that matters most for trustworthiness. |
 | **Separate by feature** | `markers/{detect,assign,assemble}` | Vertical slicing keeps related code together, and here several features share pipeline stages, so horizontal grouping matches the reuse. |
 | **Technical layers plus an epistemic boundary** *(chosen)* | Both axes | The layers make it testable; the epistemic split makes it trustworthy. |
 
 The judgement worth extracting: **separate along the axis where a mistake would
 be most expensive.** For most software that is change frequency. Here it is
-*provenance* — and the resulting boundary is what lets the module claim, and
+*provenance*, and the resulting boundary is what lets the module claim, and
 mean, that no model touched the geometry.
 
 ## What it costs
@@ -189,34 +190,34 @@ More modules, more files, more imports.
 
 The costs:
 
-- **Indirection.** Marker detection spans `detect_markers`, `assign_markers`,
+- Indirection. Marker detection spans `detect_markers`, `assign_markers`,
   two routes, and a browser review step.
-- **Boundaries need justifying, repeatedly.** Why is `viewer_files` a service?
+- Boundaries need justifying, repeatedly. Why is `viewer_files` a service?
   Why is `manual_extraction` pipeline rather than a route? Each is a paragraph
   in a docstring, and each of those paragraphs is a small ongoing cost.
-- **Over-separation is real.** Fourteen exception classes in
+- Over-separation is real. Fourteen exception classes in
   `editor/errors.py` is defensible; twenty would not be.
-- **Duplication across a language boundary.** The
+- Duplication across a language boundary. The
   [calibration](similarity-transforms.md) exists in Python twice and JavaScript
   once, because the concern spans runtimes. Mitigated by each side pinning its
   arithmetic to fixed expected values in its own tests.
 
 ## Where else you meet it
 
-- **MVC and its descendants**, separating presentation from domain.
-- **Unix philosophy** — one tool, one job, composed by pipes.
-- **CSS versus HTML versus JavaScript**, the classic web separation.
-- **Microservices**, which separate along deployment and team boundaries.
-- **Editorial and engineering separation** in journalism and in scientific
-  publishing — the closest analogue to the epistemic boundary here.
+- MVC and its descendants, separating presentation from domain.
+- Unix philosophy: one tool, one job, composed by pipes.
+- CSS versus HTML versus JavaScript, the classic web separation.
+- Microservices, which separate along deployment and team boundaries.
+- Editorial and engineering separation in journalism and in scientific
+  publishing, the closest analogue to the epistemic boundary here.
 
 ## Related pages
 
-- [Layered architecture](layered-architecture.md) — the technical axis.
-- [Human-in-the-loop review](human-in-the-loop-review.md) — the epistemic axis.
-- [Pure functions and testability](pure-functions-and-testability.md) — what the
+- [Layered architecture](layered-architecture.md): the technical axis.
+- [Human-in-the-loop review](human-in-the-loop-review.md): the epistemic axis.
+- [Pure functions and testability](pure-functions-and-testability.md): what the
   separation buys.
-- [Provenance and data lineage](provenance-and-data-lineage.md) — recording
+- [Provenance and data lineage](provenance-and-data-lineage.md): recording
   which side produced what.
-- [Dependency direction and leaf modules](dependency-direction-and-leaf-modules.md) —
+- [Dependency direction and leaf modules](dependency-direction-and-leaf-modules.md):
   keeping the boundaries acyclic.

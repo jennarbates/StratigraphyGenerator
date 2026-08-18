@@ -17,7 +17,7 @@ minutes.
 ## What it is
 
 **Pessimistic** control takes a lock before editing. Nobody else can touch the
-record until you are done — safe, and useless when "done" means a human closing
+record until you are done: safe, and useless when "done" means a human closing
 a browser tab, which may be never.
 
 **Optimistic** control assumes conflicts are rare:
@@ -28,7 +28,7 @@ a browser tab, which may be never.
 4. The store compares. If the stored version has moved on, **refuse**.
 
 Nobody is blocked. The cost is that a conflicting save is rejected and must be
-redone — which is correct, because the alternative is one person's work silently
+redone, which is correct, because the alternative is one person's work silently
 overwriting another's.
 
 This is the **lost update** problem, and refusing is the only honest resolution
@@ -110,7 +110,7 @@ if updated_at <= current.updated_at:
 Two saves within one clock tick would otherwise produce equal timestamps, and
 `list_matrices` sorts on `updated_at`. Forcing strict monotonicity keeps the
 ordering total. A small guard against a clock that is not as fine-grained as the
-code assumes — see also
+code assumes. See also
 [determinism and stable sorting](determinism-and-stable-sorting.md).
 
 ### The transaction shape, factored out
@@ -143,7 +143,7 @@ def import_sources(matrix_id, job_ids, revision):
     return saved, warnings
 ```
 
-The revision is checked **twice** — once on load, once inside `save_matrix`.
+The revision is checked **twice**: once on load, once inside `save_matrix`.
 Redundant in a single-threaded read, and it means the window between load and
 save is also covered. The module docstring says why it was extracted:
 
@@ -169,13 +169,13 @@ Three guarantees composed: **no lost update, no invalid state, no torn file.**
 | Alternative | How it would handle two editors | Why it lost |
 |---|---|---|
 | **No control** | Last write wins | Silent data loss. The second saver never learns they erased the first. |
-| **[Pessimistic locking](locks-and-critical-sections.md)** | Lock on open, release on save | A browser tab left open holds the lock forever. Needs timeouts, lock breaking, and a way to tell a user why they cannot edit. Right for short machine-held sections — which is exactly where this codebase *does* use locks. |
+| **[Pessimistic locking](locks-and-critical-sections.md)** | Lock on open, release on save | A browser tab left open holds the lock forever. Needs timeouts, lock breaking, and a way to tell a user why they cannot edit. Right for short machine-held sections, which is exactly where this codebase *does* use locks. |
 | **Last-writer-wins with a timestamp** | Compare `updated_at` | Depends on clock accuracy and still loses data, just with a rule. |
-| **Automatic merge (CRDTs, operational transform)** | Merge both edits | What collaborative editors do, and a Harris Matrix is a **graph with global invariants** — acyclicity, correlation partitions. Two independently valid edits can merge into a cyclic graph. Merging would need domain-specific conflict resolution that is really an archaeological judgement, not an algorithm. |
+| **Automatic merge (CRDTs, operational transform)** | Merge both edits | What collaborative editors do, and a Harris Matrix is a **graph with global invariants**: acyclicity, correlation partitions. Two independently valid edits can merge into a cyclic graph. Merging would need domain-specific conflict resolution that is really an archaeological judgement, not an algorithm. |
 | **Optimistic with a revision counter** *(chosen)* | Refuse the conflicting save | Nobody is blocked, no data is lost, and the conflict is surfaced to the person who can resolve it. |
 
 That fourth row is the decisive one. An automatic merge would have to decide
-what happens when one person adds `A → B` while another correlates A with B —
+what happens when one person adds `A → B` while another correlates A with B:
 individually fine, jointly a
 [relation within a correlation component](cycle-detection.md), which the
 validator rejects. There is no correct automatic answer, so the design refuses
@@ -187,33 +187,33 @@ One extra read per save, one integer per record.
 
 The costs:
 
-- **Lost work on conflict.** The refused save must be redone. Mitigated by
-  making conflicts rare — this is a single-user local application — and by an
+- Lost work on conflict. The refused save must be redone. Mitigated by
+  making conflicts rare (this is a single-user local application) and by an
   error message naming both revisions.
-- **No merge assistance.** The user is told the matrix moved on, not what
+- No merge assistance. The user is told the matrix moved on, not what
   changed. A diff view would be a real improvement.
-- **The revision must be round-tripped.** A client that forgets to send it
+- The revision must be round-tripped. A client that forgets to send it
   cannot save; that is the intended failure.
-- **It only covers whole-record saves.** Two edits to unrelated parts of the
+- It only covers whole-record saves. Two edits to unrelated parts of the
   same matrix still conflict. Finer granularity would need per-unit versioning
-  and a merge policy — back to the previous row.
+  and a merge policy: back to the previous row.
 
 ## Where else you meet it
 
-- **HTTP `ETag` and `If-Match`**, which is exactly this pattern for web
+- HTTP `ETag` and `If-Match`, which is exactly this pattern for web
   resources.
-- **Database `SELECT … FOR UPDATE` versus version columns** — Django, Rails, and
+- Database `SELECT … FOR UPDATE` versus version columns: Django, Rails, and
   Hibernate all ship optimistic locking.
-- **Git**, where a non-fast-forward push is a rejected optimistic write.
-- **Wikis**, which detect edit conflicts and show both versions.
-- **Cloud storage APIs** (S3, GCS), which offer generation preconditions.
+- Git, where a non-fast-forward push is a rejected optimistic write.
+- Wikis, which detect edit conflicts and show both versions.
+- Cloud storage APIs (S3, GCS), which offer generation preconditions.
 
 ## Related pages
 
-- [Race conditions](race-conditions.md) — the lost update this prevents.
-- [Locks and critical sections](locks-and-critical-sections.md) — the
+- [Race conditions](race-conditions.md): the lost update this prevents.
+- [Locks and critical sections](locks-and-critical-sections.md): the
   pessimistic alternative, used elsewhere here.
-- [Atomic file writes](atomic-file-writes.md) — the durability half.
-- [Immutability and defensive copying](immutability-and-defensive-copying.md) —
+- [Atomic file writes](atomic-file-writes.md): the durability half.
+- [Immutability and defensive copying](immutability-and-defensive-copying.md):
   why transforms return copies.
-- [Build a Harris Matrix](../workflows/harris-matrix.md) — the workflow.
+- [Build a Harris Matrix](../workflows/harris-matrix.md): the workflow.

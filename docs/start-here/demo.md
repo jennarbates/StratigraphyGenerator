@@ -17,18 +17,18 @@ verified_against: ae2fc1d
 
 # Run the demo
 
-A whole excavated trench, taken to a model — no drawing to trace, no survey to
+A whole excavated trench, taken to a model: no drawing to trace, no survey to
 type in, no API key.
 
 ## From the application
 
 Start it with `make run` and open <http://localhost:5000>. In the sidebar:
 
-> **Never used this before?** Load a demonstration trench — no drawing needed.
+> **Never used this before?** Load a demonstration trench. No drawing needed.
 > **[See it refuse]** · **[See it build]**
 
 Each button seeds one trench. Then open the trenches page and press **Build the
-combined model** — the registration is already filled in from the trench's
+combined model**. The registration is already filled in from the trench's
 surveyed records, so there is nothing to type.
 
 Pressing Build yourself is the point. The two trenches end differently, and
@@ -73,7 +73,7 @@ as T906's.
 ## What you get
 
 ```
-T905: REFUSED — the record does not support a model
+T905: REFUSED. The record does not support a model
 
   these faces have no surfaceZ in the grid config: 'east wall'. surfaceZ is
   the ground surface each wall's depths are measured down from, so without it
@@ -84,13 +84,13 @@ T905: REFUSED — the record does not support a model
 
 T905 does not fail early. It loads four wall sheets, normalizes each one,
 merges them into a trench, checks the site grid, checks the vertical frame, and
-*then* refuses — because the refusal is about registration, and registration is
+*then* refuses, because the refusal is about registration, and registration is
 the last thing checked before conversion. Getting that far is the point.
 
 T906 goes on through conversion and into a model:
 
 ```
-T906: BUILT — the model is on disk
+T906: BUILT. The model is on disk
 
   3 surface mesh(es): Locus_1, Locus_2, Locus_3
   extent 148.0-157.0 E, -27.0--18.0 N, 22.95-25.70 mAE
@@ -98,20 +98,20 @@ T906: BUILT — the model is on disk
 ```
 
 132 interface points across three surfaces, orientations solved from *pairs* of
-walls rather than single ones — so each surface carries one true dip instead of
-four disagreeing apparent ones — and a stratigraphic order taken from the
+walls rather than single ones (so each surface carries one true dip instead of
+four disagreeing apparent ones), and a stratigraphic order taken from the
 Harris matrix rather than guessed from elevation.
 
 !!! note "The last stage needs GemPy"
 
     Without it you get `MODEL-READY` instead of `BUILT`: every stage ran and
     only the mesh is missing. Install it with
-    `pip install gempy gempy_viewer` — it is an optional extra, and heavy. See
+    `pip install gempy gempy_viewer`. It is an optional extra, and heavy. See
     [create the model](../workflows/07-create-model.md).
 
 The section drawing GemPy writes beside the meshes is worth a look. The three
 deposits stack in the order the matrix gives, and the western end rides half a
-metre high — which is the corner standing on the old spoil heap, showing up in
+metre high, which is the corner standing on the old spoil heap, showing up in
 the model because the record says it is there.
 
 Both trenches stay in the application afterwards. Open
@@ -123,10 +123,10 @@ their Harris matrices and the season's findspots.
 `make demo-list` shows the record sets available:
 
 ```
-T905     Synthetic demonstration data — T905 2025
+T905     Synthetic demonstration data: T905 2025
 ```
 
-T905 is the [worked example](../worked-example/index.md) — a synthetic trench
+T905 is the [worked example](../worked-example/index.md), a synthetic trench
 built to have the gaps, contradictions and transcription slips that real
 paperwork has. `poggio_webapp/demo/datasets.py` finds it in `tests/fixtures/`,
 which is why a fresh clone can run the demo with nothing installed but the core
@@ -140,7 +140,7 @@ appears. If you have put a season's records there, they show up in
 ## The wall drawings are invented, and say so
 
 The fixtures record a trench's corners, loci and finds. They do not record its
-four drawn sections, and neither does `scans/` — so the demo draws them, in
+four drawn sections, and neither does `scans/`, so the demo draws them, in
 `poggio_webapp/demo/walls.py`.
 
 Each locus boundary sits at the mean closing elevation the record gives for
@@ -155,13 +155,13 @@ demonstration is not a good enough reason to make the exception.
 ## What it writes, and how to undo it
 
 Everything lands in `poggio_webapp/jobs/`, `poggio_webapp/trenches/` and
-`poggio_webapp/matrices/` — the same three gitignored directories the
+`poggio_webapp/matrices/`, the same three gitignored directories the
 application already uses for your own work. Nothing is written into the
 repository and nothing is copied out of `local/`.
 
 Seeded jobs are named `demo-t905-north-wall` and so on, and every one carries a
-provenance badge wherever it appears — in the drawing list and on the trenches
-page — so a demonstration trench is never mistaken for your own work.
+provenance badge wherever it appears (in the drawing list and on the trenches
+page), so a demonstration trench is never mistaken for your own work.
 
 Re-seeding removes the previous run's demo trenches first, so the
 demonstration always opens on a known state and leaves everything else alone.
@@ -170,7 +170,7 @@ trenches back out.
 
 ## Related
 
-- [A trench, end to end](../worked-example/index.md) — the record these numbers come from, page by page
-- [Combine walls into one trench](../workflows/09-multi-wall-trench.md) — the workflow the demo automates
-- [Place on site](../workflows/06-place-on-site.md) — what registration is, and why a corner elevation decides it
-- [Quickstart](quickstart.md) — installing enough to run this
+- [A trench, end to end](../worked-example/index.md): the record these numbers come from, page by page
+- [Combine walls into one trench](../workflows/09-multi-wall-trench.md): the workflow the demo automates
+- [Place on site](../workflows/06-place-on-site.md): what registration is, and why a corner elevation decides it
+- [Quickstart](quickstart.md): installing enough to run this

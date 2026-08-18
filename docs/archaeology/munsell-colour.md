@@ -13,7 +13,7 @@ verified_against: ae2fc1d
 # Munsell colour
 
 A standard notation for soil colour, read by holding a physical chart against
-the deposit. `10YR 5/6` is a measurement, not a description — and in this
+the deposit. `10YR 5/6` is a measurement, not a description, and in this
 project it is deliberately a **label** on a deposit rather than part of its
 identity.
 
@@ -31,12 +31,12 @@ The Munsell system describes a colour by three values:
 Hue families run `R`, `YR`, `Y`, `GY`, `G`, `BG`, `B`, `PB`, `P`, `RP`. Soils use
 the red-to-yellow end almost exclusively, so `YR` dominates.
 
-`N 5/` is **neutral** — grey, no chroma.
+`N 5/` is **neutral**: grey, no chroma.
 
 The critical property: the notation refers to a **physical chip**. A recorder
 holds a Munsell soil chart against the deposit, in daylight, and finds the
 closest match. It is a comparison against a standard, not a subjective
-impression — which is what makes it repeatable between excavators.
+impression, which is what makes it repeatable between excavators.
 
 ## The picture
 
@@ -76,8 +76,8 @@ On the locus, not on the layer:
 ```
 
 `raw` is the notation; `colorName` is the chart's own name for that chip. Both
-are kept, and reading tolerates either form —
-`poggio_webapp/pipeline/convert_coords.py`:
+are kept, and reading tolerates either form
+(`poggio_webapp/pipeline/convert_coords.py`):
 
 ```python
 def _munsell_label(entry):
@@ -180,11 +180,11 @@ colour via HSL, and is explicit about what that is worth:
 ```
 
 "A useful visual correspondence rather than a colorimetric replacement" is the
-honest framing — the swatch helps a reader tell two layers apart in a legend, and
+honest framing: the swatch helps a reader tell two layers apart in a legend, and
 is not a colour measurement.
 
 The parser handles notation embedded in a longer label, which is how it reads
-`Locus 2 (10YR 5/6 yellowish brown)` — see
+`Locus 2 (10YR 5/6 yellowish brown)`. See
 [regular expressions](../cs/regular-expressions.md).
 
 ## What it is not
@@ -195,7 +195,7 @@ The parser handles notation embedded in a longer label, which is how it reads
 | **A digital colour** | It refers to a chip under daylight. The screen swatch is an approximation and says so. |
 | **[Locus](locus.md) identity** | A locus is identified by its number, and so is its model surface. The Munsell reading *describes* the deposit; it does not name it. Two loci can share a reading. |
 | **A material identification** | Colour is one criterion. Texture, inclusions, and compaction matter too, which is why `description` exists alongside. |
-| **Stable across walls** | The same deposit routinely reads slightly differently on two walls. That is expected, is reported, and no longer affects the model — the walls fuse on locus number regardless. |
+| **Stable across walls** | The same deposit routinely reads slightly differently on two walls. That is expected, is reported, and no longer affects the model, because the walls fuse on locus number regardless. |
 
 ## Getting it wrong
 
@@ -207,7 +207,7 @@ matters and should be recorded consistently.
 
 **Omitting the reading.** The deposit then has no recorded colour. Since the
 surface identity is the locus number alone this no longer splits it into two
-model surfaces — it is a completeness problem rather than a modelling one, and
+model surfaces. It is a completeness problem rather than a modelling one, and
 the validator still warns.
 
 **Expecting the screen swatch to match the chip.** It is a visual aid.
@@ -218,10 +218,10 @@ not a resolution of the disagreement.
 
 ## Related pages
 
-- [Locus](locus.md) — what carries the reading.
-- [Layer](layer.md) — the band it describes.
-- [Correlation](correlation.md) — why similar colours do not prove sameness.
-- [Combine walls into one trench](../workflows/09-multi-wall-trench.md) — where
+- [Locus](locus.md): what carries the reading.
+- [Layer](layer.md): the band it describes.
+- [Correlation](correlation.md): why similar colours do not prove sameness.
+- [Combine walls into one trench](../workflows/09-multi-wall-trench.md): where
   readings between walls are reported.
-- [Regular expressions](../cs/regular-expressions.md) — how the notation is
+- [Regular expressions](../cs/regular-expressions.md): how the notation is
   parsed.

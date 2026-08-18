@@ -28,7 +28,7 @@ When `b` is a [unit vector](unit-vectors-and-normalisation.md), the division
 disappears and the projection is just the [dot product](dot-product.md).
 
 The important property: projection **discards** everything perpendicular to `b`.
-That is not a loss — it is the point. A trench wall has a single meaningful
+That is not a loss. It is the point. A trench wall has a single meaningful
 horizontal axis, and how far a mark sits from that axis in the *photograph's*
 frame is an artefact of how the camera was held.
 
@@ -130,7 +130,7 @@ s = (x * math.sin(angle)) + (y * math.cos(angle))
 
 Projecting a site position onto the wall's own direction, to recover an
 along-wall coordinate for a slope fit. The docstring notes the constant offset
-and why it does not matter — only the slope against `s` is ever used.
+and why it does not matter: only the slope against `s` is ever used.
 
 ### Building a common axis for two polylines
 
@@ -154,7 +154,7 @@ projection is well conditioned. Every point then carries an `along` value, and
 
 | Alternative | How it would work here | Why it lost |
 |---|---|---|
-| **Rotate the image, then read pixel coordinates** | [Deskew](hough-line-transform.md) first, then use raw x and y | Available here — and it **resamples**, which is lossy, and it only corrects a rotation the detector managed to estimate. Projection corrects exactly the tilt the user's own clicks define, with no resampling. It is why `deskew_flag=False` by default. |
+| **Rotate the image, then read pixel coordinates** | [Deskew](hough-line-transform.md) first, then use raw x and y | Available here, and it **resamples**, which is lossy, and it only corrects a rotation the detector managed to estimate. Projection corrects exactly the tilt the user's own clicks define, with no resampling. It is why `deskew_flag=False` by default. |
 | **Trigonometry** | `x_m = d·cos(θ − φ)` from angles | Equivalent, and it requires computing angles with `atan2`, handling wraparound, and reasoning about sign conventions. The dot product does it with two multiplies. |
 | **Matrix multiplication** | Build a rotation matrix, multiply | Identical arithmetic, wrapped. Right when transforms **compose**; here exactly one transform applies, so the explicit form is more readable. See [affine transforms](affine-transforms.md). |
 | **Homography / perspective correction** | Four corner clicks, full perspective transform | Genuinely better for a photograph taken at an angle to the sheet, where the drawing is *keystoned* rather than merely rotated. It needs four clicks instead of three, and a bad fourth point distorts everything. A deliberate limitation, and a candidate for the [roadmap](../project/roadmap.md). |
@@ -164,7 +164,7 @@ projection is well conditioned. Every point then carries an `along` value, and
 
 Two multiplies and an add per axis. Free.
 
-The precondition is that the basis be **orthonormal** — perpendicular and unit
+The precondition is that the basis be **orthonormal**: perpendicular and unit
 length. `v̂ = (−û_y, û_x)` guarantees both by construction, which is why no code
 here ever checks it.
 
@@ -178,23 +178,23 @@ for a square-on photograph.
 
 ## Where else you meet it
 
-- **Principal component analysis**, which is projection onto the directions of
+- Principal component analysis, which is projection onto the directions of
   greatest variance.
-- **3D graphics**, where the view transform projects world coordinates onto
+- 3D graphics, where the view transform projects world coordinates onto
   camera axes.
-- **Physics**, resolving a force into components along and perpendicular to a
+- Physics, resolving a force into components along and perpendicular to a
   slope.
-- **Least squares**, which is geometrically a projection onto the column space
-  of a matrix — see [ordinary least squares](ordinary-least-squares.md).
-- **Signal processing**, where a Fourier coefficient is the projection of a
+- Least squares, which is geometrically a projection onto the column space
+  of a matrix. See [ordinary least squares](ordinary-least-squares.md).
+- Signal processing, where a Fourier coefficient is the projection of a
   signal onto one sinusoid.
 
 ## Related pages
 
-- [Dot product](dot-product.md) — the operation.
-- [Unit vectors and normalisation](unit-vectors-and-normalisation.md) — the
+- [Dot product](dot-product.md): the operation.
+- [Unit vectors and normalisation](unit-vectors-and-normalisation.md): the
   precondition.
-- [Orthonormal bases](orthonormal-bases.md) — two projections as one transform.
-- [Similarity transforms](similarity-transforms.md) — what this builds.
-- [Coordinate spaces](../concepts/coordinate-spaces.md) — the spaces being moved
+- [Orthonormal bases](orthonormal-bases.md): two projections as one transform.
+- [Similarity transforms](similarity-transforms.md): what this builds.
+- [Coordinate spaces](../concepts/coordinate-spaces.md): the spaces being moved
   between.

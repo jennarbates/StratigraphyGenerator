@@ -18,14 +18,14 @@ by accepting that, and ends by escaping it.
 
 A raster image is a rectangular grid of *pixels*. Each pixel holds one number
 per colour channel, describing how much light was recorded at that spot. There
-is no line, no circle, no boundary in the file — only a grid of intensities
+is no line, no circle, no boundary in the file: only a grid of intensities
 that a human eye assembles into a drawing.
 
 Two facts follow, and both shape this repository.
 
 **Pixel coordinates are not measurements.** A pixel index says "column 1420,
 row 883." It says nothing about metres. Converting one to the other requires an
-external fact — a known real distance between two identifiable points — which
+external fact (a known real distance between two identifiable points), which
 is what [calibration](../archaeology/index.md) supplies.
 
 **The row axis points down.** By near-universal convention the origin is the
@@ -67,7 +67,7 @@ def convert(self, point):
 ```
 
 Above that line everything is pixels; below it everything is metres. The
-project treats that boundary as a real one — see
+project treats that boundary as a real one. See
 [coordinate spaces](../concepts/coordinate-spaces.md), which names three
 distinct spaces a point can be correct in.
 
@@ -92,9 +92,9 @@ rather than a grid of samples.
 
 | Alternative | How it would work here | Why it lost |
 |---|---|---|
-| **Vector source (SVG, DXF, PDF paths)** | Ask the illustrator for the original vector artwork and read the paths directly | Would be strictly better where it exists — no detection needed at all. But the sources are a 1980 pen-and-ink sheet and a phone photograph of graph paper. Neither has vectors to recover. A PDF here is a *scan* wrapped in PDF, so `pdf2image` rasterises it back. |
+| **Vector source (SVG, DXF, PDF paths)** | Ask the illustrator for the original vector artwork and read the paths directly | Would be strictly better where it exists: no detection needed at all. But the sources are a 1980 pen-and-ink sheet and a phone photograph of graph paper. Neither has vectors to recover. A PDF here is a *scan* wrapped in PDF, so `pdf2image` rasterises it back. |
 | **Photogrammetry / point cloud** | Photograph the trench wall itself and reconstruct 3D geometry | Answers a different question. This project's inputs are *drawings*, including archival ones from excavations backfilled decades ago. The wall is gone; the drawing is the evidence. |
-| **Manual data entry from the sheet's own numbers** | Type the coordinates the recorder wrote down | Where a sheet carries a full coordinate table this is more accurate than any image processing. It is not what these sheets carry — they carry a drawing plus tie labels. |
+| **Manual data entry from the sheet's own numbers** | Type the coordinates the recorder wrote down | Where a sheet carries a full coordinate table this is more accurate than any image processing. It is not what these sheets carry. They carry a drawing plus tie labels. |
 
 Raster is not a choice the project made; it is the format the evidence arrived
 in. What the project chooses is how quickly to leave it.
@@ -107,25 +107,25 @@ in. What the project chooses is how quickly to leave it.
 | A 2× upscale | four times the memory, four times the per-pixel work downstream |
 
 That cost is the reason `detect_features.py` analyses a copy capped at 2200 px
-and maps results back — see [multi-scale analysis](multi-scale-analysis.md) — and the reason
+and maps results back (see [multi-scale analysis](multi-scale-analysis.md)), and the reason
 extraction caps the longest side at 3072 px before sending an image anywhere.
 
 ## Where else you meet it
 
-- **Every photograph, screenshot, and scan** you have ever opened.
-- **Medical imaging** — a CT slice is the same grid with different units.
-- **Satellite and aerial imagery**, where the pixel-to-ground conversion is
+- Every photograph, screenshot, and scan you have ever opened.
+- Medical imaging: a CT slice is the same grid with different units.
+- Satellite and aerial imagery, where the pixel-to-ground conversion is
   called georeferencing and is exactly this project's calibration problem at
   planetary scale.
-- **Game textures and framebuffers** — the screen itself is a raster.
+- Game textures and framebuffers: the screen itself is a raster.
 
 ## Related pages
 
-- [Colour spaces and channels](colour-spaces-and-channels.md) — what the
+- [Colour spaces and channels](colour-spaces-and-channels.md): what the
   numbers in each pixel mean.
-- [Bit depth and dynamic range](bit-depth-and-dynamic-range.md) — how many
+- [Bit depth and dynamic range](bit-depth-and-dynamic-range.md): how many
   distinct values a pixel can hold.
-- [Similarity transforms](similarity-transforms.md) — the arithmetic that
+- [Similarity transforms](similarity-transforms.md): the arithmetic that
   leaves pixel space.
-- [Coordinate spaces](../concepts/coordinate-spaces.md) — the three spaces a
+- [Coordinate spaces](../concepts/coordinate-spaces.md): the three spaces a
   point can live in here.

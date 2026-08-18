@@ -22,11 +22,11 @@ controls where the request goes.
 
 The risks:
 
-- **Exfiltration.** A URL pointing at another host makes the browser send a
-  request there — carrying cookies, a referrer, and the fact that this user has
+- Exfiltration. A URL pointing at another host makes the browser send a
+  request there, carrying cookies, a referrer, and the fact that this user has
   this file.
-- **Injection.** `javascript:` and `data:` URLs can execute.
-- **Server-side request forgery**, when the fetch happens on the server rather
+- Injection. `javascript:` and `data:` URLs can execute.
+- Server-side request forgery, when the fetch happens on the server rather
   than in the browser.
 
 The defence is to require the URL to be **same-origin** and to match the
@@ -86,12 +86,12 @@ Four layers, each closing something the previous cannot.
 
 **`value.trim() !== value`** rejects leading or trailing whitespace. Browsers
 strip whitespace when resolving URLs, so `" //evil.com"` would resolve to a
-protocol-relative URL pointing elsewhere — while failing a naive
+protocol-relative URL pointing elsewhere, while failing a naive
 `startsWith("/api/jobs/")` check only *before* trimming. Requiring the string to
 be already-trimmed removes the discrepancy.
 
 **`startsWith("/api/jobs/")`** is a cheap prefix check on the raw string. It
-alone is insufficient — `/api/jobs/../../evil` passes it — which is why it is not
+alone is insufficient (`/api/jobs/../../evil` passes it), which is why it is not
 the last word.
 
 **`/[\u0000-\u0020\\]/u`** rejects control characters, spaces, and
@@ -100,7 +100,7 @@ the last word.
 another. Excluding it removes the ambiguity entirely.
 
 **Parsing against a sentinel base** is the clever part.
-`https://volume.invalid` is a base that cannot exist — `.invalid` is reserved by
+`https://volume.invalid` is a base that cannot exist: `.invalid` is reserved by
 RFC 2606 for exactly this. Resolving the value against it and then checking that
 the origin is *unchanged* proves the value did not specify its own origin. An
 absolute URL, a protocol-relative `//evil.com`, or a `javascript:` scheme all
@@ -109,13 +109,13 @@ change the origin and are caught.
 **Re-checking `parsed.pathname`** after resolution catches traversal:
 `/api/jobs/../../x` has a raw prefix of `/api/jobs/` but a *resolved* pathname of
 `/x`. Checking the normalised form is the same principle as
-[path containment](path-traversal-and-containment.md) — compare the resolved
+[path containment](path-traversal-and-containment.md): compare the resolved
 value, not the input.
 
 ### The server side of the same contract
 
 The URLs in the manifest are built by the server, from paths it has already
-contained — `poggio_webapp/backend/services/viewer_files.py`:
+contained. From `poggio_webapp/backend/services/viewer_files.py`:
 
 ```python
 def _resolve_manifest_artifact(manifest_directory, job_directory, path_str):
@@ -148,7 +148,7 @@ is the same posture as the
 | **Trust the manifest** | Fetch whatever is there | The manifest is a file on disk, which can be edited. A JSON field becomes a way to direct the browser. |
 | **`startsWith("/api/jobs/")` only** | Prefix check | Defeated by `/api/jobs/../../x`, by leading whitespace, and by backslash ambiguity. |
 | **Regex on the raw string** | Match an expected shape | Better, and it validates the *input* rather than the *resolved* value. Normalisation happens after the check. |
-| **`new URL(value)` and inspect** | Parse, then check the host | The right instinct, and a relative URL throws without a base — so a base is needed, and the sentinel-base trick is what makes the origin check meaningful. |
+| **`new URL(value)` and inspect** | Parse, then check the host | The right instinct, and a relative URL throws without a base, so a base is needed, and the sentinel-base trick is what makes the origin check meaningful. |
 | **A Content Security Policy** | Browser-enforced connect-src | Genuinely strong and complementary. It is a deployment concern rather than an application one, and this app is served from a local Flask process with no CSP configured. |
 | **Layered: shape, characters, sentinel-base origin, resolved path** *(chosen)* | Four checks | Each closes a distinct bypass, and the failure message is one clear sentence. |
 
@@ -163,38 +163,38 @@ One URL parse and three string tests. Microseconds, once per load.
 
 The costs:
 
-- **It is strict.** Only `/api/jobs/` URLs are accepted, so serving the volume
+- It is strict. Only `/api/jobs/` URLs are accepted, so serving the volume
   from a CDN would require changing this function. Correct: that change should
   be deliberate.
-- **The sentinel base is non-obvious.** `https://volume.invalid` reads as a
+- The sentinel base is non-obvious. `https://volume.invalid` reads as a
   mistake until you know the technique. The error message and the `.invalid`
   reservation are the clues.
-- **It cannot verify the content.** A same-origin URL can still return the wrong
+- It cannot verify the content. A same-origin URL can still return the wrong
   file, which is why the [decode](binary-serialisation.md) separately checks
   length and shape.
-- **Only this one URL is validated.** Mesh and lithology URLs come from the same
-  manifest and are validated server-side rather than in the browser. Defensible —
-  the server built them from contained paths — and an asymmetry worth knowing
+- Only this one URL is validated. Mesh and lithology URLs come from the same
+  manifest and are validated server-side rather than in the browser. Defensible
+  (the server built them from contained paths), and an asymmetry worth knowing
   about.
 
 ## Where else you meet it
 
-- **The same-origin policy** itself, the foundation of browser security.
-- **Open redirect vulnerabilities**, where a `?next=` parameter sends a user to
-  an attacker's site — the identical failure to trust a URL from data.
-- **Server-side request forgery**, where a server fetches a URL from user input
+- The same-origin policy itself, the foundation of browser security.
+- Open redirect vulnerabilities, where a `?next=` parameter sends a user to
+  an attacker's site: the identical failure to trust a URL from data.
+- Server-side request forgery, where a server fetches a URL from user input
   and reaches internal services.
-- **OAuth redirect URI validation**, which must be an exact allowlist match for
+- OAuth redirect URI validation, which must be an exact allowlist match for
   the same reason.
-- **Content Security Policy**, which enforces this at the browser level rather
+- Content Security Policy, which enforces this at the browser level rather
   than in application code.
 
 ## Related pages
 
-- [Path traversal and containment](path-traversal-and-containment.md) — the same
+- [Path traversal and containment](path-traversal-and-containment.md): the same
   principle for filesystems.
-- [Validation at trust boundaries](validation-at-trust-boundaries.md) — where
+- [Validation at trust boundaries](validation-at-trust-boundaries.md): where
   this sits.
-- [Binary serialisation](binary-serialisation.md) — the contract on the fetched
+- [Binary serialisation](binary-serialisation.md): the contract on the fetched
   bytes.
-- [Input sanitisation](input-sanitisation.md) — the wider discipline.
+- [Input sanitisation](input-sanitisation.md): the wider discipline.

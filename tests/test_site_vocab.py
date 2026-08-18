@@ -21,9 +21,7 @@ from pipeline.site_vocab import (
     special_find_id,
 )
 
-# ---------------------------------------------------------------------------
 # Vocabularies
-# ---------------------------------------------------------------------------
 
 
 def test_bulk_material_letters_match_the_kobo_instructions():
@@ -62,9 +60,7 @@ def test_material_name_handles_the_other_suffix_form():
     assert material_name(None) is None
 
 
-# ---------------------------------------------------------------------------
 # Drawn feature types
-# ---------------------------------------------------------------------------
 
 
 def test_drawn_feature_keys_are_unique():
@@ -114,9 +110,7 @@ def test_unknown_feature_key_is_none():
     assert feature_type("nonexistent") is None
 
 
-# ---------------------------------------------------------------------------
 # Identifiers
-# ---------------------------------------------------------------------------
 
 
 def test_special_find_id_matches_the_documented_example():

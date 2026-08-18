@@ -17,13 +17,13 @@ uses one of them for rotation.
 
 Rotate, scale, or warp an image and the output grid no longer lines up with the
 input grid. A destination pixel maps back to a source position like
-`(413.7, 208.2)` — a place where no pixel exists. *Resampling* invents a value
+`(413.7, 208.2)`, a place where no pixel exists. *Resampling* invents a value
 for it from the pixels that do exist.
 
 **Nearest neighbour** takes the closest pixel. Fast, and it produces visible
 staircase edges because it quantises position.
 
-**Bilinear** takes the four surrounding pixels and blends them by distance —
+**Bilinear** takes the four surrounding pixels and blends them by distance:
 linear interpolation horizontally, then again vertically. Smooth, cheap, and
 slightly soft, because it is a small averaging filter.
 
@@ -83,12 +83,12 @@ def deskew(gray):
 
 Two flags carry the decisions:
 
-**`INTER_CUBIC`** — the rotation angles here are small (the filter keeps only
+**`INTER_CUBIC`**: the rotation angles here are small (the filter keeps only
 lines within ±15° of horizontal), so most pixels move by a fraction of a pixel.
 That is precisely the regime where interpolation quality shows: bilinear's
 softening would visibly thin the boundary strokes the next stage has to find.
 
-**`BORDER_REPLICATE`** — a rotated image has corners with no source data.
+**`BORDER_REPLICATE`**: a rotated image has corners with no source data.
 Filling them with black would create a hard artificial edge that
 [Canny](canny-edge-detection.md) and [contour tracing](contour-tracing.md)
 would happily detect as real structure. Replicating the edge pixel produces a
@@ -106,11 +106,11 @@ For a small-angle rotation of a line drawing:
 
 | Alternative | How it would work here | Why it lost |
 |---|---|---|
-| **Nearest neighbour** | Snap to the closest source pixel | Free, and it quantises position. A one-pixel-wide boundary stroke rotated by 0.8° would break into a dotted line — catastrophic for a stage whose job is to keep thin lines intact. |
+| **Nearest neighbour** | Snap to the closest source pixel | Free, and it quantises position. A one-pixel-wide boundary stroke rotated by 0.8° would break into a dotted line, catastrophic for a stage whose job is to keep thin lines intact. |
 | **Bilinear** | 4-sample blend | Perfectly reasonable and slightly soft. Since the whole `clean()` chain ends with [unsharp masking](unsharp-masking.md) to recover sharpness, giving away sharpness here to save four samples is the wrong trade. |
 | **Bicubic** *(chosen)* | 16-sample cubic fit | Sharper than bilinear at a cost that is irrelevant for a once-per-scan operation. Mild overshoot is acceptable on a grayscale document. |
-| **[Lanczos](lanczos-resampling.md)** | Windowed-sinc, 8×8 samples | Sharper still, and stronger ringing — a bright halo beside every dark stroke. Justifiable when *upscaling*, where you are trying to synthesise detail; overkill for a sub-pixel rotation. |
-| **Do not rotate at all** | Leave the skew; handle it in the calibration | Genuinely the strongest alternative, and it is what the manual tracing path does. Three calibration clicks define the along-wall axis from the *drawn* edge, so a tilted photograph is corrected by the coordinate transform with no resampling whatsoever. Deskew stays available because a visibly straight image is easier for a human to trace on — and it is **opt-in** (`deskew_flag=False` by default) precisely because it is not needed for correctness. |
+| **[Lanczos](lanczos-resampling.md)** | Windowed-sinc, 8×8 samples | Sharper still, and stronger ringing: a bright halo beside every dark stroke. Justifiable when *upscaling*, where you are trying to synthesise detail; overkill for a sub-pixel rotation. |
+| **Do not rotate at all** | Leave the skew; handle it in the calibration | Genuinely the strongest alternative, and it is what the manual tracing path does. Three calibration clicks define the along-wall axis from the *drawn* edge, so a tilted photograph is corrected by the coordinate transform with no resampling whatsoever. Deskew stays available because a visibly straight image is easier for a human to trace on, and it is **opt-in** (`deskew_flag=False` by default) precisely because it is not needed for correctness. |
 
 That last row is the interesting one. The best resampler is often no resampler:
 this project's primary path avoids the problem by moving the correction into
@@ -126,7 +126,7 @@ this project's primary path avoids the problem by moving the correction into
 | Lanczos4 | 64 |
 
 All are O(n) in the output size. On a 9-megapixel scan, bicubic is around 150
-million samples — well under a second in native code, and it happens once.
+million samples, well under a second in native code, and it happens once.
 
 The unavoidable cost is **generation loss**. Every resample is lossy and the
 losses accumulate, which is why `01_scan/` keeps the untouched original and
@@ -135,22 +135,22 @@ every derived image lives in its own stage folder. See
 
 ## Where else you meet it
 
-- **Zooming any image** on a screen, in any application.
-- **Video scaling** — the difference between a good and bad upscaler on a TV.
-- **Map tiles**, reprojected between coordinate systems.
-- **Texture sampling** in 3D graphics; GPUs implement bilinear in hardware
+- Zooming any image on a screen, in any application.
+- Video scaling: the difference between a good and bad upscaler on a TV.
+- Map tiles, reprojected between coordinate systems.
+- Texture sampling in 3D graphics; GPUs implement bilinear in hardware
   because it is used billions of times a second.
-- **Audio resampling** between sample rates is the same mathematics in one
+- Audio resampling between sample rates is the same mathematics in one
   dimension.
 
 ## Related pages
 
-- [Lanczos resampling](lanczos-resampling.md) — used for upscaling here.
-- [Area-averaging downsampling](area-averaging-downsampling.md) — used for
+- [Lanczos resampling](lanczos-resampling.md): used for upscaling here.
+- [Area-averaging downsampling](area-averaging-downsampling.md): used for
   shrinking here.
-- [Affine transforms](affine-transforms.md) — the rotation that needs
+- [Affine transforms](affine-transforms.md): the rotation that needs
   resampling.
-- [Similarity transforms](similarity-transforms.md) — the alternative that
+- [Similarity transforms](similarity-transforms.md): the alternative that
   avoids resampling entirely.
-- [Geometric normalization](../concepts/geometric-normalization.md) — the
+- [Geometric normalization](../concepts/geometric-normalization.md): the
   concept page on deskewing.

@@ -56,7 +56,7 @@ text { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-se
   <text x="890" y="219" text-anchor="start" class="sm muted">wall 3</text>
   <line x1="570" y1="256" x2="880" y2="256" class="warn"/>
   <text x="890" y="261" text-anchor="start" class="sm muted">wall 4</text>
-  <text x="546" y="292" text-anchor="start" class="sm muted">identical bearing 90 — every wall parallel</text>
+  <text x="546" y="292" text-anchor="start" class="sm muted">identical bearing 90: every wall parallel</text>
   <text x="24" y="340" text-anchor="start" class="sm muted">Every face carries the same 0, 0, 100, 90, so the walls lie in a row about 10 m apart</text>
   <text x="24" y="360" text-anchor="start" class="sm muted">instead of around a pit. The build refuses rather than producing a confident model of nothing.</text>
 </svg>

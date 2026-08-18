@@ -64,7 +64,7 @@ def visualizer_files(job_id):
     # working copy written by markers/detect, not the raw scan or the
     # (possibly differently-sized) preprocessed clean image. Serving any
     # other image alongside it would silently misplace the overlay, so if
-    # calibration exists, that rotated copy — not clean/scan — is the image
+    # calibration exists, that rotated copy (not clean/scan) is the image
     # this job hands to the visualizer.
     calib = meta.get("marker_calib")
     rotated_candidate = job_dir(job_id) / "03_extraction" / "marker_source_rotated.png"
@@ -73,7 +73,7 @@ def visualizer_files(job_id):
         out["image_url"] = rel_url(job_id, rotated_candidate)
         out["calibration"] = calib
     else:
-        # Image: preprocessed clean image if present, else the raw scan —
+        # Image: preprocessed clean image if present, else the raw scan,
         # unless the scan is a PDF, which a browser <img> can't show.
         img = (
             meta.get("manual_image_path")
@@ -86,7 +86,7 @@ def visualizer_files(job_id):
             if manual_calib and img == meta.get("manual_image_path"):
                 out["calibration"] = manual_calib
         # calib exists but we can't trust it against whatever image we just
-        # served (rotated copy missing) — omit it rather than misalign.
+        # served (rotated copy missing), so omit it rather than misalign.
 
     def add(label, path_str, front=False):
         if path_str and Path(path_str).exists():
@@ -98,8 +98,8 @@ def visualizer_files(job_id):
 
     # Field-wall JSON is served raw: the visualizer adapts the
     # FieldWallProfile shape itself (see ingest() in visualizer.html), and
-    # unlike fieldwall_to_profiles() it keeps topBoundary and features —
-    # the Python adapter only carries what convert() needs. Serving both
+    # unlike fieldwall_to_profiles() it keeps topBoundary and features.
+    # The Python adapter only carries what convert() needs. Serving both
     # raw and normalized also keeps A/B compare working for field sheets.
 
     job_directory = job_dir(job_id).resolve()

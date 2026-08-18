@@ -16,7 +16,7 @@ Documentation Procedures*:
     (trenchbook, find tags, Kobo/Open Context entries, etc.), so it is ideal to
     work in below datum as little as possible."
 
-The final form is **mAE — "meters absolute elevation"** — and values at this
+The final form is **mAE** ("meters absolute elevation"), and values at this
 site are in the twenties. A worked find entry in the procedures reads
 ``187E/56S``, ``28.73mAE``, Locus 2.
 
@@ -24,7 +24,7 @@ Two consequences shape this module:
 
 **A below-datum reading without a datum height is refused, not defaulted.**
 Treating a missing datum as zero produces a model that is internally
-consistent, plausible-looking, and tens of metres from where the trench is —
+consistent, plausible-looking, and tens of metres from where the trench is:
 wrong in the one way nothing downstream can detect.
 
 **Uncertainty is recorded, not modelled.** The Kobo forms carry a ± in

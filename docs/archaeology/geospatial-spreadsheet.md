@@ -24,8 +24,8 @@ place:
 > please record your coordinates in the Geospatial Spreadsheet, under the
 > "Opening Coordinates" column.
 
-So the numbers this application otherwise asks for — origin, bearing, wall
-length — already exist for a whole season, in one file, before anyone opens the
+So the numbers this application otherwise asks for (origin, bearing, wall
+length) already exist for a whole season, in one file, before anyone opens the
 modelling side. `poggio_webapp/pipeline/geospatial_sheet.py` reads a downloaded
 copy and hands each trench to [trench layout](trench-layout.md).
 
@@ -51,7 +51,7 @@ A blank id means "still the previous trench", not "no trench".
 
 **Coordinates arrive already signed.** Cells read `NW: 100/-20`, not
 `100E/20S`. The cardinal inversion was applied before the number reached the
-sheet, so no inversion is applied on read — doing it here would apply it twice
+sheet, so no inversion is applied on read. Doing it here would apply it twice
 and mirror the site. This is the same rule [site coordinates](site-coordinates.md)
 documents, confirmed for the first time by live records rather than by prose.
 
@@ -92,7 +92,7 @@ file means reading one.
 
 `wall_names()` names the wall between two consecutive corners from the cardinal
 they share: NW to NE is the north wall, NE to SE the east wall. Where a corner
-has no label — the extra vertices of an extended trench — the name comes back
+has no label (the extra vertices of an extended trench), the name comes back
 empty rather than invented, because "wall 5" would match nothing on any
 drawing.
 
@@ -107,7 +107,7 @@ come from the trenchbook's opening-elevation entries, and a face without one
 [cannot be registered](../worked-example/registration.md).
 
 **The Adjusted Elevations flags are not elevations.** They record whether
-below-datum readings have been corrected to absolute in each *kind* of record —
+below-datum readings have been corrected to absolute in each *kind* of record:
 locus forms, SF forms, daily logs, catalogue forms. `elevation_readiness()`
 surfaces the ones still `FALSE`, because a trench whose corrections are
 outstanding has no usable elevation anywhere, however many numbers its
@@ -126,7 +126,7 @@ records agree exactly, which is what makes it worth checking that they do.
 | A stray word in the trench column | Noted and skipped, not read as a trench |
 | Expecting the extended trench to register | Returned under `needs_wall_names` until its walls are named |
 | Assuming a registered trench can be modelled | It still has no `surfaceZ`; the build refuses until elevations arrive |
-| Re-applying the cardinal inversion | The site mirrors — the sheet's values are already signed |
+| Re-applying the cardinal inversion | The site mirrors. The sheet's values are already signed |
 
 Nothing is written. `/api/trenches/geospatial-sheet` reads the uploaded file
 and returns each trench's config for checking; the system of record is
@@ -134,9 +134,9 @@ untouched.
 
 ## Related pages
 
-- [Trench layout](trench-layout.md) — what one trench's corners become
-- [Grid registration](grid-registration.md) — what a registration is for
-- [Site coordinates](site-coordinates.md) — the signing rule these cells already carry
-- [Datum](datum.md) and [elevation](elevation.md) — what this sheet does not hold
-- [Kobo locus import](kobo-locus-import.md) — the other record-driven import
-- [Registering the worked example](../worked-example/registration.md) — a corner elevation that was never taken
+- [Trench layout](trench-layout.md): what one trench's corners become
+- [Grid registration](grid-registration.md): what a registration is for
+- [Site coordinates](site-coordinates.md): the signing rule these cells already carry
+- [Datum](datum.md) and [elevation](elevation.md): what this sheet does not hold
+- [Kobo locus import](kobo-locus-import.md): the other record-driven import
+- [Registering the worked example](../worked-example/registration.md): a corner elevation that was never taken

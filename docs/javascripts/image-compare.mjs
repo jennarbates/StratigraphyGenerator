@@ -5,7 +5,7 @@
  * side by side. With JavaScript off that is a perfectly readable comparison,
  * and it is what the README shows. With JavaScript on the two are stacked and
  * a draggable divider wipes between them, which is the only way to see a small
- * rotation — a few degrees of skew is invisible in two separate stills.
+ * rotation, since a few degrees of skew is invisible in two separate stills.
  *
  * Keyboard: focus the divider and use the arrow keys, Home, or End.
  */

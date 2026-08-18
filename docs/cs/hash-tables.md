@@ -13,7 +13,7 @@ verified_against: ae2fc1d
 # Hash tables
 
 Look something up by name in constant time. The dictionary is so ordinary in
-Python that its use goes unremarked — but several correctness properties in this
+Python that its use goes unremarked, but several correctness properties in this
 repository depend on exactly how it is used.
 
 ## What it is
@@ -24,7 +24,7 @@ O(n).
 
 Three consequences matter here:
 
-**Keys must be hashable and immutable.** Tuples work, lists do not — which is
+**Keys must be hashable and immutable.** Tuples work, lists do not, which is
 why composite keys in this codebase are always tuples.
 
 **Iteration order is an implementation detail.** Python 3.7+ guarantees
@@ -97,7 +97,7 @@ def points_key(pts):
 ```
 
 `tuple` rather than `list`, because it has to be hashable. The rounding is what
-makes two nearly-identical traces compare equal — a deliberate
+makes two nearly-identical traces compare equal: a deliberate
 [quantisation](grid-snapping-and-quantisation.md) before hashing, since floats
 that differ in the last bit hash differently.
 
@@ -137,20 +137,20 @@ for start in sorted(nodes):
 ```
 
 Not because sorting is needed for correctness, but because the *reported* result
-— which cycle, which order, which diagram — must be the same on every run.
+(which cycle, which order, which diagram) must be the same on every run.
 
 ## Why this and not something else
 
 | Alternative | How it would work here | Why it lost |
 |---|---|---|
 | **Linear scan over a list** | `for unit in units: if unit.id == target` | O(n) per lookup. In `harris_suggestions` that turns an O(n) grouping pass into O(n²). |
-| **Sorted list with binary search** | O(log n) lookup | Keeps order for free — genuinely attractive here given how much this codebase cares about determinism. Insertion is O(n), and Python's `dict` already preserves insertion order. |
+| **Sorted list with binary search** | O(log n) lookup | Keeps order for free, which is genuinely attractive here given how much this codebase cares about determinism. Insertion is O(n), and Python's `dict` already preserves insertion order. |
 | **A database** | Index and query | The entire dataset is a few hundred objects in one JSON file. |
 | **Dictionary with tuple keys** *(chosen)* | O(1) lookup, explicit ordering where needed | Fast, idiomatic, and the ordering concern is handled by sorting at the point of iteration rather than by the container. |
 
 The pattern worth naming: **use the hash table for speed, and impose order
-explicitly at every point where order is observable.** The alternative — relying
-on a container that happens to preserve order — makes a correctness property
+explicitly at every point where order is observable.** The alternative, relying
+on a container that happens to preserve order, makes a correctness property
 depend on an implementation detail.
 
 ## What it costs
@@ -161,31 +161,31 @@ because of the load factor.
 
 The costs that bite:
 
-- **Float keys are dangerous.** `0.1 + 0.2` and `0.3` are different keys. Hence
+- Float keys are dangerous. `0.1 + 0.2` and `0.3` are different keys. Hence
   the rounding in `points_key`.
-- **Set iteration order is unspecified**, so any output derived from it is
+- Set iteration order is unspecified, so any output derived from it is
   irreproducible. This repository sorts before every observable iteration.
-- **Mutable values in a dict can be aliased.** `units_by_id[unit.id] = unit`
-  stores a reference, and mutating through it changes the original — used
+- Mutable values in a dict can be aliased. `units_by_id[unit.id] = unit`
+  stores a reference, and mutating through it changes the original. Used
   deliberately in `harris_import.import_source_jobs`, which appends to
   `existing_unit.source_refs` through exactly such a reference.
 
 ## Where else you meet it
 
-- **Every language's map type** — Python `dict`, JavaScript `Map` and objects,
+- Every language's map type: Python `dict`, JavaScript `Map` and objects,
   Java `HashMap`.
-- **Database indexes**, where a hash index gives O(1) equality lookup.
-- **Caches**, from CPU caches to HTTP caches to memoisation.
-- **Symbol tables** in compilers.
-- **Deduplication** at every scale, from `uniq` to distributed shuffle.
+- Database indexes, where a hash index gives O(1) equality lookup.
+- Caches, from CPU caches to HTTP caches to memoisation.
+- Symbol tables in compilers.
+- Deduplication at every scale, from `uniq` to distributed shuffle.
 
 ## Related pages
 
-- [Sets and membership](sets-and-membership.md) — the same structure without
+- [Sets and membership](sets-and-membership.md): the same structure without
   values.
-- [Determinism and stable sorting](determinism-and-stable-sorting.md) — why
+- [Determinism and stable sorting](determinism-and-stable-sorting.md): why
   iteration order is sorted here.
-- [Hash functions and SHA-256](hash-functions-and-sha256.md) — cryptographic
+- [Hash functions and SHA-256](hash-functions-and-sha256.md): cryptographic
   hashing, a different job.
-- [Grid snapping and quantisation](grid-snapping-and-quantisation.md) — why
+- [Grid snapping and quantisation](grid-snapping-and-quantisation.md): why
   coordinates are rounded before becoming keys.

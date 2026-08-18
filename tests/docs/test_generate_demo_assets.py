@@ -248,7 +248,7 @@ def test_checked_in_assets_match_generator(tmp_path: Path) -> None:
     because the encoded bytes are not portable: PNG output depends on the zlib
     build and on the default font bundled with Pillow, so a byte comparison
     fails on any machine whose Pillow differs from the one that last wrote the
-    files — which is what broke CI rather than any real staleness.
+    files, which is what broke CI rather than any real staleness.
     """
     generated_paths = write_demo_assets(tmp_path)
 

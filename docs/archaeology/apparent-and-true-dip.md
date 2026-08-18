@@ -12,7 +12,7 @@ verified_against: ae2fc1d
 # Apparent and true dip
 
 How steeply a surface tilts. A section shows the tilt **in its own plane**, which
-is always shallower than the real one — and the correction needs two walls.
+is always shallower than the real one, and the correction needs two walls.
 
 ## What it is
 
@@ -20,9 +20,9 @@ A dipping surface has one true steepness, in one direction. A vertical section
 through it shows a line, and how steep that line looks depends on the angle
 between the section and the dip direction.
 
-- **True dip** — the maximum slope of the surface, measured down its steepest
+- True dip: the maximum slope of the surface, measured down its steepest
   line, with the compass direction it descends toward.
-- **Apparent dip** — the slope seen in any section not aligned with the true dip
+- Apparent dip: the slope seen in any section not aligned with the true dip
   direction.
 
 The relationship:
@@ -32,8 +32,8 @@ tan(apparent) = tan(true) × cos(angle between the section and the dip direction
 ```
 
 Since `cos ≤ 1`, **an apparent dip is never steeper than the true dip.** A
-section perpendicular to the dip direction shows a horizontal line — zero
-apparent dip — through a surface that is genuinely tilted.
+section perpendicular to the dip direction shows a horizontal line (zero
+apparent dip) through a surface that is genuinely tilted.
 
 The bias is **systematic**, not random. Averaging apparent dips does not recover
 the true one; it produces a value that is still too shallow.
@@ -94,8 +94,8 @@ def slope_to_orientation(slope: float, face_bearing: float) -> tuple[float, floa
     return dip, azimuth
 ```
 
-On one wall, the azimuth can only be *along the wall* — there is no information
-about any other direction. The slope comes from
+On one wall, the azimuth can only be *along the wall*, because there is no
+information about any other direction. The slope comes from
 [least squares](../cs/ordinary-least-squares.md) over the whole trace, not from
 the endpoints.
 
@@ -209,7 +209,7 @@ shallow. This is the default until `true_dip` runs, and it is why it exists.
 **Averaging apparent dips.** Intuitive and wrong.
 
 **Solving from near-parallel walls.** The [cross product](../cs/cross-product.md)
-degenerates and the direction becomes noise — refused at 10°.
+degenerates and the direction becomes noise, so it is refused at 10°.
 
 **Reading a single-wall dip as the real one.** It is the apparent dip, always
 shallower, and the note says so.
@@ -219,12 +219,12 @@ emitted. Two non-parallel sections are the minimum.
 
 ## Related pages
 
-- [Orientation seed](orientation-seed.md) — what carries dip and azimuth.
-- [Bearing and azimuth](bearing-and-azimuth.md) — the horizontal convention.
+- [Orientation seed](orientation-seed.md): what carries dip and azimuth.
+- [Bearing and azimuth](bearing-and-azimuth.md): the horizontal convention.
 - [Cross product](../cs/cross-product.md) and
-  [plane normals](../cs/plane-normals.md) — the solve.
-- [Ordinary least squares](../cs/ordinary-least-squares.md) — how each slope is
+  [plane normals](../cs/plane-normals.md): the solve.
+- [Ordinary least squares](../cs/ordinary-least-squares.md): how each slope is
   fitted.
-- [Fail-closed design](../cs/fail-closed-design.md) — why it refuses.
-- [Combine walls into one trench](../workflows/09-multi-wall-trench.md) — where
+- [Fail-closed design](../cs/fail-closed-design.md): why it refuses.
+- [Combine walls into one trench](../workflows/09-multi-wall-trench.md): where
   it runs.

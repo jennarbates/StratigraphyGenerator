@@ -14,7 +14,7 @@ verified_against: ae2fc1d
 
 The four surveyed values that place a [face](face.md) in the site's coordinate
 system. The project's own documentation calls registration "the binding
-constraint" — everything else can be right and a bad registration still ruins
+constraint": everything else can be right and a bad registration still ruins
 the model.
 
 ## What it is
@@ -33,7 +33,7 @@ Four numbers per face. Together they define a rigid transform from face-local
 metres to [site coordinates](site-coordinates.md).
 
 They come from **survey**, not from the drawing. A total station, a GNSS
-receiver, or a tape from established grid pegs — a different act, by a different
+receiver, or a tape from established grid pegs: a different act, by a different
 person, from different evidence than tracing.
 
 ## The picture
@@ -97,7 +97,7 @@ definitions are specific to this site rather than generic:
 Three site facts a generic description would miss: the bearing is from **Grid
 North**, the site's own reference direction, about 2.5° off projected north;
 southings and westings are **negative**, so `190E/53S` is `originY -53`; and
-elevations are **mAE**, in the twenties — which is why the placeholder `100.0`
+elevations are **mAE**, in the twenties, which is why the placeholder `100.0`
 is obviously not a real reading.
 
 ### Two more fields the config carries
@@ -176,7 +176,7 @@ if missing_fields:
 ```
 
 An out-of-range bearing is folded into the *same* "incomplete" message, because
-to a user a bearing of 400° is as unusable as a missing one — and one message
+to a user a bearing of 400° is as unusable as a missing one, and one message
 listing every bad field beats four separate errors.
 
 ### The placeholder refusal
@@ -193,7 +193,7 @@ cfg["faces"][name] = {
 ```
 
 Every face on **bearing 90**, ten metres apart. Left in place, that lays the
-walls in a parallel row rather than around a pit — and the model looks entirely
+walls in a parallel row rather than around a pit, and the model looks entirely
 convincing.
 
 `poggio_webapp/pipeline/merge_walls.py` detects it:
@@ -230,7 +230,7 @@ not:
 ### Corner adjacency, as a warning
 
 `merge_walls.check_trench_grid_config` also checks that registered walls actually
-meet — see [connected components](../cs/connected-components.md):
+meet (see [connected components](../cs/connected-components.md)):
 
 ```python
 warnings.append(
@@ -260,7 +260,7 @@ build refuses, and **a single-sheet build accepts them, with nothing marking the
 result as unsurveyed.**
 
 **Registering the wrong edge.** `originX/Y` is the site position of the face's
-**x = 0** edge — where you started measuring — which is not necessarily a trench
+**x = 0** edge (where you started measuring), which is not necessarily a trench
 corner. Register the wrong end and the wall is reflected along its own length.
 
 **Using a mathematical angle.** `bearing_deg` is clockwise from north. Supplying
@@ -270,14 +270,14 @@ result looks like a plausible trench in the wrong orientation.
 **Mixing datums between faces.** Caught by the
 [datum spread](datum.md) warning, above two metres.
 
-**Registering only some faces.** Fatal — a face missing from the config would be
+**Registering only some faces.** Fatal: a face missing from the config would be
 silently dropped from the model.
 
 ## Related pages
 
-- [Site coordinates](site-coordinates.md) — the target system.
-- [Bearing and azimuth](bearing-and-azimuth.md) — the angle convention.
-- [Datum](datum.md) and [elevation](elevation.md) — the vertical.
-- [Face](face.md) — what is registered.
-- [Similarity transforms](../cs/similarity-transforms.md) — the geometry.
-- [Place on site](../workflows/06-place-on-site.md) — the workflow step.
+- [Site coordinates](site-coordinates.md): the target system.
+- [Bearing and azimuth](bearing-and-azimuth.md): the angle convention.
+- [Datum](datum.md) and [elevation](elevation.md): the vertical.
+- [Face](face.md): what is registered.
+- [Similarity transforms](../cs/similarity-transforms.md): the geometry.
+- [Place on site](../workflows/06-place-on-site.md): the workflow step.

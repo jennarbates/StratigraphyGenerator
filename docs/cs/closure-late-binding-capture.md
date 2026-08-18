@@ -16,7 +16,7 @@ than relying on luck.
 ## What it is
 
 A **closure** is a function that references variables from its enclosing scope.
-Python closures capture the **variable**, not the value — so the function sees
+Python closures capture the **variable**, not the value, so the function sees
 whatever that variable holds *when it is called*, not when it was defined.
 
 ```python
@@ -24,7 +24,7 @@ functions = []
 for i in range(3):
     functions.append(lambda: i)
 
-[f() for f in functions]  # [2, 2, 2] — not [0, 1, 2]
+[f() for f in functions]  # [2, 2, 2], not [0, 1, 2]
 ```
 
 All three closures share the same `i`, which is 2 by the time any of them runs.
@@ -36,7 +36,7 @@ time:
 functions.append(lambda i=i: i)  # [0, 1, 2]
 ```
 
-The trap only bites when the closure **outlives the iteration** — stored in a
+The trap only bites when the closure **outlives the iteration**: stored in a
 list, returned, or passed as a callback. A closure called *within* the same
 iteration sees the right value and works fine.
 
@@ -50,7 +50,7 @@ instead of calling it immediately.
 flowchart TB
   L["for face in faces:"] --> D["define to_site(...)<br/>using this face's registration"]
   D --> C{"when is it called?"}
-  C -->|"inside this iteration"| OK["correct — the loop variable<br/>still holds this face's values"]
+  C -->|"inside this iteration"| OK["correct, the loop variable<br/>still holds this face's values"]
   C -->|"stored and called later"| Bad["sees the LAST face's values"]
   D --> Fix["bind as defaults →<br/>correct either way"]
 ```
@@ -88,10 +88,10 @@ inside this iteration." No bug exists today.
 
 **It states why the binding is there anyway.** "Binding makes that explicit and
 keeps the closure from tracking the loop." The function no longer depends on
-*when* it is called — a property, not a coincidence.
+*when* it is called. That is a property, not a coincidence.
 
-**It pre-empts a future change.** If someone later collects these functions —
-to convert faces lazily, or to build a per-face transform table — the code keeps
+**It pre-empts a future change.** If someone later collects these functions,
+to convert faces lazily or to build a per-face transform table, the code keeps
 working. Without the binding, that change would produce every face's points
 converted with the *last* face's registration: a model that is silently and
 catastrophically wrong, with no error.
@@ -100,7 +100,7 @@ That is the failure mode worth dwelling on. Every point would land somewhere;
 the CSV would look normal; the model would build. The walls would simply be in
 the wrong places.
 
-Five values are bound — `X0`, `Y0`, `Z0`, `sin_t`, `cos_t` — which is verbose,
+Five values are bound (`X0`, `Y0`, `Z0`, `sin_t`, `cos_t`), which is verbose,
 and the alternative is a subtle dependency on call site.
 
 Note what is *not* bound: `x` and `depth` are the genuine parameters. The
@@ -115,14 +115,14 @@ they come last.
 | **Default arguments** *(chosen)* | `def to_site(x, depth, X0=X0, ...)` | Values fixed at definition. Verbose, and the verbosity is visible where a silent dependency would not be. |
 | **`functools.partial`** | `partial(_to_site, X0, Y0, Z0, sin_t, cos_t)` | Also binds at creation and needs a module-level `_to_site`, moving the arithmetic away from the loop that gives it meaning. |
 | **A helper function taking the config** | `to_site(x, depth, cfg)` | Cleanest in one sense, and it passes the whole config on every call and re-derives `sin`/`cos` per point, or forces the caller to hold five values anyway. |
-| **A small class** | `SiteTransform(cfg).convert(x, depth)` | Explicit and immune to the trap — arguably the best design. Heavier than needed for four lines of arithmetic used in one loop, though it is exactly what `manual_extraction.Calibration` is. |
+| **A small class** | `SiteTransform(cfg).convert(x, depth)` | Explicit and immune to the trap, arguably the best design. Heavier than needed for four lines of arithmetic used in one loop, though it is exactly what `manual_extraction.Calibration` is. |
 | **Compute inline, no function** | Repeat the arithmetic at each use | Duplicates the axis convention, which is precisely the thing that must not diverge. See [compass bearings](compass-bearings-vs-mathematical-angles.md). |
 
 The pattern this repository actually favours for the *same* problem elsewhere is
 the fifth row: `manual_extraction.Calibration` and
 `detect_markers.SectionCoordinateTransform` are both `frozen=True` dataclasses
-holding their parameters — the first with a `convert` method, the second applied
-by `pixel_to_section_coordinates`. Immune by construction — see
+holding their parameters: the first with a `convert` method, the second applied
+by `pixel_to_section_coordinates`. Immune by construction. See
 [immutability and defensive copying](immutability-and-defensive-copying.md).
 
 `to_site` stays a closure because it is four lines used in one loop, and the
@@ -130,39 +130,39 @@ default-argument binding buys the same safety for one line of syntax.
 
 ## What it costs
 
-Nothing at runtime — default arguments are evaluated once at definition.
+Nothing at runtime: default arguments are evaluated once at definition.
 
 The costs:
 
-- **Verbosity.** Five parameters that are not really parameters.
-- **A confusing signature.** `to_site(x, depth, X0=..., Y0=..., ...)` looks like
+- Verbosity. Five parameters that are not really parameters.
+- A confusing signature. `to_site(x, depth, X0=..., Y0=..., ...)` looks like
   it takes seven arguments. A caller could pass a different `X0`, which nothing
   prevents. The comment is what stops that reading badly.
-- **It has to be remembered.** Nothing warns about the unbound form. `ruff`'s
+- It has to be remembered. Nothing warns about the unbound form. `ruff`'s
   `B023` rule (function definition does not bind loop variable) catches exactly
-  this and is **not** enabled here — the selected rules are `E, F, W, I, UP, B`,
+  this and is **not** enabled here. The selected rules are `E, F, W, I, UP, B`,
   so `B023` *is* in scope via `B`. Which means the linter would flag the unbound
   form, and the binding satisfies it.
 
 ## Where else you meet it
 
-- **JavaScript's `var` in loops**, the most famous instance — fixed in ES6 by
+- JavaScript's `var` in loops, the most famous instance, fixed in ES6 by
   `let`, which is block-scoped and captures per iteration.
-- **Event handlers registered in a loop**, where every handler fires with the
+- Event handlers registered in a loop, where every handler fires with the
   last item's data.
-- **Lambdas in list comprehensions**, in any language with reference capture.
-- **Go before 1.22**, where loop variables were reused across iterations — a
+- Lambdas in list comprehensions, in any language with reference capture.
+- Go before 1.22, where loop variables were reused across iterations, a
   common enough bug that the language changed the semantics.
-- **C++ lambda capture**, where `[=]` and `[&]` make the choice explicit at the
+- C++ lambda capture, where `[=]` and `[&]` make the choice explicit at the
   syntax level.
 
 ## Related pages
 
-- [Late binding versus import-time binding](late-binding-vs-import-time-binding.md) —
+- [Late binding versus import-time binding](late-binding-vs-import-time-binding.md):
   the same word, a different trap.
-- [Immutability and defensive copying](immutability-and-defensive-copying.md) —
+- [Immutability and defensive copying](immutability-and-defensive-copying.md):
   the frozen-dataclass alternative used elsewhere here.
-- [Compass bearings versus mathematical angles](compass-bearings-vs-mathematical-angles.md) —
+- [Compass bearings versus mathematical angles](compass-bearings-vs-mathematical-angles.md):
   the convention `to_site` encodes.
-- [Pure functions and testability](pure-functions-and-testability.md) — why
+- [Pure functions and testability](pure-functions-and-testability.md): why
   explicit inputs are preferable.

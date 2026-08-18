@@ -122,9 +122,7 @@ def _inside(value, bounds):
     return bounds[0] - TOLERANCE_M <= value <= bounds[1] + TOLERANCE_M
 
 
-# ---------------------------------------------------------------------------
 # The fixtures are what they claim to be
-# ---------------------------------------------------------------------------
 
 
 def test_every_fixture_records_where_its_values_came_from(layout, loci, finds):
@@ -162,9 +160,7 @@ def test_all_three_fixtures_describe_the_same_trench_and_season(
         assert fixture["site_grid"] == "poggio-civitate"
 
 
-# ---------------------------------------------------------------------------
 # Registration, and the wall that cannot be registered
-# ---------------------------------------------------------------------------
 
 
 def test_the_trench_is_five_metres_square(registration):
@@ -260,9 +256,7 @@ def test_the_corner_labels_parse_to_the_coordinates_a_spreadsheet_stores(
     ]
 
 
-# ---------------------------------------------------------------------------
 # The datum, and the 0.50 m it moved
-# ---------------------------------------------------------------------------
 
 
 def test_the_datum_correction_is_exactly_the_transit_error(layout):
@@ -318,9 +312,7 @@ def test_the_southwest_corner_is_high_because_of_a_spoil_heap(layout):
     assert heights["SW"] - heights["NW"] == pytest.approx(0.42)
 
 
-# ---------------------------------------------------------------------------
 # The loci, as measured surfaces
-# ---------------------------------------------------------------------------
 
 
 def test_all_eight_loci_are_present_and_numbered_one_to_eight(loci):
@@ -455,9 +447,7 @@ def test_the_same_surface_read_a_day_apart_agrees_to_within_six_centimetres(
     assert max(abs(value) for value in differences) == 0.06
 
 
-# ---------------------------------------------------------------------------
 # The Harris matrix, built from the SU forms
-# ---------------------------------------------------------------------------
 
 
 def _matrix(loci):
@@ -597,9 +587,7 @@ def test_the_abutments_are_recorded_even_though_the_schema_drops_them(loci):
         assert tuple(reversed(pair)) not in ordered
 
 
-# ---------------------------------------------------------------------------
 # The special finds, and the five that do not place
-# ---------------------------------------------------------------------------
 
 
 def test_all_twenty_six_special_finds_are_present_and_numbered(finds):

@@ -42,7 +42,7 @@ Python, from the repository root:
 python -m pytest tests/ -q
 ```
 
-JavaScript, using Node's built-in runner — **the globs must be quoted, and a
+JavaScript, using Node's built-in runner. **The globs must be quoted, and a
 directory must never be passed instead**:
 
 ```bash
@@ -68,13 +68,13 @@ convention.
 `poggio_webapp/static/module-layering.test.mjs` keeps that boundary true rather
 than assumed. It fails if any file outside those two imports `three`, if either
 of them stops importing it, or if any import chain starting at a test file
-reaches one of them — transitively, because the mistake that actually happens is
+reaches one of them, transitively, because the mistake that actually happens is
 one hop removed: a core module grows an import of the glue, and a test nowhere
 near it starts failing with a module-resolution error.
 
 The second glob covers the documentation's interactive components. It matters
 most for the coordinate converter, which re-implements in JavaScript arithmetic
-that already exists in Python — its tests pin the two together using values
+that already exists in Python. Its tests pin the two together using values
 produced by running the Python.
 
 Documentation:
@@ -112,7 +112,7 @@ so treat a green run rather than a specific count as the signal.
 
 `check_coverage.py` reports any module under `poggio_webapp/pipeline/` or
 `poggio_webapp/backend/` that no documentation page names by full path. It is a
-coverage floor — it proves a module was named, not that it was explained.
+coverage floor: it proves a module was named, not that it was explained.
 
 `validate_visual_manifest.py` checks `docs/assets/visual-manifest.yml` against
 the pages, in both directions: entries must be well formed, and every embedded
@@ -125,7 +125,7 @@ approved manifest entry.
 
 ## What each suite covers
 
-### Python — `tests/`
+### Python: `tests/`
 
 61 modules. Grouped by area rather than filename:
 
@@ -146,12 +146,12 @@ approved manifest entry.
 
 `tests/fixtures/` and `tests/fixtures_merge.py` supply shared inputs.
 
-The densest coverage is the merge layer — 64 tests across `test_merge_walls`,
-`test_merge_integration`, `test_trench_routes`, and `test_true_dip` — because
+The densest coverage is the merge layer (64 tests across `test_merge_walls`,
+`test_merge_integration`, `test_trench_routes`, and `test_true_dip`), because
 it is the part of the pipeline where a silent error produces a
 plausible-looking wrong model rather than a crash.
 
-### JavaScript — the documentation components
+### JavaScript: the documentation components
 
 `docs/javascripts/` holds three progressive-enhancement modules: the coordinate
 converter, the before/after comparison slider, and the pipeline stage explorer.
@@ -161,7 +161,7 @@ JavaScript disabled loses the interaction, not the content.
 Only the converter is tested, because only the converter duplicates logic that
 exists elsewhere.
 
-### JavaScript — `poggio_webapp/static/`
+### JavaScript: `poggio_webapp/static/`
 
 20 files, colocated with the modules they test rather than gathered into a test
 directory. They cover the pure functions the browser code depends on: grid and
@@ -172,10 +172,10 @@ and the demo card's presentation logic.
 Anything requiring a DOM is not tested here. The suites test extracted logic,
 which is why they need no browser and no build step.
 
-### Documentation — `tests/docs/`
+### Documentation: `tests/docs/`
 
-Five modules — `test_check_docs`, `test_check_coverage`, `test_visual_manifest`,
-`test_check_readme_sync`, and `test_generate_demo_assets` — test the tooling in
+Five modules (`test_check_docs`, `test_check_coverage`, `test_visual_manifest`,
+`test_check_readme_sync`, and `test_generate_demo_assets`) test the tooling in
 `tools/docs/`, not the prose. The prose is checked by running the tool itself.
 
 `check_docs.py` verifies four things across every page in `docs/` and the root
@@ -216,21 +216,21 @@ python tools/docs/check_docs.py . && python tools/docs/check_coverage.py . && py
 
 Worth knowing before trusting a green run:
 
-- **No end-to-end extraction test.** Gemini extraction requires a key and
+- No end-to-end extraction test. Gemini extraction requires a key and
   network access; `test_schema_source_field` covers output provenance, not the
   network call.
-- **No upload, preprocessing, or normalizer test.** See
+- No upload, preprocessing, or normalizer test. See
   [capability status](../project/capability-status.md), which records this per
   capability.
-- **No browser-level test.** The JavaScript suites test extracted logic, so a
-  wiring regression — a control that renders but calls nothing — passes.
+- No browser-level test. The JavaScript suites test extracted logic, so a
+  wiring regression (a control that renders but calls nothing) passes.
 
 That last gap is exactly how the canvas editor sat in a `blocked` state while
 its routes and canvas tests all passed.
 
 ## Related
 
-- [Capability status](../project/capability-status.md) — which tests back which
+- [Capability status](../project/capability-status.md): which tests back which
   capability.
-- [Synthetic fixtures](../fixtures/README.md) — the sanitized inputs used by
+- [Synthetic fixtures](../fixtures/README.md): the sanitized inputs used by
   documentation tests.

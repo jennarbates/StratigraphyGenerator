@@ -53,8 +53,8 @@ export function renderFeatures() {
 
   function showConfirmedBanner() {
     document.getElementById("ftConfirmed").innerHTML = ft.confirmedCount
-      ? banner("ok", `<strong>${ft.confirmedCount}</strong> features confirmed — ` +
-               `they will be included in whichever extraction path you use ` +
+      ? banner("ok", `<strong>${ft.confirmedCount}</strong> features confirmed. ` +
+               `They will be included in whichever extraction path you use ` +
                `(<strong>03 · Extraction</strong> or <strong>03 · Draw boundaries</strong>).`)
       : "";
   }
@@ -75,8 +75,8 @@ export function renderFeatures() {
         `width:${c.width*sx}px;height:${c.height*sy}px;box-sizing:border-box;` +
         `border:3px ${c.accepted || c.manual ? "solid" : "dashed"} ${color};` +
         `cursor:pointer;`;
-      d.title = c.manual ? `${c.feature_type} (drawn by you) — click to remove`
-                         : `score ${c.score ?? "-"} — click to ${c.accepted ? "reject" : "accept"}`;
+      d.title = c.manual ? `${c.feature_type} (drawn by you). Click to remove`
+                         : `score ${c.score ?? "-"}. Click to ${c.accepted ? "reject" : "accept"}`;
       d.addEventListener("click", (ev) => {
         ev.stopPropagation();
         if (drawMode) return;
@@ -135,7 +135,7 @@ export function renderFeatures() {
       document.getElementById("ftInfo").innerHTML =
         banner("ok", `CV proposed <strong>${r.candidate_count}</strong> closed-contour ` +
           `candidates on the <strong>${r.image_kind}</strong> image. None of them is a ` +
-          `feature until you accept it — and you can reject all of them and only ` +
+          `feature until you accept it, and you can reject all of them and only ` +
           `draw your own.`) +
         `<div class="btn-row"><a href="${r.debug_image_url}" target="_blank">` +
         `<button class="secondary">Open numbered debug image</button></a></div>`;

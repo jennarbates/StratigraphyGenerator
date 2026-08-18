@@ -24,7 +24,7 @@ The isoperimetric inequality says that among all shapes with a given perimeter,
 the circle encloses the most area. So `4πA/P²` reaches its maximum of **1.0**
 for a perfect circle and falls toward 0 for anything long, thin, or ragged.
 
-It is **dimensionless** — area is in square units, perimeter squared is in
+It is **dimensionless**: area is in square units, perimeter squared is in
 square units, and the ratio is scale-free. A 2 mm dot and a 2 cm dot both score
 1.0.
 
@@ -61,7 +61,7 @@ plausible dot. The separation is not marginal.
 
 ## Where this project uses it
 
-### As a hard filter — marker detection
+### As a hard filter: marker detection
 
 `poggio_webapp/pipeline/detect_markers.py`:
 
@@ -85,8 +85,8 @@ else:
 and it is calibrated rather than lax. A digitised circle's perimeter is measured
 along a staircase of pixel steps, which overestimates it by around 5%. Since
 circularity divides by `P²`, that error is *squared*: a perfect digital circle
-measures roughly 0.9, and a small one — a 2 mm dot may be only a dozen pixels
-across — measures lower still. 0.65 accommodates a real discretisation bias.
+measures roughly 0.9, and a small one (a 2 mm dot may be only a dozen pixels
+across) measures lower still. 0.65 accommodates a real discretisation bias.
 
 Circularity is also the ranking key for what gets offered back to the reviewer:
 
@@ -102,10 +102,10 @@ near_misses = near_misses[:300]
 ```
 
 Rejects are not discarded. The most circular 300 near-misses are returned so a
-person can rescue a real vertex the filter dropped — see
+person can rescue a real vertex the filter dropped. See
 [human-in-the-loop review](human-in-the-loop-review.md).
 
-### As a scoring term — feature detection
+### As a scoring term: feature detection
 
 `poggio_webapp/pipeline/detect_features.py`:
 
@@ -126,7 +126,7 @@ suggested_type = (
 )
 ```
 
-Here it is **evidence, not a verdict** — the heaviest term at 0.45 in a weighted
+Here it is **evidence, not a verdict**: the heaviest term at 0.45 in a weighted
 score, and one input to a *suggested* label a reviewer confirms or changes. A
 stone is compact but not circular, so a hard threshold would be wrong.
 
@@ -134,57 +134,57 @@ The `min(1.0, max(0.0, ...))` clamp guards against the discretisation bias
 running the other way: a small, very smooth contour can compute slightly above
 1.0, which would otherwise inflate the score.
 
-Same formula, two roles — hard gate for a manufactured mark, weighted evidence
+Same formula, two roles: hard gate for a manufactured mark, weighted evidence
 for a natural object.
 
 ## Why this and not something else
 
 | Alternative | What it measures | Why it lost |
 |---|---|---|
-| **[Aspect ratio](aspect-ratio.md)** | `w / h` of the bounding box | Also used. It is orientation-dependent — a 45° elongated shape has an aspect ratio near 1.0 — and it says nothing about raggedness. Circularity catches both. |
+| **[Aspect ratio](aspect-ratio.md)** | `w / h` of the bounding box | Also used. It is orientation-dependent (a 45° elongated shape has an aspect ratio near 1.0) and it says nothing about raggedness. Circularity catches both. |
 | **[Solidity](solidity.md)** | `area / hull area` | Also used, and it measures *dentedness*, not elongation. A long convex ellipse has solidity ≈ 1 and circularity ≈ 0.3. Complementary, not competing. |
 | **[Fill ratio](extent-and-fill-ratio.md)** | `area / πr²` against the enclosing circle | Also used. It catches rings, which circularity does not: a thin annulus has low circularity but so does a squiggle. Fill separates hollow from solid. |
-| **Ellipse eccentricity** | `fitEllipse`, then the axis ratio | A cleaner elongation measure, and it needs ≥5 points and is unstable on small noisy contours — a 2 mm dot may have very few. |
+| **Ellipse eccentricity** | `fitEllipse`, then the axis ratio | A cleaner elongation measure, and it needs ≥5 points and is unstable on small noisy contours (a 2 mm dot may have very few). |
 | **Hu moments** | Rotation-invariant moment descriptors | More discriminative for template *matching*, and uninterpretable. "Circularity ≥ 0.65" can be explained to an archaeologist; a Hu moment threshold cannot. |
 | **Circularity** *(chosen)* | Elongation + raggedness, in one number | Free given area and perimeter, dimensionless, rotation-invariant, and directly interpretable. |
 
 The design point is that **no single descriptor suffices**. The marker filter
-runs four in conjunction — size, circularity, solidity, fill — because each is
+runs four in conjunction (size, circularity, solidity, fill) because each is
 blind to a different failure. Circularity misses a ring; fill catches it.
 Circularity misses nothing about a boundary line; it is the first and strongest
 gate.
 
 ## What it costs
 
-Free, given [area and perimeter](contour-area-and-perimeter.md) — three
+Free, given [area and perimeter](contour-area-and-perimeter.md): three
 arithmetic operations. It is computed early, precisely because it is cheap and
 highly discriminative, before the O(n log n) [convex hull](convex-hull.md).
 
 The costs are two known biases:
 
-- **Perimeter overestimation** on digitised shapes, squared by the formula —
+- Perimeter overestimation on digitised shapes, squared by the formula. This is
   handled by setting the threshold at 0.65 rather than near 1.0.
-- **Small-contour instability.** Below about 20 boundary pixels, quantisation
+- Small-contour instability. Below about 20 boundary pixels, quantisation
   dominates. The `width < 10 or height < 10` guard in `detect_features.py` and
   the paper-millimetre diameter band in `detect_markers.py` both keep contours
   out of that regime.
 
 ## Where else you meet it
 
-- **Cell biology**, where circularity distinguishes round cells from spread or
-  elongated ones — one of the most-used measures in ImageJ.
-- **Sedimentology**, classifying grain roundness; the archaeological
+- Cell biology, where circularity distinguishes round cells from spread or
+  elongated ones. It is one of the most-used measures in ImageJ.
+- Sedimentology, classifying grain roundness; the archaeological
   neighbour of this project's use.
-- **Quality control**, checking that a machined hole or moulded part is round.
-- **Particle analysis** in materials science.
-- **Coastline and fractal studies**, where the same ratio quantifies how
+- Quality control, checking that a machined hole or moulded part is round.
+- Particle analysis in materials science.
+- Coastline and fractal studies, where the same ratio quantifies how
   convoluted a boundary is.
 
 ## Related pages
 
-- [Contour area and perimeter](contour-area-and-perimeter.md) — the inputs.
-- [Solidity](solidity.md) — the dentedness measure used alongside.
-- [Extent and fill ratio](extent-and-fill-ratio.md) — the hollowness measures.
-- [Aspect ratio](aspect-ratio.md) — the cheap elongation measure.
-- [Morphological opening](morphological-opening.md) — the step that makes
+- [Contour area and perimeter](contour-area-and-perimeter.md): the inputs.
+- [Solidity](solidity.md): the dentedness measure used alongside.
+- [Extent and fill ratio](extent-and-fill-ratio.md): the hollowness measures.
+- [Aspect ratio](aspect-ratio.md): the cheap elongation measure.
+- [Morphological opening](morphological-opening.md): the step that makes
   circularity measurable on a dot attached to a line.

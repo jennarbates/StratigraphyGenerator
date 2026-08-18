@@ -21,19 +21,19 @@ seasons can be compared.
 A site coordinate is a triple:
 
 ```
-X — easting     metres east on the site grid
-Y — northing    metres north on the site grid
-Z — elevation   metres above the datum
+X: easting     metres east on the site grid
+Y: northing    metres north on the site grid
+Z: elevation   metres above the datum
 ```
 
-The grid is usually local and arbitrary — origin at a convenient point, axes
-aligned to something useful — rather than a national projection. What matters is
+The grid is usually local and arbitrary (origin at a convenient point, axes
+aligned to something useful) rather than a national projection. What matters is
 that it is **shared**: every measurement on the site descends from the same
 origin and the same [datum](datum.md).
 
 At Poggio Civitate the rules are concrete, and
 `poggio_webapp/pipeline/site_grid.py` is the one place that holds them. There
-are **two** local grids — the hill of Poggio Civitate and Vescovado di Murlo —
+are **two** local grids, the hill of Poggio Civitate and Vescovado di Murlo,
 so a bare pair of numbers is not a location until the grid is named. Grid X is
 the E/W value and is recorded first, Grid Y the N/S value; and **South and West
 are negative**, so a label of `190E/53S` reads as `(190, -53)`. Model
@@ -57,7 +57,7 @@ flowchart TB
   P["pixels on a drawing"] -->|"calibration"| L["face-local metres<br/>(x along, depth down)"]
   L -->|"grid registration"| S["<b>site coordinates</b><br/>(X, Y, Z)"]
   T["total station shot"] --> S
-  S --> M["the model — one space,<br/>all faces together"]
+  S --> M["the model, one space,<br/>all faces together"]
 ```
 
 Two independent routes into the same space. That is the point of having one.
@@ -68,7 +68,7 @@ Depth is measured from each wall's own top edge, and those edges are at differen
 heights. Face-local x is measured from each wall's own starting point. Neither is
 comparable across walls.
 
-Site coordinates are the space where they become comparable — where the four
+Site coordinates are the space where they become comparable: where the four
 walls of a trench form a pit, where a [find](find.md) can be placed relative to a
 boundary, and where a model can be built.
 
@@ -107,12 +107,12 @@ rows.append(
 )
 ```
 
-Written to `points.csv`, four decimal places — 0.1 mm, which is as much as the
+Written to `points.csv`, four decimal places: 0.1 mm, which is as much as the
 tracing supports. See
 [grid snapping and quantisation](../cs/grid-snapping-and-quantisation.md).
 
-`face` travels alongside so a reader can tell which wall each point came from —
-which is what lets `wall_traces` draw the recorded evidence over the interpolated
+`face` travels alongside so a reader can tell which wall each point came from.
+That is what lets `wall_traces` draw the recorded evidence over the interpolated
 model.
 
 ### The units are declared, not assumed
@@ -133,8 +133,8 @@ and coordinate_system.get("units") == "m"
 and coordinate_system.get("up_axis") == "Z"
 ```
 
-Stating which axis is up rather than assuming it — see
-[schema versioning](../cs/schema-versioning.md).
+Stating which axis is up rather than assuming it (see
+[schema versioning](../cs/schema-versioning.md)).
 
 ### The model extent is bounded by the data
 
@@ -150,7 +150,7 @@ def infer_extent(points, pad_xy, pad_z):
         return lo - p, hi + p
 ```
 
-The model does not extend arbitrarily beyond where anything was recorded — see
+The model does not extend arbitrarily beyond where anything was recorded. See
 [interpolation versus measurement](../cs/interpolation-vs-measurement.md).
 
 ### One reason a wall may be sorted along Y rather than X
@@ -162,7 +162,7 @@ ordered = group.sort_values("X" if x_span > y_span else "Y", kind="stable")
 ```
 
 A wall running north–south has effectively one X for every point. Sorting by X
-first would leave the trace in arbitrary order — a small consequence of the fact
+first would leave the trace in arbitrary order, a small consequence of the fact
 that in site coordinates, a wall is no longer axis-aligned.
 
 ## What it is not
@@ -184,7 +184,7 @@ site convention that has to be checked, not assumed.
 
 **Confusing northing/easting order.** Survey data is often quoted
 northing-first, and this project stores X (easting) first. Transposing them
-reflects the whole model about a diagonal — and the result looks like a plausible
+reflects the whole model about a diagonal, and the result looks like a plausible
 trench in the wrong place.
 
 **Publishing real coordinates carelessly.** The documentation's own visual
@@ -197,11 +197,11 @@ different places are not related. Elevation is geometry; sequence is
 
 ## Related pages
 
-- [Grid registration](grid-registration.md) — the transform into this space.
-- [Datum](datum.md) and [elevation](elevation.md) — the vertical axis.
-- [Bearing and azimuth](bearing-and-azimuth.md) — the angle convention.
-- [Interface point](interface-point.md) — a boundary point in this space.
-- [Survey point codes](survey-point-codes.md) — how the site measures directly
+- [Grid registration](grid-registration.md): the transform into this space.
+- [Datum](datum.md) and [elevation](elevation.md): the vertical axis.
+- [Bearing and azimuth](bearing-and-azimuth.md): the angle convention.
+- [Interface point](interface-point.md): a boundary point in this space.
+- [Survey point codes](survey-point-codes.md): how the site measures directly
   into it.
-- [Coordinate spaces](../concepts/coordinate-spaces.md) — the three spaces
+- [Coordinate spaces](../concepts/coordinate-spaces.md): the three spaces
   compared.

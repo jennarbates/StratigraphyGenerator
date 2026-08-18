@@ -113,9 +113,7 @@ def test_a_byte_order_mark_does_not_break_the_header(client):
     assert response.get_json()["loci"][0]["locusNumber"] == "6"
 
 
-# ---------------------------------------------------------------------------
 # A whole season from the Geospatial Spreadsheet
-# ---------------------------------------------------------------------------
 
 
 @pytest.fixture

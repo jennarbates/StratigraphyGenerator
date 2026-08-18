@@ -25,7 +25,7 @@ A **pure** function:
 - reads nothing outside its arguments
 - changes nothing outside its return value
 
-Impurity is not a flaw — a program that touched nothing would do nothing. The
+Impurity is not a flaw. A program that touched nothing would do nothing. The
 discipline is to **concentrate** impurity: keep the transformations pure, push
 the file reads, HTTP handling, and clock access to the edges.
 
@@ -71,7 +71,7 @@ def _direction(start, end, point):
     )
 ```
 
-Three tuples in, a number out. A test is one line with three literals — no job,
+Three tuples in, a number out. A test is one line with three literals: no job,
 no file, no application.
 
 ### Merging, with the purity stated as a guarantee
@@ -102,7 +102,7 @@ merged, merge_notes = merge_walls.merge_extractions(
 notes.extend(merge_notes)
 ```
 
-Every pipeline module does this — `normalizer` returns a log, `validator`
+Every pipeline module does this: `normalizer` returns a log, `validator`
 returns a `Report`, `true_dip` returns notes, `convert_coords` returns notes.
 Diagnostics as return values rather than as side effects.
 
@@ -140,8 +140,8 @@ def validate(data, monotonic_tolerance_m=DEFAULT_MONOTONIC_TOLERANCE_M,
              max_plausible_depth_m=DEFAULT_MAX_PLAUSIBLE_DEPTH_M):
 ```
 
-Defaults for production, parameters for tests — and for an operator with a
-different site.
+Defaults for production, parameters for tests (and for an operator with a
+different site).
 
 ### Impurity concentrated at the edges
 
@@ -167,13 +167,13 @@ testable.
 def storage_dirs(tmp_path, monkeypatch):
     """Redirect every on-disk storage root at a fresh tmp_path.
     ...
-    Autouse: no test may write to the real ``poggio_webapp/jobs`` — a test that
+    Autouse: no test may write to the real ``poggio_webapp/jobs``. A test that
     patched the wrong target used to pass while quietly writing into the
     developer's working tree, which is a worse failure than a red test.
     """
 ```
 
-Where impurity is unavoidable, it is **contained** — every test gets a fresh
+Where impurity is unavoidable, it is **contained**: every test gets a fresh
 temporary directory, automatically. See
 [late binding](late-binding-vs-import-time-binding.md).
 
@@ -185,7 +185,7 @@ temporary directory, automatically. See
 ```
 
 Most of those call pipeline functions directly. The Flask `client` fixture
-exists and is used where routing genuinely needs testing — the minority. The
+exists and is used where routing genuinely needs testing, the minority. The
 full Python run is dominated by a handful of integration and subprocess tests,
 not by the hundreds of pure-function tests.
 
@@ -196,7 +196,7 @@ not by the hundreds of pure-function tests.
 | **Test through the HTTP API only** | Build a request, post JSON, assert on the response | Tests the whole stack, and is slow, needs fixture data on disk, and a failure does not say *which* layer broke. |
 | **Mock the dependencies** | Patch `open`, patch `storage`, patch the clock | Works, and mocks encode assumptions about *how* the code works, so a refactor breaks tests that should not care. |
 | **Pure core, thin impure shell** *(chosen)* | Call `merge_extractions(sheets)` with literals | Fast, precise, and the test reads as a specification of the rule. |
-| **Property-based testing** | Generate random inputs, assert invariants | Excellent *given* pure functions — a natural next step for the geometry primitives, which are ideal candidates. |
+| **Property-based testing** | Generate random inputs, assert invariants | Excellent *given* pure functions: a natural next step for the geometry primitives, which are ideal candidates. |
 | **Integration tests only** | End-to-end runs | Present here too (`test_merge_integration.py`), and complementary rather than sufficient. |
 
 The load-bearing observation is in `manual_extraction.py`'s own docstring:
@@ -215,38 +215,38 @@ More parameters, more return values, more files.
 
 The costs:
 
-- **Threading arguments through.** `jobs_dir` and `tolerance_m` are passed
+- Threading arguments through. `jobs_dir` and `tolerance_m` are passed
   explicitly rather than read from a module. Verbose, and the reason the
   functions are testable.
-- **Notes instead of logging** means every caller must decide what to do with
-  them. A caller that ignores the list loses the diagnostics — and callers here
+- Notes instead of logging means every caller must decide what to do with
+  them. A caller that ignores the list loses the diagnostics, and callers here
   propagate them into `meta.json` and the API response.
-- **Purity is a convention.** Nothing prevents a pipeline function opening a
+- Purity is a convention. Nothing prevents a pipeline function opening a
   file. The absence of Flask imports is the closest thing to enforcement.
-- **Some things cannot be pure.** `start_task` spawns a thread; `_atomic_write`
-  writes a file. Those are the shell, and they have the fewest tests — which is
+- Some things cannot be pure. `start_task` spawns a thread; `_atomic_write`
+  writes a file. Those are the shell, and they have the fewest tests, which is
   the trade-off accepted.
 
 ## Where else you meet it
 
-- **Functional programming** — Haskell's type system makes the pure/impure split
+- Functional programming: Haskell's type system makes the pure/impure split
   explicit.
-- **"Functional core, imperative shell"**, the name for exactly this
+- "Functional core, imperative shell", the name for exactly this
   architecture.
-- **React**, where pure components and pure reducers are the standard.
-- **Property-based testing** — QuickCheck, Hypothesis — which requires purity to
+- React, where pure components and pure reducers are the standard.
+- Property-based testing (QuickCheck, Hypothesis), which requires purity to
   work.
-- **Spreadsheets**, where every cell is a pure function of other cells.
-- **Build systems**, where pure steps enable caching and parallelism.
+- Spreadsheets, where every cell is a pure function of other cells.
+- Build systems, where pure steps enable caching and parallelism.
 
 ## Related pages
 
-- [Separation of concerns](separation-of-concerns.md) — how the core and shell
+- [Separation of concerns](separation-of-concerns.md): how the core and shell
   are split.
-- [Immutability and defensive copying](immutability-and-defensive-copying.md) —
+- [Immutability and defensive copying](immutability-and-defensive-copying.md):
   the no-mutation half of purity.
-- [Determinism and stable sorting](determinism-and-stable-sorting.md) — the
+- [Determinism and stable sorting](determinism-and-stable-sorting.md): the
   same-output-for-same-input half.
-- [Late binding versus import-time binding](late-binding-vs-import-time-binding.md) —
+- [Late binding versus import-time binding](late-binding-vs-import-time-binding.md):
   how the impure parts stay redirectable.
-- [Running the tests](../reference/running-the-tests.md) — the suites.
+- [Running the tests](../reference/running-the-tests.md): the suites.

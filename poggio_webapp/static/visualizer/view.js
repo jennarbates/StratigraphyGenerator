@@ -43,7 +43,7 @@ export function ready(){
   if(state.activeFace >= faces.length) state.activeFace = 0;
   const m = primary.metadata || {};
   $("meta").innerHTML = m.trenchLabel
-    ? `Trench <b>${m.trenchLabel}</b> · ${(m.credits&&m.credits.year)||"—"} · ${faces.length} face(s)` : "";
+    ? `Trench <b>${m.trenchLabel}</b> · ${(m.credits&&m.credits.year)||"n/a"} · ${faces.length} face(s)` : "";
 
   const tabs=$("faceTabs"); tabs.innerHTML="";
   faces.forEach((f,i)=>{const b=document.createElement("button");
@@ -646,7 +646,7 @@ function panelHTML(tag, label, face){
         <span class="chip">${nPts} points</span>
         <span class="chip">~${maxX.toFixed(1)}m × ${maxY.toFixed(1)}m</span></div></div>
     ${nPts===0?`<p class="hint" style="color:#8a3b2c;margin:4px 0 8px">This face has
-      <b>no drawable boundary points</b> — its layers carry empty or non-numeric
+      <b>no drawable boundary points</b>: its layers carry empty or non-numeric
       coordinates, so there is nothing to overlay. The extraction itself is the
       problem (e.g. a run where no vertex markers were found), not the visualizer.</p>`:""}
     <div class="canvas-wrap" id="wrap_${tag}">${state.imageUrl?`<img src="${state.imageUrl}">`:
@@ -668,8 +668,8 @@ export function draw(){
       ? `<div class="empty">This run has no face #${state.activeFace+1}.</div>`
       : `<div class="empty">No faces found in this JSON.<br>
          Expected either an illustrator extraction (<code>trenchProfiles</code>)
-         or a field-wall extraction (<code>loci</code>/<code>layers</code>) —
-         this file has neither, so there is nothing to draw.
+         or a field-wall extraction (<code>loci</code>/<code>layers</code>).
+         This file has neither, so there is nothing to draw.
          Grid configs, points.csv exports, and GemPy outputs are not visualizer inputs.</div>`;
     return;
   }

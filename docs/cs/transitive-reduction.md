@@ -10,7 +10,7 @@ verified_against: ae2fc1d
 # Transitive reduction
 
 Removing the edges a longer path already implies. What turns a tangle of
-recorded relationships into a readable Harris Matrix — without deleting anything
+recorded relationships into a readable Harris Matrix, without deleting anything
 an archaeologist wrote down.
 
 ## What it is
@@ -112,7 +112,7 @@ ones become **warnings**, naming the specific relation IDs.
 
 That distinction is the design decision on this page. An archaeologist who
 recorded `Locus 1 → Locus 3` observed something and wrote it down. The software's
-judgement that it is implied is an inference from the rest of the data — an
+judgement that it is implied is an inference from the rest of the data, an
 inference that would be wrong if one of the intermediate relations is later
 corrected. Deleting the observation would destroy evidence to tidy a picture.
 
@@ -141,15 +141,15 @@ redundancy is assessed.
 | Alternative | How it would handle implied edges | Why it lost |
 |---|---|---|
 | **Draw every recorded relation** | No reduction | A matrix with 30 units and full relationships becomes unreadable, and every implied arrow makes a false claim of direct stratigraphic contact. |
-| **Delete redundant relations from storage** | Reduce the data, not the display | Destroys an archaeologist's observation. If an intermediate relation is later corrected, the deleted one may no longer be implied — and it is gone. |
+| **Delete redundant relations from storage** | Reduce the data, not the display | Destroys an archaeologist's observation. If an intermediate relation is later corrected, the deleted one may no longer be implied, and it is gone. |
 | **Transitive closure** | Add every implied edge | The opposite. Maximum clutter, and it manufactures contact claims wholesale. |
 | **Reduce for display, warn, keep the data** *(chosen)* | Three separate outputs | The diagram is readable, the record is complete, and the user is told which relations were omitted and why. |
 | **Matrix-based reduction (Floyd–Warshall)** | Compute closure, subtract | O(V³) time, O(V²) memory. For sparse chronologies the reachability approach is much cheaper. |
-| **Let the user mark relations as direct** | Manual annotation | More faithful in principle — direct contact is an observation, not a derivation. It is work per relation, and the current `HarrisRelation.kind` field (above, cuts, fills, precedes, other) already carries some of that meaning. A reasonable future direction. |
+| **Let the user mark relations as direct** | Manual annotation | More faithful in principle: direct contact is an observation, not a derivation. It is work per relation, and the current `HarrisRelation.kind` field (above, cuts, fills, precedes, other) already carries some of that meaning. A reasonable future direction. |
 
 ## What it costs
 
-The implementation is **O(E × (V + E))** — a reachability search per edge. For a
+The implementation is **O(E × (V + E))**: a reachability search per edge. For a
 matrix of 100 units and 200 relations that is 200 searches over a small graph:
 milliseconds.
 
@@ -160,37 +160,37 @@ rendering, and real matrices are far smaller.
 
 The subtler costs:
 
-- **A fresh [adjacency list](adjacency-representations.md) is built per edge**,
+- A fresh [adjacency list](adjacency-representations.md) is built per edge,
   inside `_path_exists`. Wasteful, and it keeps each search independent, which
   makes the function trivially correct.
-- **It is only defined on a DAG.** Guarded.
-- **A "redundant" edge may carry unique evidence.** Two relations can imply the
-  same reachability while resting on completely different observations —
+- It is only defined on a DAG. Guarded.
+- A "redundant" edge may carry unique evidence. Two relations can imply the
+  same reachability while resting on completely different observations:
   `kind="cuts"` versus `kind="above"`, say. This is precisely why the edge is
   omitted from *display* only, and why the warning names the relation IDs.
 
 ## Where else you meet it
 
-- **Package managers**, pruning implied dependencies so a dependency tree is
+- Package managers, pruning implied dependencies so a dependency tree is
   readable.
-- **Class hierarchy diagrams**, where UML tools omit inherited relationships
+- Class hierarchy diagrams, where UML tools omit inherited relationships
   already implied by a chain.
-- **Makefile and build-graph visualisation**.
-- **Database normalisation**, where a minimal cover of functional dependencies is
+- Makefile and build-graph visualisation.
+- Database normalisation, where a minimal cover of functional dependencies is
   the same idea.
-- **Ontologies and taxonomies**, where reasoners distinguish asserted from
-  inferred subsumption — the identical stored-versus-displayed split this page
+- Ontologies and taxonomies, where reasoners distinguish asserted from
+  inferred subsumption: the identical stored-versus-displayed split this page
   describes.
-- **Citation and provenance graphs**, showing direct sources rather than every
+- Citation and provenance graphs, showing direct sources rather than every
   ancestor.
 
 ## Related pages
 
-- [Directed acyclic graphs](directed-acyclic-graphs.md) — the precondition.
-- [Depth-first search](depth-first-search.md) — the reachability search.
-- [Adjacency representations](adjacency-representations.md) — why the edge set
+- [Directed acyclic graphs](directed-acyclic-graphs.md): the precondition.
+- [Depth-first search](depth-first-search.md): the reachability search.
+- [Adjacency representations](adjacency-representations.md): why the edge set
   form suits the set difference.
-- [Union-Find](union-find.md) — the collapse that runs first.
-- [Layered graph drawing](layered-graph-drawing.md) — what consumes the reduced
+- [Union-Find](union-find.md): the collapse that runs first.
+- [Layered graph drawing](layered-graph-drawing.md): what consumes the reduced
   edges.
-- [Build a Harris Matrix](../workflows/harris-matrix.md) — the workflow.
+- [Build a Harris Matrix](../workflows/harris-matrix.md): the workflow.

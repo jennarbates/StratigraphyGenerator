@@ -51,7 +51,7 @@ flowchart TB
   S --> A["from storage import JOBS_DIR<br/>→ private copy, frozen"]
   S --> B["import storage<br/>→ read at call time"]
   T["test: storage.JOBS_DIR = tmp"] --> S
-  A --> W["still writes to /real/jobs<br/>— into the developer's tree"]
+  A --> W["still writes to /real/jobs,<br/>into the developer's tree"]
   B --> R["writes to tmp"]
 ```
 
@@ -65,7 +65,7 @@ flowchart TB
 A leaf module: it imports nothing from ``backend`` or ``pipeline``, so both
 layers can depend on it without inverting the dependency direction.
 
-Read these through the module — ``storage.JOBS_DIR``, never
+Read these through the module (``storage.JOBS_DIR``), never
 ``from storage import JOBS_DIR``. The ``from`` form binds the value at import
 time, which is what previously left four modules holding private copies that a
 test could not redirect. Reading the attribute at call time means one
@@ -113,7 +113,7 @@ session_dir = storage.JOBS_DIR / job_id
 """Web-layer configuration.
 
 Filesystem roots live in the top-level ``storage`` module, which ``pipeline``
-also depends on. Import that directly rather than re-exporting the paths here —
+also depends on. Import that directly rather than re-exporting the paths here:
 a re-export would rebind them and reintroduce the stale-copy problem.
 """
 
@@ -141,7 +141,7 @@ def storage_dirs(tmp_path, monkeypatch):
     ``storage.<ROOT>`` at call time rather than binding it at import. Before
     Phase 2 this took eight monkeypatches across five modules.
 
-    Autouse: no test may write to the real ``poggio_webapp/jobs`` — a test that
+    Autouse: no test may write to the real ``poggio_webapp/jobs``. A test that
     patched the wrong target used to pass while quietly writing into the
     developer's working tree, which is a worse failure than a red test.
     """
@@ -153,15 +153,15 @@ def storage_dirs(tmp_path, monkeypatch):
 
 Three sentences of history in a fixture docstring:
 
-**"Eight monkeypatches across five modules"** — the cost of import-time binding.
+**"Eight monkeypatches across five modules"**: the cost of import-time binding.
 Each module holding a private copy needed patching individually, and a new
 consumer meant a ninth patch nobody remembered.
 
-**`autouse=True`** — every test is redirected, whether it asks or not.
+**`autouse=True`**: every test is redirected, whether it asks or not.
 
 **The failure mode being prevented** is the sharp part: a test patching the
 wrong target *passed*, while writing into the developer's working tree. Not a
-red test — a green one with a side effect. Late binding is what makes the single
+red test: a green one with a side effect. Late binding is what makes the single
 patch sufficient, and `autouse` is what makes forgetting impossible.
 
 ## Why this and not something else
@@ -171,7 +171,7 @@ patch sufficient, and `autouse` is what makes forgetting impossible.
 | **`from storage import JOBS_DIR`** | Patch every consumer module | Eight patches across five modules, growing with every new consumer, and a missed one fails silently by writing to the real tree. |
 | **Late binding via the module** *(chosen)* | One `monkeypatch.setattr(storage, ...)` | One assignment reaches every consumer. The cost is a naming convention every consumer must follow. |
 | **An environment variable** | `JOBS_DIR=/tmp/x pytest` | Configuration from outside, and awkward per-test, and it makes the value a string that must be parsed. |
-| **Pass paths as parameters** | Every function takes a `jobs_dir` | The most explicit and testable design, and it threads a parameter through dozens of call sites for a value that is constant in production. Note that `harris_import` and `harris_suggestions` **do** take `jobs_dir` — because they are pure pipeline functions where the argument is natural. |
+| **Pass paths as parameters** | Every function takes a `jobs_dir` | The most explicit and testable design, and it threads a parameter through dozens of call sites for a value that is constant in production. `harris_import` and `harris_suggestions` **do** take `jobs_dir`, because they are pure pipeline functions where the argument is natural. |
 | **A settings object or DI container** | Inject configuration | Heavier machinery for three paths. |
 
 The interesting row is the fourth. This codebase uses **both** strategies:
@@ -179,8 +179,8 @@ parameters where a function is pure and the path is genuinely an input, module
 attributes where the alternative is threading a parameter through a whole layer.
 
 The general lesson is that `from x import y` is not merely stylistic. For an
-immutable constant it is fine; for anything that might need to vary — in tests,
-in configuration, at runtime — it silently forecloses that.
+immutable constant it is fine; for anything that might need to vary (in tests,
+in configuration, at runtime), it silently forecloses that.
 
 ## What it costs
 
@@ -188,39 +188,39 @@ in configuration, at runtime — it silently forecloses that.
 
 The costs:
 
-- **It is a convention, not an enforcement.** Nothing prevents
+- It is a convention, not an enforcement. Nothing prevents
   `from storage import JOBS_DIR`. The docstrings in `storage.py` and
   `config.py` are the guard, and both exist because it happened.
-- **Slightly more verbose** at every use site.
-- **`monkeypatch` reaches into another module's namespace**, which is a testing
-  smell in general — mitigated here by being confined to one fixture with a
+- Slightly more verbose at every use site.
+- `monkeypatch` reaches into another module's namespace, which is a testing
+  smell in general, mitigated here by being confined to one fixture with a
   documented reason.
-- **Autouse fixtures are invisible.** A reader of one test file does not see
-  that storage is redirected. The alternative — a test writing into the working
-  tree and passing — is worse.
+- Autouse fixtures are invisible. A reader of one test file does not see
+  that storage is redirected. The alternative, a test writing into the working
+  tree and passing, is worse.
 
 ## Where else you meet it
 
-- **Python's `datetime.now` patching problem**, where `from datetime import
+- Python's `datetime.now` patching problem, where `from datetime import
   datetime` makes mocking harder than `import datetime`.
-- **Circular import errors**, which often disappear when a `from` import becomes
+- Circular import errors, which often disappear when a `from` import becomes
   a module import read at call time.
-- **JavaScript ES modules**, where imports are live bindings — the opposite
+- JavaScript ES modules, where imports are live bindings: the opposite
   default, and one that removes this class of problem.
-- **Configuration reloading**, where late binding is what allows a value to
+- Configuration reloading, where late binding is what allows a value to
   change without a restart.
-- **Feature flags**, which must be read at evaluation time, never cached at
+- Feature flags, which must be read at evaluation time, never cached at
   import.
 
 ## Related pages
 
-- [Dependency direction and leaf modules](dependency-direction-and-leaf-modules.md) —
+- [Dependency direction and leaf modules](dependency-direction-and-leaf-modules.md):
   why `storage` is a leaf.
-- [Closure late-binding capture](closure-late-binding-capture.md) — the same
+- [Closure late-binding capture](closure-late-binding-capture.md): the same
   word, a different trap.
-- [Application factory](application-factory.md) — the equivalent fix for the
+- [Application factory](application-factory.md): the equivalent fix for the
   Flask app.
-- [Pure functions and testability](pure-functions-and-testability.md) — the
+- [Pure functions and testability](pure-functions-and-testability.md): the
   parameter-passing alternative.
-- [Running the tests](../reference/running-the-tests.md) — the fixtures in
+- [Running the tests](../reference/running-the-tests.md): the fixtures in
   practice.

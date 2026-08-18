@@ -99,7 +99,7 @@ def document(
     )
 
 
-# ----------------------------------------------------------------- primitives
+# primitives
 
 
 def txt(x, y, s, cls="", anchor="start") -> str:
@@ -167,7 +167,7 @@ def wavy(x0, x1, y, amp=6, steps=6) -> str:
     return d
 
 
-# ------------------------------------------------------------------- diagrams
+# diagrams
 
 
 def glossary_anatomy() -> str:
@@ -183,18 +183,18 @@ def glossary_anatomy() -> str:
         '  <ellipse cx="300" cy="225" rx="46" ry="26" class="fill"/>',
         txt(300, 230, "feature", "sm", "middle"),
         arrow(600, 90, 548, 90),
-        txt(608, 95, "layer — one deposit"),
+        txt(608, 95, "layer: one deposit"),
         arrow(600, 150, 548, 128),
-        txt(608, 155, "boundary — the surface between two"),
+        txt(608, 155, "boundary: the surface between two"),
         arrow(600, 225, 350, 225),
-        txt(608, 230, "feature — inclusion inside a layer"),
+        txt(608, 230, "feature: inclusion inside a layer"),
         arrow(600, 300, 548, 300),
-        txt(608, 305, "locus — the excavator's number"),
+        txt(608, 305, "locus: the excavator's number"),
         '  <line x1="60" y1="345" x2="540" y2="345" class="thin"/>',
         txt(
             300,
             368,
-            "face — one wall of the trench, drawn on one sheet",
+            "face: one wall of the trench, drawn on one sheet",
             "sm muted",
             "middle",
         ),
@@ -384,11 +384,11 @@ def marker_anatomy() -> str:
         arrow(520, 110, 112, 110),
         heading(530, 100, "Marker"),
         txt(530, 122, "A reference printed or drawn on the", "sm"),
-        txt(530, 140, "sheet — grid square, scale bar. It", "sm"),
+        txt(530, 140, "sheet (grid square, scale bar). It", "sm"),
         txt(530, 158, "measures the drawing, not the soil.", "sm"),
         arrow(520, 200, 298, 200),
         heading(530, 190, "Feature"),
-        txt(530, 212, "Something physically in the deposit —", "sm"),
+        txt(530, 212, "Something physically in the deposit:", "sm"),
         txt(530, 230, "a stone, a cut, a burnt patch. It sits", "sm"),
         txt(530, 248, "inside a layer, and is not a layer.", "sm"),
         arrow(520, 300, 372, 296),
@@ -445,7 +445,7 @@ def registration_fields() -> str:
         txt(
             24,
             360,
-            "measured clockwise from north — not a slope and not a screen angle.",
+            "measured clockwise from north, not a slope and not a screen angle.",
             "sm muted",
         ),
     ]
@@ -625,7 +625,7 @@ def placeholder_failure() -> str:
             txt(890, y + 5, f"wall {i + 1}", "sm muted"),
         ]
     b += [
-        txt(546, 292, "identical bearing 90 — every wall parallel", "sm muted"),
+        txt(546, 292, "identical bearing 90: every wall parallel", "sm muted"),
         txt(
             24,
             340,
@@ -682,8 +682,8 @@ def reading_a_matrix() -> str:
         txt(660, 140, "unit to an older one, so the", "sm"),
         txt(660, 160, "youngest sit at the top.", "sm"),
         txt(660, 200, "Two units side by side are not", "sm"),
-        txt(660, 220, "dated relative to each other —", "sm"),
-        txt(660, 240, "the matrix records only what", "sm"),
+        txt(660, 220, "dated relative to each other.", "sm"),
+        txt(660, 240, "The matrix records only what", "sm"),
         txt(660, 260, "the stratigraphy actually shows.", "sm"),
         txt(
             24,
@@ -716,8 +716,8 @@ def correlation_not_merge() -> str:
         txt(265, 168, "proposed, then accepted by a person", "sm muted", "middle"),
         '  <line x1="540" y1="70" x2="540" y2="300" class="thin"/>',
         txt(590, 100, "They stay two nodes.", "bold"),
-        txt(590, 126, "Equal labels never merge on their own —", "sm"),
-        txt(590, 146, "two excavators can reuse a number for", "sm"),
+        txt(590, 126, "Equal labels never merge on their own.", "sm"),
+        txt(590, 146, "Two excavators can reuse a number for", "sm"),
         txt(590, 166, "genuinely different deposits.", "sm"),
         txt(590, 200, "Boundary and label matches produce", "sm"),
         txt(590, 220, "proposals only. Every proposal must be", "sm"),
@@ -773,8 +773,8 @@ def genuine_vs_fabricated() -> str:
         txt(
             24,
             322,
-            "Statistical signatures — suspiciously even spacing, implausible "
-            "smoothness — are hints.",
+            "Statistical signatures (suspiciously even spacing, implausible "
+            "smoothness) are hints.",
             "sm muted",
         ),
         txt(
@@ -921,7 +921,7 @@ def two_sheet_types() -> str:
             24,
             350,
             "They use different extraction schemas because they record material "
-            "differently — but both",
+            "differently, but both",
             "sm muted",
         ),
         txt(
@@ -1075,7 +1075,7 @@ def normalization_diff() -> str:
         txt(
             24,
             320,
-            "topBoundary is passed through untouched — normalization never moves "
+            "topBoundary is passed through untouched. Normalization never moves "
             "a coordinate.",
             "sm muted",
         ),
@@ -1157,7 +1157,7 @@ def worked_example_plan() -> str:
         heading(24, 30, "T905 in plan: eight loci, and three gaps in the record"),
         # the trench
         f'  <rect x="{px(150)}" y="{py(-20)}" width="350" height="350" class="fill"/>',
-        txt(px(152.5), py(-24.3), "Locus 3 — floor surface", "sm muted", "middle"),
+        txt(px(152.5), py(-24.3), "Locus 3 (floor surface)", "sm muted", "middle"),
     ]
     # Locus 5, the cobbled surface, and Locus 4, the wall
     b += [
@@ -1166,7 +1166,7 @@ def worked_example_plan() -> str:
         ring(
             [(152.84, -20), (153.20, -20), (152.56, -22.36), (152.23, -22.46)], "accent"
         ),
-        txt(px(153.9), py(-21.3), "Locus 4 — wall", "sm accent-f"),
+        txt(px(153.9), py(-21.3), "Locus 4 (wall)", "sm accent-f"),
         arrow(px(153.85), py(-21.45), px(153.1), py(-21.2), "accent", "arrow-a"),
     ]
     # the sounding
@@ -1182,11 +1182,11 @@ def worked_example_plan() -> str:
         txt(px(155) + 14, py(-20) - 8, "NE corner: no opening", "sm warn-f"),
         txt(px(155) + 14, py(-20) + 10, "elevation recorded", "sm warn-f"),
         dot(px(150), py(-25), 7, "warn-f"),
-        txt(px(150) + 16, py(-25) - 24, "SW 24.70 mAE — a spoil heap,", "sm warn-f"),
+        txt(px(150) + 16, py(-25) - 24, "SW 24.70 mAE is a spoil heap,", "sm warn-f"),
         txt(px(150) + 16, py(-25) - 6, "not ground", "sm warn-f"),
         dot(px(149.48), py(-20.45), 5, "warn-f"),
         dot(px(149.18), py(-21.01), 5, "warn-f"),
-        txt(20, py(-21.7), "SF 8, SF 9 —", "sm warn-f"),
+        txt(20, py(-21.7), "SF 8, SF 9 are", "sm warn-f"),
         txt(20, py(-21.7) + 18, "outside the trench", "sm warn-f"),
     ]
     b += [
@@ -1232,7 +1232,7 @@ def worked_example_section() -> str:
         return 80 + (24.05 - z) * 500
 
     surfaces = [
-        ("Locus 6 opening — the floor surface", 23.99, 23.87),
+        ("Locus 6 opening (the floor surface)", 23.99, 23.87),
         ("Locus 6 closing = Locus 7 opening", 23.79, 23.74),
         ("Locus 7 closing = Locus 8 opening", 23.62, 23.51),
     ]
@@ -1271,7 +1271,7 @@ def worked_example_section() -> str:
         txt(px(-24), 60, "24S", "sm muted", "middle"),
         txt(px(-23), py(23.90), "Locus 6", "sm bold", "middle"),
         txt(px(-23), py(23.68), "Locus 7", "sm bold", "middle"),
-        txt(px(-23), py(23.51), "Locus 8 — unexcavated", "sm bold", "middle"),
+        txt(px(-23), py(23.51), "Locus 8 (unexcavated)", "sm bold", "middle"),
         txt(
             24,
             424,
@@ -1360,7 +1360,7 @@ def worked_example_matrix() -> str:
         txt(
             24,
             472,
-            "what the schema has for it — the drawn matrix stacked them instead, "
+            "what the schema has for it. The drawn matrix stacked them instead, "
             "which would make a deposit younger than itself. Locus 6's form also",
             "sm",
         ),

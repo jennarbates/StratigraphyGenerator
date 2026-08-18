@@ -24,7 +24,7 @@ a × b = ( a_y b_z − a_z b_y ,
 ```
 
 The result is **perpendicular to both** inputs, with magnitude
-`‖a‖‖b‖sin θ` — the area of the parallelogram they span. It is zero exactly when
+`‖a‖‖b‖sin θ`, the area of the parallelogram they span. It is zero exactly when
 the inputs are parallel, which is both a degeneracy to guard against and a useful
 test.
 
@@ -51,13 +51,13 @@ flowchart TB
   W2 --> X
   X --> N["plane normal"]
   N --> Dip["one true dip<br/>and one dip azimuth"]
-  Note["each wall alone gives only an<br/>APPARENT dip — always too shallow"] -.-> W1
+  Note["each wall alone gives only an<br/>APPARENT dip, always too shallow"] -.-> W1
   Note -.-> W2
 ```
 
 Why two walls suffice: a plane in 3D has two degrees of freedom in orientation.
 Each wall's trace fixes one direction lying in that plane. Two non-parallel
-directions determine the plane completely — and therefore its normal, and
+directions determine the plane completely, and therefore its normal, and
 therefore its dip.
 
 ## Where this project uses it
@@ -110,7 +110,7 @@ def _best_pair(faces, bearings, threshold):
 ```
 
 `|sin(Δbearing)|` is precisely the cross product's magnitude for two horizontal
-unit directions — so the conditioning check *is* the cross product's own
+unit directions, so the conditioning check *is* the cross product's own
 magnitude, used as a quality score. Below `min_separation_deg = 10.0`, the
 module refuses:
 
@@ -154,10 +154,10 @@ For solving a plane from two directions:
 
 | Alternative | How it would work here | Why it lost |
 |---|---|---|
-| **Least-squares plane fit to all points** | Fit `Z = ax + by + c` to every point on both walls | The obvious statistical answer, and it weights walls by how many vertices each happens to have — a densely traced wall would dominate a sparsely traced one purely by vertex count. The cross product weights the two walls' *directions* equally, which is what the geology means. |
+| **Least-squares plane fit to all points** | Fit `Z = ax + by + c` to every point on both walls | The obvious statistical answer, and it weights walls by how many vertices each happens to have: a densely traced wall would dominate a sparsely traced one purely by vertex count. The cross product weights the two walls' *directions* equally, which is what the geology means. |
 | **Singular value decomposition** | The normal is the smallest singular vector | Numerically excellent and generalises to more than two walls. It requires a linear-algebra dependency in a module that currently imports only `csv` and `math`, and for exactly two directions the cross product *is* the answer. |
 | **Solve the linear system directly** | Two equations, three unknowns, plus normalisation | Algebraically the same thing, written less clearly. |
-| **Trigonometric apparent-dip formulas** | The standard structural-geology relation between two apparent dips | The classical hand method, and it is a nest of quadrant and sign cases. The vector form has none — it is three lines with no branches. |
+| **Trigonometric apparent-dip formulas** | The standard structural-geology relation between two apparent dips | The classical hand method, and it is a nest of quadrant and sign cases. The vector form has none: it is three lines with no branches. |
 | **Cross product** *(chosen)* | Three multiply-subtract pairs | Exact, branch-free, no dependency, and its magnitude doubles as the conditioning check. |
 
 The choice also enables an honest refusal. Because the conditioning is visible
@@ -173,7 +173,7 @@ Six multiplies and three subtractions. Free.
 
 The real cost is **conditioning**. As two directions approach parallel, the
 normal's magnitude approaches zero and its direction becomes dominated by
-floating-point error — the answer degrades continuously toward noise with no
+floating-point error. The answer degrades continuously toward noise with no
 error raised. Hence the 10° threshold, chosen and named rather than left
 implicit.
 
@@ -188,23 +188,23 @@ if z < 0:
 
 ## Where else you meet it
 
-- **3D graphics.** Surface normals for lighting are computed as the cross
-  product of two triangle edges — one of the most-executed operations in
+- 3D graphics. Surface normals for lighting are computed as the cross
+  product of two triangle edges, one of the most-executed operations in
   rendering.
-- **Physics.** Torque is `r × F`; angular momentum and the Lorentz force are
+- Physics. Torque is `r × F`; angular momentum and the Lorentz force are
   cross products.
-- **Structural geology**, where this exact calculation solves true dip from two
+- Structural geology, where this exact calculation solves true dip from two
   apparent dips.
-- **Robotics and aerospace**, for rotation axes and angular velocity.
-- **Computational geometry**, where the 2D scalar form is the primitive beneath
+- Robotics and aerospace, for rotation axes and angular velocity.
+- Computational geometry, where the 2D scalar form is the primitive beneath
   convex hulls, triangulation, and point-in-polygon tests.
 
 ## Related pages
 
-- [Plane normals](plane-normals.md) — turning the result into dip and azimuth.
-- [Dot product](dot-product.md) — the other vector product.
-- [Signed area and the orientation test](signed-area-and-orientation-test.md) —
+- [Plane normals](plane-normals.md): turning the result into dip and azimuth.
+- [Dot product](dot-product.md): the other vector product.
+- [Signed area and the orientation test](signed-area-and-orientation-test.md):
   the 2D scalar form.
-- [Ordinary least squares](ordinary-least-squares.md) — how each wall's slope is
+- [Ordinary least squares](ordinary-least-squares.md): how each wall's slope is
   measured.
-- [Apparent and true dip](../archaeology/index.md) — the archaeological meaning.
+- [Apparent and true dip](../archaeology/index.md): the archaeological meaning.

@@ -23,16 +23,16 @@ its **gradient**:
 X, Y, Z, surface, face, dip, azimuth, polarity
 ```
 
-- **dip** — how steeply the surface tilts, in degrees.
-- **azimuth** — the compass [bearing](bearing-and-azimuth.md) it descends toward.
-- **polarity** — which side of the surface is "up"; `1` throughout here.
+- dip: how steeply the surface tilts, in degrees.
+- azimuth: the compass [bearing](bearing-and-azimuth.md) it descends toward.
+- polarity: which side of the surface is "up"; `1` throughout here.
 
 One seed per surface per wall, rather than one per traced point. It is a summary
 of the whole trace, not a per-vertex property.
 
 The derivation on a single wall is
 [least squares](../cs/ordinary-least-squares.md) over the boundary's points, and
-the resulting dip is an [apparent](apparent-and-true-dip.md) one — always
+the resulting dip is an [apparent](apparent-and-true-dip.md) one, always
 shallower than the truth.
 
 ## The picture
@@ -53,7 +53,7 @@ GemPy fits a scalar field whose iso-surfaces are the interfaces. Interface point
 constrain the field's *value*; seeds constrain its *gradient*.
 
 Without a gradient constraint, a surface recorded on one wall has no information
-about which way it goes as it leaves that wall — so the interpolator's only
+about which way it goes as it leaves that wall, so the interpolator's only
 option is something flat or arbitrary. The seed is what makes a single wall's
 trace say anything about the volume around it.
 
@@ -98,14 +98,14 @@ Four decisions.
 
 **At least two points.** One point has no slope.
 
-**The slope is fitted over every point**, not from the endpoints — and the
+**The slope is fitted over every point**, not from the endpoints, and the
 docstring records that this was once lost:
 
 ```python
 """Best-fit slope (dz/dx) of depth vs. x over ALL points, not just the
 endpoints. Falls back to 0.0 if x has no spread (can't determine a slope).
 
-Restored from commit b01638d — this was dropped when the files were
+Restored from commit b01638d. This was dropped when the files were
 reorganized into numbered folders (c7ec511), silently reverting the
 orientation seeds to an endpoint-only slope."""
 ```
@@ -113,13 +113,13 @@ orientation seeds to an endpoint-only slope."""
 A silent regression that produced plausible numbers, recorded where it prevents
 recurrence.
 
-**The seed sits on a real traced point** — `xs[len(xs) // 2]`, the middle
-recorded vertex — not at the fitted line's centroid. The position is measured;
+**The seed sits on a real traced point** (`xs[len(xs) // 2]`, the middle
+recorded vertex), not at the fitted line's centroid. The position is measured;
 only the orientation is fitted.
 
 **Angles are rounded to two decimal places** where positions get four. An
 orientation fitted over a handful of traced points does not justify more
-precision — see
+precision; see
 [grid snapping and quantisation](../cs/grid-snapping-and-quantisation.md).
 
 ### The sign carries the direction
@@ -134,7 +134,7 @@ else:
 ```
 
 Depth increases downward, so a positive depth-slope means the surface descends
-along +x — dipping *toward* the face bearing. Negative flips it 180°.
+along +x, dipping *toward* the face bearing. Negative flips it 180°.
 
 ### Corrected on a merged trench
 
@@ -208,11 +208,11 @@ independent. `apply_true_dip` deliberately changes only the two angles.
 
 ## Related pages
 
-- [Interface point](interface-point.md) — the other model input.
-- [Apparent and true dip](apparent-and-true-dip.md) — what the numbers mean.
-- [Bearing and azimuth](bearing-and-azimuth.md) — the azimuth convention.
-- [Ordinary least squares](../cs/ordinary-least-squares.md) — how the slope is
+- [Interface point](interface-point.md): the other model input.
+- [Apparent and true dip](apparent-and-true-dip.md): what the numbers mean.
+- [Bearing and azimuth](bearing-and-azimuth.md): the azimuth convention.
+- [Ordinary least squares](../cs/ordinary-least-squares.md): how the slope is
   fitted.
-- [Spatial interpolation and kriging](../cs/spatial-interpolation-and-kriging.md) —
+- [Spatial interpolation and kriging](../cs/spatial-interpolation-and-kriging.md):
   what consumes it.
-- [Output files](../reference/output-files.md) — the orientations CSV.
+- [Output files](../reference/output-files.md): the orientations CSV.

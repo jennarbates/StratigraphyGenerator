@@ -311,8 +311,8 @@ frozen `Calibration` dataclass from them:
 
 The application uses two related coordinate systems within sections:
 
-- **Illustrator diagrams** use `xCoordinateMeters` and `yCoordinateMeters`
-- **Field-wall diagrams** use `xMeters` and `depthMeters` (synonym for y)
+- Illustrator diagrams use `xCoordinateMeters` and `yCoordinateMeters`
+- Field-wall diagrams use `xMeters` and `depthMeters` (synonym for y)
 
 Both represent the same conceptual space; the application converter handles both naming conventions.
 
@@ -495,18 +495,18 @@ share one shape:
 
 Keeping `raw` beside `proposed` is what makes review possible: a reviewer can
 see the characters on the sheet next to the interpretation of them, and correct
-either. A candidate whose `proposed` is null is not a failure — it is the
+either. A candidate whose `proposed` is null is not a failure. It is the
 extractor declining to guess.
 
 ## Validation and Conversion
 
 After a user completes an extraction or manual edit, the data flows through:
 
-1. **JSON-Schema validation** — Pydantic checks required fields and types
-2. **Normalization** — null-like strings become real nulls and duplicated
+1. JSON-Schema validation: Pydantic checks required fields and types
+2. Normalization: null-like strings become real nulls and duplicated
    feature outlines are dropped
-3. **Custom validation** — `validator.py` checks geometric plausibility
-4. **Coordinate conversion** — Section-local coordinates become site-wide
+3. Custom validation: `validator.py` checks geometric plausibility
+4. Coordinate conversion: Section-local coordinates become site-wide
 
 All Pydantic models use the Python `|` union syntax (Python 3.10+) for optional field types.
 

@@ -41,7 +41,7 @@ def test_fallback_is_per_caller():
 
 def test_trench_file_route_cannot_escape_the_trench_directory(tmp_path):
     """Regression: a trench labelled ".." resolved to poggio_webapp/, and the
-    route's containment check then compared against that escaped directory —
+    route's containment check then compared against that escaped directory,
     so every file under it was readable."""
     outside = storage.TRENCHES_DIR.parent / "secret.txt"
     outside.write_text("SENSITIVE")
@@ -59,11 +59,9 @@ def test_clean_label_is_not_path_safe_only_tidy():
     assert clean_label(7) == ""
 
 
-# ---------------------------------------------------------------------------
 # Site identifier forms. Conservation Kobo Form Instructions requires the
 # property abbreviation and number "without spacing", and names "T-62" and
 # "T 62" as incorrect; locus is "only the number".
-# ---------------------------------------------------------------------------
 
 
 @pytest.mark.parametrize(

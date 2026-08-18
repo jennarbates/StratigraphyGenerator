@@ -31,7 +31,7 @@ That third and fourth property are why erosion is a *selection* operation, not
 merely a shrinking one: it selects for objects thick enough to contain the
 probe.
 
-In grayscale, erosion is the local minimum over the element's footprint — the
+In grayscale, erosion is the local minimum over the element's footprint. The
 binary case is that with only two values.
 
 ## The picture
@@ -56,7 +56,7 @@ flowchart TB
   E --> Out["lines erased<br/>dots survive, shrunken"]
   Out --> D["dilate by the same element<br/>→ dots restored to size"]
   D --> Result["only the dots remain,<br/>at their original size"]
-  E -.-> Note["erosion alone shrinks<br/>what it keeps — hence the second step"]
+  E -.-> Note["erosion alone shrinks<br/>what it keeps, hence the second step"]
 ```
 
 That last box is why erosion is almost never used alone. It removes what you
@@ -80,7 +80,7 @@ opened = cv2.morphologyEx(
 
 `cv2.MORPH_OPEN` is erosion followed by dilation. The erosion is doing the
 selection, and the parameter name says what it selects against:
-`line_kill_paper_mm`, default **0.35 mm** — narrower than a recorder's vertex
+`line_kill_paper_mm`, default **0.35 mm**: narrower than a recorder's vertex
 dot, wider than a drawn boundary line.
 
 The module docstring explains why this step exists at all:
@@ -106,7 +106,7 @@ The problem is "separate small round marks from the thin lines they touch."
 |---|---|---|
 | **Erosion alone** | Erode and use the result directly | Removes the lines and leaves every dot k pixels smaller. Since the next stage filters on **diameter in paper millimetres**, a systematically shrunken dot fails its own size band. The dilation is not optional. |
 | **[Opening](morphological-opening.md)** *(chosen)* | Erode, then dilate by the same element | Removes thin structure and restores the size of what survives. |
-| **Filter by area after contouring** | Skip morphology; reject contours whose area is too large | Does not help. The dot and the line it touches form **one** contour, so there is nothing to filter — the dot never appears as a candidate at all. Morphology is what makes it a separate object. |
+| **Filter by area after contouring** | Skip morphology; reject contours whose area is too large | Does not help. The dot and the line it touches form **one** contour, so there is nothing to filter: the dot never appears as a candidate at all. Morphology is what makes it a separate object. |
 | **Thinning / skeletonisation** | Reduce everything to single-pixel skeletons, find junctions | A real approach to separating strokes, and it destroys exactly the property being measured: whether the mark is a *filled disk*. [Solidity](solidity.md) and [fill ratio](extent-and-fill-ratio.md) are meaningless on a skeleton. |
 | **Hough circle transform** | Search parameter space for circles directly | Purpose-built for finding circles, and heavily parameterised (accumulator resolution, minimum distance, two Canny thresholds), sensitive to all of them, and it finds circles *including* the outlines of drawn stones. The shape filter here specifically wants **filled** disks, which is a solidity test, not a circle test. |
 | **Distance transform + local maxima** | Peaks of the distance transform mark blob centres | Elegant and effective for touching round objects, and it is a full extra pipeline with its own thresholds, solving a problem a 3-pixel kernel already solves. |
@@ -123,7 +123,7 @@ k ≈ 3–7 pixels on the images here, one fast pass.
 The correctness cost is the shrinkage, which is why it never ships alone. There
 is also a genuine information loss that no pairing recovers: a dot **thinner
 than k** is deleted and cannot come back. That is why `line_kill_paper_mm` is
-0.35 rather than, say, 1.0 — the margin between "thinner than any dot" and
+0.35 rather than, say, 1.0: the margin between "thinner than any dot" and
 "thicker than any line" is real but not large, and the setting sits deliberately
 at the cautious end.
 
@@ -141,20 +141,20 @@ declines to throw the evidence away. See
 
 ## Where else you meet it
 
-- **Photoshop's "Minimum" filter**, and contracting a selection by N pixels.
-- **Noise removal in scanned documents**, stripping isolated speckles before
+- Photoshop's "Minimum" filter, and contracting a selection by N pixels.
+- Noise removal in scanned documents, stripping isolated speckles before
   OCR.
-- **Semiconductor inspection**, measuring whether a trace is wide enough.
-- **Medical imaging**, separating touching cells or vessels before counting.
-- **Font rendering** — stem darkening and thinning are grayscale morphology.
+- Semiconductor inspection, measuring whether a trace is wide enough.
+- Medical imaging, separating touching cells or vessels before counting.
+- Font rendering: stem darkening and thinning are grayscale morphology.
 
 ## Related pages
 
-- [Dilation](dilation.md) — the dual operation.
-- [Morphological opening](morphological-opening.md) — erosion then dilation,
+- [Dilation](dilation.md): the dual operation.
+- [Morphological opening](morphological-opening.md): erosion then dilation,
   which is what this project actually calls.
-- [Morphological closing](morphological-closing.md) — the other pairing.
-- [Structuring elements](structuring-elements.md) — the probe, and how its size
+- [Morphological closing](morphological-closing.md): the other pairing.
+- [Structuring elements](structuring-elements.md): the probe, and how its size
   is derived here.
-- [Circularity](circularity.md) and [solidity](solidity.md) — the measures that
+- [Circularity](circularity.md) and [solidity](solidity.md): the measures that
   erosion makes computable.

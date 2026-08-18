@@ -14,7 +14,7 @@ verified_against: ae2fc1d
 # Regular expressions
 
 A compact language for describing text patterns. Used here for three distinct
-jobs — rejecting unsafe identifiers, canonicalising a label typed three
+jobs: rejecting unsafe identifiers, canonicalising a label typed three
 different ways, and reading a notation off a drawing.
 
 ## What it is
@@ -33,11 +33,11 @@ this repository:
 
 Two Python distinctions that matter for correctness:
 
-- **`fullmatch` vs `match`.** `match` anchors only at the start, so
+- `fullmatch` vs `match`. `match` anchors only at the start, so
   `re.match(r"[0-9a-f]{12}", "abc123abc123../../etc")` **succeeds**.
   `fullmatch` requires the whole string. Every identifier validator here uses
   `fullmatch` or an explicit `^…$`.
-- **Compile once.** Module-level `re.compile` avoids recompiling on every call
+- Compile once. Module-level `re.compile` avoids recompiling on every call
   and puts the pattern where it can be commented.
 
 ## The picture
@@ -48,7 +48,7 @@ flowchart TB
   V -->|no| R["reject before any filesystem access"]
   V -->|yes| A["safe to use as a path component"]
   L["'T-104', 't 104', 'T104'"] --> C["canonicalise"]
-  C --> One["'T104' — one trench, not three"]
+  C --> One["'T104', one trench, not three"]
 ```
 
 ## Where this project uses it
@@ -74,7 +74,7 @@ before `_matrix_path()` is ever called, so a traversal attempt never reaches a
 path join. `harris_import._validate_job_id` does the same for job IDs.
 
 That is the discipline the `/api/jobs/<job_id>/file` route lacked before it was
-fixed — see [path traversal and containment](path-traversal-and-containment.md).
+fixed. See [path traversal and containment](path-traversal-and-containment.md).
 
 A regex is also the filter for *discovery*, so a stray directory cannot be
 mistaken for a matrix:
@@ -119,7 +119,7 @@ Two decisions worth naming.
 A canonicaliser that mangles what it does not understand is worse than one that
 declines.
 
-**Digits are preserved exactly** — `T007` does not become `T7` — because
+**Digits are preserved exactly** (`T007` does not become `T7`) because
 collapsing a leading zero would only ever change a label nobody meant to write.
 
 The stakes are concrete. `trench_builder.grouped_members` groups jobs by this
@@ -143,14 +143,14 @@ _BULK_FIND = re.compile(
 _CATALOGUED = re.compile(r"^(pc|vdm)\s*(\d{4})(\d{4})$", re.IGNORECASE)
 ```
 
-`re.IGNORECASE` is not laxness — the module docstring records the reason:
+`re.IGNORECASE` is not laxness. The module docstring records the reason:
 
 > hand-written tags use lowercase (`sf-t108-2024-2-2`) while the Kobo form
 > examples use the canonical trench spelling (`sf-T111-2025-1-1`). Both name
 > the same find, so parsing is case-insensitive and construction emits the
 > canonical form.
 
-Parse permissively, emit canonically — the postel-style split, applied to an
+Parse permissively, emit canonically: the postel-style split, applied to an
 identifier that exists on paper tags as well as in a database.
 
 Note `_MATERIAL_PART` is composed into `_BULK_FIND` with an f-string, and the
@@ -172,7 +172,7 @@ label like `Locus 2 (10YR 5/6 yellowish brown)`. Instead it uses a leading
 boundary alternation and a lookahead `(?=$|[\s_)])`, so it matches a whole token
 rather than a fragment.
 
-The hue alternation is ordered `YR|GY|BG|PB|RP|R|Y|G|B|P` — **two-letter
+The hue alternation is ordered `YR|GY|BG|PB|RP|R|Y|G|B|P`: **two-letter
 families first**. Regex alternation is first-match, so listing `R` before `YR`
 would match the `R` of `10YR` and mis-parse every yellow-red reading.
 
@@ -222,33 +222,33 @@ once at import.
 
 The costs:
 
-- **Catastrophic backtracking** is the classic regex hazard — nested quantifiers
+- Catastrophic backtracking is the classic regex hazard: nested quantifiers
   like `(a+)+` can go exponential, and a user-supplied string then becomes a
   denial of service. None of the patterns here has nested quantifiers.
-- **`match` versus `fullmatch` is a real trap**, and the difference is a
+- `match` versus `fullmatch` is a real trap, and the difference is a
   security boundary for the ID validators.
-- **Readability.** The Munsell pattern is long enough to need its docstring:
+- Readability. The Munsell pattern is long enough to need its docstring:
   *"Read standard chromatic notation such as `10YR 5/3`, neutral notation such
   as `N 5/`, or notation embedded in a locus/surface label."*
-- **Alternation order matters** and is invisible unless you know to look.
+- Alternation order matters and is invisible unless you know to look.
 
 ## Where else you meet it
 
-- **Input validation** in every web form and API.
-- **Log parsing and `grep`**, the original use.
-- **Syntax highlighting and linters**, including `ruff`'s own rules.
-- **URL routing** — Flask's `<job_id>` converter compiles to one.
-- **Data cleaning**, where canonicalising inconsistently typed identifiers is
+- Input validation in every web form and API.
+- Log parsing and `grep`, the original use.
+- Syntax highlighting and linters, including `ruff`'s own rules.
+- URL routing: Flask's `<job_id>` converter compiles to one.
+- Data cleaning, where canonicalising inconsistently typed identifiers is
   exactly `canonical_trench`'s job at scale.
 
 ## Related pages
 
-- [Path traversal and containment](path-traversal-and-containment.md) — why
+- [Path traversal and containment](path-traversal-and-containment.md): why
   validation precedes filesystem access.
-- [Input sanitisation](input-sanitisation.md) — the wider discipline.
-- [JSON and schema design](json-schema-design.md) — patterns as type
+- [Input sanitisation](input-sanitisation.md): the wider discipline.
+- [JSON and schema design](json-schema-design.md): patterns as type
   constraints.
-- [Content-addressed identifiers](content-addressed-identifiers.md) — the ID
+- [Content-addressed identifiers](content-addressed-identifiers.md): the ID
   format being validated.
-- [Find identifiers](../archaeology/find-identifiers.md) — what the site's
+- [Find identifiers](../archaeology/find-identifiers.md): what the site's
   formats mean.

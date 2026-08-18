@@ -50,7 +50,7 @@ This example is invented for documentation and is not archaeological evidence.
 
 Each term below closes with an **In depth** line. The glossary gives you the
 paragraph you want while working; those pages give the archaeological reasoning,
-the exact schema field, and — the part that causes most trouble — the
+the exact schema field, and (the part that causes most trouble) the
 neighbouring term each one is confused with. The full set is the
 [archaeology reference](../archaeology/index.md).
 
@@ -110,7 +110,7 @@ The surveyed placement of each face in the wider site coordinate system. The
 application asks for the site grid coordinates of the face's local origin
 (South and West negative, so `190E/53S` is `originX 190`, `originY -53`), the
 ground-surface elevation there in mAE, and the bearing of the face's positive
-horizontal direction in degrees clockwise from **Grid North** — not magnetic
+horizontal direction in degrees clockwise from **Grid North**, not magnetic
 north. Generated starter values are placeholders, declare themselves as such,
 and must be replaced with real survey values from the master Geospatial
 Spreadsheet before scientific use.
@@ -148,7 +148,7 @@ this project's field-sheet data, a locus has a number and may have a Munsell
 soil-colour record and description. A locus's named line is its top boundary;
 it should not be shifted to the boundary below.
 
-A locus is identified by its **trench and number** — `T104`, Locus 6. The
+A locus is identified by its **trench and number**: `T104`, Locus 6. The
 Munsell reading is an attribute of the locus, not part of its name: readings of
 one deposit differ legitimately between recorders and between wet and dry soil.
 Locus numbers are entered as the bare number, `5`, never `" 5 "`.
@@ -156,15 +156,15 @@ Locus numbers are entered as the bare number, `5`, never `" 5 "`.
 That distinction reaches the model. A locus becomes a GemPy **surface** named
 `Locus 6`, and the colour rides alongside as a display label,
 `Locus 6 (10YR 5/3 brown)`. The viewer shows the label; everything that has to
-match — fusing two walls into one surface, stratigraphic order, mesh files —
+match (fusing two walls into one surface, stratigraphic order, mesh files)
 uses the identity.
 
 *In depth: [Locus](../archaeology/locus.md)*
 ### Locus epoch
 
 Which run of locus numbering a job belongs to. A trench reopened in consecutive
-years **continues** its numbering — if last year ended at Locus 10, this year
-starts at Locus 11 — but a trench reopened after a gap may restart, and an
+years **continues** its numbering (if last year ended at Locus 10, this year
+starts at Locus 11), but a trench reopened after a gap may restart, and an
 administratively new trench over older ones restarts at Locus 1.
 
 So the same number can mean one deposit or two, depending on the trench's
@@ -202,7 +202,7 @@ surveyed orientation measurement.
 ### Season
 
 The four-digit excavation year a sheet belongs to, as it appears between the
-trench and the locus in the site's find codes — `sf-T104-2025-6-1`. Recorded on
+trench and the locus in the site's find codes: `sf-T104-2025-6-1`. Recorded on
 every job that has one, and used to decide whether locus numbering is
 continuous (see **locus epoch**). It is not part of a locus's identity.
 
@@ -212,18 +212,18 @@ continuous (see **locus epoch**). It is not part of a locus's identity.
 The young-to-old sequence of surfaces a model is built from. Three sources can
 supply it, and they are not equally trustworthy:
 
-1. **A Harris matrix** — the excavation's own record of which deposit lies
+1. A Harris matrix: the excavation's own record of which deposit lies
    above which. Preferred whenever one exists for the trench.
-2. **The recorded layer sequence** — each wall's layers are drawn top to
+2. The recorded layer sequence: each wall's layers are drawn top to
    bottom, so adjacent pairs are constraints. Real evidence, but only about
    what one wall saw.
-3. **Mean elevation** — an assumption that higher means younger. This site's
+3. Mean elevation: an assumption that higher means younger. This site's
    procedures record cases where it is false: *"stratigraphically newer
    deposits may exist at lower elevations than stratigraphically older
    deposits"*. A model ordered this way says so, in the build log and in the
    viewer.
 
-Some deposits have **no** order relative to each other — either side of a wall,
+Some deposits have **no** order relative to each other: either side of a wall,
 for instance, excavated at the same level. A Harris matrix represents that by
 having no relationship between them; a model cannot, because it needs a total
 order. Where an order was imposed on unordered deposits, the model records
@@ -239,7 +239,7 @@ baseline, and the location and elevation of its datum nail.
 Those corner coordinates are the same numbers grid registration needs, so the
 application can derive a registration from them instead of asking anyone to
 work out a bearing. A layout is refused if its corners describe a self-crossing
-shape — two labels transposed makes a bow-tie, which is a valid polygon but not
+shape. Two labels transposed makes a bow-tie, which is a valid polygon but not
 a trench.
 
 *In depth: [Grid registration](../archaeology/grid-registration.md) · [Datum](../archaeology/datum.md)*
@@ -247,7 +247,7 @@ a trench.
 
 The excavated pit, and the unit every other identifier hangs off. Written the
 way the site records it: the property abbreviation followed by the number with
-no space or punctuation — `T104`, not `T-104` or `T 104`. The application reads
+no space or punctuation: `T104`, not `T-104` or `T 104`. The application reads
 all three spellings as the same trench, because drawings and database records
 already disagree: the T104 field sheets are titled "T-104" while the Open
 Context records read "T104".
@@ -272,7 +272,7 @@ scientific approval.
 *In depth: [Error taxonomies](../cs/error-taxonomies.md) · [Validation rules](../reference/validation-rules.md)*
 ## Related concepts
 
-- [Archaeology reference](../archaeology/index.md) — every term above, in depth,
+- [Archaeology reference](../archaeology/index.md): every term above, in depth,
   with what it is *not*.
 - [What this project does](what-this-project-does.md) puts the terms into the
   overall drawing-to-data process.

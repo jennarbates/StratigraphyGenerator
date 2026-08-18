@@ -23,9 +23,7 @@ from pipeline.site_grid import (
     to_epsg3003,
 )
 
-# ---------------------------------------------------------------------------
 # The inversion rule
-# ---------------------------------------------------------------------------
 
 
 def test_the_documented_worked_example():
@@ -100,9 +98,7 @@ def test_format_label_round_trips():
         assert format_label(*label_to_grid(label)) == label
 
 
-# ---------------------------------------------------------------------------
 # Model coordinates are grid coordinates
-# ---------------------------------------------------------------------------
 
 
 def test_grid_to_site_is_the_identity():
@@ -112,9 +108,7 @@ def test_grid_to_site_is_the_identity():
     assert grid_to_site(0, 0) == (0.0, 0.0)
 
 
-# ---------------------------------------------------------------------------
 # Two grids
-# ---------------------------------------------------------------------------
 
 
 def test_both_local_grids_are_named():
@@ -146,9 +140,7 @@ def test_an_unknown_grid_name_raises():
     assert "poggio-civitate" in str(caught.value)
 
 
-# ---------------------------------------------------------------------------
 # Projection, for export
-# ---------------------------------------------------------------------------
 
 
 def test_projection_uses_the_published_affine():

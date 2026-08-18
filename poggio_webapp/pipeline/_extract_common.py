@@ -1,10 +1,10 @@
 """
-_extract_common.py — shared post-response checks for both extraction scripts.
+Shared post-response checks for both extraction scripts.
 
 Gemini's structured-output mode can still get cut off mid-generation if the
 response would exceed max_output_tokens, especially on a drawing with many
 layers/boundary points/features. When that happens the written JSON is
-reliably invalid (an unterminated string or truncated array) — this is
+reliably invalid (an unterminated string or truncated array), which is
 exactly the failure mode normalize.py/validator.py will hit downstream as a
 cryptic json.JSONDecodeError, so it's much better caught here, right after
 the Gemini call, with an explanation and a concrete next step.
@@ -32,8 +32,8 @@ def generate_with_retry(
 
     max_total_seconds caps the whole retry loop's wall clock. Every retry
     re-sends the full image as input tokens, so an outage at Google's end
-    shouldn't be allowed to quietly spend the user's quota five times over —
-    past the budget we stop and tell them, rather than keep paying to fail."""
+    shouldn't be allowed to quietly spend the user's quota five times over.
+    Past the budget we stop and tell them, rather than keep paying to fail."""
     t0 = time.time()
     for attempt in range(max_attempts):
         try:
@@ -59,7 +59,7 @@ def generate_with_retry(
                 if progress_cb and code in TRANSIENT_STATUS_CODES:
                     progress_cb(
                         f"giving up after {attempt + 1} attempt(s) / "
-                        f"{elapsed:.0f}s — not retrying further to "
+                        f"{elapsed:.0f}s. Not retrying further to "
                         "avoid spending more quota on a failing "
                         "request."
                     )
@@ -69,7 +69,7 @@ def generate_with_retry(
 def check_response(response, raw_json):
     """Returns a warning string (or None) describing why the raw JSON might
     be invalid/incomplete, checking both the API's own finish_reason and an
-    actual parse attempt (belt and suspenders — a response can also get
+    actual parse attempt (belt and suspenders: a response can also get
     truncated by a network-level cutoff that finish_reason won't catch)."""
 
     truncated_by_limit = False
@@ -92,13 +92,13 @@ def check_response(response, raw_json):
         return (
             "response was cut off by the output-token limit "
             f"(finish_reason={finish_reason}). The written JSON is almost "
-            "certainly incomplete/invalid — raise max_output_tokens and "
+            "certainly incomplete/invalid. Raise max_output_tokens and "
             "re-run rather than trying to use this file as-is."
         )
     if not parse_ok:
         return (
             f"the response is not valid JSON ({parse_error}) even though "
-            "the API didn't report a token-limit cutoff — this usually still "
+            "the API didn't report a token-limit cutoff. This usually still "
             "means the response was truncated (e.g. an unterminated string "
             "near the end of the file is the classic symptom). Raise "
             "max_output_tokens and re-run; this file will fail at the "

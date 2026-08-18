@@ -31,9 +31,7 @@ from dataclasses import dataclass
 
 from naming import canonical_locus, canonical_trench
 
-# --------------------------------------------------------------------------
 # Vocabularies
-# --------------------------------------------------------------------------
 
 # The letter codes used in bulk-find identifiers. 'O' takes a free suffix
 # ("O-Slag", "O-Iron", "O-Bronze") when a trench needs to separate several
@@ -209,9 +207,7 @@ def material_name(code):
     return name
 
 
-# --------------------------------------------------------------------------
 # Identifiers
-# --------------------------------------------------------------------------
 
 _MATERIAL_PART = r"[A-Za-z](?:-[A-Za-z]+)?"
 _SPECIAL_FIND = re.compile(

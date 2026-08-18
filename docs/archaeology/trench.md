@@ -16,7 +16,7 @@ and the trench label is the string that decides which walls belong together.
 
 ## What it is
 
-A trench is a defined area opened for excavation — a rectangle or square marked
+A trench is a defined area opened for excavation: a rectangle or square marked
 out on the ground, dug down in controlled stages, its four vertical sides left
 standing so the layers can be seen and drawn.
 
@@ -26,7 +26,7 @@ a locus number is unique within. Two trenches ten metres apart have entirely
 independent locus sequences.
 
 At Poggio Civitate a trench is named by a property-designation abbreviation and
-a number — `T104`, `CA100`. The abbreviation says which part of the site; the
+a number (`T104`, `CA100`). The abbreviation says which part of the site; the
 number identifies the trench within it.
 
 ## The picture
@@ -57,7 +57,7 @@ a bounded, documented area whose removal is recorded well enough that the
 sequence can be reconstructed afterwards.
 
 Bounding it also makes the work tractable. A trench is small enough for one
-team, and its standing sides — the [baulks](wall-and-baulk.md) — preserve a
+team, and its standing sides, the [baulks](wall-and-baulk.md), preserve a
 readable vertical section for as long as the trench is open.
 
 And it is the scope within which identifiers are unique. A [locus](locus.md)
@@ -77,7 +77,7 @@ The trench label is metadata on a job, not a document of its own:
 }
 ```
 
-Jobs are grouped by that string —
+Jobs are grouped by that string, in
 `poggio_webapp/backend/services/trench_builder.py`:
 
 ```python
@@ -110,7 +110,7 @@ def canonical_trench(value) -> str:
 This is the clearest example in the project of a **recording standard being a
 correctness requirement**. `T-104` and `T104` are the same trench to a person and
 two different trenches to a dictionary key. The consequence is not a cosmetic
-inconsistency — it is two builds, each with two of the four walls, each looking
+inconsistency; it is two builds, each with two of the four walls, each looking
 plausible.
 
 Canonicalisation happens **on read as well as on write**:
@@ -153,7 +153,7 @@ are not interchangeable.
 
 **Spelling the label two ways.** `T-104` on one job and `T104` on another builds
 two trenches. Canonicalisation now closes it, and the failure is worth knowing
-because it was live in the source material — the field drawings say `T-104` and
+because it was live in the source material: the field drawings say `T-104` and
 the published records say `T104`.
 
 **Reusing a locus number across numbering epochs.** A trench reopened after a
@@ -174,12 +174,12 @@ than a pit. The merged build refuses outright.
 
 ## Related pages
 
-- [Wall and baulk](wall-and-baulk.md) — the sides of a trench.
-- [Face](face.md) — how a wall is represented in the model.
-- [Locus numbering epochs](locus-numbering-epochs.md) — when locus numbers
+- [Wall and baulk](wall-and-baulk.md): the sides of a trench.
+- [Face](face.md): how a wall is represented in the model.
+- [Locus numbering epochs](locus-numbering-epochs.md): when locus numbers
   restart.
-- [Grid registration](grid-registration.md) — placing a trench on the site.
-- [Combine walls into one trench](../workflows/09-multi-wall-trench.md) — the
+- [Grid registration](grid-registration.md): placing a trench on the site.
+- [Combine walls into one trench](../workflows/09-multi-wall-trench.md): the
   workflow.
-- [Jobs, sheets, and trenches](../concepts/jobs-sheets-and-trenches.md) — the
+- [Jobs, sheets, and trenches](../concepts/jobs-sheets-and-trenches.md): the
   data model.

@@ -31,13 +31,13 @@ T  Tile          P  Plaster       C  Pottery/Ceramic   B  Bone
 M  Metal         S  Stone         A  Architectural     O  Other
 ```
 
-`O` takes a free suffix — `O-Slag`, `O-Iron`, `O-Bronze` — when a trench needs to
+`O` takes a free suffix (`O-Slag`, `O-Iron`, `O-Bronze`) when a trench needs to
 separate several kinds of other material.
 
 Catalogue prefixes are `pc` (Poggio Civitate) and `vdm` (Vescovado di Murlo).
 
 An identifier of this shape is **self-describing**: reading
-`bf-T104-2025-1-T` tells you it is bulk tile, from Locus 1 of T104, in 2025 —
+`bf-T104-2025-1-T` tells you it is bulk tile, from Locus 1 of T104, in 2025,
 without consulting anything.
 
 ## The picture
@@ -87,7 +87,7 @@ standards, not invented for this application:
 """
 ```
 
-Citing the source document is what makes it auditable — a reader can check the
+Citing the source document is what makes it auditable: a reader can check the
 list against the standard rather than trusting the code.
 
 ### Construction validates as it goes
@@ -101,8 +101,8 @@ def special_find_id(trench, year, locus, number) -> str:
     return f"sf-{trench}-{_year(year)}-{locus}-{number}"
 ```
 
-Every part is canonicalised — see
-[regular expressions](../cs/regular-expressions.md) — so a trench typed `T-111`
+Every part is canonicalised (see
+[regular expressions](../cs/regular-expressions.md)), so a trench typed `T-111`
 still produces `sf-T111-…`.
 
 Bad material codes fail with the allowed set in the message:
@@ -161,7 +161,7 @@ class FindId:
         return self.text.lower()
 ```
 
-`frozen=True` — a parsed identifier is a value, not something to mutate.
+`frozen=True`, because a parsed identifier is a value, not something to mutate.
 
 An unrecognised identifier fails with all three formats spelled out:
 
@@ -179,7 +179,7 @@ raise VocabError(
 | Not a… | Because |
 |---|---|
 | **A database key** | It is a *human* identifier, written on tags and typed into forms. Its readability is the point. |
-| **A [job](../concepts/jobs-sheets-and-trenches.md) or matrix ID** | Those are `uuid4`/`token_hex` — internal, opaque, and correctly so. A find identifier has to leave the machine. |
+| **A [job](../concepts/jobs-sheets-and-trenches.md) or matrix ID** | Those are `uuid4`/`token_hex`: internal, opaque, and correctly so. A find identifier has to leave the machine. |
 | **Unique across sites** | Scoped to Poggio Civitate's own numbering. |
 | **Proof of context** | The identifier *encodes* trench, year, and locus; it does not verify them. A mislabelled bag has a well-formed identifier. |
 | **[Locus](locus.md)** | The locus is one component of it. |
@@ -197,7 +197,7 @@ transcription problem the software cannot see.
 rejected, with the allowed set listed.
 
 **Padding the locus.** `canonical_locus` preserves digits exactly, for the reason
-given in `canonical_trench` — collapsing or padding would only ever change a
+given in `canonical_trench`: collapsing or padding would only ever change a
 number nobody meant to write that way.
 
 **Assuming an identifier survives a
@@ -207,11 +207,11 @@ year distinguishes them; the locus number alone does not.
 
 ## Related pages
 
-- [Find](find.md) — what is being identified.
-- [Locus](locus.md) — one component.
-- [Trench](trench.md) — another, and its canonical spelling.
-- [Locus numbering epochs](locus-numbering-epochs.md) — why the year matters.
-- [Survey point codes](survey-point-codes.md) — the other vocabulary in
+- [Find](find.md): what is being identified.
+- [Locus](locus.md): one component.
+- [Trench](trench.md): another, and its canonical spelling.
+- [Locus numbering epochs](locus-numbering-epochs.md): why the year matters.
+- [Survey point codes](survey-point-codes.md): the other vocabulary in
   `site_vocab`.
-- [Regular expressions](../cs/regular-expressions.md) — how the formats are
+- [Regular expressions](../cs/regular-expressions.md): how the formats are
   parsed.

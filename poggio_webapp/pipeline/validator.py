@@ -1,5 +1,5 @@
 """
-validator.py — sanity-checks the trench-extraction JSON before it feeds GemPy.
+Sanity-checks the trench-extraction JSON before it feeds GemPy.
 Adapted from 04_normalize_validate/validator.py into an importable function
 returning structured results instead of printing + exit code. Logic unchanged.
 """
@@ -52,10 +52,10 @@ def scan_null_strings(obj, path, report):
         for i, v in enumerate(obj):
             scan_null_strings(v, f"{path}[{i}]", report)
     elif is_null_string(obj):
-        report.warn(path, f'literal string "{obj}" — should this be a real null?')
+        report.warn(path, f'literal string "{obj}" (should this be a real null?)')
 
 
-# --- fabrication detection -------------------------------------------------
+# fabrication detection
 # The T104 field-wall extraction produced geometrically fabricated boundaries
 # twice: every point on a fixed x interval, and each locus's boundary an exact
 # copy of the one above offset by a constant depth. The extraction prompt
@@ -93,7 +93,7 @@ def check_uniform_spacing(points, where, report):
         report.warn(
             where,
             f"boundary vertices are evenly spaced every {mean:.3g} m "
-            f"({len(pts)} points, spacing variation {cv:.3f}) — this is "
+            f"({len(pts)} points, spacing variation {cv:.3f}). This is "
             "the signature of points estimated at a fixed interval "
             "rather than read off the recorder's marked vertices. "
             "Re-extract, or detect the markers computationally.",
@@ -102,7 +102,7 @@ def check_uniform_spacing(points, where, report):
 
 def check_parallel_layers(layers, where, report):
     """Warn when two layers' boundaries are the same shape shifted by a
-    constant depth — a copy-paste artifact, not real stratigraphy."""
+    constant depth, a copy-paste artifact rather than real stratigraphy."""
     shaped = []
     for layer in layers or []:
         pts = _pairs(layer.get("bottomBoundary"))
@@ -121,7 +121,7 @@ def check_parallel_layers(layers, where, report):
             if len(pa) != len(pb):
                 continue
             if any(abs(a[0] - b[0]) > 1e-9 for a, b in zip(pa, pb)):
-                continue  # different x stations — not comparable
+                continue  # different x stations, not comparable
             diffs = [b[1] - a[1] for a, b in zip(pa, pb)]
             spread = max(diffs) - min(diffs)
             if spread <= PARALLEL_OFFSET_TOLERANCE_M:
@@ -129,7 +129,7 @@ def check_parallel_layers(layers, where, report):
                     where,
                     f"layers {na!r} and {nb!r} have identical boundary "
                     f"shapes offset by a constant "
-                    f"{sum(diffs) / len(diffs):.3g} m — almost certainly "
+                    f"{sum(diffs) / len(diffs):.3g} m, almost certainly "
                     "one boundary copied down, not two traced ones.",
                 )
 
@@ -200,7 +200,7 @@ def check_features(layer, top, bottom, where, report, monotonic_tolerance_m):
         if not has_shape and not has_approx:
             report.warn(
                 fwhere,
-                "no shapePoints and no approx* coords — geometry may be "
+                "no shapePoints and no approx* coords. Geometry may be "
                 "trapped in the description string",
             )
 
@@ -266,7 +266,7 @@ def check_face(
                     report.warn(
                         where,
                         f"top at x={x} (depth {y:.2f}) is far from "
-                        f"{prev_name} bottom (depth {above:.2f}) — "
+                        f"{prev_name} bottom (depth {above:.2f}): "
                         f"possible void/overlap",
                     )
 
@@ -277,7 +277,7 @@ def check_face(
                     report.err(
                         where,
                         f"bottom at x={x} (depth {y:.2f}) is ABOVE "
-                        f"{prev_name}'s bottom (depth {above:.2f}) — layers cross",
+                        f"{prev_name}'s bottom (depth {above:.2f}): layers cross",
                     )
 
         check_features(layer, top, bottom, where, report, monotonic_tolerance_m)
@@ -310,7 +310,7 @@ def _check_field_wall_extras(data, report):
         report.warn(
             where,
             f"locus {n} appears {locus_nums.count(n)} times in "
-            "loci[] with different Munsell readings — the "
+            "loci[] with different Munsell readings. The "
             "converter will use the first",
         )
 

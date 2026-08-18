@@ -59,8 +59,8 @@ text { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-se
   <text x="660" y="140" text-anchor="start" class="sm">unit to an older one, so the</text>
   <text x="660" y="160" text-anchor="start" class="sm">youngest sit at the top.</text>
   <text x="660" y="200" text-anchor="start" class="sm">Two units side by side are not</text>
-  <text x="660" y="220" text-anchor="start" class="sm">dated relative to each other —</text>
-  <text x="660" y="240" text-anchor="start" class="sm">the matrix records only what</text>
+  <text x="660" y="220" text-anchor="start" class="sm">dated relative to each other.</text>
+  <text x="660" y="240" text-anchor="start" class="sm">The matrix records only what</text>
   <text x="660" y="260" text-anchor="start" class="sm">the stratigraphy actually shows.</text>
   <text x="24" y="370" text-anchor="start" class="sm muted">The matrix is an archaeological interpretation, not an automatically verified result.</text>
 </svg>

@@ -21,19 +21,19 @@ node appears before all its successors.
 
 **Kahn's algorithm** is the frontier-based formulation:
 
-1. Count each node's **in-degree** — how many predecessors it has.
+1. Count each node's **in-degree**: how many predecessors it has.
 2. Put every node with in-degree 0 into a *ready* set.
 3. Take one from the ready set, append it to the output, and decrement the
    in-degree of each of its successors. Any that reaches 0 joins the ready set.
 4. Repeat.
 
-If the output is shorter than the node count, some nodes never became ready —
+If the output is shorter than the node count, some nodes never became ready,
 which means a [cycle](cycle-detection.md).
 
 The critical property is that **the answer is usually not unique**. Whenever
 several nodes are ready simultaneously, any of them may come next. For a
-chronology that is correct — two deposits with no recorded relationship
-genuinely have no relative order — but it means the *reported* order depends on
+chronology that is correct (two deposits with no recorded relationship
+genuinely have no relative order), but it means the *reported* order depends on
 which ready node is chosen, and an arbitrary choice makes the output
 irreproducible.
 
@@ -51,7 +51,7 @@ flowchart TB
 ```
 
 ```
-ready: {A, B}          both available — the choice is arbitrary
+ready: {A, B}          both available, the choice is arbitrary
                        a heap keyed on first-seen position makes it A
 
 take A → ready {B}
@@ -63,7 +63,7 @@ order: A B C D E
 ```
 
 Without the heap, `ready` might be a set, and Python set iteration order would
-decide — so the same matrix could render two different diagrams on two runs.
+decide, so the same matrix could render two different diagrams on two runs.
 
 ## Where this project uses it
 
@@ -127,7 +127,7 @@ while ready:
             heapq.heappush(ready, order_index[later])
 ```
 
-The heap holds **first-seen positions**, not names — so ties break by document
+The heap holds **first-seen positions**, not names, so ties break by document
 order rather than alphabetically. That matters: `Locus 10` sorts before
 `Locus 2` alphabetically, which would produce a stratigraphically misleading
 tie-break.
@@ -173,7 +173,7 @@ def _topological_sort(nodes, edges):
 ```
 
 Here the heap holds node IDs directly, which is fine because unit IDs are
-content-addressed hashes — stable for a given unit, and carrying no misleading
+content-addressed hashes: stable for a given unit, and carrying no misleading
 ordering.
 
 The public entry point checks for a cycle first and raises rather than returning
@@ -191,8 +191,8 @@ def topological_order(matrix: HarrisMatrix) -> list[str]:
     return _topological_sort(nodes, edges)
 ```
 
-Note it sorts the **collapsed** graph — [correlated](union-find.md) units are
-one node — so the order is over display nodes rather than raw units.
+Note it sorts the **collapsed** graph ([correlated](union-find.md) units are
+one node), so the order is over display nodes rather than raw units.
 
 ## Why this and not something else
 
@@ -200,9 +200,9 @@ one node — so the order is over display nodes rather than raw units.
 |---|---|---|
 | **DFS-based topological sort** | Reverse post-order of a DFS | Equally valid and O(V + E), and its output order is determined by traversal order, which is harder to reason about than an explicit heap. Kahn's frontier makes "which nodes are simultaneously available" visible, which is exactly the archaeologically meaningful fact. |
 | **Kahn with a plain list or set** | Arbitrary among ready nodes | Non-deterministic. The same matrix could render two different diagrams, and a diff of two saves would show spurious changes. |
-| **Kahn with a min-heap** *(chosen)* | Earliest-seen among ready nodes | Deterministic, and the tie-break is a meaningful one — document order in `merge_walls`, stable IDs in `harris_matrix`. |
+| **Kahn with a min-heap** *(chosen)* | Earliest-seen among ready nodes | Deterministic, and the tie-break is a meaningful one: document order in `merge_walls`, stable IDs in `harris_matrix`. |
 | **Sort by depth or elevation** | Order by measured Z | Tempting, and it ignores the recorded relationships in favour of geometry. Two deposits at the same depth on opposite sides of a trench are not contemporaneous just because their elevations match. |
-| **Require the user to supply an order** | Ask | The build allows exactly this — `trench_builder.resolve_series_order` takes a `series_order` supplied with the request first, then a reviewed Harris matrix, and falls back to `merged_series_order` only when neither exists. All paths exist. |
+| **Require the user to supply an order** | Ask | The build allows exactly this: `trench_builder.resolve_series_order` takes a `series_order` supplied with the request first, then a reviewed Harris matrix, and falls back to `merged_series_order` only when neither exists. All paths exist. |
 
 The deciding argument is the same one that runs through the graph work: **the
 evidence gives a partial order, and a topological sort is the minimal way to
@@ -211,40 +211,40 @@ Where the constraints conflict, both implementations refuse.
 
 ## What it costs
 
-O(V + E) for the traversal, plus O(V log V) for the heap operations — the log
+O(V + E) for the traversal, plus O(V log V) for the heap operations. The log
 factor is the price of determinism.
 
 The subtleties:
 
-- **The answer is one of many valid orders.** It satisfies every constraint and
+- The answer is one of many valid orders. It satisfies every constraint and
   is not "the" chronology; unrelated units could equally be swapped.
-- **Double-counted edges break it silently.** A node whose in-degree was
+- Double-counted edges break it silently. A node whose in-degree was
   incremented twice for one relationship never reaches zero, so it vanishes from
   the output and looks like a cycle. Both implementations guard against this.
-- **Self-loops are instant cycles**, hence the explicit skip in `merge_walls`.
-- **A cycle yields a short output**, not an exception — so the caller must
+- Self-loops are instant cycles, hence the explicit skip in `merge_walls`.
+- A cycle yields a short output, not an exception, so the caller must
   check. `merge_walls` compares the output length to the node count;
   `harris_matrix` runs [cycle detection](cycle-detection.md) before sorting at
   all.
 
 ## Where else you meet it
 
-- **Build systems.** `make`, Bazel, and every package manager compute one to
+- Build systems. `make`, Bazel, and every package manager compute one to
   decide compilation or installation order.
-- **Spreadsheets**, recalculating cells in dependency order.
-- **Course prerequisites**, the textbook example.
-- **Task schedulers and CI pipelines**, ordering jobs by their dependencies.
-- **Compilers**, ordering module initialisation and instruction scheduling.
-- **Data pipelines** — Airflow, dbt, and similar tools are topological sorts with
+- Spreadsheets, recalculating cells in dependency order.
+- Course prerequisites, the textbook example.
+- Task schedulers and CI pipelines, ordering jobs by their dependencies.
+- Compilers, ordering module initialisation and instruction scheduling.
+- Data pipelines: Airflow, dbt, and similar tools are topological sorts with
   a user interface.
 
 ## Related pages
 
-- [Directed acyclic graphs](directed-acyclic-graphs.md) — the precondition.
-- [Cycle detection](cycle-detection.md) — what happens when it fails.
-- [Adjacency representations](adjacency-representations.md) — the in-degree map.
-- [Heaps and priority queues](heaps-and-priority-queues.md) — the structure that makes it
+- [Directed acyclic graphs](directed-acyclic-graphs.md): the precondition.
+- [Cycle detection](cycle-detection.md): what happens when it fails.
+- [Adjacency representations](adjacency-representations.md): the in-degree map.
+- [Heaps and priority queues](heaps-and-priority-queues.md): the structure that makes it
   deterministic.
-- [Union-Find](union-find.md) — how the Harris graph is collapsed first.
-- [Combine walls into one trench](../workflows/09-multi-wall-trench.md) — the
+- [Union-Find](union-find.md): how the Harris graph is collapsed first.
+- [Combine walls into one trench](../workflows/09-multi-wall-trench.md): the
   workflow.

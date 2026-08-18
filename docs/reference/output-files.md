@@ -320,7 +320,7 @@ Two modes: **AI extraction** (Gemini) or **JSON upload** (user-provided).
 - Remove features duplicated across layers (kept in the deepest layer)
 
 Each change is recorded in the returned normalization log. The normalizer does
-not adapt field-wall documents to the trench-profile shape — the validator and
+not adapt field-wall documents to the trench-profile shape. The validator and
 converter do that on the fly.
 
 **Validation report** (never saved as its own file; the editor finalisation
@@ -362,7 +362,7 @@ just `normalized_path`):
 ### Input
 
 - `04_normalize_validate/output_clean.json` (or original extraction)
-- Grid configuration — a `faces` map keyed by face name, each face carrying
+- Grid configuration, a `faces` map keyed by face name, each face carrying
   its own registration:
 
 ```json
@@ -398,11 +398,11 @@ X,Y,Z,surface,face
 
 Columns:
 
-- `X` — site-wide X coordinate (meters, rounded to 4 decimals)
-- `Y` — site-wide Y coordinate (meters)
-- `Z` — site-wide elevation (meters; `surfaceZ` minus the drawn depth)
-- `surface` — the layer/locus surface name (the identity GemPy fuses on)
-- `face` — face label (from `trenchProfiles[].face`)
+- `X`: site-wide X coordinate (meters, rounded to 4 decimals)
+- `Y`: site-wide Y coordinate (meters)
+- `Z`: site-wide elevation (meters; `surfaceZ` minus the drawn depth)
+- `surface`: the layer/locus surface name (the identity GemPy fuses on)
+- `face`: face label (from `trenchProfiles[].face`)
 
 **Conversion formulas** (θ is `bearing_deg` in radians):
 
@@ -474,7 +474,7 @@ comment and viewer manifest.
 **Location:** `06_gempy_model/trench_model_viewer.json`
 
 Schema version 2 (version 2 adds `surfaces[].label`; a version 1 manifest has
-no labels and is still valid — the viewer falls back to the surface name):
+no labels and is still valid, so the viewer falls back to the surface name):
 
 ```json
 {

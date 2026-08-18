@@ -17,10 +17,10 @@ reflection, and the error looks entirely plausible.
 
 ## What it is
 
-**Mathematical convention** — angles measured **counter-clockwise from the
+**Mathematical convention**: angles measured **counter-clockwise from the
 positive x-axis (east)**. This is what `sin`, `cos`, and `atan2(y, x)` assume.
 
-**Compass convention** — angles measured **clockwise from north**. This is what
+**Compass convention**: angles measured **clockwise from north**. This is what
 a surveyor writes down, what a total station reports, and what
 `bearing_deg` means in this project's grid config.
 
@@ -33,7 +33,7 @@ compass      = 90° − mathematical
 ```
 
 Both directions are the same formula, which is a good sign that it is a
-reflection rather than a rotation — and reflections are exactly the errors that
+reflection rather than a rotation, and reflections are exactly the errors that
 produce a mirror-image model.
 
 The practical rules:
@@ -111,7 +111,7 @@ whoever fills it in:
 ```
 
 Note what the comment has to rule out. "Clockwise from north" is not enough of a
-specification when a site has three norths to choose from — see
+specification when a site has three norths to choose from. See
 [grid registration](../archaeology/grid-registration.md).
 
 ### Projecting a site position back onto a wall
@@ -123,7 +123,7 @@ angle = math.radians(bearings[face])
 s = (x * math.sin(angle)) + (y * math.cos(angle))
 ```
 
-The same pairing, used in the inverse direction — a
+The same pairing, used in the inverse direction: a
 [projection](vector-projection.md) onto the wall's direction vector
 `(sin θ, cos θ)`.
 
@@ -143,7 +143,7 @@ def _dip_from_normal(normal):
 ```
 
 The docstring names the trap explicitly. `atan2(x, y)` rather than the habitual
-`atan2(y, x)` — and it is exactly the kind of line that gets "corrected" by
+`atan2(y, x)`, and it is exactly the kind of line that gets "corrected" by
 someone tidying up, which is why the reason sits next to it.
 
 ### Computing a wall's far endpoint
@@ -165,14 +165,14 @@ def face_endpoints(face_cfg, length_m):
     return (X0, Y0), (X0 + L * math.sin(theta), Y0 + L * math.cos(theta))
 ```
 
-The docstring restates the convention **and gives a worked check** — bearing 90
+The docstring restates the convention **and gives a worked check**: bearing 90
 puts everything in X. That check is testable by eye, which is the point: a
 convention that can only be verified by re-deriving it will eventually be got
 wrong.
 
 Four sites, one convention, three docstrings restating it. That redundancy is
-proportionate: the failure mode is silent, and the symptom — walls meeting at
-the wrong corner, a model reflected about a diagonal — looks like a data-entry
+proportionate: the failure mode is silent, and the symptom (walls meeting at
+the wrong corner, a model reflected about a diagonal) looks like a data-entry
 error rather than a code bug.
 
 ## Why this and not something else
@@ -181,7 +181,7 @@ error rather than a code bug.
 |---|---|---|
 | **Store mathematical angles internally, convert at the edges** | Convert on input, convert back on output | Fewer surprising `sin`/`cos` pairings inside, and it adds two conversion points where a sign can be lost, and it means the value in `meta.json` differs from the value the surveyor recorded. Debugging then requires converting in your head. |
 | **Store compass bearings, use them directly** *(chosen)* | Swap `sin`/`cos`, swap `atan2` arguments | The stored number is the surveyed number. What is written in the grid config is what a total station reported, so a person can check it against their field notes without arithmetic. |
-| **Store unit vectors instead of angles** | `(east, north)` components | Sidesteps the convention entirely and is genuinely appealing — no `sin`, no `cos`, no `atan2`. It is two numbers where a surveyor supplies one, and the config is hand-edited by archaeologists. |
+| **Store unit vectors instead of angles** | `(east, north)` components | Sidesteps the convention entirely and is genuinely appealing: no `sin`, no `cos`, no `atan2`. It is two numbers where a surveyor supplies one, and the config is hand-edited by archaeologists. |
 | **Use a geospatial library (pyproj, shapely)** | Let a library own the conventions | Correct for real projections and datums, and heavy for what is ultimately a local Cartesian grid with a rotation. Would not remove the need to know which convention the library expects. |
 
 The deciding argument is **the stored value should match the recorded value**.
@@ -196,8 +196,8 @@ are assigned to.
 
 The cost is entirely in **discipline**, and the repository pays it in
 documentation: the grid config's `_comment`, three docstrings, and a worked
-check. There is no type-level protection — a bearing and a mathematical angle
-are both `float` — so nothing prevents mixing them.
+check. There is no type-level protection (a bearing and a mathematical angle
+are both `float`), so nothing prevents mixing them.
 
 That is the residual risk, and it is real. A stronger design would use distinct
 types (`Bearing` and `Radians` as separate classes) so the compiler or the test
@@ -207,21 +207,21 @@ least stated at every one of them.
 
 ## Where else you meet it
 
-- **Aviation and marine navigation**, where headings are always compass
+- Aviation and marine navigation, where headings are always compass
   bearings.
-- **Meteorology**, where wind direction is the compass bearing the wind comes
-  *from* — a third convention, and a classic source of sign errors.
-- **Structural geology**, where strike and dip azimuth are compass bearings.
-- **GIS**, where azimuth is compass and many APIs quietly expect mathematical
+- Meteorology, where wind direction is the compass bearing the wind comes
+  *from*: a third convention, and a classic source of sign errors.
+- Structural geology, where strike and dip azimuth are compass bearings.
+- GIS, where azimuth is compass and many APIs quietly expect mathematical
   angles.
-- **Robotics**, where a robot's heading convention rarely matches the map's.
+- Robotics, where a robot's heading convention rarely matches the map's.
 
 ## Related pages
 
-- [Plane normals](plane-normals.md) — where `atan2(x, y)` appears.
-- [Translation, rotation, and scaling](translation-rotation-scaling.md) — the
+- [Plane normals](plane-normals.md): where `atan2(x, y)` appears.
+- [Translation, rotation, and scaling](translation-rotation-scaling.md): the
   rotation this parameterises.
-- [Vector projection](vector-projection.md) — projecting onto a bearing.
-- [Grid registration](../archaeology/index.md) — where the number comes from.
-- [Place on site](../workflows/06-place-on-site.md) — the workflow step that
+- [Vector projection](vector-projection.md): projecting onto a bearing.
+- [Grid registration](../archaeology/index.md): where the number comes from.
+- [Place on site](../workflows/06-place-on-site.md): the workflow step that
   collects it.

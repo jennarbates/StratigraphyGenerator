@@ -18,7 +18,7 @@ them.
 
 ## What it is
 
-The 2025 deployment runs a KoboToolbox **Locus Entry** form — "data entry for
+The 2025 deployment runs a KoboToolbox **Locus Entry** form, "data entry for
 loci described during fieldwork". *Excavation and Documentation Procedures* says
 what ends up attached to it: elevations taken at every trench corner, a Munsell
 designation, and the top plans drawn at opening and closing.
@@ -30,7 +30,7 @@ instead.
 Two deliberate constraints shape the whole module:
 
 **It reads a file, not the API.** Kobo's own guide recommends periodic XLS/ZIP
-downloads, so a downloaded export is the normal artifact — and reading a file
+downloads, so a downloaded export is the normal artifact, and reading a file
 keeps the promise that nothing leaves the machine. An API path would need a
 token, and a token belongs in the environment rather than in this repository.
 
@@ -48,14 +48,14 @@ flowchart LR
   L -->|"merge_into_sheet()<br/>fills only what is missing"| E["field-wall extraction"]
 ```
 
-The operator is in the loop at exactly one point — confirming the column map —
+The operator is in the loop at exactly one point, confirming the column map,
 and that is the point where a silent mistake would be unrecoverable.
 
 ## Why excavation records it
 
 The Locus Entry form exists because a locus record has to be made *in the
 field*, by the person who made the interpretation, at the moment they made it.
-Everything downstream — the section drawing, the find bags, the publication —
+Everything downstream (the section drawing, the find bags, the publication)
 refers back to what that person wrote.
 
 Retyping it into a second system is where records diverge. Two versions of Locus
@@ -98,7 +98,7 @@ producing forty locus records that are internally consistent and wrong.
 
 When a required column cannot be identified the import refuses **and lists the
 headers it actually saw**, which is the one thing that makes the mapping easy to
-fix. Compare a bare "unrecognised export" — see
+fix. Compare a bare "unrecognised export". See
 [error taxonomies](../cs/error-taxonomies.md).
 
 ### One bad row is a note, not a failure
@@ -132,7 +132,7 @@ notes.append(
 ```
 
 That is the same first-wins-and-say-so rule the converter applies to duplicate
-`loci[]` entries — see [locus](locus.md).
+`loci[]` entries (see [locus](locus.md)).
 
 Row indices start at 2 because row 1 is the header, so a note names the line the
 operator will see in a spreadsheet.
@@ -188,7 +188,7 @@ own elevation rather than stored as if it were absolute. See
 | **A Kobo integration** | Nothing talks to Kobo. A file is downloaded by a person and uploaded here. |
 | **A synchronisation** | One direction, once. Nothing is written back, and a later export does not update what was imported. |
 | **[Provenance links](provenance-links.md)** | Those are pointers to the record. This reads the record's *contents* as data. Rows carry both. |
-| **An [extraction](trench-profile.md)** | An extraction is geometry traced off a drawing. This is the locus register — colour, description, elevations — with no geometry at all. |
+| **An [extraction](trench-profile.md)** | An extraction is geometry traced off a drawing. This is the locus register (colour, description, elevations) with no geometry at all. |
 | **Authoritative over the sheet** | It fills gaps. The recorder's own entries win unless overwrite is asked for. |
 
 ## Getting it wrong
@@ -215,10 +215,10 @@ otherwise, naming the fix: export it as CSV.
 
 ## Related pages
 
-- [Locus](locus.md) — what is being imported.
-- [Recording sheet](recording-sheet.md) — the paper the form duplicates.
-- [Munsell colour](munsell-colour.md) — the field most often imported.
-- [Elevation](elevation.md) and [Datum](datum.md) — how the readings resolve.
-- [Provenance links](provenance-links.md) — the pointers each row can carry.
-- [Error taxonomies](../cs/error-taxonomies.md) — why a bad row is a note and a
+- [Locus](locus.md): what is being imported.
+- [Recording sheet](recording-sheet.md): the paper the form duplicates.
+- [Munsell colour](munsell-colour.md): the field most often imported.
+- [Elevation](elevation.md) and [Datum](datum.md): how the readings resolve.
+- [Provenance links](provenance-links.md): the pointers each row can carry.
+- [Error taxonomies](../cs/error-taxonomies.md): why a bad row is a note and a
   bad header is a refusal.

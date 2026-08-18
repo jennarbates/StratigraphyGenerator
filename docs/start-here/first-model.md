@@ -25,8 +25,8 @@ Use this tutorial after you have completed the earlier workflow pages. The path 
 1. [Add a drawing](../workflows/01-add-drawing.md)
 2. [Prepare the image](../workflows/02-prepare-image.md)
 3. [Trace the layers](../workflows/03-trace-layers.md)
-4. [Alternative import and AI extraction](../workflows/03-alternative-import-and-ai.md) — optional alternatives to tracing
-5. [Markers and features](../workflows/03-markers-and-features.md) — a status overview; the automated path is backend-only
+4. [Alternative import and AI extraction](../workflows/03-alternative-import-and-ai.md): optional alternatives to tracing
+5. [Markers and features](../workflows/03-markers-and-features.md): a status overview; the automated path is backend-only
 6. [Clean up the data](../workflows/04-clean-data.md)
 7. [Check for problems](../workflows/05-check-problems.md)
 8. [Place on site](../workflows/06-place-on-site.md)

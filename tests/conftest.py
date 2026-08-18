@@ -36,7 +36,7 @@ def storage_dirs(tmp_path, monkeypatch):
     ``storage.<ROOT>`` at call time rather than binding it at import. Before
     Phase 2 this took eight monkeypatches across five modules.
 
-    Autouse: no test may write to the real ``poggio_webapp/jobs`` — a test that
+    Autouse: no test may write to the real ``poggio_webapp/jobs``. A test that
     patched the wrong target used to pass while quietly writing into the
     developer's working tree, which is a worse failure than a red test.
     """

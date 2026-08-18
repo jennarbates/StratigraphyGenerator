@@ -386,9 +386,7 @@ def _cycle_message(order, order_index, successors, faces_by_surface):
     )
 
 
-# ---------------------------------------------------------------------------
 # Grid config for a merged trench
-# ---------------------------------------------------------------------------
 
 # The pattern make_starter_config() stamps out: face i gets originX = i * 10,
 # originY 0, surfaceZ 100, bearing 90. Left in a config it silently produces a

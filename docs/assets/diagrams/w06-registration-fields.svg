@@ -62,5 +62,5 @@ text { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-se
   <text x="812" y="196" text-anchor="start" class="sm">Z = surfaceZ − depth</text>
   <text x="430" y="292" text-anchor="start" class="sm muted">x runs along the face from originX, originY</text>
   <text x="24" y="340" text-anchor="start" class="sm muted">bearing_deg is the compass direction of the face's local +x axis,</text>
-  <text x="24" y="360" text-anchor="start" class="sm muted">measured clockwise from north — not a slope and not a screen angle.</text>
+  <text x="24" y="360" text-anchor="start" class="sm muted">measured clockwise from north, not a slope and not a screen angle.</text>
 </svg>

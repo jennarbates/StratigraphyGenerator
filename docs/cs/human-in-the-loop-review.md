@@ -57,11 +57,11 @@ flowchart TB
 ```python
 """...
 Division of labor, per the note at the bottom of the original tool:
-  - the marker COORDINATES come from computer vision and are immutable —
+  - the marker COORDINATES come from computer vision and are immutable:
     they pass through this module verbatim, byte for byte
   - Gemini only CLASSIFIES each fixed point (top boundary of locus N /
     final section base / noise) and reads the sheet's labels (loci Munsell
-    colors, tie points, metadata) — a task it did fine on even in the runs
+    colors, tie points, metadata), a task it did fine on even in the runs
     whose geometry was fabricated
 The final FieldWallProfile JSON is then assembled deterministically here,
 so there is no path by which the model can invent, move, or drop a vertex:
@@ -71,7 +71,7 @@ point from the paper, and the validator's spacing checks stay meaningful.
 ```
 
 The last clause is the design goal: **a mistake must remain detectable.** A
-misassigned point is a real point on the wrong line — visible to a reviewer, and
+misassigned point is a real point on the wrong line, visible to a reviewer, and
 still subject to the [spacing checks](fabrication-detection.md). A *fabricated*
 point is undetectable by inspection.
 
@@ -92,7 +92,7 @@ And the prompt states it again, for the model's benefit:
 > These points are REAL and FIXED. You must not invent new points, move points,
 > or report coordinates anywhere.
 
-Belt and braces — the schema is the enforcement, the prompt is the instruction.
+Belt and braces: the schema is the enforcement, the prompt is the instruction.
 
 ### Two-phase review, with the network call separated from the commit
 
@@ -133,7 +133,7 @@ and its output carries a review state rather than a verdict:
 
 ### Rejected candidates are offered back
 
-`poggio_webapp/pipeline/detect_markers.py` — the detail that shows the review is
+`poggio_webapp/pipeline/detect_markers.py`, the detail that shows the review is
 taken seriously:
 
 ```python
@@ -182,14 +182,14 @@ Reviewing is work; the design makes sure it is not repeated.
 
 | Alternative | How it would extract boundaries | Why it lost |
 |---|---|---|
-| **Fully automatic LLM extraction** | Ask the model for the geometry | **Tried, and it failed** — twice, on real data, producing evenly spaced points and copy-pasted boundaries. The validator's [fabrication checks](fabrication-detection.md) exist because of it. Still available and labelled `experimental`. |
+| **Fully automatic LLM extraction** | Ask the model for the geometry | **Tried, and it failed.** Twice, on real data, producing evenly spaced points and copy-pasted boundaries. The validator's [fabrication checks](fabrication-detection.md) exist because of it. Still available and labelled `experimental`. |
 | **Fully automatic CV** | Detect and commit | CV cannot fabricate, and it does miss and over-detect. Without review, a missed vertex is silently lost evidence. |
 | **Manual only** | A person traces everything | The **supported** path, and the slowest. CV assistance is worth having if it cannot corrupt what it assists with. |
 | **Machine proposes, human disposes** *(chosen)* | CV finds, model labels, person confirms | Each component does what it is reliable at, and the composition is checked by someone who can see the drawing. |
 | **Confidence scores instead of review** | Emit values with uncertainty | Downstream consumes numbers, not caveats. GemPy has no confidence input. |
 
 The generalisable principle: **give the machine the part where its failure mode
-is visible.** CV's failures — a missed dot, a stray blob — are obvious on an
+is visible.** CV's failures (a missed dot, a stray blob) are obvious on an
 overlay. A language model's failure on geometry is a plausible boundary in the
 wrong place, which is not.
 
@@ -199,33 +199,33 @@ Review is the slowest part of the workflow, and that is the trade.
 
 The costs:
 
-- **Time.** Every marker, every feature, every suggestion is looked at.
-- **Interface work.** A review step needs a good overlay, toggleable rejects, and
+- Time: every marker, every feature, every suggestion is looked at.
+- Interface work: a review step needs a good overlay, toggleable rejects, and
   editable labels. Substantial browser code exists only to make review possible.
-- **Review fatigue is real.** Hundreds of candidates invite rubber-stamping —
+- Review fatigue is real. Hundreds of candidates invite rubber-stamping,
   which is why the candidate list is
   [capped and ranked](bounded-caches-and-eviction.md) rather than exhaustive.
-- **It does not scale.** Fine for a research project processing one drawing at a
+- It does not scale. Fine for a research project processing one drawing at a
   time; not for thousands.
 
 ## Where else you meet it
 
-- **Medical imaging**, where a detector flags candidates and a radiologist
-  decides — the closest analogue.
-- **Content moderation**, where automated flagging routes to human review.
-- **Machine translation**, where post-editing is standard for anything
+- Medical imaging, where a detector flags candidates and a radiologist
+  decides (the closest analogue).
+- Content moderation, where automated flagging routes to human review.
+- Machine translation, where post-editing is standard for anything
   published.
-- **Autonomous vehicles**, whose disengagement protocols are this pattern at
+- Autonomous vehicles, whose disengagement protocols are this pattern at
   safety-critical scale.
-- **Aviation autopilot**, which flies while the pilot retains authority.
+- Aviation autopilot, which flies while the pilot retains authority.
 
 ## Related pages
 
-- [Separation of concerns](separation-of-concerns.md) — the CV/model boundary.
-- [Two-phase commit with review](two-phase-commit-with-review.md) — the propose,
+- [Separation of concerns](separation-of-concerns.md): the CV/model boundary.
+- [Two-phase commit with review](two-phase-commit-with-review.md): the propose,
   review, finalize shape.
-- [Fabrication detection](fabrication-detection.md) — what happened without it.
-- [Provenance and data lineage](provenance-and-data-lineage.md) — recording who
+- [Fabrication detection](fabrication-detection.md): what happened without it.
+- [Provenance and data lineage](provenance-and-data-lineage.md): recording who
   decided what.
-- [Fail-closed design](fail-closed-design.md) — the related refusal principle.
-- [Markers and features](../workflows/03-markers-and-features.md) — the workflow.
+- [Fail-closed design](fail-closed-design.md): the related refusal principle.
+- [Markers and features](../workflows/03-markers-and-features.md): the workflow.

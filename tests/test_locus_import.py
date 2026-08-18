@@ -24,9 +24,7 @@ T900,1,2025,7.5YR 4/2 dark brown,Topsoil,31.00,30.40,
 """
 
 
-# ---------------------------------------------------------------------------
 # Column mapping
-# ---------------------------------------------------------------------------
 
 
 def test_plausible_headers_are_suggested_not_required_to_match_exactly():
@@ -72,9 +70,7 @@ def test_the_mapping_actually_used_is_returned_for_checking():
     assert result["column_map"]["opening_elevation"] == "Opening Elevation"
 
 
-# ---------------------------------------------------------------------------
 # Reading rows
-# ---------------------------------------------------------------------------
 
 
 def test_loci_are_read_with_their_elevations():
@@ -165,9 +161,7 @@ def test_unmatched_columns_are_reported():
     assert any("no column was matched" in note for note in result["notes"])
 
 
-# ---------------------------------------------------------------------------
 # Merging into a traced sheet
-# ---------------------------------------------------------------------------
 
 
 def test_an_import_fills_only_what_the_sheet_is_missing():

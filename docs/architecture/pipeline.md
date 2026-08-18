@@ -110,7 +110,7 @@ become a navigable list; without it, every stage is listed below in order.
 <dl>
 <dt>Module</dt><dd><code>pipeline/merge_walls.py</code></dd>
 <dt>Input</dt><dd>One normalized extraction per wall of a trench</dd>
-<dt>Output</dt><dd>merged.json — one multi-face document, plus notes</dd>
+<dt>Output</dt><dd>merged.json: one multi-face document, plus notes</dd>
 <dt>Route</dt><dd><code>POST /api/trenches/&lt;label&gt;/build, driven from the trenches page</code></dd>
 </dl>
 
@@ -137,7 +137,7 @@ become a navigable list; without it, every stage is listed below in order.
 <dt>Module</dt><dd><code>pipeline/true_dip.py</code></dd>
 <dt>Input</dt><dd>Interface points and each face's bearing</dd>
 <dt>Output</dt><dd>One true dip and azimuth per surface, where two walls allow it</dd>
-<dt>Route</dt><dd><code>none of its own — applied by the merged trench build</code></dd>
+<dt>Route</dt><dd><code>none of its own, applied by the merged trench build</code></dd>
 </dl>
 
 </div>
@@ -170,7 +170,7 @@ become a navigable list; without it, every stage is listed below in order.
 
 `poggio_webapp/pipeline/merge_walls.py` runs **between normalization and
 coordinate conversion**, and only for multi-wall trenches. Everything
-downstream of extraction — grid config, conversion, and the model build — is
+downstream of extraction (grid config, conversion, and the model build) is
 already multi-face, while a `FieldWallProfile` sheet is single-wall, so the
 merge has to happen before conversion rather than after it.
 
@@ -180,8 +180,8 @@ document plus a list of human-readable notes. Inputs are never mutated.
 The constraint that shapes the module: GemPy fuses interface points into a
 surface by exact string match on the surface name, so the same locus recorded
 on two walls must produce one identical name. Surfaces are identified as
-`Locus N` by `convert_coords.surface_id()` — identity only, with the Munsell
-reading carried as a separate display label — so two walls recording one
+`Locus N` by `convert_coords.surface_id()` (identity only, with the Munsell
+reading carried as a separate display label), so two walls recording one
 deposit fuse whatever their colours say. The merge never builds surface
 strings itself; a Munsell reading that differs between walls is reported as a
 note rather than resolved behind the operator's back.
@@ -211,21 +211,21 @@ rather than resolving to a guess.
 - `poggio_webapp/pipeline/validator.py`
 - `poggio_webapp/pipeline/convert_coords.py`
 - `poggio_webapp/pipeline/merge_walls.py`
-- `poggio_webapp/pipeline/true_dip.py` — solves one true dip per surface from
+- `poggio_webapp/pipeline/true_dip.py` solves one true dip per surface from
   its traces on two non-parallel walls. Applied automatically by the merged
   trench build after conversion; single-sheet builds cannot use it. See
   [combine walls into one trench](../workflows/09-multi-wall-trench.md).
-- `poggio_webapp/pipeline/series_order.py` — picks the evidence for the
+- `poggio_webapp/pipeline/series_order.py` picks the evidence for the
   young-to-old surface order the model builder needs: an order supplied with
   the request, then the trench's Harris matrix, then the layer sequence
-  recorded on the walls, falling back to mean elevation — which it labels as
+  recorded on the walls, falling back to mean elevation, which it labels as
   the assumption it is rather than passing it off as a result.
 - `poggio_webapp/pipeline/build_gempy.py`
-- `poggio_webapp/pipeline/manual_extraction.py` — turns the browser's
+- `poggio_webapp/pipeline/manual_extraction.py` turns the browser's
   calibration clicks, boundary polylines, and feature polygons into the same
   schema the Gemini extractors emit, deterministically and with no model
   involved.
-- `poggio_webapp/pipeline/editor/` — the editor session package, below.
+- `poggio_webapp/pipeline/editor/`: the editor session package, below.
 
 ### The editor package
 
@@ -238,7 +238,7 @@ work. Nothing that imported it had to change.
 |---|---|
 | `session.py` | Creating, saving, and loading a session on disk |
 | `schema.py` | The allowed schema types and the fields each requires |
-| `geometry.py` | Orientation, segment intersection, self-intersection — plain plane geometry that knows nothing about editors |
+| `geometry.py` | Orientation, segment intersection, self-intersection (plain plane geometry that knows nothing about editors) |
 | `validation.py` | Structural checks on saved state, before schema validation |
 | `errors.py` | One error class per structural rule |
 | `finalize.py` | Turning validated state into the extraction document |

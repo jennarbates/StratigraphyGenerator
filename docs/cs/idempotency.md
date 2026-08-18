@@ -78,11 +78,11 @@ def import_source_jobs(
 
 The docstring says it outright. Three levels of deduplication:
 
-- **Units** by their [content-addressed ID](content-addressed-identifiers.md),
+- Units by their [content-addressed ID](content-addressed-identifiers.md),
   derived from job, schema, face, and layer index.
-- **Source references** by value, so a repeated import adds no duplicate
+- Source references by value, so a repeated import adds no duplicate
   provenance.
-- **Job IDs**, so the source list does not grow on re-import.
+- Job IDs, so the source list does not grow on re-import.
 
 And within a single call:
 
@@ -159,7 +159,7 @@ def sync_finds_to_output(job_id: str) -> None:
 ```
 
 `output["finds"] = ...` **replaces** rather than extends. Running it ten times
-gives the same file. The early return when there is no output is the other half —
+gives the same file. The early return when there is no output is the other half:
 re-running before finalization is also a no-op.
 
 Contrast `add_find`, which is deliberately **not** idempotent:
@@ -194,10 +194,10 @@ unconditionally at import.
 | Alternative | How it would make import safe to repeat | Why it lost |
 |---|---|---|
 | **An "already imported" flag per job** | Record which jobs were imported, skip them | Coarse: it cannot merge new units if the source job gained a layer. And it is state to keep in sync with reality. |
-| **A separate deduplication pass** | Import freely, then remove duplicates | Needs a definition of "duplicate" — which is the content-addressed ID again, arrived at later and applied as cleanup rather than as prevention. |
+| **A separate deduplication pass** | Import freely, then remove duplicates | Needs a definition of "duplicate", which is the content-addressed ID again, arrived at later and applied as cleanup rather than as prevention. |
 | **Client-supplied request IDs** | The client sends a token; the server remembers | The standard HTTP answer for non-idempotent operations, and it requires server-side storage of seen tokens with expiry. `add_find` leaves the door open by accepting a caller-supplied `find_id`. |
 | **Refuse a second import** | Error on re-import | Makes adding a newly traced wall to an existing matrix impossible. |
-| **Content-addressed IDs** *(chosen)* | Identity *is* the deduplication key | No extra state, no cleanup pass, and it composes — units, source refs, and job IDs all deduplicate by the same mechanism. |
+| **Content-addressed IDs** *(chosen)* | Identity *is* the deduplication key | No extra state, no cleanup pass, and it composes: units, source refs, and job IDs all deduplicate by the same mechanism. |
 
 The design point: **idempotency is cheapest when it falls out of the identity
 scheme.** Choosing content-addressed IDs bought it for free across three levels.
@@ -206,40 +206,40 @@ applied later and less reliably.
 
 ## What it costs
 
-A dictionary lookup per item — nothing.
+A dictionary lookup per item: nothing.
 
 The costs:
 
-- **Identity must be stable.** Change how a unit ID is derived and every stored
+- Identity must be stable. Change how a unit ID is derived and every stored
   matrix stops recognising its own units. See
   [content-addressed identifiers](content-addressed-identifiers.md).
-- **It cannot be universal.** `add_find`, `create_matrix`, and
+- It cannot be universal. `add_find`, `create_matrix`, and
   `create_editor_session` all genuinely create new things and must not be
   idempotent. The distinction is whether a repeat means "again" or "the same."
-- **Idempotent ≠ commutative.** Importing A then B is idempotent in each step
-  and can differ from B then A — for instance in which
+- Idempotent ≠ commutative. Importing A then B is idempotent in each step
+  and can differ from B then A, for instance in which
   [Munsell reading](../archaeology/locus.md) becomes a merged surface's
   display label.
-- **Silent no-ops can confuse.** Re-importing a job reports nothing new, which
+- Silent no-ops can confuse. Re-importing a job reports nothing new, which
   looks like a failure. Hence the `warnings` list the import returns alongside.
 
 ## Where else you meet it
 
-- **HTTP method semantics.** `GET`, `PUT`, and `DELETE` are specified as
+- HTTP method semantics. `GET`, `PUT`, and `DELETE` are specified as
   idempotent; `POST` is not, which is why double-submit protection exists.
-- **Payment APIs**, where an idempotency key prevents charging a card twice.
-- **Configuration management** — Ansible, Terraform, and Puppet are built
+- Payment APIs, where an idempotency key prevents charging a card twice.
+- Configuration management: Ansible, Terraform, and Puppet are built
   entirely on declaring desired state rather than actions.
-- **Message queues with at-least-once delivery**, where the consumer must be
+- Message queues with at-least-once delivery, where the consumer must be
   idempotent because redelivery is guaranteed.
-- **Database `UPSERT`**, and `CREATE TABLE IF NOT EXISTS`.
+- Database `UPSERT`, and `CREATE TABLE IF NOT EXISTS`.
 
 ## Related pages
 
-- [Content-addressed identifiers](content-addressed-identifiers.md) — the
+- [Content-addressed identifiers](content-addressed-identifiers.md): the
   mechanism.
-- [Immutability and defensive copying](immutability-and-defensive-copying.md) —
+- [Immutability and defensive copying](immutability-and-defensive-copying.md):
   the companion discipline in the same modules.
-- [Optimistic concurrency control](optimistic-concurrency-control.md) — what
+- [Optimistic concurrency control](optimistic-concurrency-control.md): what
   happens when two idempotent operations still conflict.
-- [Retry budgets](retry-budgets.md) — when retrying is safe.
+- [Retry budgets](retry-budgets.md): when retrying is safe.

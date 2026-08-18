@@ -13,7 +13,7 @@ verified_against: ae2fc1d
 # Dot product
 
 Multiply two vectors componentwise and add. One number that answers "how much
-does this go that way?" — and, by its sign alone, "which side is this on?"
+does this go that way?" and, by its sign alone, "which side is this on?"
 
 ## What it is
 
@@ -30,7 +30,7 @@ then `a · b` is exactly how far `a` extends along `b`, in `a`'s own units. That
 is the whole of coordinate conversion.
 
 **As a sign test.** The cosine is positive for angles under 90°, negative above.
-So the *sign* alone answers "is this point on the same side as that one?" — with
+So the *sign* alone answers "is this point on the same side as that one?" with
 no trigonometry, no square roots, and no angle wrapping.
 
 | `a · b` | Meaning |
@@ -58,7 +58,7 @@ flowchart TB
 
 ## Where this project uses it
 
-### Projection — converting a click into metres
+### Projection: converting a click into metres
 
 `poggio_webapp/pipeline/manual_extraction.py`:
 
@@ -75,11 +75,11 @@ def convert(self, point: list[float] | tuple[float, float]) -> tuple[float, floa
 unit vector, it gives the distance along the wall in pixels; the division
 converts to metres.
 
-Two dot products against two perpendicular unit vectors give both coordinates —
-that is a [change of basis](orthonormal-bases.md), and it is why a tilted
+Two dot products against two perpendicular unit vectors give both coordinates.
+That is a [change of basis](orthonormal-bases.md), and it is why a tilted
 photograph needs no rotation of the image at all.
 
-### Sign test — deciding which perpendicular is "down"
+### Sign test: deciding which perpendicular is "down"
 
 The same file, three lines earlier:
 
@@ -93,7 +93,7 @@ if toward_lowest < 0:
 ```
 
 Rotating `û` by 90° gives *a* perpendicular, but there are two and the code
-cannot know which is downward — the drawing may be photographed either way up.
+cannot know which is downward, because the drawing may be photographed either way up.
 The user's third click resolves it, and one dot product's sign is the entire
 mechanism.
 
@@ -148,11 +148,11 @@ For the perpendicular-direction decision:
 |---|---|---|
 | **Compare angles** | `atan2` both vectors, compare | Two inverse trig calls, plus wraparound handling at ±180°, to learn one bit. |
 | **Compare y coordinates** | "Down is larger y in image space" | True only for an un-rotated image. The whole point of the calibration is to work on a tilted photograph. |
-| **[Cross product](cross-product.md) sign** | The 2D cross gives left-versus-right | Answers a different question — which *side* of the line, not which *direction along* the perpendicular. Both are one multiply-add; each answers its own question. |
+| **[Cross product](cross-product.md) sign** | The 2D cross gives left-versus-right | Answers a different question: which *side* of the line, not which *direction along* the perpendicular. Both are one multiply-add; each answers its own question. |
 | **Ask the user which way is down** | An extra control | The third click already supplies it, and clicking the lowest point of the wall is a natural thing to do while calibrating. |
 | **Dot-product sign** *(chosen)* | Two multiplies, one add, one comparison | No trigonometry, no wrapping, no special cases, and it works at any orientation. |
 
-For the projection there is really no competitor — a dot product against an
+For the projection there is really no competitor: a dot product against an
 orthonormal basis *is* the coordinate transform. The only alternative is to
 write it as a matrix multiplication, which is the same arithmetic with more
 machinery. See [affine transforms](affine-transforms.md).
@@ -163,7 +163,7 @@ Two multiplies and one add in 2D. Nothing.
 
 The subtlety is that the **projection reading requires a unit vector.** If `b`
 is not normalised, `a · b` is scaled by `‖b‖` and the result is wrong by that
-factor — silently, and by a plausible-looking amount. Every projection in this
+factor, silently, and by a plausible-looking amount. Every projection in this
 codebase is preceded by an explicit normalisation, which is why
 [unit vectors](unit-vectors-and-normalisation.md) has its own page.
 
@@ -172,24 +172,24 @@ positive length cannot change it.
 
 ## Where else you meet it
 
-- **Lighting in 3D graphics.** Lambert's cosine law is `normal · light`, and it
+- Lighting in 3D graphics. Lambert's cosine law is `normal · light`, and it
   is computed billions of times a second.
-- **Cosine similarity** in search and recommendation: normalise both vectors,
+- Cosine similarity in search and recommendation: normalise both vectors,
   and the dot product is the cosine of the angle between them.
-- **Neural networks**, where every layer is a matrix of dot products.
-- **Physics.** Work is `force · displacement` — the projection reading exactly.
-- **Half-space tests** in collision detection and clipping, using the sign
+- Neural networks, where every layer is a matrix of dot products.
+- Physics. Work is `force · displacement`, the projection reading exactly.
+- Half-space tests in collision detection and clipping, using the sign
   reading.
-- **Signal processing**, where correlation is a sliding dot product.
+- Signal processing, where correlation is a sliding dot product.
 
 ## Related pages
 
-- [Vector projection](vector-projection.md) — the projection reading in full.
-- [Unit vectors and normalisation](unit-vectors-and-normalisation.md) — the
+- [Vector projection](vector-projection.md): the projection reading in full.
+- [Unit vectors and normalisation](unit-vectors-and-normalisation.md): the
   precondition.
-- [Cross product](cross-product.md) — the other vector product, and what it
+- [Cross product](cross-product.md): the other vector product, and what it
   answers instead.
-- [Orthonormal bases](orthonormal-bases.md) — two dot products as a change of
+- [Orthonormal bases](orthonormal-bases.md): two dot products as a change of
   basis.
-- [Signed area and the orientation test](signed-area-and-orientation-test.md) —
+- [Signed area and the orientation test](signed-area-and-orientation-test.md):
   the 2D cross product, used for a different sign question.

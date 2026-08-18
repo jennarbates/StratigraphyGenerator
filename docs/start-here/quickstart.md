@@ -49,7 +49,7 @@ The dependency groups are:
 
 ## Do this
 
-Run every command below **from the repository root** — the folder containing
+Run every command below **from the repository root**: the folder containing
 `README.md` and `Makefile`, not the `poggio_webapp` folder inside it.
 
 First, create the virtual environment. This is a private folder of Python
@@ -116,25 +116,25 @@ disk.
 
 ## Common problems
 
-- **`python` cannot import Flask or another package.** The virtual environment
+- `python` cannot import Flask or another package. The virtual environment
   is probably not active. Run `source .venv/bin/activate` from the repository
-  root — your prompt should show `(.venv)` — then rerun
+  root. Your prompt should show `(.venv)`. Then rerun
   `python -m pip install -r poggio_webapp/requirements.txt`.
-- **`make: *** No rule to make target` or `.venv/bin/python: No such file`.**
+- `make: *** No rule to make target` or `.venv/bin/python: No such file`.
   You are either not in the repository root, or the virtual environment was
   created somewhere other than the root. Run `ls Makefile .venv` to confirm
   both are in the folder you are standing in.
-- **Port 5000 is already in use.** Choose another local port, for example
+- Port 5000 is already in use. Choose another local port, for example
   `PORT=5001 make run`, and open that port in the browser. On macOS, port 5000
   is often taken by the system AirPlay Receiver.
-- **A PDF cannot be prepared.** PDF input also requires Poppler on the host.
+- A PDF cannot be prepared. PDF input also requires Poppler on the host.
   Install it using instructions for your own supported environment, or use an
   approved PNG, JPEG, or TIFF instead.
-- **The 3D model step reports that GemPy is unavailable.** GemPy and
+- The 3D model step reports that GemPy is unavailable. GemPy and
   `gempy_viewer` are optional and are not installed by this quickstart. The
   [capability audit](../project/capability-status.md#capability-table) labels
   model building experimental.
-- **Automatic reading asks for a key.** Return to **Trace the layers**.
+- Automatic reading asks for a key. Return to **Trace the layers**.
   Only the experimental AI-assisted path needs a Gemini API key.
 
 ## Under the hood

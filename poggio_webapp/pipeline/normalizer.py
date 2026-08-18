@@ -1,5 +1,5 @@
 """
-normalizer.py — clean an extraction JSON before it feeds GemPy.
+Clean an extraction JSON before it feeds GemPy.
 Adapted from 04_normalize_validate/normalizer.py into an importable function.
 Logic unchanged.
 """

@@ -37,7 +37,7 @@ They differ in what they are blind to:
 Neither duplicates [solidity](solidity.md), which compares against the
 [convex hull](convex-hull.md) and is therefore blind to interior holes that do
 not reach the boundary. A hollow ring with a closed outline has solidity 1.0 by
-that measure — and a fill ratio near 0.1, which is what catches it.
+that measure, and a fill ratio near 0.1, which is what catches it.
 
 ## The picture
 
@@ -66,7 +66,7 @@ filter work.
 
 ## Where this project uses it
 
-### Fill, as a hard gate — marker detection
+### Fill, as a hard gate: marker detection
 
 `poggio_webapp/pipeline/detect_markers.py`:
 
@@ -99,7 +99,7 @@ area to circle area exposes that its middle is empty.
 [thresholding](adaptive-thresholding.md) noise and for a stray pixel inflating
 the enclosing radius.
 
-### Extent, as a reject *and* a scoring term — feature detection
+### Extent, as a reject *and* a scoring term: feature detection
 
 `poggio_webapp/pipeline/detect_features.py`:
 
@@ -117,7 +117,7 @@ score = 0.45 * compactness + 0.35 * min(1.0, solidity) + 0.20 * min(1.0, extent)
 The comment names the target: **layer boundaries and grid lines**. Those are
 long and thin, and on a sheet whose lines run at arbitrary angles their bounding
 boxes are mostly empty. Extent's orientation-dependence, a weakness in general,
-is here an asset — a diagonal ruling scores 0.02 and is gone.
+is here an asset: a diagonal ruling scores 0.02 and is gone.
 
 Weighted lowest of the three score terms (0.20), because that same
 orientation-dependence makes it the least trustworthy: a horizontal ruling would
@@ -128,17 +128,17 @@ small contour's measured area slightly exceed its reference region.
 
 ## Why this and not something else
 
-| Alternative | What it measures | Why it lost — or won |
+| Alternative | What it measures | Why it lost, or won |
 |---|---|---|
 | **[Solidity](solidity.md) alone** | `A / hull area` | Also used, and blind to interior holes reached by a closed outline. The ring case defeats it entirely. |
-| **[Circularity](circularity.md) alone** | `4πA/P²` | Also used. A thin ring has low circularity too — but so does a squiggle, so circularity cannot say *why*. Fill says specifically "hollow." |
+| **[Circularity](circularity.md) alone** | `4πA/P²` | Also used. A thin ring has low circularity too, but so does a squiggle, so circularity cannot say *why*. Fill says specifically "hollow." |
 | **Extent** *(chosen for features)* | `A / box area` | Cheap, and its orientation-dependence is exactly what kills diagonal ruled lines. |
 | **Fill** *(chosen for markers)* | `A / circle area` | Rotation-invariant, and the reference circle is already computed for the diameter test, so it is free. |
 | **Rotated-box extent** | `A / minAreaRect area` | Orientation-invariant, and it *destroys* the property that makes extent useful here: a diagonal line's rotated box is tight, so its extent jumps to ≈0.9 and it stops being rejected. |
-| **Euler number** | Counts holes topologically | Directly answers "does this have a hole?" — genuinely the most principled ring test. It is discrete and brittle: one noisy pixel bridging the ring changes the answer from 1 to 0. Fill degrades gracefully. |
+| **Euler number** | Counts holes topologically | Directly answers "does this have a hole?" Genuinely the most principled ring test. It is discrete and brittle: one noisy pixel bridging the ring changes the answer from 1 to 0. Fill degrades gracefully. |
 
 The through-line: **each descriptor is blind to something.** The marker filter
-requires four in conjunction — size, circularity, solidity, fill — because a
+requires four in conjunction (size, circularity, solidity, fill) because a
 mark has to pass every one, and each covers a different neighbour's failure.
 
 ## What it costs
@@ -149,7 +149,7 @@ is O(n) and already computed; fill needs the
 for the diameter test. Neither adds a measurable cost.
 
 Their limitations are the mirror image of each other. Extent is
-orientation-dependent — useful here, misleading in general. Fill assumes the
+orientation-dependent: useful here, misleading in general. Fill assumes the
 shape is roughly round, so for a genuinely elongated object it reports a low
 value that means "not round" rather than "hollow." `detect_markers.py` gets away
 with it because roundness has already been established by
@@ -157,21 +157,21 @@ with it because roundness has already been established by
 
 ## Where else you meet it
 
-- **OCR**, where extent helps separate characters from rules and borders.
-- **Document layout analysis**, distinguishing text blocks from table lines.
-- **Cell biology**, where fill-type ratios distinguish solid nuclei from
+- OCR, where extent helps separate characters from rules and borders.
+- Document layout analysis, distinguishing text blocks from table lines.
+- Cell biology, where fill-type ratios distinguish solid nuclei from
   vesicles.
-- **Object detection**, where box-fill ratios flag detections whose box is
+- Object detection, where box-fill ratios flag detections whose box is
   mostly background.
-- **Packing and logistics**, where "extent" is literally how much of a container
+- Packing and logistics, where "extent" is literally how much of a container
   a shape wastes.
 
 ## Related pages
 
-- [Bounding boxes](bounding-boxes.md) — extent's reference region.
-- [Minimum enclosing circle](minimum-enclosing-circle.md) — fill's reference
+- [Bounding boxes](bounding-boxes.md): extent's reference region.
+- [Minimum enclosing circle](minimum-enclosing-circle.md): fill's reference
   region.
-- [Solidity](solidity.md) — the third reference, and what it misses.
-- [Circularity](circularity.md) — the shape measure applied first.
-- [Contour area and perimeter](contour-area-and-perimeter.md) — the shared
+- [Solidity](solidity.md): the third reference, and what it misses.
+- [Circularity](circularity.md): the shape measure applied first.
+- [Contour area and perimeter](contour-area-and-perimeter.md): the shared
   numerator.

@@ -51,11 +51,11 @@ text { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-se
   <line x1="520" y1="110" x2="112" y2="110" class="edge" marker-end="url(#arrow)"/>
   <text x="530" y="100" text-anchor="start" class="bold">Marker</text>
   <text x="530" y="122" text-anchor="start" class="sm">A reference printed or drawn on the</text>
-  <text x="530" y="140" text-anchor="start" class="sm">sheet — grid square, scale bar. It</text>
+  <text x="530" y="140" text-anchor="start" class="sm">sheet (grid square, scale bar). It</text>
   <text x="530" y="158" text-anchor="start" class="sm">measures the drawing, not the soil.</text>
   <line x1="520" y1="200" x2="298" y2="200" class="edge" marker-end="url(#arrow)"/>
   <text x="530" y="190" text-anchor="start" class="bold">Feature</text>
-  <text x="530" y="212" text-anchor="start" class="sm">Something physically in the deposit —</text>
+  <text x="530" y="212" text-anchor="start" class="sm">Something physically in the deposit:</text>
   <text x="530" y="230" text-anchor="start" class="sm">a stone, a cut, a burnt patch. It sits</text>
   <text x="530" y="248" text-anchor="start" class="sm">inside a layer, and is not a layer.</text>
   <line x1="520" y1="300" x2="372" y2="296" class="edge" marker-end="url(#arrow)"/>

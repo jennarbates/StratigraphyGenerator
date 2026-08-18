@@ -89,7 +89,7 @@ Then `/api/jobs/<job_id>/gempy` becomes available.
 
 Tests use the application dependencies plus:
 
-- `pytest` — unit test framework (in `pyproject.toml`'s `dev` extra, alongside
+- `pytest`: unit test framework (in `pyproject.toml`'s `dev` extra, alongside
   `ruff`)
 
 ---
@@ -131,8 +131,8 @@ ALLOWED_SCAN_EXT = {".png", ".jpg", ".jpeg", ".pdf", ".tif", ".tiff"}
 Preprocessing saves to `02_preprocess/` with filenames derived from the
 uploaded file's stem:
 
-- `<name>_clean.png` — deskewed, upscaled working image
-- `<name>_highcontrast.png` — optional viewing aid
+- `<name>_clean.png`: deskewed, upscaled working image
+- `<name>_highcontrast.png`: optional viewing aid
 
 The deskew angle is returned in the preprocess response, not written to disk.
 
@@ -140,30 +140,30 @@ The deskew angle is returned in the preprocess response, not written to disk.
 
 Extraction saves to `03_extraction/` with names:
 
-- `output.json` — AI extraction (Gemini-generated)
-- `field_wall.json` — AI extraction (field-wall variant)
-- `uploaded.json` — user-provided JSON
+- `output.json`: AI extraction (Gemini-generated)
+- `field_wall.json`: AI extraction (field-wall variant)
+- `uploaded.json`: user-provided JSON
 
 ### Normalized Data
 
 Normalization saves to `04_normalize_validate/`:
 
-- `output_clean.json` — cleaned extraction data
-- validation report — returned by the validate step; the editor finalisation
+- `output_clean.json`: cleaned extraction data
+- validation report: returned by the validate step; the editor finalisation
   flow also stores it in `meta.json`
 
 ### Coordinate Conversion
 
 Conversion saves to `05_convert_coords/`:
 
-- `points.csv` — site-wide 3D points
-- `points_orientations.csv` — layer orientation seeds
+- `points.csv`: site-wide 3D points
+- `points_orientations.csv`: layer orientation seeds
 
 ### GemPy Model
 
 Model building saves to `06_gempy_model/`:
 
-- `trench_model.gempy` — pickled GemPy model
+- `trench_model.gempy`: pickled GemPy model
 - others (GemPy-specific outputs)
 
 ### Meta File Format
@@ -227,23 +227,23 @@ def create_app() -> Flask:
 
 All routes are registered as blueprints from `backend.routes`:
 
-- `pages_bp` — UI pages (`/`, `/visualizer`, `/jobs/<id>`, `/trenches`)
-- `jobs_bp` — job lifecycle
-- `editor_bp` — canvas editor sessions and finalisation
-- `finds_bp` — find records
-- `scans_bp` — scan upload and job labels
-- `preprocess_bp` — image preprocessing
-- `extraction_bp` — AI extraction and JSON upload
-- `features_bp` — feature detection
-- `markers_bp` — marker detection (experimental)
-- `manual_bp` — manual tracing
-- `task_status_bp` — task polling
-- `text_metadata_bp` — writing check (text candidates)
-- `processing_bp` — normalize/validate/convert
-- `gempy_bp` — 3D model building
-- `harris_bp` — Harris matrix workspaces
-- `trenches_bp` — multi-wall trench builds
-- `demo_bp` — demonstration seeding
+- `pages_bp`: UI pages (`/`, `/visualizer`, `/jobs/<id>`, `/trenches`)
+- `jobs_bp`: job lifecycle
+- `editor_bp`: canvas editor sessions and finalisation
+- `finds_bp`: find records
+- `scans_bp`: scan upload and job labels
+- `preprocess_bp`: image preprocessing
+- `extraction_bp`: AI extraction and JSON upload
+- `features_bp`: feature detection
+- `markers_bp`: marker detection (experimental)
+- `manual_bp`: manual tracing
+- `task_status_bp`: task polling
+- `text_metadata_bp`: writing check (text candidates)
+- `processing_bp`: normalize/validate/convert
+- `gempy_bp`: 3D model building
+- `harris_bp`: Harris matrix workspaces
+- `trenches_bp`: multi-wall trench builds
+- `demo_bp`: demonstration seeding
 
 ### Error Handling
 
@@ -291,10 +291,10 @@ The development server reloads on Python file changes (default Flask behavior).
 `storage.ensure_dirs()` runs on import, so all three writable roots exist as
 soon as anything imports `storage`:
 
-- `poggio_webapp/jobs/` — one folder per drawing
-- `poggio_webapp/trenches/` — merged multi-wall output
-- `poggio_webapp/matrices/` — Harris matrix workspaces
-- Each job's subdirectories — created on first job creation
+- `poggio_webapp/jobs/`: one folder per drawing
+- `poggio_webapp/trenches/`: merged multi-wall output
+- `poggio_webapp/matrices/`: Harris matrix workspaces
+- Each job's subdirectories: created on first job creation
 
 All three are gitignored, so a fresh clone has none of them.
 
@@ -304,9 +304,9 @@ All three are gitignored, so a fresh clone has none of them.
 
 ### Limitations
 
-- **In-memory tasks:** Asynchronous tasks (extraction, GemPy build) are stored in memory. If the server restarts, running tasks are lost.
-- **File-based jobs:** Completed job data (meta.json, artifacts) persists on disk.
-- **One thread per task:** Each task runs on its own daemon thread; there is no queue or pool bounding concurrency, only a retention ceiling of 200 finished task records.
+- In-memory tasks: Asynchronous tasks (extraction, GemPy build) are stored in memory. If the server restarts, running tasks are lost.
+- File-based jobs: Completed job data (meta.json, artifacts) persists on disk.
+- One thread per task: Each task runs on its own daemon thread; there is no queue or pool bounding concurrency, only a retention ceiling of 200 finished task records.
 
 ### Restart Behavior
 
@@ -385,7 +385,7 @@ TEMPLATES_DIR = BASE_DIR / "templates"
 `storage.py` calls `ensure_dirs()` on import, so the three writable roots exist
 as soon as anything imports it. All three are gitignored.
 
-Read these through the module — `storage.JOBS_DIR`, never
+Read these through the module: `storage.JOBS_DIR`, never
 `from storage import JOBS_DIR`. The `from` form binds the value at import time,
 which previously left several modules holding private copies that a test could
 not redirect. Reading the attribute at call time means one assignment moves

@@ -16,7 +16,7 @@ traditions, and the difference between them shapes the whole data model.
 
 ## What it is
 
-A recording sheet is where the [trench profile](trench-profile.md) lives — the
+A recording sheet is where the [trench profile](trench-profile.md) lives: the
 paper, its layout, its conventions, and the text around the drawing.
 
 Two traditions are in scope here:
@@ -55,7 +55,7 @@ A locus number says "this recorded unit" by reference to the excavation's own
 records. The first is self-contained; the second points outward.
 
 That has a practical consequence. An illustrator sheet can be read without any
-other document. A field sheet cannot — the locus numbers mean nothing without the
+other document. A field sheet cannot. The locus numbers mean nothing without the
 locus records, which is why the Munsell reading travels with them.
 
 The sheet also carries **text** around the drawing: trench and face labels,
@@ -64,14 +64,14 @@ the record.
 
 ## How this project stores it
 
-Two schemas — see [trench profile](trench-profile.md) for their shapes — adapted
+Two schemas (see [trench profile](trench-profile.md) for their shapes) adapted
 to one path by `convert_coords.fieldwall_to_profiles()`.
 
 ### The sheet's text is transcribed, not interpreted
 
 `poggio_webapp/pipeline/assign_markers.py`'s prompt:
 
-> PART 1 — transcribe the sheet's text, verbatim:
+> PART 1. Transcribe the sheet's text, verbatim:
 > - trenchLabel, faceLabel, illustrators, date, northArrowPresent
 > - gridTiePoints: the coordinate labels along the top edge, rawText exactly
 >   as written
@@ -80,13 +80,13 @@ to one path by `convert_coords.fieldwall_to_profiles()`.
 > - marginalia: any other writing on the sheet
 
 "Including duplicates if a locus number appears twice" is the instructive
-instruction. Real sheets contain contradictions — T104 has two entries numbered
-5 — and the transcription's job is to record what is there, not to tidy it.
+instruction. Real sheets contain contradictions (T104 has two entries numbered
+5), and the transcription's job is to record what is there, not to tidy it.
 Resolving it happens later, visibly:
 
 ```python
 notes.append(
-    f"locus {num} is listed more than once in loci[] — "
+    f"locus {num} is listed more than once in loci[], "
     f"using the first Munsell reading ({munsell_by_locus[num]}) "
     f"and ignoring {label!r}"
 )
@@ -126,7 +126,7 @@ class ReviewStatus(str, Enum):
 ```
 
 `UNREADABLE` is the important one. A word nobody can make out is a **recorded
-outcome**, not a blank — the same principle as a
+outcome**, not a blank, the same principle as a
 null [boundary](boundary.md) coordinate with a stated reason.
 
 Verified text raises a point's confidence:
@@ -150,8 +150,8 @@ marginalia = [
 ]
 ```
 
-The extraction records **how it was made** and **which convention was used** —
-see [provenance and data lineage](../cs/provenance-and-data-lineage.md).
+The extraction records **how it was made** and **which convention was used**.
+See [provenance and data lineage](../cs/provenance-and-data-lineage.md).
 
 ## What it is not
 
@@ -160,7 +160,7 @@ see [provenance and data lineage](../cs/provenance-and-data-lineage.md).
 | **[Trench profile](trench-profile.md)** | The profile is the drawing; the sheet is the document carrying it, plus its text and conventions. |
 | **A form** | Kobo forms capture structured data. A recording sheet is a drawing with annotation. |
 | **A photograph of the wall** | A photograph records appearance; a sheet records an interpretation. |
-| **A locus sheet** | The locus record is a separate document describing the unit. A section sheet may reference locus numbers without containing their descriptions — which is why `loci[]` may be incomplete. |
+| **A locus sheet** | The locus record is a separate document describing the unit. A section sheet may reference locus numbers without containing their descriptions, which is why `loci[]` may be incomplete. |
 | **Standardised across traditions** | The two kinds differ enough to need different schemas. |
 
 ## Getting it wrong
@@ -184,11 +184,11 @@ See the [drawing guidelines](../reference/drawing-guidelines.md).
 
 ## Related pages
 
-- [Trench profile](trench-profile.md) — the drawing on the sheet.
-- [Scale and DPI](scale-and-dpi.md) — how the sheet's scale is recovered.
-- [Locus](locus.md) and [Munsell colour](munsell-colour.md) — the field sheet's
+- [Trench profile](trench-profile.md): the drawing on the sheet.
+- [Scale and DPI](scale-and-dpi.md): how the sheet's scale is recovered.
+- [Locus](locus.md) and [Munsell colour](munsell-colour.md): the field sheet's
   identity mechanism.
-- [Grid tie point](grid-tie-point.md) — the labels along the top edge.
-- [Source drawing types](../concepts/source-drawing-types.md) — the two compared.
-- [Drawing guidelines](../reference/drawing-guidelines.md) — how to draw an
+- [Grid tie point](grid-tie-point.md): the labels along the top edge.
+- [Source drawing types](../concepts/source-drawing-types.md): the two compared.
+- [Drawing guidelines](../reference/drawing-guidelines.md): how to draw an
   extractable sheet.

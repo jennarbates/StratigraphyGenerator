@@ -48,8 +48,8 @@ Locus 6 is the 2 × 1 m sounding that was cut through Locus 3, the building's
 floor. Both SU forms say `EQUAL TO` and point at each other.
 
 The season's own drawn matrix, however, stacks Locus 6 one level *below* Locus
-3, as though 3 were younger. That is a drafting convenience — the units were
-excavated on different dates, so they were drawn in the order they were dug —
+3, as though 3 were younger. That is a drafting convenience (the units were
+excavated on different dates, so they were drawn in the order they were dug),
 and taken literally it says a deposit is younger than itself.
 
 The forms are right. Encoded as a **[correlation](../archaeology/correlation.md)**,
@@ -84,7 +84,7 @@ That split is deliberate and worth stating plainly: **the diagram shows
 immediate relationships; the record keeps everything that was asserted.**
 Deleting the redundant edge would quietly discard something an excavator wrote
 down, and the fact that it is currently implied by other edges is no guarantee
-it will stay implied — remove `7 → 8` later and `6 → 8` is suddenly load-bearing
+it will stay implied: remove `7 → 8` later and `6 → 8` is suddenly load-bearing
 again.
 
 ## Three assertions that do not survive
@@ -97,7 +97,7 @@ Three of T905's forms carry `IS BOUND TO`:
 | 3 and 5 | Locus 3's form |
 | 4 and 6 | Locus 6's form |
 
-`IS BOUND TO` says two units **abut** — the floor runs up against the wall, the
+`IS BOUND TO` says two units **abut**: the floor runs up against the wall, the
 floor meets the cobbles. That is a claim about contemporaneity, or at least
 about physical contact, and it is often the most interesting thing on the form:
 it is what tells you the floor and the wall belong to one building.
@@ -125,7 +125,7 @@ Locus 8                    unexcavated
 ```
 
 Loci 4 and 5 are terminal: nothing was excavated beneath them, because both
-were left standing. They are not *isolated* — each has an edge from Locus 2 —
+were left standing. They are not *isolated* (each has an edge from Locus 2),
 but the matrix stops there, and it stops there because the excavation did.
 
 Locus 8 is terminal for the same reason, one season later. An unexcavated locus
@@ -138,8 +138,8 @@ Two problems in T905's paperwork are worth knowing about because they are the
 kinds that recur.
 
 **`PREVIOUS` and `FOLLOWING` are used in opposite directions on different
-forms.** Locus 3's form gives previous loci 1, 2 and following loci 8, 7 —
-*previous* meaning stratigraphically above, that is, later in time. Locus 4's
+forms.** Locus 3's form gives previous loci 1, 2 and following loci 8, 7
+(*previous* meaning stratigraphically above, that is, later in time). Locus 4's
 form gives previous loci 6, 7, 8 and following loci 1, 2, which is exactly the
 reverse. Locus 6's form follows Locus 4's convention.
 
@@ -152,12 +152,12 @@ one.
 **The tracking spreadsheet says the locus forms are complete.** Four of the
 eight have blank coordinate tables, and the date and Munsell fields are blank
 on the forms for loci 1 to 5. Every one of those values exists in the daily
-log, so nothing is actually lost — but a completeness flag records that
+log, so nothing is actually lost, but a completeness flag records that
 somebody ticked a box, not what is on the page.
 
 ## Related
 
-- [Build and review a Harris Matrix](../workflows/harris-matrix.md) — the tool, its error codes, and its limits
+- [Build and review a Harris Matrix](../workflows/harris-matrix.md): the tool, its error codes, and its limits
 - [Harris matrix](../archaeology/harris-matrix.md) and [correlation](../archaeology/correlation.md)
 - [Stratigraphic relationships](../archaeology/stratigraphic-relationships.md)
-- [The sounding](the-sounding.md) — loci 6, 7 and 8 as measured surfaces
+- [The sounding](the-sounding.md): loci 6, 7 and 8 as measured surfaces

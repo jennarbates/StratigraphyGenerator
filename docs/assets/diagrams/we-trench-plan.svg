@@ -38,11 +38,11 @@ text { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-se
   <rect width="1000" height="482" fill="var(--bg)"/>
   <text x="24" y="30" text-anchor="start" class="bold">T905 in plan: eight loci, and three gaps in the record</text>
   <rect x="175.0" y="60.0" width="350" height="350" class="fill"/>
-  <text x="350.0" y="361.00000000000006" text-anchor="middle" class="sm muted">Locus 3 — floor surface</text>
+  <text x="350.0" y="361.00000000000006" text-anchor="middle" class="sm muted">Locus 3 (floor surface)</text>
   <polyline points="175.0,60.0 373.80000000000024,60.0 360.5000000000004,155.19999999999996 175.0,187.40000000000003 175.0,60.0" class="edge"/>
   <text x="258.9999999999992" y="122.9999999999999" text-anchor="middle" class="sm bold">Locus 5</text>
   <polyline points="373.80000000000024,60.0 398.9999999999992,60.0 354.20000000000016,225.19999999999996 331.0999999999993,232.20000000000005 373.80000000000024,60.0" class="accent"/>
-  <text x="448.0000000000004" y="151.00000000000006" text-anchor="start" class="sm accent-f">Locus 4 — wall</text>
+  <text x="448.0000000000004" y="151.00000000000006" text-anchor="start" class="sm accent-f">Locus 4 (wall)</text>
   <line x1="444.4999999999996" y1="161.49999999999994" x2="391.9999999999996" y2="143.99999999999994" class="accent" marker-end="url(#arrow-a)"/>
   <rect x="385.0" y="200.0" width="70" height="140" class="panel"/>
   <text x="420.0" y="248.99999999999994" text-anchor="middle" class="sm bold">Loci</text>
@@ -52,11 +52,11 @@ text { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-se
   <text x="539.0" y="52.0" text-anchor="start" class="sm warn-f">NE corner: no opening</text>
   <text x="539.0" y="70.0" text-anchor="start" class="sm warn-f">elevation recorded</text>
   <circle cx="175.0" cy="410.0" r="7" class="warn-f"/>
-  <text x="191.0" y="386.0" text-anchor="start" class="sm warn-f">SW 24.70 mAE — a spoil heap,</text>
+  <text x="191.0" y="386.0" text-anchor="start" class="sm warn-f">SW 24.70 mAE is a spoil heap,</text>
   <text x="191.0" y="404.0" text-anchor="start" class="sm warn-f">not ground</text>
   <circle cx="138.59999999999928" cy="91.49999999999994" r="5" class="warn-f"/>
   <circle cx="117.60000000000048" cy="130.7000000000001" r="5" class="warn-f"/>
-  <text x="20" y="178.99999999999994" text-anchor="start" class="sm warn-f">SF 8, SF 9 —</text>
+  <text x="20" y="178.99999999999994" text-anchor="start" class="sm warn-f">SF 8, SF 9 are</text>
   <text x="20" y="196.99999999999994" text-anchor="start" class="sm warn-f">outside the trench</text>
   <text x="575" y="150" text-anchor="start" class="sm">150E/20S is the northwest corner.</text>
   <text x="575" y="172" text-anchor="start" class="sm">South and West are negative, so the</text>

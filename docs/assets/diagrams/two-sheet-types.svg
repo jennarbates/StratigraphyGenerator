@@ -117,6 +117,6 @@ text { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-se
   <text x="566" y="210" text-anchor="start" class="mono">L2 · 7.5YR 4/3</text>
   <text x="566" y="270" text-anchor="start" class="mono">L3 · 10YR 3/2</text>
   <text x="546" y="306" text-anchor="start" class="sm accent-f">one sheet records exactly one wall</text>
-  <text x="24" y="350" text-anchor="start" class="sm muted">They use different extraction schemas because they record material differently — but both</text>
+  <text x="24" y="350" text-anchor="start" class="sm muted">They use different extraction schemas because they record material differently, but both</text>
   <text x="24" y="370" text-anchor="start" class="sm muted">converge on the same coordinate conversion and model build.</text>
 </svg>

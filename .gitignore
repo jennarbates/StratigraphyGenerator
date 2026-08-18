@@ -64,3 +64,6 @@ multi_wall_agent_plan.md
 
 # Local scratch tooling, useful only on the machine it was written on.
 tools/local/
+
+# Local house-style instructions for Claude Code.
+CLAUDE.local.md

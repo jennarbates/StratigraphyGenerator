@@ -12,7 +12,7 @@ verified_against: ae2fc1d
 # Law of superposition
 
 In an undisturbed sequence, what lies above was deposited later. The founding
-principle of stratigraphy — and, in this software, an invariant enforced by
+principle of stratigraphy and, in this software, an invariant enforced by
 construction rather than checked afterwards.
 
 ## What it is
@@ -26,10 +26,10 @@ arrangement of soil into a chronology.
 
 The qualifier matters. *Undisturbed* excludes:
 
-- **[Cuts](cut.md)** — a pit dug from above puts younger material *below* older
+- [Cuts](cut.md): a pit dug from above puts younger material *below* older
   deposits.
-- **Inversion** — upcast from a ditch can lay older material on top of younger.
-- **Structures** — a wall foundation may be built into a trench cut through
+- Inversion: upcast from a ditch can lay older material on top of younger.
+- Structures: a wall foundation may be built into a trench cut through
   existing deposits.
 
 So superposition is the default reading, and the exceptions are exactly what
@@ -41,7 +41,7 @@ vocabulary has [`cuts` and `fills`](stratigraphic-relationships.md) alongside
 
 ```mermaid
 flowchart TB
-  A["Locus 1 — topsoil"] --> B["Locus 2"]
+  A["Locus 1, topsoil"] --> B["Locus 2"]
   B --> C["Locus 3"]
   C --> D["natural"]
   A -.-> Y["youngest"]
@@ -52,7 +52,7 @@ Two units cannot swap:
 
 ```
 Locus 2 is above Locus 3   →   Locus 2 is younger
-Locus 3 is above Locus 2   →   contradiction — both cannot hold
+Locus 3 is above Locus 2   →   contradiction: both cannot hold
 ```
 
 ## Why it is the foundation
@@ -61,7 +61,7 @@ Every relative date in archaeology descends from it. A find is dated by its
 deposit; the deposit by its position; the position by superposition.
 
 It is also the only dating method that needs **no external evidence**. No
-typology, no radiocarbon, no historical reference — just the arrangement of the
+typology, no radiocarbon, no historical reference: just the arrangement of the
 soil, observed and recorded.
 
 And it is what makes a contradiction meaningful. If the record says A is above B
@@ -84,11 +84,11 @@ if prev_bottom and bottom:
             report.err(
                 where,
                 f"bottom at x={x} (depth {y:.2f}) is ABOVE "
-                f"{prev_name}'s bottom (depth {above:.2f}) — layers cross",
+                f"{prev_name}'s bottom (depth {above:.2f}): layers cross",
             )
 ```
 
-An **error**, not a warning. Layers crossing is not unusual — it is impossible,
+An **error**, not a warning. Layers crossing is not unusual. It is impossible,
 so it is a recording mistake by definition.
 
 The comparison uses
@@ -125,7 +125,7 @@ if cycle is not None:
 No order and no diagram are produced for a cyclic graph, because neither exists.
 See [directed acyclic graphs](../cs/directed-acyclic-graphs.md).
 
-The check runs on every load, every save, and every accepted suggestion — the
+The check runs on every load, every save, and every accepted suggestion, the
 last applied to a **copy** first, so a suggestion that would create a
 contradiction is rejected wholesale:
 
@@ -172,7 +172,7 @@ are physically in contact.
 
 **Missing a [cut](cut.md).** The most consequential error. A pit dug from an
 upper level puts younger fill deep in the sequence; miss the cut, and
-superposition reads it as early. Nothing in this software can detect it — only
+superposition reads it as early. Nothing in this software can detect it. Only
 the excavator can.
 
 **Reading the model as evidence of order.** The 3D model interpolates. It renders
@@ -181,15 +181,15 @@ part is not an observation.
 
 **Assuming deeper means older across numbering epochs.** A trench reopened after
 a gap may restart its locus numbering, so Locus 3 from one epoch and Locus 3 from
-another are different deposits — see
-[locus numbering epochs](locus-numbering-epochs.md).
+another are different deposits (see
+[locus numbering epochs](locus-numbering-epochs.md)).
 
 ## Related pages
 
-- [Stratigraphy](stratigraphy.md) — the discipline built on it.
-- [Cut](cut.md) — the most important exception.
-- [Stratigraphic relationships](stratigraphic-relationships.md) — the vocabulary
+- [Stratigraphy](stratigraphy.md): the discipline built on it.
+- [Cut](cut.md): the most important exception.
+- [Stratigraphic relationships](stratigraphic-relationships.md): the vocabulary
   for the exceptions.
-- [Harris Matrix](harris-matrix.md) — the diagram it produces.
-- [Cycle detection](../cs/cycle-detection.md) — how a contradiction is found.
-- [Validation rules](../reference/validation-rules.md) — the geometric check.
+- [Harris Matrix](harris-matrix.md): the diagram it produces.
+- [Cycle detection](../cs/cycle-detection.md): how a contradiction is found.
+- [Validation rules](../reference/validation-rules.md): the geometric check.

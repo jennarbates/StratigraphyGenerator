@@ -16,19 +16,19 @@ either side of a restart fuses two different deposits.
 
 ## What it is
 
-Locus numbers are unique **within a trench** — but a trench is excavated over
+Locus numbers are unique **within a trench**, but a trench is excavated over
 several seasons, and what happens to the numbering when it reopens depends on
 how it reopened.
 
 Poggio Civitate's *Excavation and Documentation Procedures* makes it
 conditional:
 
-- **Reopened in consecutive years** — numbering **continues**. "If the last
+- Reopened in consecutive years: numbering **continues**. "If the last
   locus excavated … in prior year was Locus 10, you will begin excavating in
   Locus 11."
-- **Reopened after a gap** — "you may treat this as a new trench opening — you
+- Reopened after a gap: "you may treat this as a new trench opening — you
   do not need to continue with any locus sequences."
-- **An administratively new trench over older ones** — restarts at Locus 1.
+- An administratively new trench over older ones: restarts at Locus 1.
 
 An **epoch** is one continuous numbering sequence. Within an epoch a locus
 number identifies one deposit; across epochs the same number means nothing in
@@ -38,13 +38,13 @@ common.
 
 ```mermaid
 flowchart TB
-  subgraph e1["epoch A — 2019–2020"]
+  subgraph e1["epoch A, 2019–2020"]
     A1["Locus 1"] --> A2["Locus 2"] --> A3["Locus 3"]
   end
   subgraph gap["2021–2023: trench closed"]
     G[" "]
   end
-  subgraph e2["epoch B — 2024–2025"]
+  subgraph e2["epoch B, 2024–2025"]
     B1["Locus 1"] --> B2["Locus 2"] --> B3["Locus 3"]
   end
   e1 --> gap --> e2
@@ -63,7 +63,7 @@ records know where the boundaries fall.
 
 ## How this project stores it
 
-Two optional metadata fields on a job —
+Two optional metadata fields on a job, in
 `poggio_webapp/backend/routes/scans.py`:
 
 ```python
@@ -134,7 +134,7 @@ if years == list(range(years[0], years[-1] + 1)):
     return
 ```
 
-The one case the procedures say is safe, allowed automatically — and the
+The one case the procedures say is safe, allowed automatically. The
 assumption is stated rather than left implicit.
 
 **Non-consecutive seasons, no epoch declared → refuse.**
@@ -188,23 +188,23 @@ notes.append(
 model surface. The model builds, looks plausible, and fuses two unrelated
 deposits. This is the failure the check exists to prevent.
 
-**Splitting across consecutive seasons.** The opposite error — treating each
-season as its own epoch when numbering demonstrably continued — divides one
+**Splitting across consecutive seasons.** The opposite error, treating each
+season as its own epoch when numbering demonstrably continued, divides one
 deposit into two surfaces. Equally plausible-looking, equally wrong.
 
 **Leaving `locus_epoch` blank on a gapped trench.** The build refuses, correctly.
 The fix is to declare which sequence each sheet belongs to, from the excavation
-records — which is the only place that information exists.
+records, which is the only place that information exists.
 
 **Assuming the application can infer it.** It cannot, and the docstring says so:
 "What the application cannot do is work out which case applies."
 
 ## Related pages
 
-- [Locus](locus.md) — the number in question.
-- [Trench](trench.md) — the scope numbers are unique within.
-- [Correlation](correlation.md) — the other cross-record judgement.
-- [Fail-closed design](../cs/fail-closed-design.md) — why it refuses rather than
+- [Locus](locus.md): the number in question.
+- [Trench](trench.md): the scope numbers are unique within.
+- [Correlation](correlation.md): the other cross-record judgement.
+- [Fail-closed design](../cs/fail-closed-design.md): why it refuses rather than
   guesses.
-- [Combine walls into one trench](../workflows/09-multi-wall-trench.md) — where
+- [Combine walls into one trench](../workflows/09-multi-wall-trench.md): where
   the check runs.

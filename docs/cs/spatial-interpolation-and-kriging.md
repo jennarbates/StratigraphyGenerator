@@ -11,7 +11,7 @@ verified_against: ae2fc1d
 # Spatial interpolation and kriging
 
 Estimating a surface everywhere from measurements at scattered points. The step
-that turns a handful of traced boundaries into a solid model — and the step
+that turns a handful of traced boundaries into a solid model, and the step
 where the output stops being a measurement and becomes a hypothesis.
 
 ## What it is
@@ -19,19 +19,19 @@ where the output stops being a measurement and becomes a hypothesis.
 Given values measured at scattered locations, estimate the value everywhere
 else. Every method differs in what it assumes about the space between.
 
-**Inverse distance weighting** — a weighted average of nearby points, weights
+**Inverse distance weighting**: a weighted average of nearby points, weights
 falling off with distance. Simple, and it produces bullseye artefacts around
 each sample.
 
-**Radial basis functions** — sum a smooth kernel centred on each point. Smooth,
+**Radial basis functions**: sum a smooth kernel centred on each point. Smooth,
 and with no notion of uncertainty.
 
-**Kriging** — a weighted average whose weights are derived from a *model of
+**Kriging**: a weighted average whose weights are derived from a *model of
 spatial correlation* (the variogram: how quickly values become unrelated with
 distance). It is the best linear unbiased estimator under its assumptions, and
 uniquely it returns a **variance** alongside each estimate.
 
-**Implicit potential-field interpolation** — what GemPy does. Rather than
+**Implicit potential-field interpolation**: what GemPy does. Rather than
 interpolating each surface separately, it fits one scalar field whose
 iso-surfaces are the geological interfaces. Interface points constrain where the
 field takes a given value; **orientation seeds constrain its gradient**. The
@@ -46,8 +46,8 @@ the interpolator how to leave the wall.
 
 ```mermaid
 flowchart TB
-  P["interface points<br/>points.csv — X, Y, Z, surface"] --> K["GemPy co-kriging"]
-  O["orientation seeds<br/>orientations.csv — dip, azimuth"] --> K
+  P["interface points<br/>points.csv with X, Y, Z, surface"] --> K["GemPy co-kriging"]
+  O["orientation seeds<br/>orientations.csv with dip, azimuth"] --> K
   K --> F["one scalar field"]
   F --> S["iso-surfaces = the modelled boundaries"]
   F --> L["lith block = which unit fills each voxel"]
@@ -144,7 +144,7 @@ merged trench the per-wall apparent dips disagree:
 > shallower than the true dip, so GemPy fits a compromise plane that matches
 > neither drawing.
 
-Better constraints in, better interpolation out — and where they cannot be
+Better constraints in, better interpolation out. And where they cannot be
 improved, nothing is emitted rather than a guess.
 
 ## Why this and not something else
@@ -155,7 +155,7 @@ project's.
 | Alternative | How it would model the stratigraphy | Why it lost |
 |---|---|---|
 | **Interpolate each surface independently** (RBF, IDW, splines) | Fit each boundary separately | Simpler, and surfaces can then **cross each other**, producing a layer that is above another in one place and below it elsewhere. The [validator](piecewise-linear-functions.md) treats crossing as an error in 2D; a modeller that permits it in 3D undoes that. |
-| **Triangulated surfaces between traces** | Mesh directly between recorded points | Honest — it interpolates only between data. It produces surfaces only where walls exist, which for a four-wall trench means four ribbons and no solid. It also cannot use orientation information at all. |
+| **Triangulated surfaces between traces** | Mesh directly between recorded points | Honest: it interpolates only between data. It produces surfaces only where walls exist, which for a four-wall trench means four ribbons and no solid. It also cannot use orientation information at all. |
 | **Kriging per surface with a variogram** | Classical geostatistics | Gives an uncertainty estimate per point, which this project would genuinely benefit from. It needs a fitted variogram, which needs more samples than a few traced boundaries provide, and it still permits crossing. |
 | **Implicit potential field (GemPy)** *(chosen)* | One scalar field, iso-surfaces as interfaces | Surfaces **cannot** cross by construction, orientation seeds are first-class constraints, and it produces a filled lithological block rather than bare surfaces. |
 | **Manual 3D modelling** | Draw it in CAD | What was done before, and it encodes the modeller's judgement invisibly rather than as inputs a reader can inspect. |
@@ -165,7 +165,7 @@ cannot produce crossing surfaces.** Stratigraphic superposition is the
 fundamental law being modelled, and choosing a formulation in which violating it
 is *impossible* is stronger than checking for violations afterwards.
 
-GemPy is also kept **optional** — imported inside functions, with everything up
+GemPy is also kept **optional**: imported inside functions, with everything up
 to coordinate conversion working without it. See
 [codebase review](../architecture/code-review.md).
 
@@ -201,24 +201,24 @@ went into labelling rather than into smoothing.
 
 ## Where else you meet it
 
-- **Mining and petroleum geology**, where GemPy and its commercial relatives
+- Mining and petroleum geology, where GemPy and its commercial relatives
   build ore-body and reservoir models. Kriging was invented in South African
-  gold mining — Danie Krige's name is in it.
-- **Weather forecasting**, interpolating station observations onto a grid.
-- **Terrain models**, building a continuous surface from scattered spot heights.
-- **Environmental monitoring**, mapping contamination from sampled boreholes.
-- **Medical imaging**, reconstructing a volume from slices.
-- **Gaussian processes** in machine learning, which are kriging under another
+  gold mining: Danie Krige's name is in it.
+- Weather forecasting, interpolating station observations onto a grid.
+- Terrain models, building a continuous surface from scattered spot heights.
+- Environmental monitoring, mapping contamination from sampled boreholes.
+- Medical imaging, reconstructing a volume from slices.
+- Gaussian processes in machine learning, which are kriging under another
   name, and which likewise return a variance with every prediction.
 
 ## Related pages
 
-- [Ordinary least squares](ordinary-least-squares.md) — how orientation seeds
+- [Ordinary least squares](ordinary-least-squares.md): how orientation seeds
   are derived.
-- [Cross product](cross-product.md) — how a true dip improves them.
-- [Linear interpolation](linear-interpolation.md) — the minimal-claim
+- [Cross product](cross-product.md): how a true dip improves them.
+- [Linear interpolation](linear-interpolation.md): the minimal-claim
   interpolation used *within* a boundary.
-- [Interpolation versus measurement](interpolation-vs-measurement.md) — the epistemic distinction.
-- [Create the model](../workflows/07-create-model.md) — the workflow step.
-- [Accuracy and provenance](../concepts/accuracy-and-provenance.md) — what a
+- [Interpolation versus measurement](interpolation-vs-measurement.md): the epistemic distinction.
+- [Create the model](../workflows/07-create-model.md): the workflow step.
+- [Accuracy and provenance](../concepts/accuracy-and-provenance.md): what a
   model does and does not prove.

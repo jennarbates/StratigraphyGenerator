@@ -12,7 +12,7 @@ verified_against: ae2fc1d
 # The sounding as measured geometry
 
 Most of a locus record is prose. The part this application can actually build
-from is four corners and an elevation at each, recorded twice — once when the
+from is four corners and an elevation at each, recorded twice: once when the
 locus opened and once when it closed.
 
 T905's sounding is the cleanest example in the trench: a 2 × 1 m box, dug
@@ -32,7 +32,7 @@ corners.
 
 | Surface | NW | NE | SE | SW |
 |---|---|---|---|---|
-| Locus 6 opening — the floor | 23.99 | 23.98 | 23.91 | 23.87 |
+| Locus 6 opening (the floor) | 23.99 | 23.98 | 23.91 | 23.87 |
 | Locus 6 closing = Locus 7 opening | 23.79 | 23.77 | 23.74 | 23.74 |
 | Locus 7 closing = Locus 8 opening | 23.62 | 23.58 | 23.51 | 23.51 |
 | Locus 8 closing | 23.62 | 23.58 | 23.51 | 23.51 |
@@ -44,7 +44,7 @@ can run on any locus record:
 
 **The column closes.** Locus 6's closing surface *is* Locus 7's opening
 surface, at all four corners, and Locus 7's closing *is* Locus 8's opening. Not
-"within a centimetre" — identically. A locus is opened on the surface the
+"within a centimetre": identically. A locus is opened on the surface the
 previous one was closed on, so where those two readings disagree, one of them
 was taken on a different day, at a different point, or after further digging
 that nobody wrote down.
@@ -70,7 +70,7 @@ form's elevation field says `20.0 cm deep`. Subtract Locus 6's two surfaces:
 | SE | 23.91 | 23.74 | 0.17 m |
 | SW | 23.87 | 23.74 | 0.13 m |
 
-The stated figure is exactly right — at one corner. Across the box the layer
+The stated figure is exactly right, at one corner. Across the box the layer
 runs from 13 cm to 21 cm, and the southwest corner is barely two thirds the
 thickness of the northwest.
 
@@ -81,7 +81,7 @@ corner, which is more than the 6 cm repeatability of the instruments that
 produced the numbers in the first place.
 
 The same reasoning applies to the depth of a find below a surface, and there it
-bites harder — see [finds, and what the record cannot
+bites harder. See [finds, and what the record cannot
 support](finds-and-limits.md).
 
 ## How precise are these numbers?
@@ -132,7 +132,7 @@ each:
 
 All four agree **exactly**, in both phases. Given that the same instruments
 scatter by up to 6 cm when re-measuring a soil surface a day later, eight exact
-matches are not eight lucky readings — they are one reading written onto two
+matches are not eight lucky readings. They are one reading written onto two
 forms, which is the sensible thing to do when two loci share an edge.
 
 That is worth knowing in both directions. It is a strong check that the
@@ -146,19 +146,19 @@ The four-surface column is what the [model builder](../workflows/07-create-model
 consumes: each surface becomes a set of points, and the model interpolates
 between them. Three things follow from the table above.
 
-- **The interpolation is a hypothesis.** Four corners per surface is four
+- The interpolation is a hypothesis. Four corners per surface is four
   points. What happens between them is the model's guess, constrained by
   nothing.
-- **The surfaces are not parallel.** Locus 6 is 0.20 m thick at one corner and
+- The surfaces are not parallel. Locus 6 is 0.20 m thick at one corner and
   0.13 m at another, so a model that assumes constant thickness will diverge
   from the readings by more than their own uncertainty.
-- **Locus 8 has a top and no bottom.** It was never dug. Any surface drawn
+- Locus 8 has a top and no bottom. It was never dug. Any surface drawn
   beneath it is invention, and should be labelled as such rather than rendered
   in the same style as a measured one.
 
 ## Related
 
-- [Create the model](../workflows/07-create-model.md) — what happens to these surfaces
+- [Create the model](../workflows/07-create-model.md): what happens to these surfaces
 - [Layers and boundaries](../concepts/layers-and-boundaries.md)
 - [Elevation](../archaeology/elevation.md) and [locus](../archaeology/locus.md)
 - [Accuracy and provenance](../concepts/accuracy-and-provenance.md)

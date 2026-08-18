@@ -9,7 +9,7 @@ verified_against: 636b160
 
 # Coefficient of variation
 
-Standard deviation divided by the mean — spread expressed as a *fraction* of
+Standard deviation divided by the mean: spread expressed as a *fraction* of
 size. In this project it is the statistic that detects a boundary a machine
 invented rather than traced.
 
@@ -24,8 +24,8 @@ Standard deviation alone cannot be compared across different scales: a σ of
 Dividing by the mean removes the units and makes the number comparable between
 drawings, scales, and sheets.
 
-- **cv near 0** — the values are almost identical.
-- **cv near 1** — the spread is as large as the average.
+- cv near 0: the values are almost identical.
+- cv near 1: the spread is as large as the average.
 
 It is meaningful only for positive quantities with a true zero, which spacings
 are.
@@ -88,7 +88,7 @@ def check_uniform_spacing(points, where, report):
         report.warn(
             where,
             f"boundary vertices are evenly spaced every {mean:.3g} m "
-            f"({len(pts)} points, spacing variation {cv:.3f}) — this is "
+            f"({len(pts)} points, spacing variation {cv:.3f}). This is "
             "the signature of points estimated at a fixed interval "
             "rather than read off the recorder's marked vertices. "
             "Re-extract, or detect the markers computationally.",
@@ -109,20 +109,20 @@ if source != "manual_editor":
     check_uniform_spacing(layer.get("bottomBoundary"), f"{where} bottom", report)
 ```
 
-A human tracing on graph paper legitimately produces regular spacing — they
+A human tracing on graph paper legitimately produces regular spacing: they
 click along the grid. Running the check there would flood the report with false
 positives on the *supported* path. That exemption is the difference between a
 rule someone thought about and one that was copied.
 
 **Minimum five points.** A cv over three gaps carries almost no information.
 
-The companion check catches the other observed failure — a boundary
+The companion check catches the other observed failure, a boundary
 copy-pasted downward:
 
 ```python
 def check_parallel_layers(layers, where, report):
     """Warn when two layers' boundaries are the same shape shifted by a
-    constant depth — a copy-paste artifact, not real stratigraphy."""
+    constant depth, a copy-paste artifact rather than real stratigraphy."""
     ...
     diffs = [b[1] - a[1] for a, b in zip(pa, pb)]
     spread = max(diffs) - min(diffs)
@@ -138,9 +138,9 @@ Two independent signatures, both derived from what actually went wrong.
 |---|---|---|
 | **Standard deviation alone** | Absolute spread | Not comparable across scales. A σ threshold correct for a 1 m wall is wrong for a 10 m one, so it would need to be re-tuned per drawing. |
 | **Range** (`max − min`) | Extreme spread | Determined by two values only. One irregular gap in an otherwise perfectly uniform boundary would mask the pattern. |
-| **Exact-equality test** | All spacings identical | Too brittle — [floating-point](floating-point-representation.md) rounding means generated values are rarely bit-identical. cv degrades gracefully. |
+| **Exact-equality test** | All spacings identical | Too brittle: [floating-point](floating-point-representation.md) rounding means generated values are rarely bit-identical. cv degrades gracefully. |
 | **Chi-squared test for uniformity** | Statistical significance | More principled, and it produces a p-value that needs an interpretation and a significance level. cv is a directly interpretable ratio, and the threshold is calibrated against observed real data. |
-| **Compare against the source image's ink** | Whether the boundary lies on drawn ink | **Direct evidence rather than a statistical hint** — and it is not implemented. The README says so plainly: "Statistical signatures … are hints; overlap with actual ink pixels would be direct evidence, and automating that check is on the [roadmap](../project/roadmap.md)." |
+| **Compare against the source image's ink** | Whether the boundary lies on drawn ink | **Direct evidence rather than a statistical hint**, and it is not implemented. The README says so plainly: "Statistical signatures … are hints; overlap with actual ink pixels would be direct evidence, and automating that check is on the [roadmap](../project/roadmap.md)." |
 | **Coefficient of variation** *(chosen)* | Scale-free regularity | One number, dimensionless, comparable across every drawing, with an empirically calibrated threshold. |
 
 The last two rows together are the honest position: this is a **hint**, chosen
@@ -149,16 +149,16 @@ The stronger check is known, named, and scheduled.
 
 ## What it costs
 
-O(n) — two passes over the spacings. Nothing.
+O(n): two passes over the spacings. Nothing.
 
 The costs are the limits of any statistical signature:
 
-- **False negatives.** A fabricator using *irregular* invented spacing passes
+- False negatives. A fabricator using *irregular* invented spacing passes
   cleanly. The check detects a specific lazy pattern, not fabrication in
   general.
-- **False positives are possible**, which is why it warns rather than errors,
+- False positives are possible, which is why it warns rather than errors,
   and why it is disabled for the manual path.
-- **The threshold is empirical.** 0.02 comes from observing cv ≈ 0.20 on real
+- The threshold is empirical. 0.02 comes from observing cv ≈ 0.20 on real
   traces and 0.00 on fabricated ones. That is a big margin, and it is a
   calibration against two datasets rather than a derived bound. The comment
   records the observations so a future maintainer can recalibrate rather than
@@ -166,24 +166,24 @@ The costs are the limits of any statistical signature:
 
 ## Where else you meet it
 
-- **Analytical chemistry and laboratory medicine**, where "relative standard
+- Analytical chemistry and laboratory medicine, where "relative standard
   deviation" is the standard measure of assay precision.
-- **Finance**, where the coefficient of variation compares risk per unit of
+- Finance, where the coefficient of variation compares risk per unit of
   return across assets of different sizes.
-- **Ecology**, comparing variability in populations of very different
+- Ecology, comparing variability in populations of very different
   abundances.
-- **Manufacturing**, where process capability indices are scale-free spread
+- Manufacturing, where process capability indices are scale-free spread
   measures of the same family.
-- **Fraud detection generally.** Benford's law is the same idea in a different
+- Fraud detection generally. Benford's law is the same idea in a different
   dress: fabricated data has statistical signatures real data does not.
 
 ## Related pages
 
-- [Mean and variance](mean-and-variance.md) — the two ingredients.
-- [Fabrication detection](fabrication-detection.md) — the broader concern this serves.
-- [Epsilon comparison](epsilon-comparison.md) — the other empirically calibrated
+- [Mean and variance](mean-and-variance.md): the two ingredients.
+- [Fabrication detection](fabrication-detection.md): the broader concern this serves.
+- [Epsilon comparison](epsilon-comparison.md): the other empirically calibrated
   threshold nearby.
-- [Validation rules](../reference/validation-rules.md) — every warning and error
+- [Validation rules](../reference/validation-rules.md): every warning and error
   code.
-- [Accuracy and provenance](../concepts/accuracy-and-provenance.md) — why a
+- [Accuracy and provenance](../concepts/accuracy-and-provenance.md): why a
   drawing that looks immaculate can be invented.

@@ -17,7 +17,7 @@ section stays readable.
 ## What it is
 
 When a trench is dug, its sides are kept vertical. Each of those sides is a
-**wall**, and each shows the deposits in section — the stack of layers, in
+**wall**, and each shows the deposits in section: the stack of layers, in
 order, exposed for drawing.
 
 A **baulk** is a wall that was left standing *on purpose*. Where two areas are
@@ -29,11 +29,11 @@ faces; a baulk is one that exists so the section can be read.
 
 Two terminological hazards, both live in this project's own material:
 
-- **Wall (side of a trench)** versus **wall (a built structure)** — masonry,
+- Wall (side of a trench) versus wall (a built structure): masonry,
   which is a [feature](feature.md) or a stratigraphic unit, not a side of the
   hole. `site_vocab.DRAWN_FEATURE_TYPES` includes a `wall` entry typed
   `"unitType": "structure"`, meaning the masonry sense.
-- **Baulk** is also spelled *balk*.
+- Baulk is also spelled *balk*.
 
 ## The picture
 
@@ -42,12 +42,12 @@ flowchart TB
   T["Trench T104, seen from above"]
   T --> N["north wall"]
   T --> E["east wall"]
-  T --> S["south wall — 'southern baulk'"]
+  T --> S["south wall, 'southern baulk'"]
   T --> W["west wall"]
   S --> D["drawn in section →<br/>one job, one FieldWallProfile"]
 ```
 
-Four walls, four drawings, four jobs — rejoined by the shared
+Four walls, four drawings, four jobs, rejoined by the shared
 [trench label](trench.md).
 
 ## Why excavation records it
@@ -76,7 +76,7 @@ The wall label is job metadata, alongside the trench label:
 }
 ```
 
-Unlike the trench label, it is **free text**, only tidied —
+Unlike the trench label, it is **free text**, only tidied.
 `poggio_webapp/backend/routes/scans.py`:
 
 ```python
@@ -87,7 +87,7 @@ wall_label = clean_label(request.form.get("wall_label"))
 ```
 
 A trench label is an identifier that must match across records. A wall label is
-a description — "southern baulk", "north wall", "east section" — and
+a description ("southern baulk", "north wall", "east section"), and
 canonicalising it would mangle legitimate phrasing.
 
 ### Wall labels become face names, so they must be unique
@@ -125,8 +125,8 @@ make explicitly. Merging them silently would fuse two independent records.
 ### Walls must meet at corners
 
 `poggio_webapp/pipeline/merge_walls.py` checks that the registered walls
-actually enclose something — see
-[connected components](../cs/connected-components.md):
+actually enclose something (see
+[connected components](../cs/connected-components.md)):
 
 ```python
 warnings.append(
@@ -137,7 +137,7 @@ warnings.append(
 )
 ```
 
-An open end is fine — an unexcavated side is normal. A wall joining *nothing* is
+An open end is fine. An unexcavated side is normal. A wall joining *nothing* is
 almost always a mis-typed survey coordinate.
 
 ## What it is not
@@ -148,7 +148,7 @@ almost always a mis-typed survey coordinate.
 | **[Face](face.md)** | The face is the modelled representation of the wall; the wall is soil. In practice the wall label *becomes* the face name. |
 | **[Trench profile](trench-profile.md)** | The profile is the drawing *of* the wall. |
 | **Wall (masonry)** | A built structure found in the trench is a [feature](feature.md) or a structural unit. `site_vocab` types it `"structure"`. |
-| **Section** | Loosely synonymous with profile — the *drawing* rather than the earth. |
+| **Section** | Loosely synonymous with profile: the *drawing* rather than the earth. |
 
 ## Getting it wrong
 
@@ -163,7 +163,7 @@ the section is a feature within a locus, not a side of the trench. Recording it
 as the latter would put a structure in the coordinate system's place.
 
 **Assuming walls are planar.** They are cut by hand and bow slightly. The
-[calibration](../cs/similarity-transforms.md) treats the drawn wall as a plane —
+[calibration](../cs/similarity-transforms.md) treats the drawn wall as a plane,
 an approximation the whole coordinate model rests on.
 
 **Assuming four walls exist.** Only the walls actually drawn and registered enter
@@ -172,11 +172,11 @@ are pure interpolation.
 
 ## Related pages
 
-- [Trench](trench.md) — what the walls bound.
-- [Face](face.md) — the wall in the model.
-- [Trench profile](trench-profile.md) — the drawing of it.
-- [Apparent and true dip](apparent-and-true-dip.md) — why two walls are better
+- [Trench](trench.md): what the walls bound.
+- [Face](face.md): the wall in the model.
+- [Trench profile](trench-profile.md): the drawing of it.
+- [Apparent and true dip](apparent-and-true-dip.md): why two walls are better
   than one.
-- [Grid registration](grid-registration.md) — placing a wall on the site.
-- [Combine walls into one trench](../workflows/09-multi-wall-trench.md) — the
+- [Grid registration](grid-registration.md): placing a wall on the site.
+- [Combine walls into one trench](../workflows/09-multi-wall-trench.md): the
   workflow.

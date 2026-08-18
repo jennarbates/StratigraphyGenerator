@@ -15,7 +15,7 @@ verified_against: ae2fc1d
 
 Take the best option available right now, commit to it, and never reconsider.
 Sometimes provably optimal, often good enough, and used four times in this
-repository — each time with a reason it is safe.
+repository, each time with a reason it is safe.
 
 ## What it is
 
@@ -24,14 +24,14 @@ looks best at the moment, and never backtracking.
 
 That is a strong restriction, and its consequences are worth stating plainly:
 
-- **Fast.** One pass, no search tree.
-- **Simple.** No state to unwind.
-- **Deterministic**, provided ties are broken by a total order.
-- **Not always optimal.** A locally best choice can foreclose a globally better
+- Fast: one pass, no search tree.
+- Simple: no state to unwind.
+- Deterministic, provided ties are broken by a total order.
+- Not always optimal: a locally best choice can foreclose a globally better
   one.
 
 Some problems have the *greedy-choice property*, where the greedy answer is
-provably optimal — Kruskal's minimum spanning tree, Dijkstra's shortest path,
+provably optimal: Kruskal's minimum spanning tree, Dijkstra's shortest path,
 Huffman coding. Most do not, and greedy is then a heuristic.
 
 The engineering question is never "is this optimal?" but **"what does being
@@ -42,11 +42,11 @@ wrong cost here?"**
 ```mermaid
 flowchart TB
   S["sort candidates by quality"] --> P["take the best remaining"]
-  P --> K["commit — keep it"]
+  P --> K["commit, keep it"]
   K --> X["eliminate everything<br/>it conflicts with"]
   X --> Q{"any left?"}
   Q -->|yes| P
-  Q -->|no| Done["done — one pass, no backtracking"]
+  Q -->|no| Done["done, one pass, no backtracking"]
 ```
 
 Where greedy goes wrong, in this repository's own
@@ -65,7 +65,7 @@ Two proposals instead of one. A reviewer clicks once more.
 
 ## Where this project uses it
 
-### Deduplicating markers — biggest first
+### Deduplicating markers: biggest first
 
 `poggio_webapp/pipeline/detect_markers.py`:
 
@@ -83,7 +83,7 @@ for entry in cand:
         kept.append(entry)
 ```
 
-### Deduplicating features — best score first
+### Deduplicating features: best score first
 
 `poggio_webapp/pipeline/detect_features.py`:
 
@@ -99,7 +99,7 @@ The tie-break on area is what makes the order **total**, which is what makes the
 greedy result deterministic. Without it, two equal-scoring candidates would be
 ordered by whatever `sorted` happened to receive.
 
-### Assigning features to layers — first band that contains it
+### Assigning features to layers: first band that contains it
 
 `poggio_webapp/pipeline/manual_extraction.py`:
 
@@ -118,11 +118,11 @@ for i, (top, bottom) in enumerate(layer_bands):
 ```
 
 First containing band wins; if none contains it, the nearest does. Where bands
-overlap within tolerance, a feature could arguably belong to either — and a
+overlap within tolerance, a feature could arguably belong to either, and a
 feature assigned to a neighbouring layer is visible to a reviewer looking at the
 drawing.
 
-### Choosing a wall pair for a true-dip solve — furthest from parallel
+### Choosing a wall pair for a true-dip solve: furthest from parallel
 
 `poggio_webapp/pipeline/true_dip.py`:
 
@@ -159,8 +159,8 @@ For the deduplication problem:
 
 | Alternative | How it would work here | Why it lost |
 |---|---|---|
-| **Exhaustive search** | Try every subset, maximise coverage | Optimal, and it is set cover — NP-hard. For 250 candidates that is not computable. |
-| **Clustering (DBSCAN, mean-shift)** | Group candidates, emit one per cluster | Handles the chaining case properly. It adds parameters, and it produces a *synthetic* representative — an averaged box corresponding to no real contour. This project keeps real measurements. |
+| **Exhaustive search** | Try every subset, maximise coverage | Optimal, and it is set cover, which is NP-hard. For 250 candidates that is not computable. |
+| **Clustering (DBSCAN, mean-shift)** | Group candidates, emit one per cluster | Handles the chaining case properly. It adds parameters, and it produces a *synthetic* representative, an averaged box corresponding to no real contour. This project keeps real measurements. |
 | **Integer programming** | Formulate and solve exactly | Optimal for hundreds of candidates. A solver dependency and a formulation nobody can debug, to avoid an occasional extra proposal. |
 | **Greedy** *(chosen)* | Sort, keep, suppress | One pass, deterministic, every survivor is a real measurement, and the failure mode is an extra item in a list a human is reading anyway. |
 
@@ -170,7 +170,7 @@ produce proposals:
 
 > A person approves, rejects, and labels each proposal before extraction.
 
-Where no human reviews — the stratigraphic order that feeds the model — greedy
+Where no human reviews (the stratigraphic order that feeds the model), greedy
 is not used, and the code refuses rather than approximating.
 
 ## What it costs
@@ -186,27 +186,27 @@ borderline feature in a neighbouring layer. Both are visible to a reviewer.
 The **determinism** cost is zero *provided the ordering is total*, which is why
 `detect_features` breaks score ties by area and `true_dip._best_pair` documents
 its tie behaviour. An incomplete order would make the greedy result depend on
-input ordering — see [determinism and stable sorting](determinism-and-stable-sorting.md).
+input ordering. See [determinism and stable sorting](determinism-and-stable-sorting.md).
 
 ## Where else you meet it
 
-- **Kruskal's and Prim's** minimum spanning tree algorithms — provably optimal,
+- Kruskal's and Prim's minimum spanning tree algorithms: provably optimal,
   and Kruskal uses [Union-Find](union-find.md) for exactly the conflict check
   greedy needs.
-- **Dijkstra's shortest path** — greedy and optimal for non-negative weights.
-- **Huffman coding** — greedy and optimal.
-- **Interval scheduling**, where earliest-finish-first is provably optimal.
-- **The knapsack problem**, where greedy is a classic *failure* — the
+- Dijkstra's shortest path: greedy and optimal for non-negative weights.
+- Huffman coding: greedy and optimal.
+- Interval scheduling, where earliest-finish-first is provably optimal.
+- The knapsack problem, where greedy is a classic *failure*: the
   best value-per-weight-first heuristic can be arbitrarily bad.
-- **Beam search** in language models, which is greedy with a widened frontier.
+- Beam search in language models, which is greedy with a widened frontier.
 
 ## Related pages
 
-- [Non-maximum suppression](non-maximum-suppression.md) — the main greedy step
+- [Non-maximum suppression](non-maximum-suppression.md): the main greedy step
   here.
-- [Intersection over union](intersection-over-union.md) — the conflict test.
-- [Topological sorting](topological-sorting.md) — where greedy was refused.
-- [Union-Find](union-find.md) — the structure that makes greedy conflict checks
+- [Intersection over union](intersection-over-union.md): the conflict test.
+- [Topological sorting](topological-sorting.md): where greedy was refused.
+- [Union-Find](union-find.md): the structure that makes greedy conflict checks
   fast.
-- [Determinism and stable sorting](determinism-and-stable-sorting.md) — the condition greedy needs to be
+- [Determinism and stable sorting](determinism-and-stable-sorting.md): the condition greedy needs to be
   reproducible.

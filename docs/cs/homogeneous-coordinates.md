@@ -19,7 +19,7 @@ examining.
 ## What it is
 
 Rotation and scaling are linear: they can be written as a matrix multiplication.
-Translation is not — no 2×2 matrix moves the origin.
+Translation is not: no 2×2 matrix moves the origin.
 
 Homogeneous coordinates fix this by writing a 2D point as a 3-vector with a
 trailing 1:
@@ -41,7 +41,7 @@ shears multiplies into one matrix, applied once per point. A graphics pipeline
 with a dozen nested transforms collapses into a single 3×3.
 
 The extra coordinate `w` also unlocks perspective. When `w ≠ 1`, the point is
-recovered by dividing — `(x/w, y/w)` — and that division is exactly what makes
+recovered by dividing, `(x/w, y/w)`, and that division is exactly what makes
 distant things smaller in a projective transform.
 
 ## The picture
@@ -60,7 +60,7 @@ flowchart LR
   end
 ```
 
-Four operations per point become one matrix multiply — *provided* the transforms
+Four operations per point become one matrix multiply, *provided* the transforms
 are composed in advance.
 
 ## Where this project uses it
@@ -76,12 +76,12 @@ rot = cv2.warpAffine(
 )
 ```
 
-`M` is a 2×3 matrix — the top two rows of a 3×3 homogeneous matrix, with the
+`M` is a 2×3 matrix: the top two rows of a 3×3 homogeneous matrix, with the
 implied `[0 0 1]` bottom row omitted because an affine transform never changes
 `w`. `warpAffine` treats each pixel as `(x, y, 1)`.
 
 This is a genuine composition: rotating *about the image centre* is three
-operations — translate the centre to the origin, rotate, translate back — and
+operations (translate the centre to the origin, rotate, translate back), and
 `getRotationMatrix2D` returns their product as one matrix.
 
 ### Not used in the project's own conversions
@@ -115,11 +115,11 @@ into a matrix.
 
 ## Why this and not something else
 
-| Alternative | How it would work here | Why it lost — or won |
+| Alternative | How it would work here | Why it lost, or won |
 |---|---|---|
-| **Homogeneous matrices throughout** | Represent every calibration as a 3×3, compose, apply | The right answer when transforms compose — a graphics pipeline, a robot arm, a nested scene graph. Here the two conversions are separate, applied once each, and never chained. The composition benefit never arrives. |
+| **Homogeneous matrices throughout** | Represent every calibration as a 3×3, compose, apply | The right answer when transforms compose: a graphics pipeline, a robot arm, a nested scene graph. Here the two conversions are separate, applied once each, and never chained. The composition benefit never arrives. |
 | **Explicit component arithmetic** *(chosen)* | Write out the multiplications | Every geometric decision stays visible and independently commentable. It also keeps any matrix library out of `convert_coords.py`, whose imports are `csv`, `math`, and two sibling site modules. |
-| **A matrix library (NumPy) for the coordinate code** | `np.array` and `@` | Already a dependency for the image work. For 2- and 3-element vectors it is *slower* than plain floats — array allocation dominates — and it would obscure the conventions. |
+| **A matrix library (NumPy) for the coordinate code** | `np.array` and `@` | Already a dependency for the image work. For 2- and 3-element vectors it is *slower* than plain floats, because array allocation dominates, and it would obscure the conventions. |
 | **Homogeneous inside OpenCV, explicit outside** *(what happens)* | Let the library use them where it composes; write out the two conversions | Each context gets the representation that suits it. |
 
 There is one place where homogeneous coordinates would become genuinely
@@ -133,7 +133,7 @@ with it.
 ## What it costs
 
 One extra number per point, and 9 rather than 6 stored values for an affine
-transform — hence OpenCV's 2×3 shortcut, which drops the constant row.
+transform, hence OpenCV's 2×3 shortcut, which drops the constant row.
 
 Applying a 3×3 to a point is 9 multiplies and 6 adds, against 4 and 4 for the
 explicit affine form. Composing two 3×3 matrices is 27 multiplies. That cost is
@@ -141,28 +141,28 @@ paid once and amortised over every point, which is why it wins for large point
 counts and long chains, and loses for two points and no chain.
 
 The subtler cost is legibility. A 3×3 matrix of numbers is opaque. This
-repository's comments carry real information — the closure-binding note in
-`to_site`, the `Z = Z0 − depth` sign convention, the `sin`/`cos` placement — and
+repository's comments carry real information (the closure-binding note in
+`to_site`, the `Z = Z0 − depth` sign convention, the `sin`/`cos` placement), and
 none of it survives being folded into a matrix.
 
 ## Where else you meet it
 
-- **Every 3D graphics pipeline.** Model, view, and projection matrices are 4×4
+- Every 3D graphics pipeline. Model, view, and projection matrices are 4×4
   homogeneous, and the perspective divide by `w` is what produces foreshortening.
-- **`cv2.findHomography`** and perspective correction in document scanning apps.
-- **Robotics**, where a Denavit–Hartenberg chain is a product of 4×4 homogeneous
+- `cv2.findHomography` and perspective correction in document scanning apps.
+- Robotics, where a Denavit–Hartenberg chain is a product of 4×4 homogeneous
   transforms.
-- **Projective geometry**, where they allow points at infinity to be represented
+- Projective geometry, where they allow points at infinity to be represented
   finitely (`w = 0`).
-- **Camera calibration**, where the intrinsic and extrinsic matrices are both
+- Camera calibration, where the intrinsic and extrinsic matrices are both
   homogeneous.
 
 ## Related pages
 
-- [Affine transforms](affine-transforms.md) — what OpenCV's 2×3 matrix
+- [Affine transforms](affine-transforms.md): what OpenCV's 2×3 matrix
   represents.
-- [Similarity transforms](similarity-transforms.md) — the restricted family used
+- [Similarity transforms](similarity-transforms.md): the restricted family used
   for calibration.
-- [Translation, rotation, and scaling](translation-rotation-scaling.md) — the
+- [Translation, rotation, and scaling](translation-rotation-scaling.md): the
   operations being composed.
-- [Vector projection](vector-projection.md) — the explicit form used instead.
+- [Vector projection](vector-projection.md): the explicit form used instead.

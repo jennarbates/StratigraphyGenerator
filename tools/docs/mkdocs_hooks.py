@@ -3,11 +3,11 @@
 docs/learning/ holds the study plans and their assessment packs, and those
 pages are in the configured navigation like any other. The gradebook is the
 exception: the grade-assessment skill writes one reader's own exam scores into
-it, so mkdocs.yml lists it in `draft_docs` and `mkdocs build` — and with it CI,
-the `--strict` check, and the published site — leaves it out, while
-`mkdocs serve` renders it for local reading. Drafts stay out of the configured
-navigation, because a nav entry for a page the build excludes would be a broken
-link and a `--strict` failure. Without help, then, the served page would be
+it, so mkdocs.yml lists it in `draft_docs`. That leaves it out of
+`mkdocs build`, and with it CI, the `--strict` check, and the published site,
+while `mkdocs serve` renders it for local reading. Drafts stay out of the
+configured navigation, because a nav entry for a page the build excludes is a
+broken link and a `--strict` failure. Without help, then, the served page would be
 reachable only by typing its URL; this hook appends it to the learning section
 when, and only when, it is being served. (`mkdocs serve --clean` hides drafts
 again; the added entry then logs a warning, and serving continues.)

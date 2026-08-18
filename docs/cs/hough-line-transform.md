@@ -103,7 +103,7 @@ Every parameter is doing something:
 | Parameter | Meaning |
 |---|---|
 | `1` | ρ resolution, one pixel |
-| `np.pi / 180` | θ resolution, one degree — finer would be slower and no more accurate than the skew estimate needs |
+| `np.pi / 180` | θ resolution, one degree. Finer would be slower and no more accurate than the skew estimate needs |
 | `threshold=200` | at least 200 votes to count as a line; on an upscaled scan a real ruled line easily clears this |
 | `lines[:200]` | consider only the 200 strongest, since `HoughLines` returns them sorted by votes |
 | `-15 < deg < 15` | keep only near-horizontal lines |
@@ -120,7 +120,7 @@ surviving angles. A handful of diagonal strokes that squeak past the filter
 would drag a mean; the median ignores them entirely. This is the single most
 important line in the function.
 
-And the two early returns — `lines is None` and `not angles` — mean the honest
+And the two early returns (`lines is None` and `not angles`) mean the honest
 outcome of "no evidence of skew" is **0.0 and no rotation**, not a guess. See
 [fail-closed design](fail-closed-design.md).
 
@@ -128,12 +128,12 @@ outcome of "no evidence of skew" is **0.0 and no rotation**, not a guess. See
 
 | Alternative | How it would work here | Why it lost |
 |---|---|---|
-| **Least-squares fit to all edge pixels** | Fit one line to the whole point set | Assumes there *is* one line. A drawing has many, at many angles, so the fit lands on their average — meaningless. |
+| **Least-squares fit to all edge pixels** | Fit one line to the whole point set | Assumes there *is* one line. A drawing has many, at many angles, so the fit lands on their average, which is meaningless. |
 | **RANSAC** | Randomly sample pairs, count inliers, keep the best | Genuinely robust and finds one dominant line well. It is randomised, so two runs can give different answers, and [determinism](determinism-and-stable-sorting.md) is a requirement in this repository. Hough's accumulator is exact and repeatable. |
 | **[Projection profile](mean-and-variance.md)** | Rotate through candidate angles, sum pixels per row, pick the angle with the sharpest peaks | The standard method for deskewing *text*, and excellent there, because text lines produce strong horizontal density peaks. A section drawing has no such regular horizontal structure. |
 | **Fourier transform** | The dominant orientation appears as a directional peak in the spectrum | Fast and global, gives one dominant orientation for the whole sheet, and is hard to constrain to "near horizontal only." |
 | **Probabilistic Hough (`HoughLinesP`)** | Returns line *segments* with endpoints | Faster and gives segment lengths, and it is randomised, so repeated runs differ. Same objection as RANSAC. |
-| **Hough** *(chosen)* | Vote in parameter space, filter, take the median | Deterministic, handles many lines at once, tolerates gaps, and — decisively — returns an **angle per line**, which is exactly the quantity being estimated. |
+| **Hough** *(chosen)* | Vote in parameter space, filter, take the median | Deterministic, handles many lines at once, tolerates gaps, and, decisively, returns an **angle per line**, which is exactly the quantity being estimated. |
 
 There is also the option of not deskewing at all, and it is the strongest
 alternative: the manual tracing path defines its along-wall axis from the
@@ -145,7 +145,7 @@ easier for a **human** to trace on, not to make the measurement correct.
 ## What it costs
 
 O(n_edge × n_θ). With 180 angle bins and, say, 50 000 edge pixels, that is 9
-million accumulator increments — fast, but it scales with edge count, which is
+million accumulator increments: fast, but it scales with edge count, which is
 why the [Canny](canny-edge-detection.md) thresholds upstream matter for speed as
 well as quality.
 
@@ -160,23 +160,23 @@ a degree.
 
 ## Where else you meet it
 
-- **Lane detection** in driver-assistance systems — Canny then Hough is the
+- Lane detection in driver-assistance systems: Canny then Hough is the
   classical pipeline, the same pairing as here.
-- **Document deskewing** in scanner software.
-- **Barcode localisation**, finding the dominant parallel line family.
-- **Hough circle transform**, the same voting idea over (x, y, r) — considered
+- Document deskewing in scanner software.
+- Barcode localisation, finding the dominant parallel line family.
+- Hough circle transform, the same voting idea over (x, y, r), considered
   and rejected for [marker detection](morphological-opening.md).
-- **Generalised Hough transform**, which votes for arbitrary template shapes.
-- **Particle physics**, where variants are used to reconstruct tracks from
+- Generalised Hough transform, which votes for arbitrary template shapes.
+- Particle physics, where variants are used to reconstruct tracks from
   detector hits.
 
 ## Related pages
 
-- [Canny edge detection](canny-edge-detection.md) — supplies the edge pixels.
-- [Median and robust statistics](median-and-robust-statistics.md) — how the
+- [Canny edge detection](canny-edge-detection.md): supplies the edge pixels.
+- [Median and robust statistics](median-and-robust-statistics.md): how the
   angle is chosen from many lines.
-- [Affine transforms](affine-transforms.md) — the rotation applied afterwards.
-- [Bilinear and bicubic interpolation](bilinear-and-bicubic-interpolation.md) —
+- [Affine transforms](affine-transforms.md): the rotation applied afterwards.
+- [Bilinear and bicubic interpolation](bilinear-and-bicubic-interpolation.md):
   resampling during that rotation.
-- [Geometric normalization](../concepts/geometric-normalization.md) — the
+- [Geometric normalization](../concepts/geometric-normalization.md): the
   concept page.

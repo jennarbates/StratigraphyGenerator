@@ -45,7 +45,7 @@ function messageBanner(heading, messages, variant) {
 function wallReadiness(member) {
   return member.has_normalized
     ? "Ready to build"
-    : "Not finished yet — open this drawing and finish it first";
+    : "Not finished yet. Open this drawing and finish it first";
 }
 
 function wallItem(member) {
@@ -56,7 +56,7 @@ function wallItem(member) {
 
   link.href = `/jobs/${encodeURIComponent(member.job_id)}`;
   name.textContent = member.wall_label || "No wall label recorded";
-  detail.textContent = " — " + [
+  detail.textContent = " · " + [
     `Drawing ${member.job_id}`,
     member.sheet_type || "unknown sheet type",
     wallReadiness(member),

@@ -11,7 +11,7 @@ verified_against: ae2fc1d
 # Locks and critical sections
 
 Making a sequence of operations behave as if it were one. The GIL makes each
-individual dictionary operation atomic — a *sequence* of them is not, and that
+individual dictionary operation atomic. A *sequence* of them is not, and that
 gap is exactly what the locks here cover.
 
 ## What it is
@@ -26,8 +26,8 @@ The distinction that governs where locks are needed in Python:
 |---|---|
 | `d[k] = v` | yes |
 | `lst.append(x)` | yes |
-| `d[k] += 1` | **no** — read, add, write |
-| `if k not in d: d[k] = v` | **no** — check, then act |
+| `d[k] += 1` | **no**: read, add, write |
+| `if k not in d: d[k] = v` | **no**: check, then act |
 | read a file, decide, write it back | **no** |
 
 Anything that *reads state and then acts on what it read* is a critical section,
@@ -89,7 +89,7 @@ def _evict_finished():
 ```
 
 Two threads running that concurrently could both read the same length, both
-decide to evict, and both delete — raising `KeyError` on the second, or evicting
+decide to evict, and both delete, raising `KeyError` on the second, or evicting
 below the ceiling.
 
 Note what is **not** locked: the worker thread's `TASKS[task_id]["log"].append(...)`
@@ -131,7 +131,7 @@ with META_LOCK:
 ```
 
 Read, mutate, write. Without the lock, a request thread writing progress at the
-same moment would have its update overwritten — a **lost update**, the classic
+same moment would have its update overwritten: a **lost update**, the classic
 symptom.
 
 The same pattern brackets task registration:
@@ -163,7 +163,7 @@ be stale, and writing it back would undo whatever happened in between.
 | **A lock around everything** | One coarse global lock | Correct and it would serialise log appends against status polls, so a build's logging would contend with the browser's polling. The two fine-grained locks cover exactly the compound operations. |
 | **`threading.RLock`** | Reentrant | Needed only if a lock-holder re-acquires the same lock. Nothing here does, and a plain `Lock` makes accidental recursion a visible deadlock rather than a silent success. |
 | **A file lock (`flock`)** | Lock `meta.json` itself | Would protect against *other processes* too. This is a single-process application, and file locking is platform-dependent and awkward to get right. |
-| **[Optimistic concurrency](optimistic-concurrency-control.md)** | Version the record, retry on conflict | What `harris_store` does for matrices, correctly — that state is user-edited across long sessions. Task and job metadata are written by the machine in short bursts, where a lock is simpler than a retry loop. |
+| **[Optimistic concurrency](optimistic-concurrency-control.md)** | Version the record, retry on conflict | What `harris_store` does for matrices, correctly: that state is user-edited across long sessions. Task and job metadata are written by the machine in short bursts, where a lock is simpler than a retry loop. |
 | **Two fine-grained locks** *(chosen)* | Guard the read-decide-write sequences | Minimal contention, and each lock has a comment naming the sequence it protects. |
 
 The instructive contrast is the last two rows. This codebase uses **both**
@@ -173,39 +173,39 @@ shared state over minutes.
 
 ## What it costs
 
-An uncontended lock is tens of nanoseconds. Contended, a thread blocks — but
+An uncontended lock is tens of nanoseconds. Contended, a thread blocks, but
 every critical section here is a few microseconds of dictionary work or one
 small file write.
 
 The costs that matter:
 
-- **Deadlock** if two locks are ever acquired in different orders. This code
+- Deadlock if two locks are ever acquired in different orders. This code
   never holds both at once, which is why plain `Lock` is safe.
-- **Locks do not compose.** Holding `META_LOCK` while calling something that
+- Locks do not compose. Holding `META_LOCK` while calling something that
   also takes it would hang. `start_task` is called *inside* `META_LOCK` and takes
-  `_TASKS_LOCK` — a nested acquisition of two *different* locks, always in the
+  `_TASKS_LOCK`, a nested acquisition of two *different* locks, always in the
   same order.
-- **They protect only within one process.** Two servers on the same job
+- They protect only within one process. Two servers on the same job
   directory would corrupt it. Not a scenario this application supports.
-- **`with` is not optional.** A manual `acquire()` without `try/finally` leaks
+- `with` is not optional. A manual `acquire()` without `try/finally` leaks
   the lock on an exception. Every site here uses the context manager.
 
 ## Where else you meet it
 
-- **Database transactions**, which are critical sections with durability.
-- **`synchronized`** in Java and `Mutex` in Rust — where the type system ties
+- Database transactions, which are critical sections with durability.
+- `synchronized` in Java and `Mutex` in Rust, where the type system ties
   the data to its lock.
-- **Operating system kernels**, whose scheduler and memory manager are built
+- Operating system kernels, whose scheduler and memory manager are built
   from them.
-- **Distributed locks** (ZooKeeper, etcd), the same idea across machines.
-- **Redux and similar state containers**, which avoid locks by making updates
+- Distributed locks (ZooKeeper, etcd), the same idea across machines.
+- Redux and similar state containers, which avoid locks by making updates
   single-threaded and immutable instead.
 
 ## Related pages
 
-- [Race conditions](race-conditions.md) — the failures being prevented.
-- [Threads and the GIL](threads-and-the-gil.md) — what is atomic without a lock.
-- [Optimistic concurrency control](optimistic-concurrency-control.md) — the
+- [Race conditions](race-conditions.md): the failures being prevented.
+- [Threads and the GIL](threads-and-the-gil.md): what is atomic without a lock.
+- [Optimistic concurrency control](optimistic-concurrency-control.md): the
   other strategy used here.
-- [Bounded caches and eviction](bounded-caches-and-eviction.md) — the sequence
+- [Bounded caches and eviction](bounded-caches-and-eviction.md): the sequence
   `_TASKS_LOCK` protects.

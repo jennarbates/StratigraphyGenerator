@@ -14,7 +14,7 @@ verified_against: ae2fc1d
 
 Treating two floating-point numbers as equal when they are close enough. The
 harder question is *how close*, and this repository answers it four different
-ways — each correct for its own numbers.
+ways, each correct for its own numbers.
 
 ## What it is
 
@@ -27,14 +27,14 @@ equal  ⟺  |a − b| < ε
 
 Choosing ε is the whole problem, and there are three families of answer:
 
-**Machine epsilon.** `Number.EPSILON` ≈ 2.2×10⁻¹⁶ — the smallest gap near 1.0.
+**Machine epsilon.** `Number.EPSILON` ≈ 2.2×10⁻¹⁶, the smallest gap near 1.0.
 Right when you expect exactness and are guarding only against a last-bit
 difference.
 
 **An absolute tolerance.** A fixed number like `1e-9`. Right when the values
 have a known scale.
 
-**A domain tolerance.** A number that means something in the subject — 2 cm, 5 mm,
+**A domain tolerance.** A number that means something in the subject: 2 cm, 5 mm,
 0.05 m. This is not really a floating-point tolerance at all; it is a statement
 about measurement accuracy that happens to be implemented as one.
 
@@ -50,7 +50,7 @@ flowchart TB
   A -->|no| Exact["exact == is safe"]
   A -->|yes| B{"is the tolerance about<br/>numbers or about the subject?"}
   B -->|numbers| Num["numerical epsilon<br/>1e-9, Number.EPSILON"]
-  B -->|subject| Dom["domain tolerance<br/>0.02 m, 0.05 m — name it, document it"]
+  B -->|subject| Dom["domain tolerance<br/>0.02 m, 0.05 m. Name it, document it"]
 ```
 
 ## Where this project uses it
@@ -70,7 +70,7 @@ def _point_on_segment(point, start, end):
 
 `== 0` with no tolerance, and it is correct. The
 [orientation test](signed-area-and-orientation-test.md) is four multiplications
-and three subtractions — **no division** — so on user-clicked coordinates the
+and three subtractions (**no division**), so on user-clicked coordinates the
 result is exact. Introducing an epsilon here would add a parameter and buy
 nothing.
 
@@ -105,8 +105,8 @@ if (Math.abs(crossProduct) > Number.EPSILON) {
 }
 ```
 
-Its coordinates are snapped to an exact grid — see
-[grid snapping](grid-snapping-and-quantisation.md) — so near-exactness is
+Its coordinates are snapped to an exact grid (see
+[grid snapping](grid-snapping-and-quantisation.md)), so near-exactness is
 expected and only a last-bit difference needs absorbing.
 
 ### Domain tolerances, named and documented
@@ -138,7 +138,7 @@ archaeology, expressed as a number.
 def check_trench_grid_config(grid, merged, tolerance_m=0.05):
 ```
 
-5 cm — the distance within which two walls' corner coordinates count as the same
+5 cm is the distance within which two walls' corner coordinates count as the same
 corner. Again a survey judgement, again named and adjustable.
 
 And the fabrication detectors use tolerances that encode an *empirical*
@@ -178,38 +178,38 @@ A comparison and a subtraction. Nothing.
 
 The costs are conceptual, and real:
 
-- **Tolerant equality is not transitive.** `a ≈ b` and `b ≈ c` does not give
+- Tolerant equality is not transitive. `a ≈ b` and `b ≈ c` does not give
   `a ≈ c`. Nothing here relies on chaining, but it is why tolerant comparison
   cannot be used as a sort key or a dictionary key.
-- **Every tolerance is a decision that can be wrong.** A 2 cm monotonic
+- Every tolerance is a decision that can be wrong. A 2 cm monotonic
   tolerance will miss a genuine 1 cm crossing. That is why it is a parameter,
   and why the validator reports rather than silently corrects.
-- **A tolerance can mask a real error.** `PARALLEL_OFFSET_TOLERANCE_M = 0.005`
+- A tolerance can mask a real error. `PARALLEL_OFFSET_TOLERANCE_M = 0.005`
   catches copy-pasted boundaries offset by a constant; a fabricator using a
-  varying offset would slip past. The check is explicitly a hint, not a proof —
-  the README says so: "Statistical signatures … are hints; overlap with actual
+  varying offset would slip past. The check is explicitly a hint, not a proof.
+  The README says so: "Statistical signatures … are hints; overlap with actual
   ink pixels would be direct evidence."
 
 ## Where else you meet it
 
-- **Test assertions.** `assertAlmostEqual`, `pytest.approx`, `toBeCloseTo` —
-  every framework has one.
-- **Numerical solvers**, where convergence is "the change is below ε."
-- **Computational geometry libraries**, where robustness predicates exist
+- Test assertions: `assertAlmostEqual`, `pytest.approx`, `toBeCloseTo`.
+  Every framework has one.
+- Numerical solvers, where convergence is "the change is below ε."
+- Computational geometry libraries, where robustness predicates exist
   precisely to avoid needing an epsilon.
-- **Graphics**, where depth-buffer comparisons use a bias to avoid z-fighting.
-- **Sensor fusion**, where "the same reading" is defined by the instrument's
-  accuracy — a domain tolerance, exactly like this project's 2 cm.
+- Graphics, where depth-buffer comparisons use a bias to avoid z-fighting.
+- Sensor fusion, where "the same reading" is defined by the instrument's
+  accuracy: a domain tolerance, exactly like this project's 2 cm.
 
 ## Related pages
 
-- [Floating-point representation](floating-point-representation.md) — why exact
+- [Floating-point representation](floating-point-representation.md): why exact
   equality fails.
-- [Signed area and the orientation test](signed-area-and-orientation-test.md) —
+- [Signed area and the orientation test](signed-area-and-orientation-test.md):
   the predicate that can be compared exactly.
-- [Grid snapping and quantisation](grid-snapping-and-quantisation.md) — avoiding
+- [Grid snapping and quantisation](grid-snapping-and-quantisation.md): avoiding
   the problem by choosing exact constants.
-- [Coefficient of variation](coefficient-of-variation.md) — a threshold with its
+- [Coefficient of variation](coefficient-of-variation.md): a threshold with its
   calibration recorded.
-- [Validation rules](../reference/validation-rules.md) — every domain tolerance,
+- [Validation rules](../reference/validation-rules.md): every domain tolerance,
   in one table.

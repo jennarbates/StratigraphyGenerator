@@ -10,7 +10,7 @@ verified_against: ae2fc1d
 # Survey point codes
 
 The short labels a total station records against each shot, saying what was
-measured. A controlled vocabulary transcribed from the site's own workflow — and
+measured. A controlled vocabulary transcribed from the site's own workflow, and
 the point at which surveyed positions and drawing-derived ones become
 comparable.
 
@@ -30,7 +30,7 @@ the point *is*, so the operator enters a code:
 | `TEST` | Test pit |
 | `TOPO` | Ground surface |
 
-A shot carries **northing, easting, and elevation** on the site's local grid —
+A shot carries **northing, easting, and elevation** on the site's local grid,
 which is exactly [site coordinates](site-coordinates.md).
 
 The vocabulary is closed on purpose. A free-text field would produce `wall`,
@@ -43,9 +43,9 @@ reliably afterwards.
 flowchart TB
   T["total station shot"] --> C["operator enters a code"]
   C --> R["(N, E, Elev) + WALL"]
-  R --> S["site coordinates — measured directly"]
+  R --> S["site coordinates, measured directly"]
   D["a traced section drawing"] --> Cal["calibration + registration"]
-  Cal --> S2["site coordinates — reconstructed"]
+  Cal --> S2["site coordinates, reconstructed"]
   S --> Same["the same space, two routes"]
   S2 --> Same
 ```
@@ -100,14 +100,14 @@ DRAWN_FEATURE_TYPES = (
 )
 ```
 
-Only two entries carry a `surveyCode`, and the rest are `None` — which is honest.
+Only two entries carry a `surveyCode`, and the rest are `None`, which is honest.
 A tile fragment drawn in section is not something anyone shoots with a total
 station; a stone or a wall is.
 
 That tag is what would let a drawn stone be matched against its survey shot.
 Three vocabularies cross-referenced on one record: a
 [bulk-find material letter](find-identifiers.md), a
-[Harris unit type](harris-matrix.md), and a survey code — each pointing at a
+[Harris unit type](harris-matrix.md), and a survey code, each pointing at a
 different system the site already runs.
 
 The module states the general principle:
@@ -141,8 +141,8 @@ code.
 that it can be filtered. `wall`, `Wall`, and `w` cannot be.
 
 **Confusing `ART` with a [find](find.md) record.** `ART` marks a shot at an
-artifact's position. The find record — with its
-[identifier](find-identifiers.md), material, and description — is separate. The
+artifact's position. The find record (with its
+[identifier](find-identifiers.md), material, and description) is separate. The
 shot gives coordinates; the find record gives everything else.
 
 **Assuming surveyed and traced positions must agree exactly.** They will not.
@@ -155,11 +155,11 @@ Losing or moving one invalidates everything measured from it.
 
 ## Related pages
 
-- [Site coordinates](site-coordinates.md) — the space a shot records into.
-- [Interface point](interface-point.md) — the reconstructed counterpart.
-- [Grid registration](grid-registration.md) — where `UNIT` and `TOPO` shots feed
+- [Site coordinates](site-coordinates.md): the space a shot records into.
+- [Interface point](interface-point.md): the reconstructed counterpart.
+- [Grid registration](grid-registration.md): where `UNIT` and `TOPO` shots feed
   in.
-- [Find identifiers](find-identifiers.md) — the other vocabulary in
+- [Find identifiers](find-identifiers.md): the other vocabulary in
   `site_vocab`.
-- [Datum](datum.md) — what elevations descend from.
-- [Feature](feature.md) — the drawable types carrying `surveyCode`.
+- [Datum](datum.md): what elevations descend from.
+- [Feature](feature.md): the drawable types carrying `surveyCode`.

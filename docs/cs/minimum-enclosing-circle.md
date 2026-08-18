@@ -16,7 +16,7 @@ separates a filled dot from a drawn ring.
 ## What it is
 
 Given a set of points, find the circle of least radius containing them all. The
-answer is unique, and it is determined by at most three of the points — either
+answer is unique, and it is determined by at most three of the points: either
 two forming a diameter, or three on the circumference.
 
 Welzl's algorithm solves it in expected **O(n)** by randomised incremental
@@ -106,15 +106,15 @@ closer than half the minimum diameter are treated as the same mark.
 | Alternative | How it would work here | Why it lost |
 |---|---|---|
 | **[Bounding box](bounding-boxes.md)** | Use `max(w, h)` as the size | Cheaper, and rotation-dependent: a diagonal elongated blob has a large box while its enclosing circle reflects its true extent. `detect_features.py` uses boxes because stones are arbitrary shapes; `detect_markers.py` uses circles because dots are round. |
-| **Centroid + mean radius** | Average distance from the centroid | Cheap and not a *bound* — half the shape lies outside it, so it does not measure the mark's true size. |
-| **Equivalent-area diameter** | `2√(A/π)` | Free, given area. It measures how much ink there is, not how far it spreads — a ring and a disk of the same ink area would report the same diameter, which is the distinction being tested. |
+| **Centroid + mean radius** | Average distance from the centroid | Cheap and not a *bound*: half the shape lies outside it, so it does not measure the mark's true size. |
+| **Equivalent-area diameter** | `2√(A/π)` | Free, given area. It measures how much ink there is, not how far it spreads. A ring and a disk of the same ink area would report the same diameter, which is the distinction being tested. |
 | **[Convex hull](convex-hull.md) extent** | Diameter of the hull | Also computed here, for [solidity](solidity.md). It is a polygon, so it does not give one number for size. |
 | **Ellipse fitting (`fitEllipse`)** | Fit a best-fit ellipse | Richer: major axis, minor axis, orientation. It needs at least five points, is sensitive to noise on small contours, and gives two size numbers where the filter wants one. A vertex dot at 2 mm may only have a few dozen boundary pixels. |
-| **[Hough circle transform](hough-line-transform.md)** | Search parameter space for circles | Purpose-built for circles, and it finds circle *outlines* — including every drawn stone. It also has four coupled parameters. The filter here wants **filled** disks, which is a fill and [solidity](solidity.md) test, and those need a contour. |
+| **[Hough circle transform](hough-line-transform.md)** | Search parameter space for circles | Purpose-built for circles, and it finds circle *outlines*, including every drawn stone. It also has four coupled parameters. The filter here wants **filled** disks, which is a fill and [solidity](solidity.md) test, and those need a contour. |
 | **Minimum enclosing circle** *(chosen)* | Welzl, expected O(n) | Rotation-invariant, one number for size, one point for position, and its area is exactly the denominator the fill test needs. |
 
-The elegance is that a single call answers three different questions —
-how big, where, and how solid — each of which would otherwise need its own
+The elegance is that a single call answers three different questions (how
+big, where, and how solid), each of which would otherwise need its own
 primitive.
 
 ## What it costs
@@ -135,23 +135,23 @@ part of the defence, and the `fill >= 0.5` threshold is deliberately far from
 
 ## Where else you meet it
 
-- **Facility location** — the "smallest enclosing circle" is the classic
+- Facility location. The "smallest enclosing circle" is the classic
   1-centre problem: where to put a transmitter to cover every customer.
-- **Collision detection**, where bounding spheres are the standard broad-phase
+- Collision detection, where bounding spheres are the standard broad-phase
   primitive.
-- **Robotics**, computing a robot's swept footprint.
-- **Cluster analysis**, measuring how tightly a cluster is contained.
-- **Circularity inspection** in manufacturing, checking that a machined hole is
+- Robotics, computing a robot's swept footprint.
+- Cluster analysis, measuring how tightly a cluster is contained.
+- Circularity inspection in manufacturing, checking that a machined hole is
   round.
 
 ## Related pages
 
-- [Bounding boxes](bounding-boxes.md) — the axis-aligned alternative, used in
+- [Bounding boxes](bounding-boxes.md): the axis-aligned alternative, used in
   the other detector.
-- [Extent and fill ratio](extent-and-fill-ratio.md) — the ratio this supplies a
+- [Extent and fill ratio](extent-and-fill-ratio.md): the ratio this supplies a
   denominator for.
-- [Circularity](circularity.md) and [solidity](solidity.md) — the other two
+- [Circularity](circularity.md) and [solidity](solidity.md): the other two
   shape tests applied alongside.
-- [Convex hull](convex-hull.md) — solidity's denominator.
-- [Structuring elements](structuring-elements.md) — how the diameter band is
+- [Convex hull](convex-hull.md): solidity's denominator.
+- [Structuring elements](structuring-elements.md): how the diameter band is
   converted from paper millimetres.

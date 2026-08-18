@@ -1,8 +1,6 @@
-/* ==========================================================================
-   Trench Digitization Pipeline — design tokens
+/* Trench Digitization Pipeline design tokens.
    Palette drawn from real Munsell soil-color families used in the field
-   sheets themselves (10YR/7.5YR/5Y/gley), rather than a generic accent.
-   ========================================================================== */
+   sheets themselves (10YR/7.5YR/5Y/gley), rather than a generic accent. */
 
 :root{
   --paper:      #eef1ea;   /* graph-paper field-sheet background */
@@ -10,11 +8,11 @@
   --ink:        #26312a;   /* deep ink-green-black, field-pen color */
   --ink-soft:   #5b6a5e;
 
-  --strata-1: #9c6b3e;   /* 10YR yellowish-brown  — topsoil */
-  --strata-2: #b98a4f;   /* 7.5YR reddish-brown   — fill */
-  --strata-3: #8a8c53;   /* 5Y olive              — subsoil */
-  --strata-4: #6c7a80;   /* gley blue-grey        — deep/wet layer */
-  --strata-5: #a4522f;   /* rust — errors/warnings live here too */
+  --strata-1: #9c6b3e;   /* 10YR yellowish-brown, topsoil */
+  --strata-2: #b98a4f;   /* 7.5YR reddish-brown, fill */
+  --strata-3: #8a8c53;   /* 5Y olive, subsoil */
+  --strata-4: #6c7a80;   /* gley blue-grey, deep or wet layer */
+  --strata-5: #a4522f;   /* rust; errors and warnings live here too */
 
   --panel: #ffffff;
   --panel-border: #cdd6c5;
@@ -53,7 +51,7 @@ body{
   min-height:100vh;
 }
 
-/* ---------------------------------- sidebar ---------------------------- */
+/* sidebar */
 
 .sidebar{
   width: 260px;
@@ -120,7 +118,7 @@ body{
 .step-check{ margin-left:auto; font-size:12px; color: var(--ok); }
 .step-check.warn{ color: var(--warn); }
 
-/* ------------------------------- step nav ------------------------------ */
+/* step nav */
 
 .step-nav{
   display:flex;
@@ -147,7 +145,7 @@ body{
   border-radius: var(--radius);
 }
 
-/* ---------------------------------- content ---------------------------- */
+/* content */
 
 .content{
   flex:1;
@@ -378,11 +376,9 @@ a.file-link:hover{ color: var(--strata-5); }
 .err-detail pre { max-height: 240px; overflow: auto; background: #1e1e1e0d;
                   padding: 8px; border-radius: 4px; white-space: pre-wrap; }
 
-/* ==========================================================================
-   Guided interface
+/* Guided interface
    The pipeline is deliberately presented as a calm, plain-language wizard.
-   Technical controls remain available, but are secondary to the next action.
-   ========================================================================== */
+   Technical controls remain available, but are secondary to the next action. */
 
 :root{
   --paper: #f3f0e8;
@@ -1270,7 +1266,7 @@ details > summary::marker{
 }
 
 .banner.ok::before{
-  content: "Ready — ";
+  content: "Ready. ";
   font-weight: 800;
 }
 
@@ -1357,7 +1353,7 @@ table.data-table td{
   text-align: center;
 }
 
-/* ------------------------------ 3D viewer ------------------------------ */
+/* 3D viewer */
 
 .viewer3d{
   margin: 24px 0;
@@ -1441,7 +1437,7 @@ table.data-table td{
   display: inline-block;
 }
 
-/* -------------------------- text verification ------------------------- */
+/* text verification */
 
 .verify-text-stage .plain-note{
   margin-bottom: 20px;

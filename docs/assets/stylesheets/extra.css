@@ -19,13 +19,11 @@ input {
   font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
 }
 
-/* ---------------------------------------------------------------------------
-   Interactive documentation components.
+/* Interactive documentation components.
 
    Each component is progressive enhancement over static markup, so these rules
    only style what JavaScript builds. With JavaScript off the underlying
-   figures, lists, and tables render with the theme's own styles.
-   --------------------------------------------------------------------------- */
+   figures, lists, and tables render with the theme's own styles. */
 
 .pc-form {
   display: grid;

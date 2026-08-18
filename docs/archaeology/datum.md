@@ -11,7 +11,7 @@ verified_against: ae2fc1d
 # Datum
 
 The fixed reference point every elevation on a site is measured from. Two
-measurements are only comparable if they share one — and two walls registered
+measurements are only comparable if they share one. Two walls registered
 against different datums produce a model that is wrong by a constant.
 
 ## What it is
@@ -21,15 +21,15 @@ used for the site's lifetime: a brass bolt in bedrock, a marked corner of a
 standing structure, a driven pin.
 
 Every [elevation](elevation.md) recorded on the site is derived from it, directly
-or through a chain of transfers. That is what makes elevations comparable — a
+or through a chain of transfers. That is what makes elevations comparable: a
 find at 271.44 m and a boundary at 271.09 m can be compared only because both
 descend from the same reference.
 
 Two kinds:
 
-- **A site datum** is arbitrary but consistent. "The datum is 100.00 m" is fine,
+- A site datum is arbitrary but consistent. "The datum is 100.00 m" is fine,
   as long as everything uses it.
-- **A tied datum** is surveyed to a national height network, so the site's
+- A tied datum is surveyed to a national height network, so the site's
   elevations mean something outside it.
 
 The requirement is **consistency**, not absolute accuracy. A site-wide error of
@@ -45,7 +45,7 @@ flowchart TB
   D --> E["east wall: surfaceZ 271.38"]
   D --> S["south wall: surfaceZ 271.44"]
   D --> W["west wall: surfaceZ <b>171.40</b>"]
-  W -.-> X["100 m out — a transcription slip,<br/>not a real elevation difference"]
+  W -.-> X["100 m out. A transcription slip,<br/>not a real elevation difference"]
 ```
 
 ## Why excavation records it
@@ -59,7 +59,7 @@ position from the datum; without one, the old records float free.
 
 ## How this project stores it
 
-The datum itself is never stored — this application never sees it. What it stores
+The datum itself is never stored. This application never sees it. What it stores
 is `surfaceZ` per [face](face.md), which is an elevation *derived* from the
 datum:
 
@@ -101,12 +101,12 @@ The config also carries the vertical frame explicitly:
 ```
 
 `entryForm` is the interesting field. A reading taken *below a datum nail* is
-not yet an elevation — it needs that nail's own absolute height before it can be
+not yet an elevation: it needs that nail's own absolute height before it can be
 resolved, and the site's rule is that such readings are transitional and must be
 corrected to absolute before the final record. The config records which kind of
 number it holds rather than assuming.
 
-and depth converts to elevation by subtraction —
+and depth converts to elevation by subtraction, in
 `poggio_webapp/pipeline/convert_coords.py`:
 
 ```python
@@ -143,17 +143,17 @@ if len(elevations) > 1:
 ```
 
 The reasoning behind the threshold: the four walls of one trench are metres
-apart, so their ground surfaces genuinely differ — by centimetres on flat ground,
+apart, so their ground surfaces genuinely differ: by centimetres on flat ground,
 by tens of centimetres on a slope. Two metres is well beyond that, and the
 likeliest explanation is a **different reference**, not a very steep site.
 
 It is a **warning**, not a refusal. A trench on a genuinely steep slope could
 legitimately exceed it, and that is the operator's judgement to make. Compare the
-placeholder-registration check, which *is* fatal — because placeholders are never
+placeholder-registration check, which *is* fatal, because placeholders are never
 legitimate.
 
-The message says what to check — "confirm all elevations come from the same
-benchmark" — rather than merely reporting the number.
+The message says what to check ("confirm all elevations come from the same
+benchmark") rather than merely reporting the number.
 
 ## What it is not
 
@@ -168,7 +168,7 @@ benchmark" — rather than merely reporting the number.
 ## Getting it wrong
 
 **Two walls on different datums.** The commonest failure, and the reason for the
-spread check. The model builds and every wall is internally consistent — but they
+spread check. The model builds and every wall is internally consistent, but they
 sit at different heights, so surfaces that should join do not.
 
 **A transcription slip in `surfaceZ`.** `171.40` for `271.40` is a plausible
@@ -180,12 +180,12 @@ is tied.
 
 **Registering with placeholders.** The starter `surfaceZ` is `100.0` for every
 face, which produces *zero* spread and passes this check cleanly. The
-placeholder check catches it instead — two checks for two different failures.
+placeholder check catches it instead: two checks for two different failures.
 
 ## Related pages
 
-- [Elevation](elevation.md) — what is measured from it.
-- [Grid registration](grid-registration.md) — where `surfaceZ` is entered.
-- [Site coordinates](site-coordinates.md) — the horizontal counterpart.
-- [Face](face.md) — what carries `surfaceZ`.
-- [Place on site](../workflows/06-place-on-site.md) — the workflow step.
+- [Elevation](elevation.md): what is measured from it.
+- [Grid registration](grid-registration.md): where `surfaceZ` is entered.
+- [Site coordinates](site-coordinates.md): the horizontal counterpart.
+- [Face](face.md): what carries `surfaceZ`.
+- [Place on site](../workflows/06-place-on-site.md): the workflow step.

@@ -55,7 +55,7 @@
   <div class="stage">
     <div id="dropzone">
       Drop the wall photo here, or click to choose a file<br>
-      <span class="hint">Nothing is uploaded anywhere — this runs entirely in your browser.</span>
+      <span class="hint">Nothing is uploaded anywhere. This runs entirely in your browser.</span>
       <input type="file" id="fileInput" accept="image/*" style="display:none">
     </div>
     <div id="controls" style="display:none">
@@ -81,11 +81,11 @@
   <div class="panel">
     <h2>Origin (x=0, depth=0)</h2>
     <div class="readout"><span class="swatch" style="background:var(--origin)"></span>
-      <span id="originReadout" class="unset">not set — click "Set origin", then click the wall's top-left corner</span></div>
+      <span id="originReadout" class="unset">not set: click "Set origin", then click the wall's top-left corner</span></div>
 
     <h2>Grid sample box</h2>
     <div class="readout"><span class="swatch" style="background:var(--box)"></span>
-      <span id="boxReadout" class="unset">not set — click "Set grid box", then drag over a blank patch of grid</span></div>
+      <span id="boxReadout" class="unset">not set: click "Set grid box", then drag over a blank patch of grid</span></div>
 
     <h2>Settings</h2>
     <label for="imgPath">Image path (as it appears in your repo)</label>
@@ -101,7 +101,7 @@
     <pre id="cmd">Load an image and set both points to generate this.</pre>
     <button class="copybtn" id="copyBtn">Copy command</button>
     <div class="warn" id="rotWarn" style="display:none">
-      Rotation changed after points were set — origin/box were cleared, re-pick them at the new rotation.
+      Rotation changed after points were set. Origin and box were cleared; re-pick them at the new rotation.
     </div>
   </div>
 </div>
@@ -294,7 +294,7 @@ function updatePanel() {
     originEl.textContent = `x=${origin.x}, y=${origin.y}`;
   } else {
     originEl.classList.add('unset');
-    originEl.textContent = 'not set — click "Set origin", then click the wall\'s top-left corner';
+    originEl.textContent = 'not set: click "Set origin", then click the wall\'s top-left corner';
   }
 
   const boxEl = document.getElementById('boxReadout');
@@ -303,7 +303,7 @@ function updatePanel() {
     boxEl.textContent = `y0=${gridBox.y0}, y1=${gridBox.y1}, x0=${gridBox.x0}, x1=${gridBox.x1}`;
   } else {
     boxEl.classList.add('unset');
-    boxEl.textContent = 'not set — click "Set grid box", then drag over a blank patch of grid';
+    boxEl.textContent = 'not set: click "Set grid box", then drag over a blank patch of grid';
   }
 
   const cmdEl = document.getElementById('cmd');

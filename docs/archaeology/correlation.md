@@ -12,7 +12,7 @@ verified_against: ae2fc1d
 # Correlation
 
 The judgement that two separately recorded units are the same deposit. An
-interpretation, never an observation — and in this project always confirmed by a
+interpretation, never an observation, and in this project always confirmed by a
 person.
 
 ## What it is
@@ -35,7 +35,7 @@ A, B, and C are one deposit. That makes them a
 
 ```mermaid
 flowchart TB
-  subgraph before["as recorded — four separate units"]
+  subgraph before["as recorded, four separate units"]
     N["Locus 4<br/>north wall"]
     E["Locus 4<br/>east wall"]
     S["Locus 12<br/>south wall"]
@@ -43,7 +43,7 @@ flowchart TB
   end
   subgraph after["after correlation"]
     C["one display node:<br/>Locus 4 = Locus 7 = Locus 12"]
-    W2["Locus 4 (east) — not correlated"]
+    W2["Locus 4 (east), not correlated"]
   end
   before --> after
 ```
@@ -51,7 +51,7 @@ flowchart TB
 ## Why excavation records it
 
 Without correlation a trench's matrix has four parallel sequences that never
-meet — one per wall — and no chronology spans the trench.
+meet, one per wall, and no chronology spans the trench.
 
 The reverse error is worse. Correlating two deposits that merely *look* alike
 fuses two independent records and can create a contradiction elsewhere, because
@@ -63,7 +63,7 @@ disturbing the evidence.
 
 ## How this project stores it
 
-A correlation is its own object, not a relationship —
+A correlation is its own object, not a relationship.
 `poggio_webapp/pipeline/harris_matrix.py`:
 
 ```python
@@ -79,7 +79,7 @@ class HarrisCorrelation(_HarrisModel):
         return self
 ```
 
-A set of units, not a pair — because correlation is transitive and a group is the
+A set of units, not a pair, because correlation is transitive and a group is the
 natural shape.
 
 ### Groups collapse for display, not in the data
@@ -153,7 +153,7 @@ errors.append(
 _CORRELATION_REASON = "Matching normalized labels appear in different jobs or faces."
 ```
 
-Deliberately weak evidence — matching labels, in *different* sources — and it is
+Deliberately weak evidence (matching labels, in *different* sources), and it is
 only ever a suggestion. Accepting one revalidates the entire graph and rolls back
 if it would break:
 
@@ -165,7 +165,7 @@ if not report["ok"]:
 
 The README states the policy plainly:
 
-> Correlation — the interpretation that two units are the same deposit — is
+> Correlation, the interpretation that two units are the same deposit, is
 > separate and always human-confirmed; equal labels never merge on their own.
 > Every proposal must be individually accepted or rejected.
 
@@ -181,7 +181,7 @@ correlation: optional dict mapping 'wall_label:locusNumber' -> canonical
     different walls.
 ```
 
-That one is an **input to the model build** — it renames loci so GemPy fuses them
+That one is an **input to the model build**: it renames loci so GemPy fuses them
 into one surface. The Harris correlation is an interpretation recorded in a
 matrix. Same word, two mechanisms, both requiring a person to assert the
 equality.
@@ -211,18 +211,18 @@ trenches they never do.
 assertions exist.
 
 **Accepting suggestions in bulk.** The interface requires each to be accepted or
-rejected individually, on purpose. A suggestion's evidence — "matching
-normalized labels" — is deliberately weak, and reviewing it is the work.
+rejected individually, on purpose. A suggestion's evidence, "matching
+normalized labels", is deliberately weak, and reviewing it is the work.
 
 ## Related pages
 
-- [Stratigraphic relationships](stratigraphic-relationships.md) — the other kind
+- [Stratigraphic relationships](stratigraphic-relationships.md): the other kind
   of assertion.
-- [Harris Matrix](harris-matrix.md) — where correlations collapse into one box.
-- [Locus numbering epochs](locus-numbering-epochs.md) — when equal numbers are
+- [Harris Matrix](harris-matrix.md): where correlations collapse into one box.
+- [Locus numbering epochs](locus-numbering-epochs.md): when equal numbers are
   certainly not the same deposit.
-- [Union-Find](../cs/union-find.md) — how the groups are computed.
-- [Human-in-the-loop review](../cs/human-in-the-loop-review.md) — why it is never
+- [Union-Find](../cs/union-find.md): how the groups are computed.
+- [Human-in-the-loop review](../cs/human-in-the-loop-review.md): why it is never
   automatic.
-- [Combine walls into one trench](../workflows/09-multi-wall-trench.md) — the
+- [Combine walls into one trench](../workflows/09-multi-wall-trench.md): the
   merge-time sense.

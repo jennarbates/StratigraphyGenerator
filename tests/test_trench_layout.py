@@ -40,9 +40,7 @@ def t104(**overrides):
     return layout
 
 
-# ---------------------------------------------------------------------------
 # Bearings
-# ---------------------------------------------------------------------------
 
 
 @pytest.mark.parametrize(
@@ -65,9 +63,7 @@ def test_a_wall_with_no_length_has_no_bearing():
         bearing_degrees((190, -53), (190, -53))
 
 
-# ---------------------------------------------------------------------------
 # Reading a layout
-# ---------------------------------------------------------------------------
 
 
 def test_corner_labels_are_read_through_the_site_grid_rule():
@@ -180,9 +176,7 @@ def test_below_datum_without_a_datum_refuses():
         )
 
 
-# ---------------------------------------------------------------------------
 # The derived grid config
-# ---------------------------------------------------------------------------
 
 
 def test_each_wall_is_registered_from_its_start_corner():

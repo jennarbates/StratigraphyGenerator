@@ -19,15 +19,15 @@ and which system you pick decides which questions are easy to ask.
 A *colour space* is a coordinate system for colour. A *channel* is one axis of
 it.
 
-- **RGB** — red, green, blue. How screens and sensors work. Good for display,
+- RGB: red, green, blue. How screens and sensors work. Good for display,
   bad for reasoning: "is this darker?" and "is this more red?" are both mixtures
   of all three numbers.
-- **BGR** — the same three axes in the opposite order. OpenCV's default, for
+- BGR: the same three axes in the opposite order. OpenCV's default, for
   historical reasons, and a reliable source of colour-swapped bugs.
-- **HSL / HSV** — hue, saturation, lightness (or value). Separates *what colour*
+- HSL / HSV: hue, saturation, lightness (or value). Separates *what colour*
   from *how vivid* from *how bright*, which is how people describe colour.
-- **Grayscale** — one channel, intensity only.
-- **Munsell** — hue, value, chroma, defined by physical reference chips rather
+- Grayscale: one channel, intensity only.
+- Munsell: hue, value, chroma, defined by physical reference chips rather
   than by arithmetic. The system archaeology actually uses.
 
 Converting between them is not neutral. Every conversion answers some questions
@@ -47,7 +47,7 @@ flowchart LR
   HSL --> Hex["#a0783c<br/>for the browser"]
 ```
 
-Note that two different conversions run off the same BGR image in this project,
+Two different conversions run off the same BGR image in this project,
 because they answer two different questions.
 
 ## Where this project uses it
@@ -126,23 +126,23 @@ thirds of the memory before any expensive filtering runs.
 
 ## Where else you meet it
 
-- **Green-screen keying** in video — the same "is this pixel that colour?"
+- Green-screen keying in video: the same "is this pixel that colour?"
   question, solved the same cheap way.
-- **Chroma subsampling** in JPEG and video codecs, which exploits the eye's
+- Chroma subsampling in JPEG and video codecs, which exploits the eye's
   weaker colour resolution by storing brightness at full detail and colour at
   half.
-- **Photoshop's channel mixer** and **Lightroom's HSL panel** are these
+- Photoshop's channel mixer and Lightroom's HSL panel are these
   operations with a user interface.
-- **Remote sensing** — vegetation indices such as NDVI are literally
+- Remote sensing: vegetation indices such as NDVI are literally
   `(near-infrared − red) / (near-infrared + red)`, the same shape as `redness`.
 
 ## Related pages
 
-- [Grayscale conversion](grayscale-conversion.md) — the most common conversion
+- [Grayscale conversion](grayscale-conversion.md): the most common conversion
   here, and why its weights are not equal.
-- [Colour-channel arithmetic](colour-channel-arithmetic.md) — the `redness`
+- [Colour-channel arithmetic](colour-channel-arithmetic.md): the `redness`
   trick in full.
-- [Binary masks and bitwise operations](binary-masks-and-bitwise-operations.md) —
+- [Binary masks and bitwise operations](binary-masks-and-bitwise-operations.md):
   how two channel tests are combined.
-- [Munsell colour](../archaeology/index.md) — what the notation means to an
+- [Munsell colour](../archaeology/index.md): what the notation means to an
   archaeologist.

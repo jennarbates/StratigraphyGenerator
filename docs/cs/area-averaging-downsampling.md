@@ -12,7 +12,7 @@ verified_against: ae2fc1d
 # Area-averaging downsampling
 
 Shrinking an image correctly, by averaging every source pixel that falls inside
-each destination pixel — and why the filter that is best for enlarging is
+each destination pixel, and why the filter that is best for enlarging is
 actively wrong for shrinking.
 
 ## What it is
@@ -32,7 +32,7 @@ the new grid can hold **before** resampling. Area averaging does exactly that:
 each destination pixel is the mean of all source pixels its footprint covers.
 The averaging *is* the low-pass filter.
 
-Point-sampling methods — nearest, bilinear, bicubic, Lanczos — only look at a
+Point-sampling methods (nearest, bilinear, bicubic, Lanczos) only look at a
 fixed small neighbourhood. Shrink by 4× with bicubic and it inspects 16 source
 pixels while ignoring the other 240 in the footprint. Most of the image simply
 never gets consulted.
@@ -101,8 +101,8 @@ points = [
 ]
 ```
 
-The extraction modules cap dimensions for a different reason — request size
-rather than detection stability — with the rationale recorded in
+The extraction modules cap dimensions for a different reason (request size
+rather than detection stability), with the rationale recorded in
 `extract_illustrator.py`:
 
 > Sending that whole thing as base64 makes the request slow to the point of
@@ -116,18 +116,18 @@ rather than detection stability — with the rationale recorded in
 | **Nearest neighbour** | Take one source pixel per destination pixel | Worst possible choice for shrinking. It point-samples, so a one-pixel boundary line is either kept whole or deleted entirely depending on where the grid lands. Hatched regions alias into arbitrary patterns. |
 | **[Bilinear](bilinear-and-bicubic-interpolation.md)** | 4-sample blend | Better, and still point-sampling: at 4× reduction it consults 4 of 16 pixels. Aliases on fine texture, which drawings are full of. |
 | **[Bicubic](bilinear-and-bicubic-interpolation.md)** | 16-sample cubic | Better again, same structural flaw at large reduction ratios, plus overshoot that can create false edges. |
-| **[Lanczos](lanczos-resampling.md)** | 64-sample windowed sinc | The best choice for *enlarging* in this same repository — and for shrinking its ringing manufactures alternating light and dark bands beside every stroke, which [contour tracing](contour-tracing.md) then finds as structure. Sharpness is the wrong goal when discarding information. |
+| **[Lanczos](lanczos-resampling.md)** | 64-sample windowed sinc | The best choice for *enlarging* in this same repository, and for shrinking its ringing manufactures alternating light and dark bands beside every stroke, which [contour tracing](contour-tracing.md) then finds as structure. Sharpness is the wrong goal when discarding information. |
 | **Blur first, then point-sample** | Gaussian with σ matched to the ratio, then bilinear | Textbook-correct and effectively what area averaging does in one step, with a σ you would have to derive per ratio. `INTER_AREA` gets it right automatically. |
 | **Mipmapping** | Precompute a pyramid of halved images, sample the right level | The GPU answer, and the right one when you resample repeatedly at many scales. Here each image is shrunk once. |
 | **Do not shrink at all** | Run detection at full resolution | Tempting, and it makes runtime depend on camera megapixels rather than on the drawing, and it makes every size threshold in the detector resolution-dependent. Capping at 2200 px means `min_area`, `width < 10`, and the aspect limits mean the same thing for every input. |
 
-That last row is the real motivation. The cap is not primarily about speed — it
+That last row is the real motivation. The cap is not primarily about speed. It
 is about making the detector's **thresholds meaningful**. A filter tuned on a
 12 MP phone photo would reject everything on a 40 MP one.
 
 ## What it costs
 
-O(source pixels) — every one is read exactly once — which is *cheaper* than
+O(source pixels): every one is read exactly once. That is *cheaper* than
 Lanczos at the same reduction, since Lanczos reads 64 samples per **destination**
 pixel and area averaging reads one per **source** pixel.
 
@@ -136,7 +136,8 @@ The output is smaller, so everything downstream is proportionally faster. At
 operation.
 
 The cost is precision: detections are located on the small grid, so mapping back
-carries up to half a small-pixel of error — under a pixel at full resolution.
+carries up to half a small-pixel of error, which is under a pixel at full
+resolution.
 For [feature](../archaeology/index.md) candidates a human reviews and adjusts,
 that is immaterial. It would not be acceptable for
 [marker detection](../workflows/03-markers-and-features.md), which is why
@@ -147,7 +148,7 @@ is too coarse:
 if mm_px < 2:
     raise RuntimeError(
         "photo resolution too low for marker detection "
-        f"({mm_px:.1f} px per paper mm) — retake closer or "
+        f"({mm_px:.1f} px per paper mm). Retake closer or "
         "at higher resolution"
     )
 ```
@@ -157,24 +158,24 @@ about downsampling.
 
 ## Where else you meet it
 
-- **Thumbnail generation.** Every gallery you have used; a badly downscaled
+- Thumbnail generation. Every gallery you have used; a badly downscaled
   thumbnail of a striped shirt is aliasing.
-- **Mipmapping in 3D graphics**, which exists entirely to prevent texture
+- Mipmapping in 3D graphics, which exists entirely to prevent texture
   aliasing at distance.
-- **Anti-aliasing in rendering** — supersampling renders large and area-averages
+- Anti-aliasing in rendering: supersampling renders large and area-averages
   down.
-- **Audio decimation**, where a low-pass filter before downsampling is
+- Audio decimation, where a low-pass filter before downsampling is
   mandatory for the same Nyquist reason.
-- **Digital cameras**, whose optical low-pass filter blurs slightly *before* the
+- Digital cameras, whose optical low-pass filter blurs slightly *before* the
   sensor samples, to prevent moiré on fabric.
 
 ## Related pages
 
-- [Lanczos resampling](lanczos-resampling.md) — the opposite direction, and why
+- [Lanczos resampling](lanczos-resampling.md): the opposite direction, and why
   the best upscaler is the wrong downscaler.
-- [Bilinear and bicubic interpolation](bilinear-and-bicubic-interpolation.md) —
+- [Bilinear and bicubic interpolation](bilinear-and-bicubic-interpolation.md):
   the general-purpose middle ground.
-- [Multi-scale analysis](multi-scale-analysis.md) — detecting small and mapping
+- [Multi-scale analysis](multi-scale-analysis.md): detecting small and mapping
   back large.
-- [Gaussian blur](gaussian-blur.md) — the low-pass filter this performs
+- [Gaussian blur](gaussian-blur.md): the low-pass filter this performs
   implicitly.

@@ -19,10 +19,10 @@ difference between a usable message and a confusing one.
 
 Two kinds of check, easily conflated:
 
-**Schema validation** — is the data the right shape? Types, required fields,
+**Schema validation**: is the data the right shape? Types, required fields,
 value ranges. Answered by [Pydantic](json-schema-design.md).
 
-**Structural validation** — is the data *complete and coherent* as a piece of
+**Structural validation**: is the data *complete and coherent* as a piece of
 work? Is the polygon closed? Does it self-intersect? Has every face been
 registered?
 
@@ -78,7 +78,7 @@ model_class = schema_models[schema_type]
 validated = model_class(**{**model_state, "source": "manual_editor"})
 ```
 
-Structural first, schema second — and only when the payload *is* an envelope:
+Structural first, schema second, and only when the payload *is* an envelope:
 
 ```python
 def _is_editor_envelope(state) -> bool:
@@ -117,9 +117,9 @@ def _validate_editor_structure(state, schema_type) -> dict:
     return finalize_state
 ```
 
-The ordering is a design decision. Each check assumes the previous one passed —
-`_validate_polygons` can iterate faces because `faces` has been proved a
-non-empty list — and each failure is reported at the level a user thinks at:
+The ordering is a design decision. Each check assumes the previous one passed
+(`_validate_polygons` can iterate faces because `faces` has been proved a
+non-empty list), and each failure is reported at the level a user thinks at:
 first "is there a face?", then "does it have a shape?", then "is the shape
 valid?", then "is it registered?"
 
@@ -184,7 +184,7 @@ if missing_fields:
 ```
 
 An out-of-range bearing is folded into the *same* "incomplete" message rather
-than raising separately — because to the user, a bearing of 400° is as unusable
+than raising separately, because to the user, a bearing of 400° is as unusable
 as a missing one, and one message listing every bad field beats four separate
 errors.
 
@@ -211,7 +211,7 @@ previous.**
 | **Schema first, structural second** | Shape, then coherence | Wrong order: the schema fails first on an incomplete drawing, so the structural message never appears. |
 | **Structural first, schema second** *(chosen)* | Coherence, then shape | The user sees the real problem. The schema still runs, catching anything structural checks do not cover. |
 | **One combined validator** | Custom Pydantic validators for everything | Possible, and it would tangle "is this a valid drawing?" with "is this a valid document?", and the errors would all be `ValidationError`. |
-| **Validate in the browser only** | Check before submitting | Already done — `canvas/grid.mjs` has `validateEditorStateForFinalize`. Client checks are for feedback; the server must not trust them. |
+| **Validate in the browser only** | Check before submitting | Already done: `canvas/grid.mjs` has `validateEditorStateForFinalize`. Client checks are for feedback; the server must not trust them. |
 
 The generalisable rule: **order validation from the user's mental model outward.**
 A person drawing polygons thinks in faces and shapes, not in JSON fields, so the
@@ -223,36 +223,36 @@ Both layers are microseconds.
 
 The costs:
 
-- **Duplication.** Some rules exist in both layers — a face needs a name
+- Duplication. Some rules exist in both layers: a face needs a name
   structurally and the schema requires it too. Cheap insurance, since the
   structural layer is skipped for legacy states.
-- **Ordering is load-bearing and invisible.** Reordering the calls in
+- Ordering is load-bearing and invisible. Reordering the calls in
   `_validate_editor_structure` changes which message a user sees, with no test
   failure to warn you. The module docstring is the guard.
-- **Fourteen exception classes** to maintain — one shared base and thirteen
+- Fourteen exception classes to maintain: one shared base and thirteen
   specific rules.
-- **The browser duplicates the rules** in `canvas/grid.mjs`, so a change must be
+- The browser duplicates the rules in `canvas/grid.mjs`, so a change must be
   made twice. The trade is immediate feedback while drawing; the server remains
   the authority.
 
 ## Where else you meet it
 
-- **Compilers**, which run lexing, parsing, and type checking in order so each
-  error is reported at the right level — a syntax error is not reported as a
+- Compilers, which run lexing, parsing, and type checking in order so each
+  error is reported at the right level. A syntax error is not reported as a
   type error.
-- **Form validation**, where "this field is required" precedes "this value is
+- Form validation, where "this field is required" precedes "this value is
   invalid".
-- **Document formats**, where well-formedness precedes validity (XML's own
+- Document formats, where well-formedness precedes validity (XML's own
   distinction).
-- **Linters versus type checkers**, which answer different questions about the
+- Linters versus type checkers, which answer different questions about the
   same source.
 
 ## Related pages
 
-- [Validation at trust boundaries](validation-at-trust-boundaries.md) — the
+- [Validation at trust boundaries](validation-at-trust-boundaries.md): the
   wider discipline.
-- [Error taxonomies](error-taxonomies.md) — one class per rule.
-- [JSON and schema design](json-schema-design.md) — the second layer.
-- [Polygon self-intersection](polygon-self-intersection.md) — one of the
+- [Error taxonomies](error-taxonomies.md): one class per rule.
+- [JSON and schema design](json-schema-design.md): the second layer.
+- [Polygon self-intersection](polygon-self-intersection.md): one of the
   structural checks.
-- [Validation rules](../reference/validation-rules.md) — every message.
+- [Validation rules](../reference/validation-rules.md): every message.

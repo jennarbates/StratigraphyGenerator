@@ -3,7 +3,7 @@
 A leaf module: it imports nothing from ``backend`` or ``pipeline``, so both
 layers can depend on it without inverting the dependency direction.
 
-Read these through the module — ``storage.JOBS_DIR``, never
+Read these through the module (``storage.JOBS_DIR``), never
 ``from storage import JOBS_DIR``. The ``from`` form binds the value at import
 time, which is what previously left four modules holding private copies that a
 test could not redirect. Reading the attribute at call time means one

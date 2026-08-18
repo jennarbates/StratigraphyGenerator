@@ -38,7 +38,7 @@ export function unavailableReason(scenario) {
   if (!scenario.dataset) return "No record set is configured for this.";
   return (
     `Needs the ${scenario.dataset} record set, which is either missing or `
-    + "holds real excavation records — the demonstration draws wall sections, "
+    + "holds real excavation records. The demonstration draws wall sections, "
     + "and those are never drawn under a real trench's label."
   );
 }
@@ -55,7 +55,7 @@ export function demoCardModel(payload) {
     heading: anySeeded ? "Demonstration loaded" : "Never used this before?",
     lede: anySeeded
       ? seededLede(seeded)
-      : "Load a demonstration trench — no drawing needed.",
+      : "Load a demonstration trench. No drawing needed.",
     actions: scenarios.map(scenario => ({
       scenario: scenario.name,
       label: scenarioCopy(scenario.name).action,

@@ -19,9 +19,9 @@ candidates are the same stone.
 IoU = area(A ∩ B) / area(A ∪ B)
 ```
 
-- **1.0** — identical regions.
-- **0.5** — substantial overlap.
-- **0.0** — no overlap at all.
+- 1.0: identical regions.
+- 0.5: substantial overlap.
+- 0.0: no overlap at all.
 
 Also called the *Jaccard index*.
 
@@ -95,7 +95,7 @@ Two guards worth noting: `max(0.0, ...)` on each dimension handles disjoint
 boxes, where the naive subtraction would give a negative width and a spurious
 positive area; and `if union > 0` handles degenerate zero-area boxes.
 
-The interesting part is how the threshold is applied — not as one cut, but two:
+The interesting part is how the threshold is applied, not as one cut, but two:
 
 ```python
 center_threshold = 0.18 * min(
@@ -111,7 +111,7 @@ if overlap >= 0.68 or (close_centers and overlap >= 0.35):
     break
 ```
 
-**High overlap alone (≥ 0.68)** is enough — clearly the same object.
+**High overlap alone (≥ 0.68)** is enough: clearly the same object.
 
 **Moderate overlap (≥ 0.35) plus concentric centres** is also enough. This is the
 nested-contour case: [Canny](canny-edge-detection.md) reports both sides of a
@@ -121,15 +121,15 @@ relative to the stone. The centre test catches what IoU alone would miss. See
 [contour hierarchy](contour-hierarchy.md), which is the alternative way of
 handling exactly this.
 
-The centre threshold is itself scale-relative — 18% of the *smaller* candidate's
-size — so it means the same thing for a pebble and for a boulder.
+The centre threshold is itself scale-relative (18% of the *smaller* candidate's
+size), so it means the same thing for a pebble and for a boulder.
 
 ## Why this and not something else
 
 | Alternative | How it would work here | Why it lost |
 |---|---|---|
 | **Raw intersection area** | Overlap in px² | Not normalised: the same absolute overlap means "identical" for small boxes and "barely touching" for large ones. No single threshold works. |
-| **Centre distance alone** | Merge if centres are close | Used here *in conjunction*, not alone. Two genuinely different concentric objects — a stone inside a lens — would be merged, and two boxes with the same centre but very different sizes are not the same object. |
+| **Centre distance alone** | Merge if centres are close | Used here *in conjunction*, not alone. Two genuinely different concentric objects (a stone inside a lens) would be merged, and two boxes with the same centre but very different sizes are not the same object. |
 | **Intersection over minimum** | `∩ / min(A, B)` | Reports 1.0 whenever one box is entirely inside another, so a small stone drawn inside a large feature is always a duplicate. That is sometimes wanted; here it would delete real nested features. |
 | **Mask IoU** (pixel-exact) | Overlap of the actual traced polygons | More accurate for irregular shapes, and it requires rasterising or clipping two polygons per comparison, against four `min`/`max` calls. With up to 250 candidates that is ~31 000 comparisons. |
 | **[Contour hierarchy](contour-hierarchy.md)** | Use the parent/child links to drop nested duplicates | Structurally exact for *nested* duplicates, and blind to non-nested near-duplicates that [morphological closing](morphological-closing.md) can produce from one wobbly stroke. IoU handles both with one mechanism. |
@@ -147,7 +147,7 @@ would buy little.
 
 ## What it costs
 
-O(1) per comparison — four `min`/`max`, three multiplications, one division.
+O(1) per comparison: four `min`/`max`, three multiplications, one division.
 
 [Deduplication](non-maximum-suppression.md) is O(k²) in candidate count: each
 new candidate is compared against everything already kept. With
@@ -163,21 +163,21 @@ surviving candidates are blob-like and their boxes are decent proxies.
 
 ## Where else you meet it
 
-- **Object detection.** IoU is *the* metric — it defines what counts as a
+- Object detection. IoU is *the* metric: it defines what counts as a
   correct detection (typically IoU ≥ 0.5 against ground truth) and drives
   [non-maximum suppression](non-maximum-suppression.md) in every detector from
   R-CNN to YOLO.
-- **Semantic segmentation**, where mean IoU is the standard benchmark score.
-- **Object tracking**, associating detections across frames.
-- **Text similarity**, where the Jaccard index over word sets is the same
+- Semantic segmentation, where mean IoU is the standard benchmark score.
+- Object tracking, associating detections across frames.
+- Text similarity, where the Jaccard index over word sets is the same
   formula.
-- **Recommender systems and deduplication**, comparing sets of attributes.
+- Recommender systems and deduplication, comparing sets of attributes.
 
 ## Related pages
 
-- [Non-maximum suppression](non-maximum-suppression.md) — what IoU feeds.
-- [Bounding boxes](bounding-boxes.md) — the geometry it is computed on.
-- [Contour hierarchy](contour-hierarchy.md) — the alternative way of handling
+- [Non-maximum suppression](non-maximum-suppression.md): what IoU feeds.
+- [Bounding boxes](bounding-boxes.md): the geometry it is computed on.
+- [Contour hierarchy](contour-hierarchy.md): the alternative way of handling
   nested duplicates.
-- [Greedy algorithms](greedy-algorithms.md) — the strategy the suppression uses.
-- [Sets and membership](sets-and-membership.md) — the Jaccard index in its set-theoretic form.
+- [Greedy algorithms](greedy-algorithms.md): the strategy the suppression uses.
+- [Sets and membership](sets-and-membership.md): the Jaccard index in its set-theoretic form.

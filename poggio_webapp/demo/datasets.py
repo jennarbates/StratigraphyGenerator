@@ -64,8 +64,8 @@ class DemoDataset:
     def provenance(self) -> str:
         """The badge the interface shows on everything seeded from this set."""
         if self.real_records:
-            return f"Real excavation records — {self.label} {self.season}"
-        return f"Synthetic demonstration data — {self.label} {self.season}"
+            return f"Real excavation records: {self.label} {self.season}"
+        return f"Synthetic demonstration data: {self.label} {self.season}"
 
 
 def _dataset_at(layout_path: Path, *, real_records: bool):

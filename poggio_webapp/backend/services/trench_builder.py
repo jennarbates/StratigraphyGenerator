@@ -543,7 +543,7 @@ def build(label, body):
     # refusal above must work without it installed.
     try:
         from pipeline import build_gempy
-    except Exception as error:
+    except ImportError as error:
         raise GempyUnavailableError(
             f"gempy import failed: {error}. Install with "
             f"`pip install gempy gempy_viewer --break-system-packages`."

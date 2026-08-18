@@ -33,8 +33,8 @@ proper crossing  ⟺  d₁ and d₂ have opposite signs
                 AND d₃ and d₄ have opposite signs
 ```
 
-That covers the general case. The **collinear** cases — where some `dᵢ` is zero,
-meaning a point lies on the other segment's line — need separate handling: a
+That covers the general case. The **collinear** cases (where some `dᵢ` is zero,
+meaning a point lies on the other segment's line) need separate handling: a
 zero means "on the line," and whether it is also *on the segment* requires a
 bounding-box check.
 
@@ -136,7 +136,7 @@ function segmentsIntersect(a, b, c, d) {
 }
 ```
 
-Same structure, **epsilon-tolerant** — and the difference is principled. These
+Same structure, **epsilon-tolerant**, and the difference is principled. These
 coordinates have been through [interpolation](linear-interpolation.md) during
 [polyline clipping](polyline-clipping.md), so they carry accumulated rounding.
 Exact zero would rarely occur even where the geometry is genuinely collinear.
@@ -150,17 +150,17 @@ See [epsilon comparison](epsilon-comparison.md).
 polygons a user draws in the browser editor before they can be saved.
 
 In all three cases the caller is
-[polygon self-intersection](polygon-self-intersection.md) — the reason this
+[polygon self-intersection](polygon-self-intersection.md), the reason this
 predicate exists here at all.
 
 ## Why this and not something else
 
 | Alternative | How it would work | Why it lost |
 |---|---|---|
-| **Solve for the intersection point** | Parametric equations, solve for `t` and `u`, check both in `[0,1]` | Gives you *where*, which nothing here needs. It requires a **division** by the cross product, which is zero for parallel segments — so it needs its own degenerate branch anyway, and the division introduces rounding that the orientation-only test avoids. |
+| **Solve for the intersection point** | Parametric equations, solve for `t` and `u`, check both in `[0,1]` | Gives you *where*, which nothing here needs. It requires a **division** by the cross product, which is zero for parallel segments, so it needs its own degenerate branch anyway, and the division introduces rounding that the orientation-only test avoids. |
 | **Slope comparison** | `y = mx + c` for each, solve | Vertical segments have infinite slope. Every implementation needs a special case, and the special case is where the bugs are. |
-| **Bounding-box overlap only** | Cheap rejection test | Necessary but not sufficient — two segments can have overlapping boxes without crossing. Useful as a pre-filter, not as an answer. |
-| **A geometry library (Shapely, JTS)** | `a.intersects(b)` | Robust, well-tested, and a heavyweight dependency for one predicate — in the browser especially, where this must run client-side with no build step. |
+| **Bounding-box overlap only** | Cheap rejection test | Necessary but not sufficient: two segments can have overlapping boxes without crossing. Useful as a pre-filter, not as an answer. |
+| **A geometry library (Shapely, JTS)** | `a.intersects(b)` | Robust, well-tested, and a heavyweight dependency for one predicate, in the browser especially, where this must run client-side with no build step. |
 | **Four orientation tests** *(chosen)* | Straddle test plus collinear cases | No division, no special case for vertical or parallel, exact on exact input, and it answers precisely the question asked. |
 
 The design point: **the predicate answers exactly the question, and nothing
@@ -170,7 +170,7 @@ lives.
 
 ## What it costs
 
-Four orientation tests plus up to four bounding-box checks — O(1), around 16
+Four orientation tests plus up to four bounding-box checks: O(1), around 16
 multiplies in the worst case.
 
 The consumer is what drives the total cost:
@@ -181,32 +181,32 @@ were not.
 
 The subtle costs:
 
-- **Collinear overlap is easy to get wrong.** All four orientations are zero and
+- Collinear overlap is easy to get wrong. All four orientations are zero and
   the segments may or may not overlap; only the bounding-box check resolves it.
   Both implementations here handle it.
-- **Shared endpoints count as intersections** under this predicate. That is
+- Shared endpoints count as intersections under this predicate. That is
   correct in general and wrong for *adjacent* polygon edges, which necessarily
-  share a vertex — so the caller must skip adjacent pairs, and both callers do.
+  share a vertex, so the caller must skip adjacent pairs, and both callers do.
 
 ## Where else you meet it
 
-- **Polygon clipping** in graphics and GIS — Sutherland–Hodgman,
+- Polygon clipping in graphics and GIS: Sutherland–Hodgman,
   Weiler–Atherton, and the boolean operations behind every "intersect layers"
   tool.
-- **Collision detection** in 2D games.
-- **Path planning**, testing whether a proposed route crosses an obstacle edge.
-- **CAD**, validating that a profile is a simple closed curve before extrusion.
-- **Map rendering**, deciding whether a label's leader line crosses a feature.
-- **Ray casting** for point-in-polygon, which counts crossings of a test ray.
+- Collision detection in 2D games.
+- Path planning, testing whether a proposed route crosses an obstacle edge.
+- CAD, validating that a profile is a simple closed curve before extrusion.
+- Map rendering, deciding whether a label's leader line crosses a feature.
+- Ray casting for point-in-polygon, which counts crossings of a test ray.
 
 ## Related pages
 
-- [Signed area and the orientation test](signed-area-and-orientation-test.md) —
+- [Signed area and the orientation test](signed-area-and-orientation-test.md):
   the primitive.
-- [Polygon self-intersection](polygon-self-intersection.md) — the caller.
-- [Epsilon comparison](epsilon-comparison.md) — why one implementation is exact
+- [Polygon self-intersection](polygon-self-intersection.md): the caller.
+- [Epsilon comparison](epsilon-comparison.md): why one implementation is exact
   and the other is not.
-- [Point in polygon](point-in-polygon.md) — a related predicate, considered and
+- [Point in polygon](point-in-polygon.md): a related predicate, considered and
   not used here.
-- [Polyline clipping](polyline-clipping.md) — where the tolerant version's
+- [Polyline clipping](polyline-clipping.md): where the tolerant version's
   inputs come from.

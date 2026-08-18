@@ -9,7 +9,7 @@ from pipeline import convert_coords as p_convert_coords
 from pipeline import normalizer as p_normalizer
 from pipeline import validator as p_validator
 
-from ..errors import _friendly_error
+from ..errors import PIPELINE_INPUT_ERRORS, _friendly_error
 from ..jobs import job_dir, load_meta, rel_url, save_meta
 
 bp = Blueprint("processing", __name__)
@@ -24,7 +24,7 @@ def run_normalize(job_id):
     out_path = job_dir(job_id) / "04_normalize_validate" / "output_clean.json"
     try:
         data, log = p_normalizer.run_normalize(meta["extraction_path"], str(out_path))
-    except Exception as e:
+    except PIPELINE_INPUT_ERRORS as e:
         return jsonify({"error": _friendly_error(e)}), 400
 
     meta["normalized_path"] = str(out_path)
@@ -58,7 +58,7 @@ def run_validate(job_id):
                 body.get("max_depth", p_validator.DEFAULT_MAX_PLAUSIBLE_DEPTH_M)
             ),
         )
-    except Exception as e:
+    except PIPELINE_INPUT_ERRORS as e:
         return jsonify({"error": _friendly_error(e)}), 400
 
     return jsonify(report)
@@ -75,7 +75,7 @@ def gridconfig_starter(job_id):
         return jsonify(
             {
                 "error": "this extraction is neither an illustrator sheet "
-                "(trenchProfiles) nor a field-wall sheet (loci/layers) — "
+                "(trenchProfiles) nor a field-wall sheet (loci/layers), so there is "
                 "nothing to register"
             }
         ), 400
@@ -100,7 +100,7 @@ def run_convert(job_id):
 
     try:
         result = p_convert_coords.run_convert(data, grid, str(out_csv))
-    except Exception as e:
+    except PIPELINE_INPUT_ERRORS as e:
         return jsonify({"error": str(e)}), 400
 
     if result["n_points"] == 0:

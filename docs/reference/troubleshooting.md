@@ -25,8 +25,8 @@ PDF input needs Poppler installed on the host, separately from the Python
 packages. On macOS, `brew install poppler`; on Debian or Ubuntu,
 `apt install poppler-utils`.
 
-PNG, JPEG, and TIFF need nothing extra. Uploading a PDF succeeds either way —
-the failure appears later, at [prepare the image](../workflows/02-prepare-image.md).
+PNG, JPEG, and TIFF need nothing extra. Uploading a PDF succeeds either way.
+The failure appears later, at [prepare the image](../workflows/02-prepare-image.md).
 
 ### "gempy import failed"
 
@@ -54,11 +54,11 @@ the raw exception travels alongside as `error_detail`.
 | Symptom | Meaning | What to do |
 |---|---|---|
 | A JSON parse error | Almost always a truncated response, cut off by the output-token limit | Raise `max_output_tokens` and re-run the extraction |
-| `500`, `502`, `503`, `504` | Google's servers failed on every retry | Wait 15–30 minutes. Do not hammer re-run — each attempt re-sends the whole image and spends quota |
+| `500`, `502`, `503`, `504` | Google's servers failed on every retry | Wait 15–30 minutes. Do not hammer re-run: each attempt re-sends the whole image and spends quota |
 | `429` | Out of quota | Retrying will not help until the quota resets. Free-tier keys have daily caps a few large extractions can exhaust |
 | `400`, `401`, `403` | Invalid or restricted key, or a project without the Gemini API enabled | Check the key. Retrying with the same key will keep failing |
 
-If a `5xx` persists, the suggested workaround is to shrink the request — lower
+If a `5xx` persists, the suggested workaround is to shrink the request: lower
 `max_output_tokens`, or reduce `MAX_SEND_DIMENSION` in the extraction module.
 If it still fails after a day, report it on the project's issue tracker.
 
@@ -69,7 +69,7 @@ AI steps abort with `400` when no key is supplied, either in the request or as
 the `GEMINI_API_KEY` environment variable.
 
 This step is optional. It can be skipped entirely, and the manual path needs no
-key at all — see [choose your path](../start-here/choose-your-path.md).
+key at all (see [choose your path](../start-here/choose-your-path.md)).
 
 ## Validation
 
@@ -94,7 +94,7 @@ detail is in [combine walls into one trench](../workflows/09-multi-wall-trench.m
 | `conversion produced no interface points` | Check that the walls' layers have boundary points |
 
 A build that reports a **cycle** means the walls contradict each other about
-layer order — one wall puts a locus above another, a second puts it below. The
+layer order: one wall puts a locus above another, a second puts it below. The
 message names the surfaces actually on the cycle. This is a recording
 disagreement to resolve on the drawings, not a bug.
 
@@ -104,7 +104,7 @@ disagreement to resolve on the drawings, not a bug.
 
 Job artifacts persist on disk, but asynchronous task state lives only in
 process memory. Restarting the server loses task status and logs, and there is
-no durable queue. A long-running build that was in progress is orphaned — the
+no durable queue. A long-running build that was in progress is orphaned. The
 files it already wrote remain, but its status is unrecoverable.
 
 ### A job cannot be found
@@ -117,7 +117,7 @@ jobs, and anything you clean up is gone permanently.
 
 Both the job and trench file routes resolve the requested path and refuse to
 escape their own directory. A rejected path is usually a leading `/` or a `..`
-segment, not a missing file — a genuinely missing file returns `404`.
+segment, not a missing file (a genuinely missing file returns `404`).
 
 ## Documentation build
 
@@ -135,8 +135,8 @@ error rather than a warning.
 
 ## Related
 
-- [Capability status](../project/capability-status.md) — whether the thing you
+- [Capability status](../project/capability-status.md): whether the thing you
   are trying to do is wired up at all.
-- [Running the tests](running-the-tests.md) — confirm the installation itself
+- [Running the tests](running-the-tests.md): confirm the installation itself
   is sound.
-- [Configuration](configuration.md) — environment variables and paths.
+- [Configuration](configuration.md): environment variables and paths.

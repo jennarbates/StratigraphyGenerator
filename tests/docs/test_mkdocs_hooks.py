@@ -2,10 +2,10 @@
 
 The learning course itself is in the configured navigation, so it needs no
 hook. The gradebook is a draft_doc, which means the build-side guarantee (it
-never reaches the published site) belongs to MkDocs. What the hook owns — and
-what these tests pin down — is the navigation: the gradebook is appended to the
-learning section during serve, left alone during build, appended once across
-rebuilds, and silently absent on machines that do not have the file.
+never reaches the published site) belongs to MkDocs. The hook owns the
+navigation, which is what these tests pin down: the gradebook is appended to
+the learning section during serve, left alone during build, appended once
+across rebuilds, and silently absent on machines that do not have the file.
 """
 
 from __future__ import annotations

@@ -22,7 +22,7 @@ uses, one page each.
 
 These pages are written for someone who knows the archaeology and not the
 computer science. Each one starts from the idea in plain language, shows the
-exact place this project uses it, and — the part that is usually missing —
+exact place this project uses it, and (the part that is usually missing)
 explains **why that technique rather than the obvious alternative**. A
 technique chosen for a reason is a technique a future maintainer can change
 safely.

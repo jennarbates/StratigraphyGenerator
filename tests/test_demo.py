@@ -23,9 +23,7 @@ from demo.run import run
 pytestmark = pytest.mark.usefixtures("storage_dirs")
 
 
-# ---------------------------------------------------------------------------
 # Discovery
-# ---------------------------------------------------------------------------
 
 
 # 1. The tracked record set is always there, so a fresh clone can demo.
@@ -60,9 +58,7 @@ def test_a_missing_local_root_is_not_an_error(tmp_path, monkeypatch):
     assert "T905" in datasets.discover()
 
 
-# ---------------------------------------------------------------------------
 # The demonstration that stops
-# ---------------------------------------------------------------------------
 
 
 @pytest.fixture
@@ -108,9 +104,7 @@ def test_stops_gets_all_the_way_to_the_registration_check(stops):
     assert "no normalized extraction" not in outcome["message"]
 
 
-# ---------------------------------------------------------------------------
 # The demonstration that goes all the way
-# ---------------------------------------------------------------------------
 
 
 # 9. It is the same trench with one number added, under its own label so both
@@ -182,9 +176,7 @@ def test_abutments_are_counted_rather_than_quietly_lost(stops):
     assert stops["dropped_abutments"] == 3
 
 
-# ---------------------------------------------------------------------------
 # What the seeder may touch
-# ---------------------------------------------------------------------------
 
 
 # 15. Reseeding replaces rather than accumulates. A demo that grows a duplicate
@@ -244,9 +236,7 @@ def test_an_unknown_scenario_lists_the_real_ones():
     assert "complete" in str(excinfo.value)
 
 
-# ---------------------------------------------------------------------------
 # The generated sections
-# ---------------------------------------------------------------------------
 
 
 # 19. Boundaries are shared objects, not two roundings of one surface: the

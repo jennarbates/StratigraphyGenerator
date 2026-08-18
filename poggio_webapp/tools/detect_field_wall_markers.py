@@ -1,5 +1,5 @@
 """
-detect_field_wall_markers.py — find the artist's actual circle-marked vertex
+Find the artist's actual circle-marked vertex
 points on a field-wall photo (like T104's), computationally, instead of
 asking an LLM to invent boundary coordinates.
 
@@ -11,11 +11,11 @@ spacing, identical patterns copy-pasted across loci) instead of actually
 reading the drawn line. The recorder's convention on this sheet is: measure
 each vertex, mark it with a small circle/dot, connect the dots with a
 straightedge. That means the real vertex positions are a computer-vision
-problem (find small circular marks), not a freeform-tracing problem — and
+problem (find small circular marks), not a freeform-tracing problem, and
 CV can't fabricate a point that isn't there the way an LLM can.
 
 This script does NOT figure out which locus/boundary each marker belongs
-to — that's a separate, still-open step (see bottom of file). It only
+to. That's a separate, still-open step (see bottom of file). It only
 finds markers and converts pixel -> real meters.
 
 Coordinate convention (matches extractFieldWall.py / convertCoords.py):
@@ -32,16 +32,16 @@ Usage:
         --debug-image markers_debug.png
 
 --rotate matches how the source photo needs turning to be right-side-up
-(T104_southern_baulk_wall.jpeg as stored is sideways — needs --rotate 90).
+(T104_southern_baulk_wall.jpeg as stored is sideways and needs --rotate 90).
 This script always reads the image with EXIF auto-rotation explicitly
 DISABLED (cv2.IMREAD_IGNORE_ORIENTATION), because some OpenCV builds apply
-EXIF rotation automatically and some don't — without forcing this off,
+EXIF rotation automatically and some don't. Without forcing this off,
 --rotate's meaning would depend on whose machine runs the script. All
 other pixel-based arguments refer to the ALREADY-ROTATED frame.
 
 --origin-px is the PIXEL coordinate of the wall's top-left corner
 (x=0, depth=0) in the (possibly rotated) source photo. Read it off by
-hovering in any image viewer — automated corner detection on this photo
+hovering in any image viewer. Automated corner detection on this photo
 was unreliable (the drawn box border fragments under contour/line
 detection, competing with the grid and the profile ink itself), so this
 script asks for it once rather than guessing.
@@ -78,7 +78,7 @@ def find_grid_px_per_cm(gray, redness, sample_box, square_cm):
     if len(bold) < 2:
         raise SystemExit(
             "Couldn't find at least 2 bold grid lines in --grid-sample-box "
-            "to measure spacing — pick a cleaner blank patch of the grid "
+            "to measure spacing. Pick a cleaner blank patch of the grid "
             "(no ink/text) via --grid-sample-box y0 y1 x0 x1."
         )
     bold_spacing_px = float(np.mean(np.diff(bold)))
@@ -265,25 +265,23 @@ def main():
         img, accepted, rejected, args.origin_px, px_per_cm, args.debug_image
     )
     print(
-        f"wrote {args.debug_image} — ALWAYS check this before trusting "
+        f"wrote {args.debug_image}. ALWAYS check this before trusting "
         f"{args.out}. Green circles = accepted markers, red = rejected "
         f"candidates, magenta cross = the origin you gave."
     )
     print(
         "\nNOTE: this only finds marker points, it does not know which "
         "locus/boundary each one belongs to. That assignment step is "
-        "still open — see the file's module docstring."
+        "still open (see the file's module docstring)."
     )
 
 
 if __name__ == "__main__":
     main()
 
-# ============================================================
 # STILL OPEN: assigning markers to a locus/boundary
-# ============================================================
 # This script finds every circle-marker-shaped thing in the ink layer, in
-# no particular grouping — locus boundaries, stray dots in handwriting,
+# no particular grouping: locus boundaries, stray dots in handwriting,
 # and any letter "o"s that survive the circularity filter all come out the
 # same way. What it does NOT do is know that, say, markers at
 # (0.10, 0.14), (0.32, 0.15), (0.58, 0.13)... belong to Locus 3's top
@@ -298,6 +296,6 @@ if __name__ == "__main__":
 #      new ones), and ask it only to assign each given point to a locus
 #      and top/final-base role. This is a classification task over real,
 #      fixed points rather than a coordinate-generation task, which is
-#      exactly the part of the previous approach that kept fabricating —
-#      worth trying, but verify the assignments the same way the
+#      exactly the part of the previous approach that kept fabricating.
+#      Worth trying, but verify the assignments the same way the
 #      coordinates themselves needed verifying.

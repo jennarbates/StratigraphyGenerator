@@ -20,10 +20,10 @@ user already made about them.
 
 Two ways to give something an identifier:
 
-**Allocated** — a counter, a UUID, a database sequence. The ID is independent of
+**Allocated**: a counter, a UUID, a database sequence. The ID is independent of
 the content, so the same thing created twice gets two IDs.
 
-**Content-addressed** — derive the ID from the content by
+**Content-addressed**: derive the ID from the content by
 [hashing](hash-functions-and-sha256.md). The same content always gets the same
 ID, no matter when, where, or how many times it is computed.
 
@@ -46,11 +46,11 @@ part.
 
 ```mermaid
 flowchart TB
-  subgraph alloc["allocated — uuid4()"]
+  subgraph alloc["allocated by uuid4()"]
     A1["import job X"] --> A2["unit-9f31…"]
     A3["import job X again"] --> A4["unit-c07b…<br/>DUPLICATE"]
   end
-  subgraph content["content-addressed — sha256(source)"]
+  subgraph content["content-addressed by sha256(source)"]
     B1["import job X"] --> B2["unit-4f2a8c1e9b03"]
     B3["import job X again"] --> B4["unit-4f2a8c1e9b03<br/>recognised, merged"]
   end
@@ -69,7 +69,7 @@ def _unit_id(job_id, schema_type, face, layer_index) -> str:
     return f"unit-{suffix}"
 ```
 
-The ID is a function of the unit's **source position** — not its label, not its
+The ID is a function of the unit's **source position**, not its label, not its
 description, not its Munsell reading. That choice is deliberate: a user can
 rename a unit or edit its description and it remains the same unit, because
 identity is anchored to provenance rather than to mutable content.
@@ -145,7 +145,7 @@ task_id = str(uuid.uuid4())
 
 All three are random, and correctly so. A job, a matrix, and a task are
 **entities with a lifetime**, not values. Starting a second job on the same
-drawing must create a second job — if the ID were derived from the drawing, the
+drawing must create a second job. If the ID were derived from the drawing, the
 two would collide and the first would be overwritten.
 
 The rule that emerges: **content-address values, allocate entities.** A unit
@@ -154,61 +154,61 @@ an entity.
 
 Note the collision handling differs too. `harris_store` retries on an existing
 directory, because random IDs *can* collide and the filesystem is the arbiter.
-Content-addressed IDs need no such loop — a collision would mean identical
+Content-addressed IDs need no such loop: a collision would mean identical
 content, which is the desired outcome.
 
 ## Why this and not something else
 
 | Alternative | How it would identify a suggestion | Why it lost |
 |---|---|---|
-| **`uuid4()`** | Random per generation | Every regeneration produces new IDs, so accept/reject decisions are lost. A separate "dismissed proposals" table keyed on content would be needed — reinventing content addressing badly. |
+| **`uuid4()`** | Random per generation | Every regeneration produces new IDs, so accept/reject decisions are lost. A separate "dismissed proposals" table keyed on content would be needed, reinventing content addressing badly. |
 | **Sequential integers** | A counter | Needs shared mutable state, and the numbers mean nothing across regenerations. |
 | **A natural key** | `"ordering:unit-a:unit-b"` | Honest and readable, and unbounded in length, and it embeds face labels that may contain arbitrary text. A fixed-width hex ID is safe as a regex-validated field and a heap key. |
-| **Hash of the whole object** | Include labels and descriptions | Would change the ID when a user renames a unit — so renaming a locus would orphan every relation pointing at it. Hashing *provenance only* is what keeps identity stable under editing. |
+| **Hash of the whole object** | Include labels and descriptions | Would change the ID when a user renames a unit, so renaming a locus would orphan every relation pointing at it. Hashing *provenance only* is what keeps identity stable under editing. |
 | **Hash of source position** *(chosen)* | Job, schema, face, layer index | Stable under editing, unique per source, and regenerable from the source document alone. |
 
 That fourth row is the subtle one, and it is the decision that makes the scheme
-work. Content addressing is not "hash everything" — it is "hash the part of the
+work. Content addressing is not "hash everything". It is "hash the part of the
 content that *defines* the thing." Choosing provenance rather than the full
 object is what separates a usable identity from one that breaks on every edit.
 
 ## What it costs
 
-A hash per ID — microseconds.
+A hash per ID: microseconds.
 
 The costs:
 
-- **The identity string is a contract.** Change the field order, the separator,
+- The identity string is a contract. Change the field order, the separator,
   or add a component, and every ID changes. Stored suggestions lose their
   accept/reject history and stored relations point at units that no longer
   exist. That is a data migration, not a refactor.
-- **Provenance-based identity has a blind spot.** If a source job's layers are
+- Provenance-based identity has a blind spot. If a source job's layers are
   reordered, layer index 3 now refers to a different deposit while keeping the
   same unit ID. Nothing detects this. The mitigation is that
   `SourceRef` records `source_label` alongside the index, so a reader can see the
   mismatch.
-- **Truncation is a bet on scale.** 48 bits is collision-free for hundreds of
+- Truncation is a bet on scale. 48 bits is collision-free for hundreds of
   units by an enormous margin, and it is a bet.
-- **IDs are opaque.** `unit-4f2a8c1e9b03` tells a human nothing. Hence
+- IDs are opaque. `unit-4f2a8c1e9b03` tells a human nothing. Hence
   `HarrisUnit.label`, which carries the meaning, and the
   `generic-label` warning that fires when it is still `Polygon 3`.
 
 ## Where else you meet it
 
-- **Git.** Every object is named by the SHA of its content; this is why the same
+- Git. Every object is named by the SHA of its content; this is why the same
   file in two repositories has the same blob hash.
-- **Docker image layers** and **Nix store paths**.
-- **IPFS**, where the address *is* the content hash.
-- **Package lock files**, pinning a dependency by digest rather than by version.
-- **Deduplicating backup systems**, storing each unique block once.
-- **Subresource integrity** in browsers.
+- Docker image layers and Nix store paths.
+- IPFS, where the address *is* the content hash.
+- Package lock files, pinning a dependency by digest rather than by version.
+- Deduplicating backup systems, storing each unique block once.
+- Subresource integrity in browsers.
 
 ## Related pages
 
-- [Hash functions and SHA-256](hash-functions-and-sha256.md) — the mechanism.
-- [Idempotency](idempotency.md) — the property this enables.
-- [Immutability and defensive copying](immutability-and-defensive-copying.md) —
+- [Hash functions and SHA-256](hash-functions-and-sha256.md): the mechanism.
+- [Idempotency](idempotency.md): the property this enables.
+- [Immutability and defensive copying](immutability-and-defensive-copying.md):
   the companion discipline.
-- [Regular expressions](regular-expressions.md) — how the ID format is enforced.
-- [Provenance and data lineage](provenance-and-data-lineage.md) — why identity
+- [Regular expressions](regular-expressions.md): how the ID format is enforced.
+- [Provenance and data lineage](provenance-and-data-lineage.md): why identity
   is anchored to source position.

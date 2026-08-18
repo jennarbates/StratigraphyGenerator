@@ -20,7 +20,7 @@ local coordinate system and its own surveyed placement. Where a
 A face is the unit the application computes with. It carries:
 
 - a **name**, which must be unique within a merged document;
-- a **local coordinate system** — distance along the face, and depth down from
+- a **local coordinate system**: distance along the face, and depth down from
   its top edge;
 - a **[grid registration](grid-registration.md)** placing that local system in
   site coordinates;
@@ -41,7 +41,7 @@ flowchart LR
   S --> M["one model, all faces together"]
 ```
 
-The face is the middle box — and it is where nearly all the recorded data lives.
+The face is the middle box, and it is where nearly all the recorded data lives.
 
 ## Why the model needs it
 
@@ -156,7 +156,7 @@ raise TrenchBuildError(
 Silently dropping a wall would produce a model missing a quarter of its evidence
 and looking complete.
 
-### Face names must be unique — GemPy fuses by string match
+### Face names must be unique: GemPy fuses by string match
 
 `poggio_webapp/pipeline/merge_walls.py` prefixes colliding names:
 
@@ -208,7 +208,7 @@ and nothing marks the resulting model as unsurveyed. This is the project's
 stated principal limitation.
 
 **Confusing the face's origin with the trench's corner.** `originX/Y` is the site
-position of the face's **x = 0 edge** — where you started measuring — which is
+position of the face's **x = 0 edge**, where you started measuring, which is
 not necessarily a trench corner.
 
 **Assuming the face is vertical.** The model treats depth as straight down from
@@ -222,10 +222,10 @@ extrapolated across the whole extent:
 
 ## Related pages
 
-- [Wall and baulk](wall-and-baulk.md) — the physical thing.
-- [Grid registration](grid-registration.md) — the four values.
-- [Site coordinates](site-coordinates.md) — the target system.
-- [Bearing and azimuth](bearing-and-azimuth.md) — the compass convention.
-- [Interface point](interface-point.md) — what a face's boundaries become.
-- [Coordinate spaces](../concepts/coordinate-spaces.md) — the three spaces.
-- [Place on site](../workflows/06-place-on-site.md) — the workflow step.
+- [Wall and baulk](wall-and-baulk.md): the physical thing.
+- [Grid registration](grid-registration.md): the four values.
+- [Site coordinates](site-coordinates.md): the target system.
+- [Bearing and azimuth](bearing-and-azimuth.md): the compass convention.
+- [Interface point](interface-point.md): what a face's boundaries become.
+- [Coordinate spaces](../concepts/coordinate-spaces.md): the three spaces.
+- [Place on site](../workflows/06-place-on-site.md): the workflow step.

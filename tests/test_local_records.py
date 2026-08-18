@@ -142,7 +142,7 @@ def finds(record):
     return record["finds"]
 
 
-# --------------------------------------------------------------------- helpers
+# helpers
 
 
 def _vertices(locus, phase):
@@ -184,7 +184,7 @@ def _recorded_elevations(layout):
     ]
 
 
-# ----------------------------------------------------------------- provenance
+# provenance
 
 
 def test_every_value_records_where_it_came_from(record):
@@ -220,7 +220,7 @@ def test_the_parts_of_a_record_agree_on_which_trench_they_are(record):
         assert fixture["season"] == layout["season"], part
 
 
-# ---------------------------------------------------------------- the layout
+# the layout
 
 
 def test_the_layout_registers(record):
@@ -296,7 +296,7 @@ def test_registered_walls_are_not_mistaken_for_placeholders(record):
         assert not merge_walls.is_placeholder(face, config), wall
 
 
-# ----------------------------------------------------------------- the datum
+# the datum
 
 
 def test_every_recorded_corner_sits_below_the_datum_nail(record):
@@ -347,7 +347,7 @@ def test_no_locus_surface_lies_above_the_datum_or_absurdly_below_it(
                 assert 0 < depth < MAX_DEPTH_BELOW_DATUM_M, (number, phase)
 
 
-# ------------------------------------------------------------------ the loci
+# the loci
 
 
 def test_every_locus_is_fully_recorded(loci):
@@ -465,7 +465,7 @@ def test_loci_opened_together_agree_where_their_edges_meet(loci):
         pytest.skip("no two loci in this trench share a vertex")
 
 
-# --------------------------------------------------------------- the matrix
+# the matrix
 
 
 def _matrix(loci):
@@ -594,7 +594,7 @@ def test_an_abutment_never_leaks_in_as_an_ordering(stratigraphy):
         assert tuple(reversed(pair)) not in ordered
 
 
-# ----------------------------------------------------------------- the finds
+# the finds
 
 
 def test_every_find_is_fully_located(finds):

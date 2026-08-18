@@ -2,7 +2,7 @@
 
 Wires pipeline/detect_features.py (CV closed-contour proposals) to the
 frontend's ftDetect/ftConfirm buttons in static/app/stages/features.js.
-Both routes existed only on the frontend until now — this blueprint was
+Both routes existed only on the frontend until now. This blueprint was
 simply never created, so every "Detect feature candidates" click hit
 Flask's default 404 handler.
 """
@@ -12,6 +12,7 @@ from pathlib import Path
 
 from flask import Blueprint, abort, jsonify, request
 
+from ..errors import PIPELINE_INPUT_ERRORS
 from ..jobs import job_dir, load_meta, rel_url, save_meta
 
 bp = Blueprint("features", __name__)
@@ -35,7 +36,7 @@ def features_detect(job_id):
     out_dir = job_dir(job_id) / "03_extraction"
     try:
         result = p_detect_features.run_detect(image_path, str(out_dir))
-    except Exception as e:
+    except PIPELINE_INPUT_ERRORS as e:
         return jsonify({"error": str(e)}), 400
 
     image_kind = "preprocessed" if meta.get("clean_image_path") else "raw scan"
@@ -66,7 +67,7 @@ def features_detect(job_id):
 def features_confirm(job_id):
     """Install the user-reviewed feature inventory (CV candidates with some
     accepted/rejected, plus any manually drawn) as this job's confirmed
-    features. An empty list is a valid, deliberate outcome — the features
+    features. An empty list is a valid, deliberate outcome: the features
     stage is optional and "reject everything, draw nothing" means no
     features, not an error."""
     meta = load_meta(job_id)
@@ -112,7 +113,7 @@ def features_confirm(job_id):
         review_path = out_dir / "features_reviewed.png"
         try:
             p_detect_features.write_review_overlay(image_path, out, str(review_path))
-        except Exception as e:
+        except PIPELINE_INPUT_ERRORS as e:
             return jsonify({"error": str(e)}), 400
         meta["features_review_image_path"] = str(review_path)
         review_url = rel_url(job_id, review_path)

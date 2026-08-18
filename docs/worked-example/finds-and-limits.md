@@ -13,7 +13,7 @@ verified_against: ae2fc1d
 # Finds, and what the record cannot support
 
 T905 produced 26 special finds. Every one has a locus, a date, a trench-book
-page, a coordinate and an elevation — which is more than many trenches manage,
+page, a coordinate and an elevation, which is more than many trenches manage,
 and enough to check.
 
 **Twenty-one of the 26 place consistently inside the locus they are filed
@@ -29,7 +29,7 @@ over the object; a tape is run at right angles from the plumb line to two
 perpendicular baulk strings, giving the easting and northing; a line level from
 the datum gives the elevation.
 
-Three of T905's finds — SF 1, 2 and 3 — were recovered from a **wheelbarrow**
+Three of T905's finds (SF 1, 2 and 3) were recovered from a **wheelbarrow**
 rather than in situ. Their coordinate is where the bucket was filled, not where
 the object lay, and the trench book says so by quoting a tolerance: ±25 cm in
 plan, ±6 to ±14 cm in elevation.
@@ -55,8 +55,8 @@ and its closing floor? Both allow 10 cm of slack, comfortably more than the
 | SF 17 | 152.55E is west of the sounding at 153E | 0.45 m outside |
 | SF 3 | 23.75 mAE is below every Locus 1 closing reading | 0.29 m below |
 
-**No single check catches all five.** SF 17's elevation is perfectly good — it
-sits correctly within Locus 6 — and only its easting is wrong. SF 3's
+**No single check catches all five.** SF 17's elevation is perfectly good (it
+sits correctly within Locus 6) and only its easting is wrong. SF 3's
 coordinate is fine; only its elevation is impossible. SF 16 fails both. A
 findspot has to be checked in three dimensions, or it is not being checked.
 
@@ -67,7 +67,7 @@ trench, and both were found in the northwest quadrant. Their northings are in
 range. It is the eastings that are wrong, and by suspiciously similar amounts.
 
 **SF 16** is the clearest error in the record. The daily log places it "in the
-northern metre of the sounding", and the sounding runs 22S to 24S — so the
+northern metre of the sounding", and the sounding runs 22S to 24S, so the
 prose and the recorded northing of 21.21S disagree. Its elevation of 23.44 mAE
 is below the deepest point the sounding ever reached (23.51 m) and therefore
 below the surface of Locus 8, which nobody excavated. Two independent numbers,
@@ -90,7 +90,7 @@ The other 21 are consistent with the surfaces recorded around them, and two
 further checks pass across all 26:
 
 **Every find is dated inside its locus's open-to-close window.** A find dated
-outside it would mean the locus number or the date is wrong. None are — the
+outside it would mean the locus number or the date is wrong. None are. The
 dates are the part of this record that holds together best.
 
 **The catalogued finds agree between the list and the locus form.** Locus 6 is
@@ -116,7 +116,7 @@ them.
 
 The log records SF 15 as lying "ca. 13 cm below the surface of the floor".
 Interpolating Locus 6's opening surface at its coordinates gives about
-23.89 mAE, and the find is at 23.82 — so **7 cm**, not 13.
+23.89 mAE, and the find is at 23.82, so **7 cm**, not 13.
 
 The Locus 6 description puts its Archaic material "approximately 15 to 20 cm
 beneath the floor" while grouping SF 15 with SF 20 and SF 21. Those two are in
@@ -131,7 +131,7 @@ where the two disagree the prose figure should be treated as an impression.
 ### An identification changed and the record did not say so
 
 `CAT-0051` is a "glass shard" in the field record and on the finds list. In the
-Lithics Summary it is an obsidian flake — and it is the trench's *only* lithic,
+Lithics Summary it is an obsidian flake, and it is the trench's *only* lithic,
 so the entire lithic count for the season rests on it.
 
 Obsidian is volcanic glass. This is very plausibly a re-identification during
@@ -155,7 +155,7 @@ Three of T905's material summaries do not survive arithmetic:
   yielded no bone; its table gives Locus 3 six fragments weighing 29 g. Loci 4,
   5 and 8 are the unexcavated ones.
 - The **SU forms' ceramic counts** disagree with the pottery chart for two
-  loci — 238 against 221, and 437 against 436.
+  loci: 238 against 221, and 437 against 436.
 
 The counts and weights are transcribed as printed, and the fixture records the
 disagreement rather than resolving it. Where a table and its own summary prose
@@ -164,13 +164,13 @@ is made of.
 
 ### Three things the schema cannot hold at all
 
-- **Abutment.** Three forms record `IS BOUND TO` — the floor runs up against
+- Abutment. Three forms record `IS BOUND TO`: the floor runs up against
   the wall. There is no younger-to-older edge for "touches", so the assertion
   is recorded in the fixture and absent from the matrix. See
   [stratigraphy](stratigraphy.md).
-- **The east wall's surface.** No opening elevation was ever measured at that
+- The east wall's surface. No opening elevation was ever measured at that
   corner, so it cannot be registered. See [registration](registration.md).
-- **Anything below Locus 8.** It was never excavated. A surface drawn beneath
+- Anything below Locus 8. It was never excavated. A surface drawn beneath
   it is invention.
 
 ## The habit worth copying
@@ -183,13 +183,13 @@ That is most of what a fixture like this is for. The
 [synthetic fixtures](../fixtures/README.md) show what a clean input looks like;
 T905 shows what an ordinary one looks like, and 5 in 26 is not an unusual rate.
 A pipeline that has only ever been demonstrated on clean input has not been
-shown to refuse anything — and refusing is the part that protects the
+shown to refuse anything, and refusing is the part that protects the
 interpretation.
 
 ## Related
 
-- [Log a find](../workflows/logging-finds.md) — recording findspots in the application
-- [Check for problems](../workflows/05-check-problems.md) — the validator and its rules
+- [Log a find](../workflows/logging-finds.md): recording findspots in the application
+- [Check for problems](../workflows/05-check-problems.md): the validator and its rules
 - [Markers, features, and finds](../concepts/markers-features-and-finds.md)
 - [Accuracy and provenance](../concepts/accuracy-and-provenance.md)
 - [Find identifiers](../archaeology/find-identifiers.md)

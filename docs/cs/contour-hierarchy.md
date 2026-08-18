@@ -11,7 +11,7 @@ verified_against: 636b160
 # Contour hierarchy
 
 Contours nest: a shape inside a hole inside a shape. Recording that nesting is
-one way to handle duplicates — and this project deliberately chooses a different
+one way to handle duplicates, and this project deliberately chooses a different
 way.
 
 ## What it is
@@ -34,13 +34,13 @@ The retrieval mode chooses how much is returned:
 | Mode | Returns |
 |---|---|
 | `RETR_EXTERNAL` | outermost contours only; children discarded |
-| `RETR_LIST` | every contour, flat — **hierarchy is all −1** |
+| `RETR_LIST` | every contour, flat: **hierarchy is all −1** |
 | `RETR_CCOMP` | two levels: outer boundaries and their holes |
 | `RETR_TREE` | the full nesting tree |
 
 The reason this matters on a line drawing is that
 [Canny](canny-edge-detection.md) reports both sides of every stroke. A single
-drawn line yields an outer and an inner contour that are nearly identical — a
+drawn line yields an outer and an inner contour that are nearly identical, a
 duplicate that has to be dealt with somehow.
 
 ## The picture
@@ -49,7 +49,7 @@ duplicate that has to be dealt with somehow.
 flowchart TB
   Frame["image frame contour"]
   Frame --> Stone["stone outline (outer edge)"]
-  Stone --> StoneIn["stone outline (inner edge)<br/>— the same ink, other side"]
+  Stone --> StoneIn["stone outline (inner edge),<br/>the same ink, other side"]
   Frame --> Dot["vertex dot"]
   Dot --> DotIn["dot inner edge<br/>(only if the dot is hollow)"]
   Frame -.-> Note["RETR_TREE records these links.<br/>RETR_LIST returns all five, unrelated."]
@@ -65,7 +65,7 @@ paper  ██ ink ██  paper
 
 ## Where this project uses it
 
-Both detectors request `RETR_LIST` and discard the hierarchy entirely — note the
+Both detectors request `RETR_LIST` and discard the hierarchy entirely. Note the
 `_` in each call.
 
 `poggio_webapp/pipeline/detect_markers.py`:
@@ -109,7 +109,7 @@ for entry in cand:
 ```
 
 The comment says "nested-contour duplicates" explicitly. Largest-first, then
-suppress anything whose centre is within half a marker diameter — a greedy
+suppress anything whose centre is within half a marker diameter: a greedy
 [non-maximum suppression](non-maximum-suppression.md).
 
 ### Feature detection: overlap-based deduplication
@@ -131,9 +131,9 @@ features are arbitrary shapes rather than approximately circular ones.
 | Alternative | How it would work here | Why it lost |
 |---|---|---|
 | **`RETR_EXTERNAL`** | Keep only outermost contours | Tempting, and it discards real evidence. A vertex dot drawn *inside* the closed loop of a boundary line would be a child, and would be silently dropped. The detectors must not lose a marker because of where it happens to sit. |
-| **`RETR_TREE` + hierarchy filtering** | Keep a contour only if its parent is not near-identical | Structurally correct and *precisely* what "nested duplicate" means. It requires walking the tree, comparing each child to its parent by area or shape, and choosing a similarity threshold anyway — so the geometric threshold reappears, wrapped in more code. |
+| **`RETR_TREE` + hierarchy filtering** | Keep a contour only if its parent is not near-identical | Structurally correct and *precisely* what "nested duplicate" means. It requires walking the tree, comparing each child to its parent by area or shape, and choosing a similarity threshold anyway, so the geometric threshold reappears, wrapped in more code. |
 | **`RETR_CCOMP`** | Two levels: outers and holes | The natural fit for filled regions with holes. `detect_features` works on **edges**, where the "outer/hole" distinction is an artefact of stroke width rather than a real property of the object. |
-| **`RETR_LIST` + geometric dedup** *(chosen)* | Flat list, suppress by proximity or overlap | One uniform mechanism. It handles nested duplicates *and* the unrelated near-duplicates that arise from [morphology](morphological-closing.md) merging or splitting shapes — cases hierarchy filtering cannot see at all. |
+| **`RETR_LIST` + geometric dedup** *(chosen)* | Flat list, suppress by proximity or overlap | One uniform mechanism. It handles nested duplicates *and* the unrelated near-duplicates that arise from [morphology](morphological-closing.md) merging or splitting shapes, cases hierarchy filtering cannot see at all. |
 
 The last row is the real argument. Hierarchy solves exactly one class of
 duplicate. Geometric suppression solves that class **plus** overlapping
@@ -152,13 +152,13 @@ ordered = sorted(
 )
 ```
 
-Hierarchy has no notion of quality — it would keep the parent whether or not
+Hierarchy has no notion of quality. It would keep the parent whether or not
 the parent is the better shape.
 
 ## What it costs
 
 Requesting `RETR_LIST` is marginally cheaper than `RETR_TREE`, since no parent
-links are recorded — a negligible saving.
+links are recorded, a negligible saving.
 
 The cost is paid in the deduplication, which is O(k²) in the number of surviving
 candidates: each new candidate is compared against everything kept. With
@@ -167,8 +167,8 @@ a spatial index at ten thousand candidates, which the size and shape filters
 ensure never happens.
 
 What is given up is genuine information. Knowing that a contour is *inside*
-another is archaeologically meaningful — a stone inside a layer, a
-[feature](../archaeology/index.md) within a [locus](../archaeology/locus.md) —
+another is archaeologically meaningful (a stone inside a layer, a
+[feature](../archaeology/index.md) within a [locus](../archaeology/locus.md)),
 and that relationship is currently established by a human during review, and by
 `manual_extraction._assign_features()`, which assigns a feature to a layer by
 depth band rather than by containment:
@@ -190,23 +190,23 @@ Covered above.
 
 ## Where else you meet it
 
-- **SVG fill rules** — even-odd and non-zero winding exist precisely to decide
+- SVG fill rules: even-odd and non-zero winding exist precisely to decide
   which nested subpath is a hole.
-- **Font glyph outlines**: the counter of an "o" is a nested contour with
+- Font glyph outlines: the counter of an "o" is a nested contour with
   opposite winding.
-- **GIS polygons with holes** — a lake inside an island inside a lake.
-- **PCB design**, where copper pours have nested keep-out regions.
-- **3D printing slicers**, deciding which loops in a layer are perimeters and
+- GIS polygons with holes: a lake inside an island inside a lake.
+- PCB design, where copper pours have nested keep-out regions.
+- 3D printing slicers, deciding which loops in a layer are perimeters and
   which are holes.
 
 ## Related pages
 
-- [Contour tracing](contour-tracing.md) — what produces the contours.
-- [Non-maximum suppression](non-maximum-suppression.md) — the deduplication used
+- [Contour tracing](contour-tracing.md): what produces the contours.
+- [Non-maximum suppression](non-maximum-suppression.md): the deduplication used
   instead.
-- [Intersection over union](intersection-over-union.md) — the overlap measure in
+- [Intersection over union](intersection-over-union.md): the overlap measure in
   the feature detector.
-- [Morphological closing](morphological-closing.md) — a source of near-duplicate
+- [Morphological closing](morphological-closing.md): a source of near-duplicate
   contours.
-- [Markers, features, and finds](../concepts/markers-features-and-finds.md) —
+- [Markers, features, and finds](../concepts/markers-features-and-finds.md):
   the archaeological distinctions this cannot infer.

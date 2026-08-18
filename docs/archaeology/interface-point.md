@@ -11,7 +11,7 @@ verified_against: ae2fc1d
 # Interface point
 
 One point on a named stratigraphic surface, in [site coordinates](site-coordinates.md).
-The unit the model is built from — and the thing a reader should be able to
+The unit the model is built from, and the thing a reader should be able to
 distinguish from the interpolated surface passing through it.
 
 ## What it is
@@ -48,7 +48,7 @@ interfaces. Interface points are the constraint saying "the field takes this
 value here"; [orientation seeds](orientation-seed.md) constrain its gradient.
 
 The name matters as much as the position. **GemPy fuses points into one surface
-by exact string match on `surface`** — so a deposit recorded on two walls
+by exact string match on `surface`**, so a deposit recorded on two walls
 contributes to one surface only if both produce the identical string.
 
 ## How this project stores it
@@ -89,7 +89,7 @@ X,Y,Z,surface,face
 Three details.
 
 **Only points with usable numbers are converted.** A [boundary](boundary.md)
-point with a null coordinate — legitimately recorded as unreadable — contributes
+point with a null coordinate, legitimately recorded as unreadable, contributes
 nothing rather than a zero.
 
 **Rounded to four decimal places**, which is 0.1 mm and as much as the tracing
@@ -171,7 +171,7 @@ ordered = group.sort_values("X" if x_span > y_span else "Y", kind="stable")
 
 **Inconsistent surface names across walls.** GemPy fuses by exact string match,
 so anything inside the name is part of the deposit's identity. That is why
-`surface_id` is the [locus number alone](munsell-colour.md) — a differing
+`surface_id` is the [locus number alone](munsell-colour.md): a differing
 Munsell reading between two walls used to split one deposit into two surfaces,
 and no longer can.
 
@@ -179,7 +179,7 @@ and no longer can.
 produce interface points. A layer with no `bottomBoundary` contributes nothing.
 
 **Reading the interpolated surface as data.** The points are the evidence. The
-surface is a hypothesis fitted to them — see
+surface is a hypothesis fitted to them. See
 [interpolation versus measurement](../cs/interpolation-vs-measurement.md).
 
 **Expecting a face missing from the grid config to be interpolated anyway.** It
@@ -194,10 +194,10 @@ affected.
 
 ## Related pages
 
-- [Boundary](boundary.md) — where interface points come from.
-- [Site coordinates](site-coordinates.md) — the space they live in.
-- [Grid registration](grid-registration.md) — the transform.
-- [Orientation seed](orientation-seed.md) — the other model input.
-- [Spatial interpolation and kriging](../cs/spatial-interpolation-and-kriging.md) —
+- [Boundary](boundary.md): where interface points come from.
+- [Site coordinates](site-coordinates.md): the space they live in.
+- [Grid registration](grid-registration.md): the transform.
+- [Orientation seed](orientation-seed.md): the other model input.
+- [Spatial interpolation and kriging](../cs/spatial-interpolation-and-kriging.md):
   what consumes them.
-- [Output files](../reference/output-files.md) — `points.csv` in full.
+- [Output files](../reference/output-files.md): `points.csv` in full.

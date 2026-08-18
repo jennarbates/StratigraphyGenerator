@@ -57,7 +57,7 @@ verified_against: d23b842
 
 `source_files` names the code the page describes, and `verified_against` is the
 commit you actually checked it against. These are the mechanism that makes
-staleness visible later — do not copy a hash you did not verify.
+staleness visible later. Do not copy a hash you did not verify.
 
 ### 3. Add it to the navigation
 
@@ -88,9 +88,9 @@ It exits `0` and prints `Documentation checks passed.` when clean.
 
 `tools/docs/check_coverage.py` adds one further rule: every module under
 `poggio_webapp/pipeline/`, `poggio_webapp/backend/`, and `poggio_webapp/demo/`
-— plus `poggio_webapp/app.py` and `poggio_webapp/storage.py` — must be named
+(plus `poggio_webapp/app.py` and `poggio_webapp/storage.py`) must be named
 by **full path** on some page. The full path is required so an ordinary
-English word cannot cover a module by accident — `trenches.py` would otherwise look
+English word cannot cover a module by accident: `trenches.py` would otherwise look
 documented because "trenches" appears throughout the prose. A `source_files`
 entry satisfies it, so writing correct front matter usually satisfies it for
 free.
@@ -101,17 +101,17 @@ permits. Reference such files as inline code rather than linking them.
 
 ## Writing conventions
 
-- **Never document intent.** Every claim traces to a file at a known commit. If
+- Never document intent. Every claim traces to a file at a known commit. If
   you cannot point at the code, do not write the sentence.
-- **Say when something is unreachable.** A capability can be fully implemented
+- Say when something is unreachable. A capability can be fully implemented
   and still have no browser control. Those pages carry a warning callout at the
   top and link to [capability status](capability-status.md).
-- **Label synthetic data.** Invented coordinates, locus numbers, and Munsell
+- Label synthetic data. Invented coordinates, locus numbers, and Munsell
   readings must be marked as documentation examples so nobody mistakes them for
   evidence.
-- **End every page with links.** `Next` for workflows, `Related` for
+- End every page with links. `Next` for workflows, `Related` for
   everything else. No dead ends.
-- **Link concepts from workflows.** A workflow's *Under the hood* section is
+- Link concepts from workflows. A workflow's *Under the hood* section is
   where a reader is most receptive to the theory behind the step.
 
 ## Adding a visual
@@ -120,8 +120,8 @@ Every image in the guide is planned in `docs/assets/visual-manifest.yml`
 **before** it is produced. Capture is manual, so deciding what a visual must
 show is cheaper than re-shooting it.
 
-1. Add an entry with `status: planned`. Write the `alt` and `caption` now —
-   they are what force you to say what the visual teaches.
+1. Add an entry with `status: planned`. Write the `alt` and `caption` now.
+   They are what force you to say what the visual teaches.
 2. Produce the asset. Screenshots follow the capture protocol; diagrams are
    authored by hand; generated assets get a `regenerate` command.
 3. Move the entry to `status: approved` once it has been reviewed.
@@ -132,8 +132,8 @@ python tools/docs/validate_visual_manifest.py .
 ```
 
 The validator works in both directions. Forward, it checks that entries are
-well formed and that an `approved` entry really has its file. Reverse — the
-half that matters — it checks that **every image embedded in the documentation
+well formed and that an `approved` entry really has its file. Reverse (the
+half that matters), it checks that **every image embedded in the documentation
 resolves to an `approved` entry**. An unreviewed screenshot cannot reach a
 published page, and the manifest cannot quietly decay into a wishlist.
 
@@ -142,7 +142,7 @@ Four types, named for how the asset is maintained rather than what it depicts:
 | Type | Maintained by | Extra fields |
 |---|---|---|
 | `screenshot` | Re-capturing from the app | `fixture`, `ui_state` |
-| `diagram` | Redrawing by hand | — |
+| `diagram` | Redrawing by hand | n/a |
 | `generated` | Running a script | `regenerate` |
 | `mermaid` | Editing the fence inline | no `path` |
 
@@ -161,7 +161,7 @@ These are invented documentation data, not archaeological evidence, and they
 carry a synthetic label. Use them for any example that would otherwise need a
 real scan. See [synthetic fixtures](../fixtures/README.md).
 
-Every image needs non-empty alt text — the checker fails the build otherwise.
+Every image needs non-empty alt text. The checker fails the build otherwise.
 Write it to describe what the image *shows*, not that it is an image.
 
 ## Continuous integration and deployment
@@ -170,10 +170,10 @@ Write it to describe what the image *shows*, not that it is an image.
 request. It installs both dependency sets, then runs each check as its own step
 so a failure names itself:
 
-1. `check_docs.py` — links, front matter, orphan pages
-2. `check_coverage.py` — module documentation coverage
-3. `validate_visual_manifest.py` — the visual manifest, both directions
-4. `check_readme_sync.py` — README against the navigation
+1. `check_docs.py`: links, front matter, orphan pages
+2. `check_coverage.py`: module documentation coverage
+3. `validate_visual_manifest.py`: the visual manifest, both directions
+4. `check_readme_sync.py`: README against the navigation
 5. `pytest tests/` and the Node test suites
 6. `mkdocs build --strict`
 7. A regeneration check: `generate_diagrams.py` must produce no diff against
@@ -203,8 +203,8 @@ tool itself.
 
 ## Related
 
-- [Running the tests](../reference/running-the-tests.md) — all three suites.
-- [How to read these docs](../start-here/how-to-read-these-docs.md) — the
+- [Running the tests](../reference/running-the-tests.md): all three suites.
+- [How to read these docs](../start-here/how-to-read-these-docs.md): the
   structure you are writing into.
-- [Capability status](capability-status.md) — keep it updated when a
+- [Capability status](capability-status.md): keep it updated when a
   capability's wiring changes.

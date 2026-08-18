@@ -148,10 +148,10 @@ def _built_summary(result):
 
 def _format(outcome: dict) -> str:
     headline = {
-        "refused": "REFUSED — the record does not support a model",
-        "ready": "MODEL-READY — every stage converted; gempy is not installed",
-        "built": "BUILT — the model is on disk",
-        "failed": "FAILED — the build started and did not finish",
+        "refused": "REFUSED. The record does not support a model",
+        "ready": "MODEL-READY. Every stage converted; gempy is not installed",
+        "built": "BUILT. The model is on disk",
+        "failed": "FAILED. The build started and did not finish",
     }[outcome["outcome"]]
     lines = [f"{outcome['trench']}: {headline}", ""]
     if outcome.get("message"):

@@ -22,7 +22,7 @@ end.
 
 Clipping fixes it in three steps:
 
-1. Give every point a common one-dimensional parameter — how far *along* a
+1. Give every point a common one-dimensional parameter: how far *along* a
    shared axis it sits.
 2. Find the overlapping interval `[low, high]` where both polylines exist.
 3. Cut each polyline to that interval, **interpolating a new endpoint** wherever
@@ -85,7 +85,7 @@ const addAlong = (point) => ({
 ```
 
 The **longer** of the two polylines defines the axis, because a longer baseline
-is better conditioned — projecting onto a nearly-degenerate short vector would
+is better conditioned: projecting onto a nearly-degenerate short vector would
 amplify noise. See [vector projection](vector-projection.md).
 
 ### Requiring monotonicity
@@ -160,11 +160,11 @@ if (
 }
 ```
 
-Top forward, bottom reversed — the standard way to close a band. Then three
+Top forward, bottom reversed: the standard way to close a band. Then three
 gates: enough vertices, non-degenerate [area](shoelace-formula.md), and
 [simple](polygon-self-intersection.md).
 
-Returning `null` means the layer is drawn as two boundary lines with no shading —
+Returning `null` means the layer is drawn as two boundary lines with no shading,
 visibly different from a wrong fill, and honest about the fact that the two
 boundaries could not be reconciled. See [fail-closed design](fail-closed-design.md).
 
@@ -172,10 +172,10 @@ boundaries could not be reconciled. See [fail-closed design](fail-closed-design.
 
 | Alternative | How it would work here | Why it lost |
 |---|---|---|
-| **Join the raw polylines** | Top forward, bottom reversed, no clipping | Produces a spurious diagonal edge wherever the two spans differ — a wedge of shading over ground neither boundary describes. |
+| **Join the raw polylines** | Top forward, bottom reversed, no clipping | Produces a spurious diagonal edge wherever the two spans differ: a wedge of shading over ground neither boundary describes. |
 | **Filter out-of-range points** | Drop points outside the overlap | Leaves the polyline ending at an arbitrary vertex rather than on the cut, so the polygon's ends are ragged and depend on where vertices happened to fall. |
-| **Extrapolate the shorter boundary** | Extend it to match the longer | **Invents geometry.** The shorter boundary was traced over a shorter span because that is what the recorder could see. Extending it manufactures evidence — the exact failure the [validator's fabrication checks](coefficient-of-variation.md) exist to detect. |
-| **Sutherland–Hodgman polygon clipping** | The general algorithm | Clips a polygon against a convex region. Here there is no polygon yet — that is what is being built — and the clip region is a 1D interval, not a 2D window. |
+| **Extrapolate the shorter boundary** | Extend it to match the longer | **Invents geometry.** The shorter boundary was traced over a shorter span because that is what the recorder could see. Extending it manufactures evidence, the exact failure the [validator's fabrication checks](coefficient-of-variation.md) exist to detect. |
+| **Sutherland–Hodgman polygon clipping** | The general algorithm | Clips a polygon against a convex region. Here there is no polygon yet (that is what is being built), and the clip region is a 1D interval, not a 2D window. |
 | **Resample both to a common grid** | Interpolate both at fixed intervals | Would work, and it replaces recorded vertices with synthetic ones. Clipping keeps every original point and adds only the two endpoints the cut requires. |
 | **Clip to the overlap with interpolated ends** *(chosen)* | Cut, interpolate, join, validate | Shades only where both boundaries actually exist; every interior point is a recorded one. |
 
@@ -183,42 +183,42 @@ The principle running through this: **shade only where there is evidence.** A
 fill is a visual claim that a layer occupies that space, and the code declines to
 make that claim beyond where both bounding boundaries were traced. Compare
 `build_gempy`'s `single_face_note`, which flags surfaces extrapolated across the
-whole model extent — the same concern, stated rather than avoided, because the
+whole model extent: the same concern, stated rather than avoided, because the
 model cannot avoid it.
 
 ## What it costs
 
-O(n) in vertex count — one pass per polyline — plus O(n) for the monotonicity
+O(n) in vertex count (one pass per polyline), plus O(n) for the monotonicity
 check and O(n²) for the final
 [self-intersection](polygon-self-intersection.md) test, which dominates.
 
 The correctness costs:
 
-- **The common axis is an approximation.** For a strongly curved boundary,
+- The common axis is an approximation. For a strongly curved boundary,
   "distance along the axis" is not the same as arc length. Section boundaries
   are near-horizontal, so this is small.
-- **Vertical segments need their own branch**, since interpolation by `along`
+- Vertical segments need their own branch, since interpolation by `along`
   would divide by zero.
-- **`EPSILON` guards more than two dozen comparisons** in this file. Every one
-  is protecting a comparison on coordinates that have been through arithmetic —
-  see [epsilon comparison](epsilon-comparison.md).
+- `EPSILON` guards more than two dozen comparisons in this file. Every one
+  is protecting a comparison on coordinates that have been through arithmetic.
+  See [epsilon comparison](epsilon-comparison.md).
 
 ## Where else you meet it
 
-- **Graphics clipping.** Cohen–Sutherland and Liang–Barsky clip lines to a
+- Graphics clipping: Cohen–Sutherland and Liang–Barsky clip lines to a
   viewport; every renderer does this before rasterising.
-- **GIS**, clipping features to a map extent or a study area.
-- **Video editing**, trimming clips to a common time range.
-- **Time-series analysis**, aligning two series to their overlapping period
+- GIS, clipping features to a map extent or a study area.
+- Video editing, trimming clips to a common time range.
+- Time-series analysis, aligning two series to their overlapping period
   before comparison.
-- **Audio**, cross-fading between two takes over their shared region.
+- Audio, cross-fading between two takes over their shared region.
 
 ## Related pages
 
-- [Linear interpolation](linear-interpolation.md) — how the cut endpoints are
+- [Linear interpolation](linear-interpolation.md): how the cut endpoints are
   computed.
-- [Vector projection](vector-projection.md) — how the common axis is built.
-- [Shoelace formula](shoelace-formula.md) — the area gate on the result.
-- [Polygon self-intersection](polygon-self-intersection.md) — the validity gate.
-- [Epsilon comparison](epsilon-comparison.md) — why tolerances appear
+- [Vector projection](vector-projection.md): how the common axis is built.
+- [Shoelace formula](shoelace-formula.md): the area gate on the result.
+- [Polygon self-intersection](polygon-self-intersection.md): the validity gate.
+- [Epsilon comparison](epsilon-comparison.md): why tolerances appear
   throughout.

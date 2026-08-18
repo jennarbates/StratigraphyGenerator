@@ -85,8 +85,8 @@ model `X` is grid easting and model `Y` is grid northing, both in metres.
 Four things follow, and each of them changes what you should type into a grid config.
 
 **Grid North is not north.** The site is oriented to an artificial reference
-direction. The total station sets it as horizontal angle 0 — 90 East, 180 South,
-270 West — and `bearing_deg` uses the same convention. Grid North sits about 2.5°
+direction. The total station sets it as horizontal angle 0 (90 East, 180 South,
+270 West), and `bearing_deg` uses the same convention. Grid North sits about 2.5°
 off projected north, so a bearing read from a magnetic compass is wrong by more
 than rounding.
 
@@ -96,12 +96,12 @@ positive, South and West negative. A corner labelled `190E/53S` is
 north-to-south while leaving every distance and slope internally consistent, so
 nothing downstream can catch it.
 
-**There are two local grids** — the hill of Poggio Civitate and Vescovado di
-Murlo — so a pair of coordinates is not a location until the grid is named. Their
+**There are two local grids**, the hill of Poggio Civitate and Vescovado di
+Murlo, so a pair of coordinates is not a location until the grid is named. Their
 origins are about 1.5 million metres apart once projected. The grid config carries
 a `site_grid` field for this, and a trench whose sheets disagree is refused.
 
-**Elevations are mAE — "meters absolute elevation".** Values at this site are in
+**Elevations are mAE, "meters absolute elevation".** Values at this site are in
 the twenties; `surfaceZ 100` in the worked example above is a placeholder, not a
 plausible reading. Field measurements are taken *below datum* from a nail near the
 trench and converted to absolute elevation for the record, so a grid config can

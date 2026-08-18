@@ -86,7 +86,7 @@ def upload_extraction(job_id):
     Accepts a multipart .json upload, checks that it parses and matches one
     of the two known schemas, and installs it as this job's extraction so
     normalize / validate / convert / visualize pick it up unchanged. Does
-    not require preprocess to have run — the whole point is skipping the
+    not require preprocess to have run. The whole point is skipping the
     image-analysis path.
     """
     meta = load_meta(job_id)
@@ -112,7 +112,7 @@ def upload_extraction(job_id):
             {
                 "error": "this JSON is neither an illustrator extraction "
                 "(trenchProfiles) nor a field-wall extraction "
-                "(loci/layers) — refusing to install it"
+                "(loci/layers), so it was not installed"
             }
         ), 400
 

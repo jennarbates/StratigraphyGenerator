@@ -24,11 +24,11 @@ what came before what.
 
 The conventions:
 
-- Each **unit** — [layer](layer.md), [cut](cut.md), [fill](fill.md),
-  structure — is a box.
+- Each **unit** ([layer](layer.md), [cut](cut.md), [fill](fill.md),
+  structure) is a box.
 - A **line** from a higher box to a lower one means "the upper is younger."
-- **Vertical position** is relative age. Youngest at the top.
-- **Horizontal position** means nothing. Side-by-side boxes are unordered, not
+- Vertical position is relative age. Youngest at the top.
+- Horizontal position means nothing. Side-by-side boxes are unordered, not
   contemporaneous.
 - Only **immediate** relationships are drawn. An implied relationship is
   omitted, so an arrow means direct stratigraphic contact.
@@ -49,7 +49,7 @@ flowchart TB
 ```
 
 Locus 2 and Locus 3 sit side by side: both younger than 4, both older than 1,
-and **unordered relative to each other**. Locus 6 floats — nothing has been
+and **unordered relative to each other**. Locus 6 floats because nothing has been
 recorded about it yet.
 
 ## Why excavation records it
@@ -61,8 +61,8 @@ It is also where **contradictions become visible**. Three relationships that
 cannot all hold are obvious as a loop in a diagram and invisible in a list of
 observations.
 
-And it is the working document for interpretation — phasing, correlation,
-grouping — done on the matrix rather than on the drawings.
+And it is the working document for interpretation (phasing, correlation,
+grouping) done on the matrix rather than on the drawings.
 
 ## How this project stores it
 
@@ -90,7 +90,7 @@ Four collections, four distinct roles:
 | Collection | Holds |
 |---|---|
 | `units` | the boxes, with labels, types, and source references |
-| `relations` | the lines — younger, older, kind, **evidence** |
+| `relations` | the lines: younger, older, kind, **evidence** |
 | `correlations` | judgements that two units are the same deposit |
 | `suggestions` | machine proposals, each individually accepted or rejected |
 
@@ -106,7 +106,7 @@ def _unit_id(job_id, schema_type, face, layer_index) -> str:
     identity = f"{job_id}|{schema_type}|{face}|{layer_index}"
 ```
 
-so re-importing merges rather than duplicating — see
+so re-importing merges rather than duplicating. See
 [idempotency](../cs/idempotency.md). Each unit keeps a `source_refs` list
 pointing back at the drawing it came from, and the source job is never modified.
 
@@ -173,19 +173,19 @@ no meaning, and the validator warns:
 > Unit unit-4f2a8c1e9b03 still has generic label 'Polygon 3'.
 
 **Treating a redundant relation as an error.** An edge implied by a longer path
-is omitted from the *display* and kept in the data — because the archaeologist
+is omitted from the *display* and kept in the data, because the archaeologist
 observed something, and the software's inference that it is implied could later
 be wrong.
 
 ## Related pages
 
-- [Stratigraphy](stratigraphy.md) — what the matrix diagrams.
-- [Stratigraphic relationships](stratigraphic-relationships.md) — the edge
+- [Stratigraphy](stratigraphy.md): what the matrix diagrams.
+- [Stratigraphic relationships](stratigraphic-relationships.md): the edge
   vocabulary.
-- [Correlation](correlation.md) — the equals judgement.
-- [Directed acyclic graphs](../cs/directed-acyclic-graphs.md) — the structure.
-- [Transitive reduction](../cs/transitive-reduction.md) — why implied edges are
+- [Correlation](correlation.md): the equals judgement.
+- [Directed acyclic graphs](../cs/directed-acyclic-graphs.md): the structure.
+- [Transitive reduction](../cs/transitive-reduction.md): why implied edges are
   hidden.
-- [Layered graph drawing](../cs/layered-graph-drawing.md) — how it is drawn.
-- [Build and review a Harris Matrix](../workflows/harris-matrix.md) — the
+- [Layered graph drawing](../cs/layered-graph-drawing.md): how it is drawn.
+- [Build and review a Harris Matrix](../workflows/harris-matrix.md): the
   workflow.

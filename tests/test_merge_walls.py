@@ -132,9 +132,7 @@ def test_layer_locus_missing_from_loci_still_shares_one_surface():
     assert not any("loci[]" in n for n in notes)
 
 
-# --------------------------------------------------------------------------
 # CHUNK 2: merged_series_order
-# --------------------------------------------------------------------------
 
 
 def wall(face_name, *surfaces):
@@ -222,9 +220,7 @@ def test_empty_document_yields_empty_order():
     assert any("no stratigraphic order" in n or "no named layers" in n for n in notes)
 
 
-# --------------------------------------------------------------------------
 # CHUNK 3: trench grid config helpers
-# --------------------------------------------------------------------------
 
 
 # GRID_T900 is keyed by the full wall names, so merge with those labels.

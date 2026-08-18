@@ -26,9 +26,7 @@ def _merged():
     )
 
 
-# ---------------------------------------------------------------------------
 # Identity
-# ---------------------------------------------------------------------------
 
 
 def test_surface_id_is_the_locus_number_alone():
@@ -73,9 +71,7 @@ def test_the_written_csv_carries_identities_not_labels(tmp_path):
     assert "10YR" not in text
 
 
-# ---------------------------------------------------------------------------
 # Labels
-# ---------------------------------------------------------------------------
 
 
 def test_labels_carry_the_colour_beside_the_identity():
@@ -114,9 +110,7 @@ def test_run_convert_returns_labels_beside_the_csv(tmp_path):
     assert result["surface_labels"]["Locus 1"] == "Locus 1 (10YR 5/3 brown)"
 
 
-# ---------------------------------------------------------------------------
 # The viewer manifest
-# ---------------------------------------------------------------------------
 
 
 def _manifest(tmp_path, **kwargs):
@@ -164,9 +158,7 @@ def test_merged_series_order_is_built_from_identities():
     assert order == ["Locus 1", "Locus 2"]
 
 
-# ---------------------------------------------------------------------------
 # What the merge layer no longer does
-# ---------------------------------------------------------------------------
 
 
 def test_the_merge_no_longer_rewrites_recorded_colours():

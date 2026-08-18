@@ -21,7 +21,7 @@ export function banner(kind, text) {
 
 // HTML-escape untrusted strings interpolated into innerHTML (e.g. locus
 // numbers read off the sheet). Was referenced by the boundary-review legend
-// but never defined — a latent ReferenceError hidden behind the old
+// but never defined, a latent ReferenceError hidden behind the old
 // assign-route bug.
 export { esc } from "../../shared/dom.js";
 

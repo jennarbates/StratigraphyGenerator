@@ -74,9 +74,7 @@ def matrix(*, units=(), relations=(), correlations=(), trench="T123"):
     )
 
 
-# ---------------------------------------------------------------------------
 # Harris units map onto model surfaces
-# ---------------------------------------------------------------------------
 
 
 def test_a_field_sheet_unit_becomes_the_surface_the_converter_emits():
@@ -126,9 +124,7 @@ def test_correlated_units_collapse_to_one_position():
     assert order == ["Locus 1", "Locus 2"]
 
 
-# ---------------------------------------------------------------------------
 # Contemporaneity
-# ---------------------------------------------------------------------------
 
 
 def test_unrelated_deposits_are_reported_as_arbitrarily_ordered():
@@ -166,9 +162,7 @@ def test_an_order_implied_through_a_chain_is_not_arbitrary():
     assert arbitrary == []
 
 
-# ---------------------------------------------------------------------------
 # Refusals
-# ---------------------------------------------------------------------------
 
 
 def test_a_cycle_in_the_matrix_refuses_with_its_own_message():
@@ -215,9 +209,7 @@ def test_the_matrix_model_guarantees_every_unit_has_a_label():
         matrix(units=[unit(A, "1"), unit(B, "   ")])
 
 
-# ---------------------------------------------------------------------------
 # Provenance descriptions
-# ---------------------------------------------------------------------------
 
 
 def test_the_elevation_description_says_it_is_an_assumption():
@@ -238,9 +230,7 @@ def test_every_source_describes_itself(source):
     assert series_order.describe(source).startswith("stratigraphic order came from")
 
 
-# ---------------------------------------------------------------------------
 # Finding a trench's matrix
-# ---------------------------------------------------------------------------
 
 
 def test_matrices_are_matched_on_the_canonical_trench_label():
@@ -262,9 +252,7 @@ def test_no_trench_label_matches_nothing():
     )
 
 
-# ---------------------------------------------------------------------------
 # Precedence, through the trench builder
-# ---------------------------------------------------------------------------
 
 
 def _points_csv(tmp_path, *surfaces):
@@ -424,9 +412,7 @@ def test_no_evidence_at_all_falls_back_to_elevation_with_a_warning(tmp_path):
     assert any("assumption" in note for note in notes)
 
 
-# ---------------------------------------------------------------------------
 # The manifest says where the order came from
-# ---------------------------------------------------------------------------
 
 
 def _manifest(tmp_path, **kwargs):

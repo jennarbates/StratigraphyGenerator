@@ -11,7 +11,7 @@ verified_against: ae2fc1d
 
 # Elevation
 
-Height above the [datum](datum.md). The Z of site coordinates — and the axis
+Height above the [datum](datum.md). The Z of site coordinates, and the axis
 where this project has to reconcile two opposite conventions, because depth runs
 down and elevation runs up.
 
@@ -48,8 +48,8 @@ flowchart TB
 ## Why excavation records it
 
 Elevation is what makes deposits comparable **across** a site. Two trenches
-twenty metres apart cannot be related by depth — their ground surfaces are at
-different heights — but their elevations are directly comparable.
+twenty metres apart cannot be related by depth (their ground surfaces are at
+different heights), but their elevations are directly comparable.
 
 It is also the axis the [law of superposition](law-of-superposition.md) operates
 on, and the third coordinate for a [find](find.md), which is why `elevation` is a
@@ -72,7 +72,7 @@ def to_site(x, depth, X0=X0, Y0=Y0, Z0=Z0, sin_t=sin_t, cos_t=cos_t):
 `Z = Z0 - depth`. One minus sign carrying the whole convention, in the one place
 the two systems meet.
 
-`Z0` is [`surfaceZ`](grid-registration.md), the face's ground-surface elevation —
+`Z0` is [`surfaceZ`](grid-registration.md), the face's ground-surface elevation,
 so the model's Z axis is elevation above the site datum.
 
 ### Depth is positive-down, and enforced
@@ -103,7 +103,7 @@ if y is not None and y > max_plausible_depth_m:
     report.warn(f"{where}[{i}]", f"implausibly deep ({y} m)")
 ```
 
-A warning, not an error — a deep trench is possible, a 50 m one is a
+A warning, not an error: a deep trench is possible, a 50 m one is a
 scale mistake.
 
 ### Elevation as a required find field
@@ -135,7 +135,7 @@ zlo, zhi = pad(zmin, zmax, pad_z)
 ```
 
 with a smaller default pad vertically (`padding_z=1.0`) than horizontally
-(`padding_xy=2.0`) — sensible, since a trench is wider than it is deep and
+(`padding_xy=2.0`), which is sensible, since a trench is wider than it is deep and
 extrapolating vertically is the riskier direction.
 
 The manifest declares the axis explicitly:
@@ -166,7 +166,7 @@ Stating which way is up, rather than assuming it. See
 |---|---|
 | **Depth** | Opposite directions, different zeros. `Z = surfaceZ − depth`. |
 | **[Datum](datum.md)** | The datum is the reference; an elevation is measured from it. |
-| **`surfaceZ`** | `surfaceZ` is one specific elevation — the ground surface at a face's x=0 edge. |
+| **`surfaceZ`** | `surfaceZ` is one specific elevation: the ground surface at a face's x=0 edge. |
 | **Altitude above sea level** | Only if the datum is tied to a national height network. A site datum may be arbitrary. |
 | **Stratigraphic position** | Two deposits at the same elevation in different parts of a trench are **not** contemporaneous. Elevation is geometry; sequence is [stratigraphy](stratigraphy.md). |
 
@@ -178,7 +178,7 @@ but positive set would not be caught by geometry alone.
 
 **Comparing depths across faces.** Depth is measured from *each face's own* top
 edge, and those edges are at different elevations. Only after conversion are the
-numbers comparable — which is the whole reason `surfaceZ` exists per face.
+numbers comparable, which is the whole reason `surfaceZ` exists per face.
 
 **Reading equal elevation as contemporaneity.** The commonest interpretive error
 this data invites. Two deposits at 270.8 m on opposite sides of a trench have no
@@ -189,10 +189,10 @@ not the datum, and it varies across a site.
 
 ## Related pages
 
-- [Datum](datum.md) — the reference.
-- [Grid registration](grid-registration.md) — where `surfaceZ` is entered.
-- [Site coordinates](site-coordinates.md) — the full XYZ.
-- [Interface point](interface-point.md) — a boundary point in site coordinates.
-- [Law of superposition](law-of-superposition.md) — why the vertical axis
+- [Datum](datum.md): the reference.
+- [Grid registration](grid-registration.md): where `surfaceZ` is entered.
+- [Site coordinates](site-coordinates.md): the full XYZ.
+- [Interface point](interface-point.md): a boundary point in site coordinates.
+- [Law of superposition](law-of-superposition.md): why the vertical axis
   matters.
-- [Coordinate spaces](../concepts/coordinate-spaces.md) — the three spaces.
+- [Coordinate spaces](../concepts/coordinate-spaces.md): the three spaces.

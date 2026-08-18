@@ -23,13 +23,13 @@ same group.
 The naive approach is to keep a list per group and search it. Union-Find does
 something cleverer: **it never stores groups at all.** Each item stores a single
 pointer to another item in its group. Follow the pointers and you eventually
-reach an item that points at itself — that item is the group's *representative*.
+reach an item that points at itself. That item is the group's *representative*.
 Two items are in the same group exactly when they reach the same representative.
 
 Two operations:
 
-- **find(x)** — follow x's pointers to its representative.
-- **union(a, b)** — point one representative at the other, merging two groups
+- find(x): follow x's pointers to its representative.
+- union(a, b): point one representative at the other, merging two groups
   into one.
 
 The trick that makes it fast is **path compression**: while walking up to the
@@ -61,7 +61,7 @@ flowchart TD
 ```
 
 `find(north)` and `find(south)` both return `east`, so they are connected.
-`find(west)` returns `west`, so west is on its own — which is exactly the
+`find(west)` returns `west`, so west is on its own, which is exactly the
 finding this project wants to report.
 
 Path compression, on a longer chain:
@@ -151,7 +151,7 @@ def correlation_components(matrix: HarrisMatrix) -> dict[str, str]:
 ```
 
 The representative is chosen by `min()` rather than by tree height. That is
-deliberately *not* the textbook optimisation — see below.
+deliberately *not* the textbook optimisation. See below.
 
 The result feeds `_collapsed_graph()`, which rewrites every stratigraphic
 relation in terms of representatives. That is what lets the renderer draw one
@@ -167,7 +167,7 @@ groups enumerated until the very end.
 | **Repeated DFS or BFS flood fill** | Build an adjacency list of "touching" pairs, then traverse from each unvisited node to collect its component | Correct, and genuinely fine at four walls. But it has to be re-run from scratch whenever a correlation is added, and the correlation set changes on every accepted suggestion. Union-Find absorbs each new statement in near-constant time. |
 | **A list of sets, merged on demand** | Keep `list[set[str]]`; on each union, find the sets containing each item and merge them | The "find the set containing x" step is a linear scan over sets. Merging is O(size). It reads naturally and degrades quietly as the matrix grows. |
 | **An adjacency matrix with transitive closure** | Mark pairs, then run Floyd–Warshall to close the relation | O(n³) time and O(n²) memory to answer a question Union-Find answers in near-O(1), and it computes a full reachability table nobody asked for. |
-| **A dictionary from item to group id, rewritten on merge** | On union, rewrite every member of the smaller group | This *is* Union-Find, just without the pointer indirection — and it pays the rewrite cost up front on every merge instead of amortising it. |
+| **A dictionary from item to group id, rewritten on merge** | On union, rewrite every member of the smaller group | This *is* Union-Find, just without the pointer indirection, and it pays the rewrite cost up front on every merge instead of amortising it. |
 | **Union by rank or size** (the textbook pairing for path compression) | Attach the shorter tree under the taller one | Rejected on purpose. Union by rank picks the representative by tree shape, which depends on the *order statements arrived in*. This project needs the representative to be a stable function of the data, because it becomes the node id in the rendered diagram and in `display_edges`. `min()` guarantees the same matrix always produces the same representative; path compression alone already keeps the trees flat enough at this scale. |
 
 That last row is the interesting one. It is a case where the repository
@@ -179,9 +179,9 @@ deterministic correlation representative."*
 
 | Variant | Amortised cost per operation |
 |---|---|
-| No optimisation | O(n) worst case — the tree can degenerate into a chain |
+| No optimisation | O(n) worst case: the tree can degenerate into a chain |
 | Path compression only *(what this project uses)* | O(log n) amortised |
-| Path compression + union by rank | O(α(n)) — inverse Ackermann, under 5 for any n you will ever have |
+| Path compression + union by rank | O(α(n)), inverse Ackermann, under 5 for any n you will ever have |
 
 Memory is one dictionary entry per item.
 
@@ -191,36 +191,36 @@ the table is to know that the deterministic choice costs nothing real here, and
 where it *would* start to cost something.
 
 The corner-adjacency site also does an **O(n²) pairwise scan** before ever
-calling `union` — comparing every wall's endpoints against every other wall's.
+calling `union`, comparing every wall's endpoints against every other wall's.
 That, not the Union-Find, is the dominant term. It is fine at four walls and
 would need a spatial index at four thousand. (The correlation site has no such
 scan: it unions the members of each recorded correlation directly.)
 
 ## Where else you meet it
 
-- **Kruskal's minimum spanning tree** — the classic use. Sort edges by weight,
+- Kruskal's minimum spanning tree: the classic use. Sort edges by weight,
   add an edge only if its ends are not already connected.
-- **Image segmentation** — connected-component labelling merges neighbouring
+- Image segmentation: connected-component labelling merges neighbouring
   pixels of the same value; the two-pass algorithm uses Union-Find for the
   equivalences discovered in the first pass.
-- **Percolation and network reliability** — does a path exist from top to
+- Percolation and network reliability: does a path exist from top to
   bottom as connections are added one at a time?
-- **Compilers** — type inference unifies type variables; Union-Find tracks which
+- Compilers: type inference unifies type variables; Union-Find tracks which
   variables have been proven equal.
-- **`git merge-base`-style ancestry questions** and cycle detection in
+- `git merge-base`-style ancestry questions and cycle detection in
   dependency resolvers.
-- **Spreadsheets and CRMs** — "merge duplicate records" is exactly this problem.
+- Spreadsheets and CRMs: "merge duplicate records" is exactly this problem.
 
 ## Related pages
 
-- [Connected components](connected-components.md) — the concept Union-Find computes here.
-- [Determinism and stable sorting](determinism-and-stable-sorting.md) — why the representative is chosen
+- [Connected components](connected-components.md): the concept Union-Find computes here.
+- [Determinism and stable sorting](determinism-and-stable-sorting.md): why the representative is chosen
   by `min()`.
-- [Directed acyclic graphs](directed-acyclic-graphs.md) and [cycle detection](cycle-detection.md) — what the
+- [Directed acyclic graphs](directed-acyclic-graphs.md) and [cycle detection](cycle-detection.md): what the
   collapsed Harris graph is checked for once components are known.
-- [Combine walls into one trench](../workflows/09-multi-wall-trench.md) — the
+- [Combine walls into one trench](../workflows/09-multi-wall-trench.md): the
   workflow whose corner-adjacency warning this produces.
-- [Build a Harris Matrix](../workflows/harris-matrix.md) — the workflow whose
+- [Build a Harris Matrix](../workflows/harris-matrix.md): the workflow whose
   correlations this collapses.
-- [Algorithm index](../architecture/algorithm-index.md) — everything else in
+- [Algorithm index](../architecture/algorithm-index.md): everything else in
   these two modules.

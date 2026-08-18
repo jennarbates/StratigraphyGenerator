@@ -15,8 +15,8 @@ verified_against: ae2fc1d
 
 [Place on site](../workflows/06-place-on-site.md) asks for four numbers per
 wall: an origin easting, an origin northing, a surface elevation, and a
-bearing. Working those out by hand is slow and easy to get wrong, and — this is
-the dangerous part — **a model built on the starter placeholders looks exactly
+bearing. Working those out by hand is slow and easy to get wrong, and (this is
+the dangerous part) **a model built on the starter placeholders looks exactly
 like a model built on real values**.
 
 The numbers usually already exist. A trench's corners are staked by total
@@ -50,7 +50,7 @@ book's opening entry:
 
 Datum nail: **25.23 mAE**.
 
-Note that the grid values are already signed. The trench book writes
+The grid values are already signed. The trench book writes
 `150E/20S`; the spreadsheet stores `150/-20`, because the site's rule that
 South and West are negative is applied before the number reaches the sheet. It
 is not applied twice.
@@ -79,7 +79,7 @@ And the east wall does not build.
 ## Why the missing elevation is not a clerical error
 
 It is tempting to treat a blank field as sloppiness and fill it in with
-something plausible — the mean of the other three, say, or the value from a
+something plausible: the mean of the other three, say, or the value from a
 later day. Both would be wrong, and the reason is archaeological rather than
 administrative.
 
@@ -104,7 +104,7 @@ So the module refuses. From `trench_layout.py`:
 > elevations is incomplete rather than defaultable.
 
 A refusal is not the same as having nothing. The east wall still gets its
-origin and its bearing, because the corner nail's *position* is recorded — two
+origin and its bearing, because the corner nail's *position* is recorded: two
 of its four registration values are real, and only the third is missing. What
 you cannot do is build until someone supplies it or decides what to do without
 it.
@@ -120,12 +120,12 @@ corner, and the trench book says so plainly: the dump "sloped significantly in
 this southwest corner and was 0.52 m deep", and it was removed as part of Locus
 1 along with the topsoil beneath it.
 
-By the time Locus 1 closed, that corner read 24.07 mAE — 0.63 m lower. The
+By the time Locus 1 closed, that corner read 24.07 mAE, 0.63 m lower. The
 0.52 m of dump plus the 8 cm of topsoil under it account for 0.60 m of that,
 which is as close as two independently measured numbers get.
 
 The consequence for registration is direct. The **west wall's origin corner is
-SW**, so its `surfaceZ` is 24.70 — the top of a modern dirt pile. That is a
+SW**, so its `surfaceZ` is 24.70, the top of a modern dirt pile. That is a
 faithful record of the opening surface, and it is the correct value to store.
 It is not the top of any archaeological deposit, and anything that reads
 `surfaceZ` as "where the stratigraphy begins" will be almost half a metre out
@@ -158,7 +158,7 @@ Two conclusions follow, and only one of them is comfortable:
 
 - the elevations are on the corrected scale, so they can be used together;
 - had the correction been applied to some records and not others, this
-  continuity check is what would have caught it — and had it not been applied
+  continuity check is what would have caught it, and had it not been applied
   to *any*, the check would have shown nothing wrong at all.
 
 A datum correction is only detectable inside a record that spans the change.
@@ -173,13 +173,13 @@ valid polygon, but its derived bearings would send two walls diagonally across
 the pit. This is refused, not registered.
 
 **A mistyped corner label.** A wall longer than any trench at the site is
-flagged in the notes. Check the derived lengths against the drawings — T905's
+flagged in the notes. Check the derived lengths against the drawings: T905's
 come out 5.00 m on all four sides, which is what the plan sheets show.
 
 ## Related
 
-- [Place on site](../workflows/06-place-on-site.md) — what the registration is for
-- [Combine walls into one trench](../workflows/09-multi-wall-trench.md) — the build that consumes it
-- [Coordinate spaces](../concepts/coordinate-spaces.md) — Grid North, the two local grids, and mAE
+- [Place on site](../workflows/06-place-on-site.md): what the registration is for
+- [Combine walls into one trench](../workflows/09-multi-wall-trench.md): the build that consumes it
+- [Coordinate spaces](../concepts/coordinate-spaces.md): Grid North, the two local grids, and mAE
 - [Datum](../archaeology/datum.md) and [elevation](../archaeology/elevation.md)
-- [Trench layout](../archaeology/trench-layout.md) — the trench book section these values come from
+- [Trench layout](../archaeology/trench-layout.md): the trench book section these values come from

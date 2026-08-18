@@ -3,7 +3,7 @@
  *
  * Progressive enhancement: the page contains an ordinary list of stages, each
  * with its module, input, output, and route. With JavaScript off that list is
- * the whole story, readable top to bottom — and it is what the README shows.
+ * the whole story, readable top to bottom, and it is what the README shows.
  * With JavaScript on it becomes a tab list beside a detail panel, which turns
  * eight prose sections into one navigable object.
  *

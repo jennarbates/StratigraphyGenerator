@@ -53,8 +53,8 @@ flowchart TB
   S --> B["orthonormal basis (û, v̂)<br/>anchored at the origin"]
 ```
 
-Three clicks give an origin and two axes. A fourth number — the real distance
-between clicks 1 and 2 — gives the scale.
+Three clicks give an origin and two axes. A fourth number (the real distance
+between clicks 1 and 2) gives the scale.
 
 ## Where this project uses it
 
@@ -133,9 +133,9 @@ return { origin, u, v, pxPerMeter };
 
 Three copies of one construction is a duplication risk, and the repository
 handles it the way duplication should be handled when it cannot be removed:
-**each side's arithmetic is pinned by tests to fixed expected values** —
-`tests/test_manual_routes.py` freezes the Python conversion's output and
-`coordinates.test.mjs` freezes the browser's — so a drift on either side fails
+**each side's arithmetic is pinned by tests to fixed expected values**
+(`tests/test_manual_routes.py` freezes the Python conversion's output and
+`coordinates.test.mjs` freezes the browser's), so a drift on either side fails
 its tests rather than misplacing a boundary.
 
 ## Why this and not something else
@@ -143,14 +143,14 @@ its tests rather than misplacing a boundary.
 | Alternative | How it would work here | Why it lost |
 |---|---|---|
 | **Use the image's own axes** | Treat pixel rows as horizontal | Only correct for a perfectly level photograph. Every archival scan and every phone photo is slightly rotated. |
-| **[Deskew the image](hough-line-transform.md) first** | Rotate to level, then use pixel axes | Available here — and it **resamples**, which is lossy, and it corrects only the rotation an edge detector happened to estimate. The basis corrects exactly the tilt the user's clicks define. This is why `deskew_flag=False` by default. |
-| **A general (non-orthonormal) basis** | Let the two axes be any two independent directions | More general — it could absorb a shear — and the inverse becomes a matrix solve, and the guarantee that depth is measured perpendicular to the wall is lost. Perpendicularity is a *fact about the drawing*, not an approximation to relax. |
+| **[Deskew the image](hough-line-transform.md) first** | Rotate to level, then use pixel axes | Available here, and it **resamples**, which is lossy, and it corrects only the rotation an edge detector happened to estimate. The basis corrects exactly the tilt the user's clicks define. This is why `deskew_flag=False` by default. |
+| **A general (non-orthonormal) basis** | Let the two axes be any two independent directions | More general (it could absorb a shear), and the inverse becomes a matrix solve, and the guarantee that depth is measured perpendicular to the wall is lost. Perpendicularity is a *fact about the drawing*, not an approximation to relax. |
 | **A full [affine transform](affine-transforms.md)** | Six parameters from three clicks | Strictly more expressive and would fit a shear or non-uniform scale, neither of which a flat drawing photographed square-on exhibits. It would also silently absorb a *bad* third click into a distortion instead of failing. |
-| **A homography** | Four clicks, full perspective correction | Genuinely better for a photograph taken at an angle, where the sheet is keystoned. Costs a fourth click and is sensitive to its accuracy. A deliberate limitation — see the [drawing guidelines](../reference/drawing-guidelines.md). |
+| **A homography** | Four clicks, full perspective correction | Genuinely better for a photograph taken at an angle, where the sheet is keystoned. Costs a fourth click and is sensitive to its accuracy. A deliberate limitation. See the [drawing guidelines](../reference/drawing-guidelines.md). |
 | **Orthonormal basis from three clicks** *(chosen)* | Two dot products to convert | Exact, lossless, minimal input, and the constraints it enforces are true statements about the subject. |
 
 The principle worth extracting: **choose the least expressive transform that can
-represent the truth.** A more general transform does not merely cost more — it
+represent the truth.** A more general transform does not merely cost more: it
 can absorb user error as apparent geometry, turning a mistaken click into a
 distorted but self-consistent coordinate system. A rigid basis fails loudly
 instead.
@@ -160,16 +160,16 @@ instead.
 Building it: one `hypot`, two divisions, one sign test. Using it: two multiplies
 and an add per axis.
 
-The construction *guarantees* orthonormality, so no code ever verifies it —
+The construction *guarantees* orthonormality, so no code ever verifies it,
 which is the right kind of invariant, enforced by how the value is made rather
 than by a check.
 
 What it cannot represent:
 
-- **Perspective.** A photograph taken at an angle keystones the sheet, and no
+- Perspective. A photograph taken at an angle keystones the sheet, and no
   rigid basis can correct that.
-- **Non-uniform scale.** A sheet that has stretched unevenly with age.
-- **Lens distortion.** Barrel distortion near the edges of a wide-angle phone
+- Non-uniform scale. A sheet that has stretched unevenly with age.
+- Lens distortion. Barrel distortion near the edges of a wide-angle phone
   photo.
 
 All three are real, all three are unaddressed, and the honest mitigation is the
@@ -178,24 +178,24 @@ photograph.
 
 ## Where else you meet it
 
-- **3D graphics.** A camera's view matrix is an orthonormal basis — right, up,
+- 3D graphics. A camera's view matrix is an orthonormal basis: right, up,
   and forward.
-- **Robotics**, where every joint frame is one.
-- **Principal component analysis**, which finds an orthonormal basis aligned
+- Robotics, where every joint frame is one.
+- Principal component analysis, which finds an orthonormal basis aligned
   with the data's variance.
-- **The Fourier transform**, whose sinusoids form an orthonormal basis for
+- The Fourier transform, whose sinusoids form an orthonormal basis for
   functions.
-- **Gram–Schmidt orthogonalisation**, the general procedure for building one
-  from arbitrary vectors — trivial in 2D, which is why this code needs only one
+- Gram–Schmidt orthogonalisation, the general procedure for building one
+  from arbitrary vectors. It is trivial in 2D, which is why this code needs only one
   rotation.
 
 ## Related pages
 
-- [Unit vectors and normalisation](unit-vectors-and-normalisation.md) — the
+- [Unit vectors and normalisation](unit-vectors-and-normalisation.md): the
   "normal" half.
-- [Dot product](dot-product.md) — both the projection and the sign test.
-- [Vector projection](vector-projection.md) — what conversion actually computes.
-- [Similarity transforms](similarity-transforms.md) — basis plus scale plus
+- [Dot product](dot-product.md): both the projection and the sign test.
+- [Vector projection](vector-projection.md): what conversion actually computes.
+- [Similarity transforms](similarity-transforms.md): basis plus scale plus
   origin.
-- [Coordinate spaces](../concepts/coordinate-spaces.md) — the spaces this moves
+- [Coordinate spaces](../concepts/coordinate-spaces.md): the spaces this moves
   between.

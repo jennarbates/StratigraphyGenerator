@@ -51,9 +51,7 @@ def _member(job_id, grid=None):
     return {"job_id": job_id, "site_grid": grid}
 
 
-# ---------------------------------------------------------------------------
 # The starter config now states the frames
-# ---------------------------------------------------------------------------
 
 
 def test_the_starter_config_declares_both_frames_and_its_own_provenance():
@@ -85,9 +83,7 @@ def test_readable_tie_points_are_offered_with_their_coordinates():
     assert {"rawText": "not a label", "gridX": None, "gridY": None} in ties
 
 
-# ---------------------------------------------------------------------------
 # Registration provenance
-# ---------------------------------------------------------------------------
 
 
 def test_a_declared_source_beats_the_value_pattern():
@@ -112,9 +108,7 @@ def test_an_unrecognised_source_falls_back_to_the_pattern():
     assert merge_walls.is_placeholder(face, {"source": "probably fine"}) is True
 
 
-# ---------------------------------------------------------------------------
 # Site grid agreement
-# ---------------------------------------------------------------------------
 
 
 def test_sheets_on_different_grids_are_refused():
@@ -169,9 +163,7 @@ def test_a_config_naming_an_unknown_grid_is_refused():
         check_site_grid([_member("a")], {"site_grid": "tesoro"}, [])
 
 
-# ---------------------------------------------------------------------------
 # Vertical frame
-# ---------------------------------------------------------------------------
 
 
 def test_below_datum_without_a_datum_elevation_is_refused():
@@ -219,9 +211,7 @@ def test_an_unknown_vertical_frame_is_refused():
         check_vertical_frame({"vertical": {"frame": "feet"}}, [])
 
 
-# ---------------------------------------------------------------------------
 # Through a real build
-# ---------------------------------------------------------------------------
 
 
 def test_a_build_refuses_sheets_from_two_grids(jobs_dir):

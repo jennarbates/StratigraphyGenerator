@@ -30,9 +30,9 @@ line.
 
 Two properties matter here:
 
-- **It never overshoots.** The result always lies between `y₀` and `y₁`. Higher
+- It never overshoots. The result always lies between `y₀` and `y₁`. Higher
   order methods do not guarantee this.
-- **It requires `x₁ ≠ x₀`.** A vertical segment divides by zero, and every
+- It requires `x₁ ≠ x₀`. A vertical segment divides by zero, and every
   implementation in this repository guards it.
 
 ## The picture
@@ -50,11 +50,11 @@ Why not something smoother:
 ```
 recorded depths:   0.31        0.38        0.36
 
-linear:            straight lines between the marks —
-                   claims nothing beyond "it went from here to there"
+linear:            straight lines between the marks.
+                   Claims nothing beyond "it went from here to there"
 
 cubic spline:      a smooth curve that dips to 0.29 between
-                   the first two points — a claim that the
+                   the first two points, a claim that the
                    boundary rose where nobody recorded it
 ```
 
@@ -91,11 +91,11 @@ if above is not None and y < above - monotonic_tolerance_m:
     report.err(
         where,
         f"bottom at x={x} (depth {y:.2f}) is ABOVE "
-        f"{prev_name}'s bottom (depth {above:.2f}) — layers cross",
+        f"{prev_name}'s bottom (depth {above:.2f}): layers cross",
     )
 ```
 
-Note the **clamping** outside the recorded range — `x <= pts[0][0]` returns the
+Note the **clamping** outside the recorded range: `x <= pts[0][0]` returns the
 first point's depth rather than extrapolating. Extrapolation would invent a
 boundary beyond where it was traced. See
 [piecewise-linear functions](piecewise-linear-functions.md).
@@ -147,15 +147,15 @@ guard.
 |---|---|---|
 | **Nearest neighbour (step)** | The value jumps at the midpoint | Discontinuous. A boundary would be a staircase, and comparing two staircases for crossing produces spurious errors at every step. |
 | **Cubic spline** | A smooth curve through all points | Visually pleasing, and it **overshoots**: a spline through three recorded depths can dip above or below all of them, claiming the boundary went somewhere nobody recorded. On a project whose validator hunts for [fabricated geometry](coefficient-of-variation.md), an interpolator that invents excursions is exactly wrong. |
-| **Monotone cubic (PCHIP)** | Smooth, no overshoot | Genuinely better on both counts — smooth *and* shape-preserving. It is more code, needs derivative estimates at each point, and would have to be duplicated in Python and JavaScript and kept in step. The gain over straight lines, on boundaries recorded at a handful of vertices, is aesthetic. |
+| **Monotone cubic (PCHIP)** | Smooth, no overshoot | Genuinely better on both counts: smooth *and* shape-preserving. It is more code, needs derivative estimates at each point, and would have to be duplicated in Python and JavaScript and kept in step. The gain over straight lines, on boundaries recorded at a handful of vertices, is aesthetic. |
 | **Polynomial fit through all points** | A single high-order curve | Runge's phenomenon: high-order polynomials oscillate wildly between points. Worse than splines on the same axis. |
-| **Linear** *(chosen)* | A straight line, nothing more | Never overshoots, is trivially correct, identical in every language, and matches what the recorder actually claimed — that the boundary ran from this mark to that one. |
+| **Linear** *(chosen)* | A straight line, nothing more | Never overshoots, is trivially correct, identical in every language, and matches what the recorder actually claimed, that the boundary ran from this mark to that one. |
 
 The deciding argument is **epistemic**. A boundary is recorded as a set of
 marked vertices. What happened between two marks is genuinely unknown; the
 recorder drew a line because a line is the minimal claim. Interpolating linearly
 reproduces exactly that claim. Any smoother interpolation adds structure the
-evidence does not support — and would look *more* authoritative for it.
+evidence does not support, and would look *more* authoritative for it.
 
 The same reasoning appears in `build_gempy`'s `single_face_note`, which flags
 surfaces extrapolated across the whole model extent rather than presenting them
@@ -165,40 +165,40 @@ as measured.
 
 One subtraction, one division, one multiply, one add. O(1) given the bracketing
 segment; finding that segment is O(n) by scan here, or O(log n) by binary search
-if it mattered — it does not, since boundaries have tens of points.
+if it mattered (it does not, since boundaries have tens of points).
 
 The costs:
 
-- **Division by zero** on a vertical segment. All three implementations guard
+- Division by zero on a vertical segment. All three implementations guard
   it, with a documented choice of what to return.
-- **Not smooth.** The result has corners at every recorded vertex. For
+- Not smooth. The result has corners at every recorded vertex. For
   measurement that is honest; for rendering it means a traced boundary looks
-  faceted, which is correct — it *is* faceted, because that is what was
+  faceted, which is correct: it *is* faceted, because that is what was
   recorded.
-- **The bracketing scan must be on sorted points.** `depth_at_x` sorts
+- The bracketing scan must be on sorted points. `depth_at_x` sorts
   defensively on every call rather than trusting the caller.
 
 ## Where else you meet it
 
-- **Animation.** Every "lerp" between keyframes; `mix()` in shader languages.
-- **Colour gradients**, in CSS and in every design tool.
-- **Image resampling** — [bilinear interpolation](bilinear-and-bicubic-interpolation.md)
+- Animation. Every "lerp" between keyframes; `mix()` in shader languages.
+- Colour gradients, in CSS and in every design tool.
+- Image resampling: [bilinear interpolation](bilinear-and-bicubic-interpolation.md)
   is this applied twice.
-- **Lookup tables** in embedded systems, interpolating between calibration
+- Lookup tables in embedded systems, interpolating between calibration
   points.
-- **Financial mathematics**, interpolating a yield curve between quoted
+- Financial mathematics, interpolating a yield curve between quoted
   maturities.
-- **Sensor calibration**, mapping a raw reading to a physical value between
+- Sensor calibration, mapping a raw reading to a physical value between
   known reference points.
 
 ## Related pages
 
-- [Piecewise-linear functions](piecewise-linear-functions.md) — what a whole
+- [Piecewise-linear functions](piecewise-linear-functions.md): what a whole
   boundary is, as a function.
-- [Polyline clipping](polyline-clipping.md) — where the two-coordinate version
+- [Polyline clipping](polyline-clipping.md): where the two-coordinate version
   is used.
-- [Bilinear and bicubic interpolation](bilinear-and-bicubic-interpolation.md) —
+- [Bilinear and bicubic interpolation](bilinear-and-bicubic-interpolation.md):
   the 2D image version.
-- [Spatial interpolation and kriging](spatial-interpolation-and-kriging.md) —
+- [Spatial interpolation and kriging](spatial-interpolation-and-kriging.md):
   what happens between *walls*, and why it needs a different method.
-- [Epsilon comparison](epsilon-comparison.md) — the zero-span guards.
+- [Epsilon comparison](epsilon-comparison.md): the zero-span guards.

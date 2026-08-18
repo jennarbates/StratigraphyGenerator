@@ -18,7 +18,7 @@ interpreted**, because what the number means is a site-records question.
 ## What it is
 
 A recorder drawing a wall on graph paper writes reference numbers along the top
-edge — `194 m`, `192 m`, `190 m` — marking where the drawing sits relative to the
+edge (`194 m`, `192 m`, `190 m`) marking where the drawing sits relative to the
 site grid.
 
 These are **tie points**: they connect the sheet's own coordinate space to the
@@ -30,11 +30,11 @@ orientation and the site's conventions. Only the excavation's records know.
 
 They serve two purposes:
 
-- **A scale reference.** Two labels a known distance apart give the drawing's
-  scale — used directly by
+- A scale reference. Two labels a known distance apart give the drawing's
+  scale, used directly by
   [marker detection](marker.md), where "194 m … 190 m" means 4.0 m between the
   clicks.
-- **A registration hint.** They are the likeliest source of the
+- A registration hint. They are the likeliest source of the
   [registration](grid-registration.md) values, if someone can say which axis they
   are on.
 
@@ -44,7 +44,7 @@ They serve two purposes:
 flowchart LR
   T["194 m"] --- U["192 m"] --- V["190 m"]
   T -.-> S["4.0 m between the outer labels<br/>→ the drawing's scale"]
-  V -.-> R["…and a hint at where the wall sits<br/>— but on which axis?"]
+  V -.-> R["…and a hint at where the wall sits,<br/>but on which axis?"]
 ```
 
 ## Why excavation records it
@@ -108,15 +108,15 @@ and the comment appended to the config says what that offer is worth:
 ```
 
 Two things are separated here, and the separation is the point. **Reading the
-label** is now a solved problem — `site_grid.label_to_grid` applies the site's
+label** is now a solved problem: `site_grid.label_to_grid` applies the site's
 own sign rule, so `190E/53S` yields `(190, -53)` deterministically, and a label
 it cannot read yields `gridX: None` rather than a guess. **Placing the face** is
 not: knowing that a label means (190, −53) does not say whether that point is
 the face's x = 0 edge, its far end, or a station somewhere along it.
 
 So the software does the part it can defend and stops. It could guess the rest
-— the numbers decrease left to right, so perhaps the leftmost label is the
-origin — and guessing would produce a plausible registration wrong by a
+(the numbers decrease left to right, so perhaps the leftmost label is the
+origin), and guessing would produce a plausible registration wrong by a
 rotation.
 
 This is [fail-closed design](../cs/fail-closed-design.md) applied to
@@ -160,7 +160,7 @@ if len(numeric) >= 2:
 
 Clever, and carefully hedged. If labels reading 194 and 190 sit only 1 m apart on
 the drawing, either the scale is wrong or the labels are not metres. The warning
-says **"if those labels are metre marks"** — it does not assume they are.
+says **"if those labels are metre marks"**. It does not assume they are.
 
 Non-numeric labels are skipped rather than failing, and a warning rather than an
 error, because the assumption might be wrong.
@@ -188,7 +188,7 @@ The labels are more reliable than measuring the printed graph-paper grid.
 | **[Site coordinates](site-coordinates.md)** | A tie label is a number of unknown axis. Site coordinates are a full XYZ triple. |
 | **A scale bar** | A scale bar shows a distance. Tie labels show *positions*, from which a distance can be derived. |
 | **[Survey point codes](survey-point-codes.md)** | Those are instrument codes. Tie points are pencil labels on paper. |
-| **Interpreted data** | Deliberately. `_tiePointsFromSheet` carries each label's grid coordinates where they could be read, but nothing is applied to a face — it is reference material with a warning attached. |
+| **Interpreted data** | Deliberately. `_tiePointsFromSheet` carries each label's grid coordinates where they could be read, but nothing is applied to a face; it is reference material with a warning attached. |
 
 ## Getting it wrong
 
@@ -212,9 +212,9 @@ of what the recorder actually wrote.
 
 ## Related pages
 
-- [Recording sheet](recording-sheet.md) — where the labels are written.
-- [Scale and DPI](scale-and-dpi.md) — how a real distance becomes a scale.
-- [Grid registration](grid-registration.md) — what they might inform.
-- [Marker](marker.md) — the detector that uses them for scale.
-- [Fail-closed design](../cs/fail-closed-design.md) — why they are not
+- [Recording sheet](recording-sheet.md): where the labels are written.
+- [Scale and DPI](scale-and-dpi.md): how a real distance becomes a scale.
+- [Grid registration](grid-registration.md): what they might inform.
+- [Marker](marker.md): the detector that uses them for scale.
+- [Fail-closed design](../cs/fail-closed-design.md): why they are not
   interpreted.

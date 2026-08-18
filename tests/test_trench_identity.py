@@ -48,9 +48,7 @@ def _member(job_id, season=None, locus_epoch=None):
     }
 
 
-# ---------------------------------------------------------------------------
 # W1.1 -- one trench, one group
-# ---------------------------------------------------------------------------
 
 
 def test_differently_spelled_labels_group_as_one_trench(jobs_dir):
@@ -122,9 +120,7 @@ def test_the_listing_route_exposes_variants_only_when_they_exist(jobs_dir):
     assert body["label_variants"] == {"T104": ["T-104", "T104"]}
 
 
-# ---------------------------------------------------------------------------
 # W1.2 -- locus numbering epochs
-# ---------------------------------------------------------------------------
 
 
 def test_one_season_needs_no_epoch():

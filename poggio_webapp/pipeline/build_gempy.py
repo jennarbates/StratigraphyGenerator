@@ -1,5 +1,5 @@
 """
-build_gempy.py — build and compute a GemPy geological model from the
+Build and compute a GemPy geological model from the
 interface points / orientation seeds produced by convert_coords.py.
 
 Adapted from 06_gempy_model/buildGempyModel.py into an importable function.
@@ -367,7 +367,7 @@ def run_build(
 
     points = pd.read_csv(points_csv)
     if points.empty:
-        raise RuntimeError(f"{points_csv} has no rows — nothing to model.")
+        raise RuntimeError(f"{points_csv} has no rows. Nothing to model.")
 
     resolved_extent = extent or infer_extent(points, padding_xy, padding_z)
     log(f"extent: {resolved_extent}")
@@ -547,7 +547,7 @@ def run_build(
                 zrange = middle_zoom_range(points, surf_order, zsurfs)
                 if zrange is None:
                     log(
-                        "NOTE: no middle layers to zoom into — skipping the zoomed plot."
+                        "NOTE: no middle layers to zoom into, skipping the zoomed plot."
                     )
                 else:
                     zoom_ve = (

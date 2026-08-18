@@ -20,15 +20,15 @@ plausible. The single most consistent principle in this repository.
 
 Every operation that can fail has a choice of default:
 
-**Fail open** — carry on with a guess, a partial result, or a default value.
+**Fail open**: carry on with a guess, a partial result, or a default value.
 Convenient, and the output looks the same as a correct one.
 
-**Fail closed** — refuse, and say why. Inconvenient, and the failure is visible.
+**Fail closed**: refuse, and say why. Inconvenient, and the failure is visible.
 
 For a system that produces **evidence**, the choice is not balanced. A model
 built from guessed inputs renders exactly as confidently as one built from
 measurements. Nobody downstream can tell them apart, so the guess is worse than
-an error — it is an error wearing the costume of a result.
+an error: it is an error wearing the costume of a result.
 
 The variants used here:
 
@@ -54,7 +54,7 @@ flowchart TB
 
 ### Refusing an orientation it cannot justify
 
-`poggio_webapp/pipeline/true_dip.py` — the clearest statement in the codebase:
+`poggio_webapp/pipeline/true_dip.py`, the clearest statement in the codebase:
 
 ```python
 Where a solve is not available -- a surface drawn on one wall, or two walls too
@@ -132,7 +132,7 @@ if (
 }
 ```
 
-The layer is drawn as two boundary lines with no shading — visibly different
+The layer is drawn as two boundary lines with no shading, visibly different
 from a wrong fill, and less than a correct one. See
 [polyline clipping](polyline-clipping.md).
 
@@ -141,7 +141,7 @@ cannot trust:
 
 ```python
 # calib exists but we can't trust it against whatever image we just
-# served (rotated copy missing) — omit it rather than misalign.
+# served (rotated copy missing), so omit it rather than misalign.
 ```
 
 No overlay beats an overlay in the wrong place.
@@ -187,7 +187,7 @@ nothing.
 
 Two categories, one rule. **What convert() cannot proceed on is fatal;
 questionable geometry is a warning**, because an archaeologist may have a reason
-for a wall that does not join — an unexcavated side, a survey the software
+for a wall that does not join: an unexcavated side, a survey the software
 cannot know about.
 
 Fail-closed does not mean refuse everything. It means refuse where the software
@@ -214,40 +214,40 @@ measurement."*
 
 Nothing to run. The cost is entirely in friction:
 
-- **Refusals interrupt work.** An operator who wanted a model gets an error.
-  Mitigated by messages that name what to fix — "Check the layer order on those
+- Refusals interrupt work. An operator who wanted a model gets an error.
+  Mitigated by messages that name what to fix: "Check the layer order on those
   walls, or correlate the loci explicitly."
-- **Sometimes the guess would have been fine.** Two walls 9° apart are refused
+- Sometimes the guess would have been fine. Two walls 9° apart are refused
   though the solve might have been adequate. The threshold is a named parameter,
   so it is arguable rather than hidden.
-- **It requires knowing what "correct" means.** Every refusal here rests on a
-  domain fact — apparent dips are too shallow, layers cannot cross, placeholders
+- It requires knowing what "correct" means. Every refusal here rests on a
+  domain fact: apparent dips are too shallow, layers cannot cross, placeholders
   lay walls in a row. Without that knowledge the principle cannot be applied.
-- **Degraded output can look broken.** A layer with no fill may read as a bug
+- Degraded output can look broken. A layer with no fill may read as a bug
   rather than as a deliberate abstention. Better than a wrong fill, and worth an
   interface note.
 
 ## Where else you meet it
 
-- **Security**, where fail-closed is the default posture: deny on error, never
+- Security, where fail-closed is the default posture: deny on error, never
   grant.
-- **Aviation and medical devices**, where a sensor disagreement raises an alarm
+- Aviation and medical devices, where a sensor disagreement raises an alarm
   rather than averaging.
-- **Type systems and compilers**, which refuse to build rather than emit code
+- Type systems and compilers, which refuse to build rather than emit code
   they cannot verify.
-- **Database constraints**, which reject a write rather than store an
+- Database constraints, which reject a write rather than store an
   inconsistent row.
-- **`set -e` in shell scripts**, stopping at the first failure instead of
+- `set -e` in shell scripts, stopping at the first failure instead of
   continuing on corrupt state.
 
 ## Related pages
 
-- [Error taxonomies](error-taxonomies.md) — the errors-versus-warnings split.
-- [Interpolation versus measurement](interpolation-vs-measurement.md) — the
+- [Error taxonomies](error-taxonomies.md): the errors-versus-warnings split.
+- [Interpolation versus measurement](interpolation-vs-measurement.md): the
   epistemic distinction underneath.
-- [Validation at trust boundaries](validation-at-trust-boundaries.md) — refusing
+- [Validation at trust boundaries](validation-at-trust-boundaries.md): refusing
   bad input early.
-- [Fabrication detection](fabrication-detection.md) — catching a guess that got
+- [Fabrication detection](fabrication-detection.md): catching a guess that got
   in anyway.
-- [Codebase review](../architecture/code-review.md) — where this principle is
+- [Codebase review](../architecture/code-review.md): where this principle is
   assessed.

@@ -20,7 +20,7 @@ closing(A, B) = erode(dilate(A, B), B)
 ```
 
 [Dilation](dilation.md) grows the foreground, bridging gaps and filling small
-holes — and thickening everything. [Erosion](erosion.md) by the *same* element
+holes, and thickening everything. [Erosion](erosion.md) by the *same* element
 takes the thickness back off, but the bridges survive, because they are now part
 of a connected region rather than a gap.
 
@@ -29,8 +29,8 @@ are filled, everything else is unchanged.
 
 Its properties mirror [opening](morphological-opening.md)'s:
 
-- **Idempotent** — closing twice changes nothing after the first pass.
-- **Extensive** — the result is always a superset of the input. Closing can only
+- Idempotent: closing twice changes nothing after the first pass.
+- Extensive: the result is always a superset of the input. Closing can only
   add, never remove.
 
 Opening and closing are duals: closing the foreground is opening the background.
@@ -53,7 +53,7 @@ One row through a 2-pixel gap:
 
 ```
 input     ████████..████████       gap the pen skipped
-dilate    ██████████████████       bridged — and 1px fatter on every edge
+dilate    ██████████████████       bridged, and 1px fatter on every edge
 erode     ████████████████         bridge kept, thickness restored
 ```
 
@@ -107,7 +107,7 @@ if solidity < 0.34 or extent < 0.09:
 [circularity](circularity.md) all collapse. A stone whose outline has a 2-pixel
 break is not merely measured badly; it is measured as nothing.
 
-**`iterations=1`** is deliberate restraint. One pass bridges a 2–3 pixel gap —
+**`iterations=1`** is deliberate restraint. One pass bridges a 2–3 pixel gap:
 a pen skip. More would begin merging genuinely separate stones into a single
 candidate.
 
@@ -122,13 +122,13 @@ matched to whether the operation's meaning is physical or pixel-local.
 
 | Alternative | How it would work here | Why it lost |
 |---|---|---|
-| **[Dilation](dilation.md) alone** | Grow until the gaps close | Bridges the gaps and leaves every outline permanently thicker, which inflates area and distorts [extent](extent-and-fill-ratio.md) and [aspect ratio](aspect-ratio.md) — and affects small features proportionally more than large ones. |
+| **[Dilation](dilation.md) alone** | Grow until the gaps close | Bridges the gaps and leaves every outline permanently thicker, which inflates area and distorts [extent](extent-and-fill-ratio.md) and [aspect ratio](aspect-ratio.md), and affects small features proportionally more than large ones. |
 | **[Closing](morphological-closing.md)** *(chosen)* | Dilate, then erode by the same element | Bridges survive, thickness restored, measures stay meaningful. |
-| **Lower the [Canny](canny-edge-detection.md) thresholds** | Detect weaker edges so fewer breaks appear | Treats the cause, not the symptom — and admits paper texture and graph-paper ruling. The thresholds are already derived from the image median precisely to balance this. |
-| **Edge linking** | Detect open endpoints, join nearby pairs following the local direction | More surgical: it joins only where an edge genuinely stops, instead of thickening the whole image. It needs endpoint detection, a proximity threshold, and a direction threshold — three new parameters to close a 2-pixel gap. Worth it if the gaps were large; they are not. |
+| **Lower the [Canny](canny-edge-detection.md) thresholds** | Detect weaker edges so fewer breaks appear | Treats the cause, not the symptom, and admits paper texture and graph-paper ruling. The thresholds are already derived from the image median precisely to balance this. |
+| **Edge linking** | Detect open endpoints, join nearby pairs following the local direction | More surgical: it joins only where an edge genuinely stops, instead of thickening the whole image. It needs endpoint detection, a proximity threshold, and a direction threshold: three new parameters to close a 2-pixel gap. Worth it if the gaps were large; they are not. |
 | **Active contours (snakes)** | Fit a deformable closed curve per blob | Handles far worse breakage, at the price of per-object initialisation and iterative optimisation. |
 | **Morphological gradient or watershed** | Segment regions rather than trace edges | A different formulation of the whole problem. Watershed is strong on touching objects and needs markers, which is the problem being solved. |
-| **`RETR_EXTERNAL` and accept open contours** | Change how contours are retrieved | Does not help — retrieval mode does not close a curve. |
+| **`RETR_EXTERNAL` and accept open contours** | Change how contours are retrieved | Does not help: retrieval mode does not close a curve. |
 
 The judgement running through this module is that a 3×3 kernel is a **blunt**
 instrument and bluntness is acceptable, because nothing here is a conclusion:
@@ -139,7 +139,7 @@ instrument and bluntness is acceptable, because nothing here is a conclusion:
 > labels each proposal before extraction.
 
 A blunt tool feeding a human reviewer is a reasonable design. The same bluntness
-would be unacceptable in `detect_markers.py`, whose output becomes coordinates —
+would be unacceptable in `detect_markers.py`, whose output becomes coordinates,
 and indeed that module sizes its kernel from the physical scale of the paper
 instead.
 
@@ -153,28 +153,28 @@ one. Two stones drawn nearly touching may be proposed as a single feature. Since
 proposals are reviewed and the reviewer sees the outline drawn on the original
 image, that error is visible and correctable rather than silent.
 
-Closing also fills small genuine holes — a stone drawn with a hollow centre
+Closing also fills small genuine holes: a stone drawn with a hollow centre
 comes out solid. Here that is harmless, since [solidity](solidity.md) is used to
 *select* compact shapes anyway.
 
 ## Where else you meet it
 
-- **Document image cleanup**, reconnecting broken character strokes before OCR.
-- **Medical imaging**, closing gaps in vessel or airway segmentations before
+- Document image cleanup, reconnecting broken character strokes before OCR.
+- Medical imaging, closing gaps in vessel or airway segmentations before
   measuring length.
-- **Satellite imagery**, repairing road networks broken by tree cover.
-- **3D printing slicers**, closing small gaps in a mesh cross-section so a layer
+- Satellite imagery, repairing road networks broken by tree cover.
+- 3D printing slicers, closing small gaps in a mesh cross-section so a layer
   is a valid fillable region.
-- **Photoshop's "Refine Edge"**, which offers exactly this as a smoothing
+- Photoshop's "Refine Edge", which offers exactly this as a smoothing
   control.
 
 ## Related pages
 
-- [Dilation](dilation.md) and [erosion](erosion.md) — the two halves.
-- [Morphological opening](morphological-opening.md) — the dual, used in the
+- [Dilation](dilation.md) and [erosion](erosion.md): the two halves.
+- [Morphological opening](morphological-opening.md): the dual, used in the
   marker detector.
-- [Structuring elements](structuring-elements.md) — the probe.
-- [Canny edge detection](canny-edge-detection.md) — the step that produces the
+- [Structuring elements](structuring-elements.md): the probe.
+- [Canny edge detection](canny-edge-detection.md): the step that produces the
   broken outlines.
-- [Contour area and perimeter](contour-area-and-perimeter.md) — the measures
+- [Contour area and perimeter](contour-area-and-perimeter.md): the measures
   that require closure.

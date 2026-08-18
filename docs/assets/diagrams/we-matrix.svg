@@ -68,7 +68,7 @@ text { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-se
   <text x="70" y="70" text-anchor="end" class="sm accent-f">younger</text>
   <text x="70" y="400" text-anchor="end" class="sm accent-f">older</text>
   <text x="24" y="452" text-anchor="start" class="sm">Loci 3 and 6 are one deposit under two numbers: 6 is the piece of 3 the sounding removed. Both SU forms say so, and a correlation is</text>
-  <text x="24" y="472" text-anchor="start" class="sm">what the schema has for it — the drawn matrix stacked them instead, which would make a deposit younger than itself. Locus 6's form also</text>
+  <text x="24" y="472" text-anchor="start" class="sm">what the schema has for it. The drawn matrix stacked them instead, which would make a deposit younger than itself. Locus 6's form also</text>
   <text x="24" y="492" text-anchor="start" class="sm">asserts it overlies 8 as well as 7; that follows from 6 → 7 → 8, so it is kept in the record and omitted from the diagram with a warning.</text>
   <text x="24" y="528" text-anchor="start" class="sm muted">Synthetic example. Invented loci; not an archaeological interpretation.</text>
 </svg>

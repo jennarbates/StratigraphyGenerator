@@ -8,7 +8,7 @@ source_files:
 verified_against: ae2fc1d
 ---
 
-# Drawing Trench Profiles for Digital Capture — Illustrator Guidelines
+# Drawing Trench Profiles for Digital Capture: Illustrator Guidelines
 
 These profiles are digitized into structured data and 3D geological models. A few
 consistent choices make that automatic and accurate; ambiguity forces guesswork
@@ -24,7 +24,7 @@ For the distinctions used below, see
 ## Scale & measurement
 - Use **one metric scale bar** (meters) per sheet. If an archival non-metric bar
   (e.g. PECK) must appear, place it separately and label it clearly
-  **"archival reference — not for measurement."**
+  **"archival reference, not for measurement."**
 - Make the bar **long and finely ticked**, and place it **near the profiles**,
   not off in a corner.
 - Best practice: also add a **depth scale down the side of each profile** with
@@ -40,7 +40,7 @@ For the distinctions used below, see
   weight.**
 - Keep **boundary lines clearly bolder/darker than the fill hatching** inside
   layers, so each line can be followed on its own.
-- Where two boundaries run close together, **keep a visible gap** — don't let
+- Where two boundaries run close together, **keep a visible gap**. Don't let
   them merge or touch.
 - Draw each boundary's **actual shape** (dips, humps, pinch-outs). Avoid making
   layers look artificially parallel unless they truly are.
@@ -49,8 +49,8 @@ For the distinctions used below, see
 - Choose **visually distinct hatch patterns** for different materials. Avoid
   several near-identical stippling densities that are hard to tell apart on a
   scan.
-- **Label each layer directly on the profile** with its material name or a short
-  code — not only via a legend swatch.
+- Label each layer directly on the profile with its material name or a short
+  code, not only via a legend swatch.
 - Include a **legend** where every pattern maps to exactly one material, with no
   duplicates or near-duplicates.
 
@@ -66,10 +66,10 @@ For the distinctions used below, see
 - Put **trench label, face names, creator/illustrator names, date, and any
   drawing number** in the **same corner every time**, and **print** them (no
   cursive).
-- **Keep names, initials, and dates well clear of the scale bar.** When a
+- Keep names, initials, and dates well clear of the scale bar. When a
   signature or date sits right next to the scale, automated reading can mistake a
   name for a unit of measurement (a real drawing in this archive is signed "PECK"
-  beside the bar — a person's name — which the tool initially misread as a
+  beside the bar, a person's name, which the tool initially misread as a
   measurement unit). Give the scale bar its own clear space.
 - If you can, **label each name with its role** ("architect: …", "illustrator:
   …"). Roles that aren't written down have to be filled in by hand later.

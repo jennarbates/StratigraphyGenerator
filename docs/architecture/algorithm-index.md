@@ -82,16 +82,16 @@ terms these modules operate on.
 | `backend/tasks.py` | Threads · locks and critical sections · bounded caches and eviction · runtime introspection |
 | `backend/jobs.py` | Path traversal containment · tolerant versus strict reads |
 | `pipeline/harris_suggestions.py` | SHA-256 hashing · content-addressed identifiers · idempotency · immutability and defensive copying · combinations |
-| `pipeline/site_vocab.py` | Controlled vocabularies · [regular expressions](../cs/regular-expressions.md) for identifier parsing · frozen value objects · canonical construction with permissive parsing — see [find identifiers](../archaeology/find-identifiers.md) and [survey point codes](../archaeology/survey-point-codes.md) |
-| `pipeline/provenance.py` | [Regular expressions](../cs/regular-expressions.md) for link shapes · [input sanitisation](../cs/input-sanitisation.md) of operator-supplied identifiers, validated by shape and never fetched — see [provenance and data lineage](../cs/provenance-and-data-lineage.md) |
+| `pipeline/site_vocab.py` | Controlled vocabularies · [regular expressions](../cs/regular-expressions.md) for identifier parsing · frozen value objects · canonical construction with permissive parsing (see [find identifiers](../archaeology/find-identifiers.md) and [survey point codes](../archaeology/survey-point-codes.md)) |
+| `pipeline/provenance.py` | [Regular expressions](../cs/regular-expressions.md) for link shapes · [input sanitisation](../cs/input-sanitisation.md) of operator-supplied identifiers, validated by shape and never fetched (see [provenance and data lineage](../cs/provenance-and-data-lineage.md)) |
 | `pipeline/geospatial_sheet.py` | [Regular expressions](../cs/regular-expressions.md) for corner and trench-id labels · [error taxonomies](../cs/error-taxonomies.md) (per-trench refusals versus notes) |
-| `pipeline/locus_import.py` | [Fail-closed design](../cs/fail-closed-design.md) — explicit column maps, refusing an unrecognised export with its observed headers listed · [validation at trust boundaries](../cs/validation-at-trust-boundaries.md) |
-| `naming.py` | Regular expressions · canonicalisation that declines to mangle what it does not recognise — see [trench](../archaeology/trench.md) |
+| `pipeline/locus_import.py` | [Fail-closed design](../cs/fail-closed-design.md): explicit column maps, refusing an unrecognised export with its observed headers listed · [validation at trust boundaries](../cs/validation-at-trust-boundaries.md) |
+| `naming.py` | Regular expressions · canonicalisation that declines to mangle what it does not recognise (see [trench](../archaeology/trench.md)) |
 | `pipeline/build_gempy.py` | Endianness and binary serialisation · spatial interpolation (via GemPy) · mesh validation · schema versioning |
 | `static/visualizer/volume3d-core.mjs` | Endianness-safe decoding · C-order indexing · golden-angle colour assignment |
 
 ## Related concepts
 
-- [Computer science concepts](../cs/index.md) — one page per technique.
-- [Pipeline architecture](pipeline.md) — the stages these modules form.
-- [Backend architecture](backend.md) — how routes, services, and pipeline relate.
+- [Computer science concepts](../cs/index.md): one page per technique.
+- [Pipeline architecture](pipeline.md): the stages these modules form.
+- [Backend architecture](backend.md): how routes, services, and pipeline relate.

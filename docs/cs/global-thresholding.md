@@ -72,7 +72,7 @@ Grey pencil scores ~3 and red pen ~142 regardless of how brightly that part of
 the sheet is lit, so one number genuinely does fit the whole image.
 
 For the *darkness* half of the same mask, the module uses
-[adaptive thresholding](adaptive-thresholding.md) instead — because raw
+[adaptive thresholding](adaptive-thresholding.md) instead, because raw
 intensity is exactly the quantity a lighting gradient corrupts.
 
 That contrast, inside four lines of one function, is the clearest statement of
@@ -84,7 +84,7 @@ using [adaptive thresholding](adaptive-thresholding.md) after flattening.
 
 ## Why this and not something else
 
-| Alternative | How it would work here | Why it lost — or won |
+| Alternative | How it would work here | Why it lost, or won |
 |---|---|---|
 | **Fixed global `T`, chosen by hand** | `gray < 130` | The original CLI tool did this. `detect_markers.py` records the outcome: "a fixed gray<130 threshold fragments light pencil and breaks under phone-photo lighting." |
 | **[Otsu's method](otsu-thresholding.md)** | Compute `T` automatically from the histogram | Removes the hand-tuning and keeps the one-threshold-per-image assumption. Better, not sufficient. |
@@ -97,28 +97,28 @@ using [adaptive thresholding](adaptive-thresholding.md) after flattening.
 O(n), one comparison per pixel, no memory beyond the output. Nothing is cheaper.
 
 The cost is entirely in the assumption. When it holds, global thresholding is
-unbeatable; when it does not, it fails **silently** — producing a plausible
+unbeatable; when it does not, it fails **silently**, producing a plausible
 binary image with whole regions misclassified, which the next stage then
 processes with complete confidence.
 
 ## Where else you meet it
 
-- **Document scanners** in "black and white" mode.
-- **Barcode readers**, which threshold a scan line before decoding.
-- **Industrial inspection** under controlled lighting — the one environment
+- Document scanners in "black and white" mode.
+- Barcode readers, which threshold a scan line before decoding.
+- Industrial inspection under controlled lighting, the one environment
   where the assumption reliably holds.
-- **Medical image segmentation** by Hounsfield unit: bone is above a fixed CT
+- Medical image segmentation by Hounsfield unit: bone is above a fixed CT
   threshold because the units are physically calibrated, which is the same
   "already normalised" argument as `redness`.
 
 ## Related pages
 
-- [Otsu's method](otsu-thresholding.md) — choosing `T` from the data.
-- [Adaptive thresholding](adaptive-thresholding.md) — a different `T` per
+- [Otsu's method](otsu-thresholding.md): choosing `T` from the data.
+- [Adaptive thresholding](adaptive-thresholding.md): a different `T` per
   region, used here.
-- [Homomorphic illumination correction](homomorphic-illumination-correction.md) —
+- [Homomorphic illumination correction](homomorphic-illumination-correction.md):
   fixing the image instead of the threshold.
-- [Colour-channel arithmetic](colour-channel-arithmetic.md) — why `redness < 25`
+- [Colour-channel arithmetic](colour-channel-arithmetic.md): why `redness < 25`
   is legitimate.
-- [Binary masks and bitwise operations](binary-masks-and-bitwise-operations.md) —
+- [Binary masks and bitwise operations](binary-masks-and-bitwise-operations.md):
   what the result is used for.

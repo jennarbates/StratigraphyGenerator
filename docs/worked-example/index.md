@@ -28,8 +28,8 @@ The trench is **T905**. It does not exist.
     It is not invented *freely*, though. The [synthetic
     fixtures](../fixtures/README.md) are clean: they show what a well-formed
     input looks like. T905 is the other kind of example. It is modelled on the
-    shape of a real season's paperwork — the same sorts of gap, contradiction,
-    transposed digit and unrecorded value — because a pipeline demonstrated
+    shape of a real season's paperwork (the same sorts of gap, contradiction,
+    transposed digit and unrecorded value), because a pipeline demonstrated
     only on tidy input has never been shown to refuse anything.
 
     Every defect on these pages is deliberate, and every one of them is
@@ -50,11 +50,11 @@ A 5 m by 5 m trench, opened for one season, with eight
 | 1 | Topsoil, dug together with an old spoil heap | Yes |
 | 2 | The deposit between topsoil and the structure | Yes |
 | 3 | The building's compacted earthen floor | Exposed, then sounded |
-| 4 | A foundation wall, one course preserved | No — drawn and left |
-| 5 | A cobbled surface outside the wall | No — drawn and left |
+| 4 | A foundation wall, one course preserved | No, drawn and left |
+| 5 | A cobbled surface outside the wall | No, drawn and left |
 | 6 | A 2 × 1 m sounding through the floor | Yes |
 | 7 | The deposit under the floor | Yes |
-| 8 | The layer below that | No — out of season |
+| 8 | The layer below that | No, out of season |
 
 Two features left standing, one floor sectioned by a small sounding, and a
 column of four measured surfaces running down through it. That is an ordinary
@@ -104,13 +104,13 @@ tests/fixtures/t905-2025-special-finds.json   26 findspots
 ```
 
 `tests/test_t905_worked_example.py` asserts every claim these pages make. If a
-number here is wrong, a test fails — including the counts, which are the
+number here is wrong, a test fails, including the counts, which are the
 easiest thing to quietly get wrong when a fixture is edited.
 
 ## Related
 
-- [Workflow overview](../workflows/overview.md) — the numbered path, one sheet at a time
-- [Synthetic fixtures](../fixtures/README.md) — the clean examples, for contrast
-- [Glossary](../start-here/glossary.md) — locus and the rest of the vocabulary
+- [Workflow overview](../workflows/overview.md): the numbered path, one sheet at a time
+- [Synthetic fixtures](../fixtures/README.md): the clean examples, for contrast
+- [Glossary](../start-here/glossary.md): locus and the rest of the vocabulary
 - [Wall and baulk](../archaeology/wall-and-baulk.md) and
-  [datum](../archaeology/datum.md) — baulk, the datum nail, and mAE
+  [datum](../archaeology/datum.md): baulk, the datum nail, and mAE

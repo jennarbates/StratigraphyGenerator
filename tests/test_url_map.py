@@ -4,12 +4,12 @@ This was written to protect the modularization refactor, which moved twelve
 routes out of ``app.py`` and into blueprints and deleted the
 ``app.view_functions["pages.index"]`` monkeypatch. Those were pure moves: the
 route table before and after had to be byte-identical. It goes on earning its
-keep for every later move — if a rule disappears, gains a method, or changes
+keep for every later move: if a rule disappears, gains a method, or changes
 shape, this test says so immediately instead of leaving a page quietly 404ing
 in production.
 
 When a route is legitimately added or removed, update EXPECTED_RULES in the
-same commit — that edit is the reviewable record of the change.
+same commit. That edit is the reviewable record of the change.
 """
 
 import pytest

@@ -13,29 +13,29 @@ verified_against: ae2fc1d
 # Mean and variance
 
 The centre of a set of numbers and how spread out they are. Two statistics that
-appear throughout this pipeline — and one place where the mean was deliberately
+appear throughout this pipeline, and one place where the mean was deliberately
 rejected in favour of the [median](median-and-robust-statistics.md).
 
 ## What it is
 
-**Mean** — the arithmetic average:
+**Mean**, the arithmetic average:
 
 ```
 μ = (Σ xᵢ) / n
 ```
 
-**Variance** — the average squared distance from the mean:
+**Variance**, the average squared distance from the mean:
 
 ```
 σ² = Σ(xᵢ − μ)² / n
 ```
 
-**Standard deviation** — `σ = √(σ²)`, which is back in the original units and
+**Standard deviation**: `σ = √(σ²)`, which is back in the original units and
 therefore interpretable.
 
 Why squared distances rather than absolute ones: squaring makes the algebra
 differentiable, which is what lets [least squares](ordinary-least-squares.md)
-have a closed-form solution. It also weights large deviations heavily — a single
+have a closed-form solution. It also weights large deviations heavily: a single
 outlier at 10× the typical distance contributes 100× the typical term.
 
 That sensitivity is the mean's defining weakness, and the reason this repository
@@ -43,8 +43,8 @@ uses the median where inputs may contain outliers.
 
 A note on `n` versus `n−1`: dividing by `n` gives the *population* variance,
 by `n−1` the unbiased *sample* estimate. This project divides by `n` throughout,
-which is correct because the points are the whole population of interest — every
-vertex that was recorded — not a sample drawn from a larger set.
+which is correct because the points are the whole population of interest (every
+vertex that was recorded), not a sample drawn from a larger set.
 
 ## The picture
 
@@ -107,8 +107,8 @@ order = sorted(
 
 Here the mean is exactly right. Every point on a locus's top boundary is a real
 recorded vertex; there are no outliers to guard against, and the average depth is
-a fair summary of where the boundary sits. The alternative — ordering by a single
-point — would depend on which point.
+a fair summary of where the boundary sits. The alternative, ordering by a single
+point, would depend on which point.
 
 `manual_extraction._average_depth` does the same for the manual path.
 
@@ -130,7 +130,7 @@ def least_squares_slope(xs, ds):
 
 The denominator is `n` times the variance of `xs`; the numerator is `n` times
 the covariance. The `den == 0` guard is the degenerate case where every point
-shares an x — no spread, so no slope is determinable. `true_dip._wall_direction`
+shares an x: no spread, so no slope is determinable. `true_dip._wall_direction`
 carries the same computation with the same guard.
 
 ### And where the mean was rejected
@@ -159,57 +159,57 @@ some are not.**
 
 ## Why this and not something else
 
-| Alternative | What it measures | Why it lost — or won |
+| Alternative | What it measures | Why it lost, or won |
 |---|---|---|
 | **[Median](median-and-robust-statistics.md)** | The middle value | More robust, and it discards information: the mean uses every value, the median uses one or two. Where all inputs are real recorded vertices, the mean is a better summary. |
-| **Trimmed mean** | Mean after dropping the extremes | A reasonable middle ground, and it needs a trim fraction — another parameter to justify. |
+| **Trimmed mean** | Mean after dropping the extremes | A reasonable middle ground, and it needs a trim fraction, another parameter to justify. |
 | **Mean absolute deviation** | `Σ|x−μ|/n` instead of variance | More robust than variance and more interpretable. It is not differentiable at zero, so it has no closed-form least-squares solution, and the [coefficient of variation](coefficient-of-variation.md) is conventionally defined with σ. |
-| **Range** (`max − min`) | Simplest spread measure | Determined entirely by the two extreme values, so one bad vertex sets it. Used here only where that is acceptable — `spread = max(diffs) - min(diffs)` in the parallel-layer check, where a *small* range is the suspicious signal. |
+| **Range** (`max − min`) | Simplest spread measure | Determined entirely by the two extreme values, so one bad vertex sets it. Used here only where that is acceptable: `spread = max(diffs) - min(diffs)` in the parallel-layer check, where a *small* range is the suspicious signal. |
 | **Mean and variance** *(chosen where inputs are clean)* | Centre and spread using every value | Uses all the data, has closed-form solutions, and the ratio σ/μ is a standard, dimensionless, well-understood statistic. |
 
 ## What it costs
 
-O(n), one or two passes. The two-pass form used here — compute the mean, then
-the squared deviations — is slightly slower than the one-pass "sum of squares"
+O(n), one or two passes. The two-pass form used here (compute the mean, then
+the squared deviations) is slightly slower than the one-pass "sum of squares"
 identity and **numerically far better**: the one-pass form subtracts two large
 nearly-equal numbers and can produce a negative variance. See
 [floating-point representation](floating-point-representation.md).
 
 The costs that matter:
 
-- **Outlier sensitivity.** One bad value moves the mean by `outlier/n` and the
+- Outlier sensitivity. One bad value moves the mean by `outlier/n` and the
   variance by far more. The repository's answer is to use the median where
   contamination is expected.
-- **Small samples are unreliable.** Hence `if len(pts) < 5: return` before the
+- Small samples are unreliable. Hence `if len(pts) < 5: return` before the
   spacing statistic.
-- **Both assume a meaningful centre.** For a bimodal distribution the mean sits
+- Both assume a meaningful centre. For a bimodal distribution the mean sits
   where no data is. Nothing here is bimodal, but it is why the median-based
-  [Canny thresholds](canny-edge-detection.md) work — the intensity histogram of
+  [Canny thresholds](canny-edge-detection.md) work: the intensity histogram of
   a drawing *is* bimodal, and the median finds the paper peak rather than an
   average of paper and ink.
 
 ## Where else you meet it
 
-- **Every summary statistic** in every report.
-- **[Otsu's method](otsu-thresholding.md)**, which maximises between-class
+- Every summary statistic in every report.
+- [Otsu's method](otsu-thresholding.md), which maximises between-class
   variance.
-- **Principal component analysis**, which finds the directions of greatest
+- Principal component analysis, which finds the directions of greatest
   variance.
-- **Signal processing**, where variance is power and the mean is the DC
+- Signal processing, where variance is power and the mean is the DC
   component.
-- **Quality control**, where control charts are drawn at μ ± 3σ.
-- **Machine learning**, where features are standardised by subtracting the mean
+- Quality control, where control charts are drawn at μ ± 3σ.
+- Machine learning, where features are standardised by subtracting the mean
   and dividing by σ.
 
 ## Related pages
 
-- [Coefficient of variation](coefficient-of-variation.md) — the ratio σ/μ, and
+- [Coefficient of variation](coefficient-of-variation.md): the ratio σ/μ, and
   what it detects here.
-- [Median and robust statistics](median-and-robust-statistics.md) — the
+- [Median and robust statistics](median-and-robust-statistics.md): the
   alternative, and where it wins.
-- [Ordinary least squares](ordinary-least-squares.md) — built on variance and
+- [Ordinary least squares](ordinary-least-squares.md): built on variance and
   covariance.
-- [Otsu's method](otsu-thresholding.md) — a variance-maximising threshold,
+- [Otsu's method](otsu-thresholding.md): a variance-maximising threshold,
   considered and not used.
-- [Floating-point representation](floating-point-representation.md) — why the
+- [Floating-point representation](floating-point-representation.md): why the
   two-pass variance is preferred.

@@ -1,9 +1,9 @@
 """
-detect_markers.py — importable adaptation of tools/detect_field_wall_markers.py
+Importable adaptation of tools/detect_field_wall_markers.py
 for the web GUI.
 
 Finds the recorder's circle-marked vertex points on a field-wall photo with
-computer vision instead of asking an LLM to trace boundaries — CV cannot
+computer vision instead of asking an LLM to trace boundaries. CV cannot
 fabricate a marker that isn't on the paper, which is exactly the failure
 mode Gemini tracing runs on T104-style sheets kept exhibiting (perfectly
 even spacing, layers copy-pasted with a constant offset).
@@ -16,7 +16,7 @@ Differences from the CLI tool, tuned on the real T104 photo:
   non-circular contour and being lost
 - scale from TWO user clicks (wall's top-left and top-right corners) plus
   the real distance between them read off the sheet's own tie labels
-  (e.g. 194 m ... 190 m -> 4.0) — grid-line measurement proved fragile on
+  (e.g. 194 m ... 190 m -> 4.0). Grid-line measurement proved fragile on
   phone photos (perspective, table background, line-edge harmonics)
 - candidates restricted to the wall box (the two clicks plus a third on
   the wall's lowest point), which drops handwriting, the legend, and the
@@ -26,7 +26,7 @@ Differences from the CLI tool, tuned on the real T104 photo:
 
 Marker size limits are given in PAPER millimeters (how big the pencil dot
 is on the sheet) and converted through square_cm, assuming one bold grid
-square is 1 cm of paper — standard for mm graph paper.
+square is 1 cm of paper, the standard for mm graph paper.
 
 Coordinate convention (matches extract_fieldwall.py / convert_coords.py):
     x_m     = horizontal position along the face, meters, 0 at the origin
@@ -209,14 +209,14 @@ def run_detect(
     """Detect circle markers inside the wall box.
 
     origin_px    : (x, y) pixel of the wall's top-LEFT corner (x=0/depth=0),
-                   in the ROTATED frame — where the user clicked.
+                   in the ROTATED frame, where the user clicked.
     ref_px       : (x, y) pixel of the wall's top-RIGHT corner, same frame.
     ref_meters   : real distance between those two clicks, read from the
                    sheet's tie labels (e.g. 194 m ... 190 m -> 4.0).
-    bottom_px_y  : pixel y of the wall's LOWEST point (third click) — the
+    bottom_px_y  : pixel y of the wall's LOWEST point (third click): the
                    bottom of the search box and the positive-depth side of
                    the calibrated top edge.
-    square_cm    : real-world cm per bold (1 cm paper) grid square — used
+    square_cm    : real-world cm per bold (1 cm paper) grid square, used
                    only to convert paper-mm size limits into pixels.
 
     Returns a dict with the marker list (pixel + meter coordinates), counts,
@@ -240,7 +240,7 @@ def run_detect(
     if ref_dist_px < 20:
         raise RuntimeError(
             "the top-left and top-right clicks are almost the "
-            "same pixel — click the wall's two top corners"
+            "same pixel. Click the wall's two top corners"
         )
 
     px_per_m = ref_dist_px / float(ref_meters)
@@ -266,7 +266,7 @@ def run_detect(
     if mm_px < 2:
         raise RuntimeError(
             "photo resolution too low for marker detection "
-            f"({mm_px:.1f} px per paper mm) — retake closer or "
+            f"({mm_px:.1f} px per paper mm). Retake closer or "
             "at higher resolution"
         )
 
@@ -298,8 +298,8 @@ def run_detect(
 
     if y_hi <= y_lo + 20:
         raise RuntimeError(
-            "the bottom click is above the wall's top edge — "
-            "click the lowest point of the drawn wall"
+            "the bottom click is above the wall's top edge. "
+            "Click the lowest point of the drawn wall"
         )
 
     min_d = min_marker_paper_mm * mm_px

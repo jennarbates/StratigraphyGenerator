@@ -16,11 +16,11 @@ five assessments: a **pre-reading quiz** before opening the unit's pages, a
 through, and a **final** at the end.
 
 Same design rule as the full course: quizzes and exams face the
-documentation; **programming and research assignments face away from it** —
+documentation; **programming and research assignments face away from it**:
 same subject, different world. If a technique only works for you inside
 trench drawings, you memorized a page; if it works on a whiteboard photo, a
 voting map, or a save file, you learned the technique. All assignments and
-papers here are new — none are shared with the full course, so both packs
+papers here are new. None are shared with the full course, so both packs
 can be taken by the same person.
 
 | Unit | Programming assignment (domain) | Research paper (domain) |
@@ -45,13 +45,13 @@ list what a good answer contains; where a key defers to a docs page, the
 page wins. Pre-reading quizzes are ungraded diagnostics.
 
 Inside Claude Code, the `grade-assessment` skill grades any quiz or exam
-here against its key — say which unit and which assessment. Each quiz and
+here against its key: say which unit and which assessment. Each quiz and
 exam also has a **Copy for feedback** button when this page is served
 locally.
 
 ---
 
-## Unit 0 — Orientation
+## Unit 0: Orientation
 
 *Subject: the environment, reading this catalogue, and enough project
 context to parse the excerpts.*
@@ -59,7 +59,7 @@ context to parse the excerpts.*
 ### Pre-reading quiz (10 minutes)
 
 1. What is an algorithm, in one sentence of your own?
-2. `python3 -m venv .venv` — what do the two dots-and-names at the end
+2. `python3 -m venv .venv`: what do the two dots-and-names at the end
    each mean?
 3. You must look up how one function works, fifty times over a semester.
    What decides whether that is fine or a problem?
@@ -80,14 +80,14 @@ context to parse the excerpts.*
    faithful phrasing passes.
 2. `venv` is the module being run; `.venv` is the folder the new
    environment is created in.
-3. Whether looking up is cheap and reliable — which is why this course
+3. Whether looking up is cheap and reliable, which is why this course
    trains navigation (index, algorithm index, Related pages) before
    content.
 4. Different questions arrive: "teach me thresholding" wants by-subject;
    "what is this file doing" wants by-module. This repository ships both.
-5. False — and this course is the proof it intends to construct. You need
+5. False, and this course is the proof it intends to construct. You need
    the pipeline's outline, not the discipline.
-6. About 100,000× — scanning scales with length. Unit 6 gives you the
+6. About 100,000×, because scanning scales with length. Unit 6 gives you the
    structure that makes it roughly constant instead.
 7. Stages, each consuming the previous stage's output, each inspectable.
    Builders like them because problems localize to a stage.
@@ -96,7 +96,7 @@ context to parse the excerpts.*
 
 </details>
 
-### Programming assignment — The Experiment Harness (3–4 hours)
+### Programming assignment: The Experiment Harness (3–4 hours)
 
 Build the little lab you will reuse all course. Benchmarking domain, no
 archaeology, no images yet.
@@ -104,18 +104,18 @@ archaeology, no images yet.
 **Spec:**
 
 - A fresh `.venv` at the repository root if Unit 0's reading did not
-  already create one, and a `lab/` folder (gitignored or outside the repo —
-  your choice, note it in the README).
+  already create one, and a `lab/` folder (gitignored or outside the repo,
+  your choice; note it in the README).
 - `lab/harness.py` exposing two helpers: `timeit_ms(fn, *args)` returning
   median milliseconds over repeated runs, and `table(rows)` printing
   aligned columns.
 - Two experiments using them, each a small script with a one-paragraph
   written conclusion:
-  1. **Membership**: build a list and a set of N random integers for
+  1. Membership: build a list and a set of N random integers for
      N = 1,000 / 100,000 / 1,000,000; time `x in list` versus `x in set`
      for hits and misses. State the shape of the growth you observe. (You
      will meet the explanation in Unit 6; write the observation now.)
-  2. **Copy versus alias**: time copying a million-element list versus
+  2. Copy versus alias: time copying a million-element list versus
      aliasing it, and demonstrate with a two-line example why the fast one
      is dangerous.
 - A README in the workflow-page shape (*Before you start → Do this →
@@ -125,7 +125,7 @@ archaeology, no images yet.
 honest conclusion 30 · copy/alias experiment with the danger demo 25 ·
 README 15.
 
-### Research paper — Docs-as-Code (800–1,200 words)
+### Research paper: Docs-as-Code (800–1,200 words)
 
 This repository's documentation is Markdown in git, built by MkDocs,
 checked by scripts in CI. That is a philosophy with a history. Trace it:
@@ -136,7 +136,7 @@ would have been impossible in a wiki? **At least 3 sources.**
 **Rubric (100):** the three eras fairly described 40 · the tradeoff
 analysis 35 · the checker connection 25.
 
-### Midterm exam — navigation practical (25 minutes, open docs — that is the point)
+### Midterm exam: navigation practical (25 minutes, open docs; that is the point)
 
 Timed lookups. Answer and cite the page you found it on; a right answer
 without its page is half credit.
@@ -160,7 +160,7 @@ without its page is half credit.
 1. Thresholding and masks; between Global thresholding and Adaptive
    thresholding.
 2. Non-maximum suppression (Candidate filtering cluster).
-3. Any technique the index lists for `pipeline/harris_matrix.py` — e.g.
+3. Any technique the index lists for `pipeline/harris_matrix.py`, e.g.
    cycle detection, topological sorting, transitive reduction (verify
    against the index).
 4. Graded on the citation being real.
@@ -193,7 +193,7 @@ without its page is half credit.
 1. What it is · The picture · Where this project uses it · Why this and
    not something else · What it costs · Where else you meet it · Related
    pages.
-2. "Why this and not something else" — the alternatives that were
+2. "Why this and not something else." The alternatives that were
    available and what each would have cost: the judgement, not the recipe.
 3. Different sort order: by subject versus by source module. Subject when
    learning a topic; module when reading a file.
@@ -201,7 +201,7 @@ without its page is half credit.
    build → view. Units 1–3 live in *prepare* (and the extraction side of
    the trace box).
 5. The data is invented and safe to copy, never evidence. Copying an
-   invented coordinate into anything real-looking poisons it — the same
+   invented coordinate into anything real-looking poisons it. The same
    discipline applies to benchmark numbers you made up.
 6. Every `make` target resolves tools from the root `.venv`; elsewhere,
    `make run`, `make test`, and `make docs` all fail to find them.
@@ -212,18 +212,18 @@ without its page is half credit.
 
 ---
 
-## Unit 1 — Pixels and enhancement
+## Unit 1: Pixels and enhancement
 
 *Subject: images as numbers; convolution and the enhancement family.*
 
 ### Pre-reading quiz (10 minutes)
 
-1. A "12-megapixel" photo — twelve million of what, each holding what?
+1. A "12-megapixel" photo: twelve million of what, each holding what?
 2. Why do photos taken at night look grainy?
 3. Screens mix red, green, and blue light; printers mix cyan, magenta,
    and yellow ink. Why are the two sets different?
 4. Guess: to store "how bright," how many distinct levels does an
-   ordinary photo use per channel — 16, 256, or 65,536?
+   ordinary photo use per channel: 16, 256, or 65,536?
 5. Your phone photographs a receipt in dim warm light. Name two distinct
    things "fixing" that image might mean.
 6. What would happen if you replaced every pixel with the average of the
@@ -238,47 +238,47 @@ without its page is half credit.
 
 1. Pixels; each holds three intensity numbers (red, green, blue).
 2. Little light means the sensor's measurement noise is large relative to
-   the signal — grain is noise made visible.
+   the signal. Grain is noise made visible.
 3. Screens emit light (additive: sum toward white); ink absorbs it
    (subtractive: sum toward black). Same colours, opposite arithmetic.
-4. 256 — 8 bits per channel. The bit-depth page is about when that is
+4. 256: 8 bits per channel. The bit-depth page is about when that is
    not enough.
 5. Brightening/contrast (tonal), colour correction (white balance),
-   sharpening, denoising — any two distinct ones.
+   sharpening, denoising (any two distinct ones).
 6. A blur: detail averages away. You have just invented the box filter.
 7. Neighbouring pixels are highly redundant; good downsampling averages
-   areas rather than picking survivors — which is exactly the
+   areas rather than picking survivors, which is exactly the
    area-averaging page.
-8. In metadata — an EXIF orientation tag — which software must read and
+8. In metadata (an EXIF orientation tag), which software must read and
    apply, or the pixels arrive sideways.
 
 </details>
 
-### Programming assignment — The Digital Darkroom (7–9 hours)
+### Programming assignment: The Digital Darkroom (7–9 hours)
 
-Tonal and colour work on your own photographs — the clusters' arithmetic,
+Tonal and colour work on your own photographs: the clusters' arithmetic,
 none of the project's subject matter. Pillow (or equivalent) for load and
 save only; every pixel operation is your own loops over pixel data.
 Work at ≤ 800 px on the long side.
 
 **Build, as one CLI (`python darkroom.py <op> in.jpg out.jpg`):**
 
-1. `grayscale` — luminosity weights, and a README sentence on why not the
+1. `grayscale`: luminosity weights, and a README sentence on why not the
    plain average.
-2. `brightness ±n` and `contrast k` — channel arithmetic with clamping;
+2. `brightness ±n` and `contrast k`: channel arithmetic with clamping;
    show in the README one example where clamping visibly destroys detail
    (bit depth in action).
-3. `whitebalance` — scale channels so a user-chosen "should be neutral"
+3. `whitebalance`: scale channels so a user-chosen "should be neutral"
    pixel becomes gray.
-4. `sepia` — a 3×3 channel-mixing matrix.
-5. `vignette` — darken with distance from centre (a radial mask you
+4. `sepia`: a 3×3 channel-mixing matrix.
+5. `vignette`: darken with distance from centre (a radial mask you
    compute).
-6. `grain n` — add noise; then rescue it with `blur` (box, via your own
+6. `grain n`: add noise; then rescue it with `blur` (box, via your own
    3×3 convolution loop) and describe the tradeoff you see.
-7. `equalize` — global histogram equalisation on the grayscale image;
+7. `equalize`: global histogram equalisation on the grayscale image;
    include a before/after where it helps and one where it overdoes it
    (your CLAHE motivation, observed firsthand).
-8. `resize` — nearest-neighbour and bilinear, side by side, on a photo
+8. `resize`: nearest-neighbour and bilinear, side by side, on a photo
    and on a screenshot of text; two README sentences on which wins where
    and why.
 9. A contact sheet of every operation applied to one photo of yours.
@@ -287,7 +287,7 @@ Work at ≤ 800 px on the long side.
 analyses (clamping, grain/blur, equalize limits, resize comparison) 30 ·
 contact sheet 10 · code clarity 15.
 
-### Research paper — One Sensor, Three Colours: the Bayer Filter (1,500–2,000 words)
+### Research paper. One Sensor, Three Colours: the Bayer Filter (1,500–2,000 words)
 
 A camera sensor measures one number per site, yet produces three per
 pixel. Research the Bayer mosaic and demosaicing: what the pattern is, why
@@ -301,7 +301,7 @@ a programming tutorial.
 your worked example 40 · the artifact, honestly connected to
 interpolation 20 · sources 10.
 
-### Midterm exam (40 minutes, closed docs, calculator allowed — take after the *Images and pixels* cluster)
+### Midterm exam (40 minutes, closed docs, calculator allowed: take after the *Images and pixels* cluster)
 
 1. A pixel is (200, 100, 50). Compute its luminosity grayscale with
    weights 0.299 R + 0.587 G + 0.114 B (nearest integer).
@@ -310,7 +310,7 @@ interpolation 20 · sources 10.
 3. Two images are subtracted channel-by-channel. What do large values in
    the result mean, and name one use for that.
 4. 8 bits per channel: how many distinct values? You brighten a dark
-   image by multiplying by 4 — what happens at both ends of the range,
+   image by multiplying by 4. What happens at both ends of the range,
    and what is the visible artifact called when smooth gradients turn to
    stripes?
 5. Your program ignores EXIF orientation. Describe the bug report you
@@ -322,12 +322,12 @@ interpolation 20 · sources 10.
 
 1. 0.299·200 + 0.587·100 + 0.114·50 = 59.8 + 58.7 + 5.7 = 124.2 → **124**.
 2. Orange/brown (warm); the swap is blue-ish (cool); exchanging the R and
-   B channels — pure channel arithmetic.
-3. The images differ there — change detection (movement, before/after,
+   B channels (pure channel arithmetic).
+3. The images differ there. Change detection (movement, before/after,
    flattening illumination by subtracting background).
 4. 256. Values clip at 255 (blown highlights) and dark values quantize
    coarsely; the striping is **banding** (posterization).
-5. "Photos from my phone import sideways" — portrait shots stored rotated
+5. "Photos from my phone import sideways": portrait shots stored rotated
    with an orientation tag your program never applied.
 6. The eye is most sensitive to green; equal weights would make greens
    too dark and blues too bright relative to perception.
@@ -339,13 +339,13 @@ interpolation 20 · sources 10.
 1. Convolve the centre pixel: neighbourhood
    `[[40,40,40],[40,130,40],[40,40,40]]`, box kernel (all ones ÷ 9).
    Result? What happened to the bright spot?
-2. Same neighbourhood, kernel `[[0,-1,0],[-1,5,-1],[0,-1,0]]` — result
+2. Same neighbourhood, kernel `[[0,-1,0],[-1,5,-1],[0,-1,0]]`: result
    before clamping, and the operation's name.
 3. State the two kernel-weight rules (sum 1 versus sum 0) and give one
    kernel of each kind by heart.
 4. Gaussian blur versus box blur: what does the Gaussian's weighting buy?
 5. Histogram equalisation helped a murky scan but wrecked a portrait's
-   sky. Why — and what does CLAHE change, in two clauses (the A and the
+   sky. Why, and what does CLAHE change, in two clauses (the A and the
    L)?
 6. Unsharp masking sharpens by way of a *blur*. Explain the trick in two
    sentences.
@@ -360,12 +360,12 @@ interpolation 20 · sources 10.
 <details markdown="1">
 <summary>Answer key</summary>
 
-1. (8·40 + 130)/9 = 450/9 = **50**. Averaged toward its neighbours —
+1. (8·40 + 130)/9 = 450/9 = **50**. Averaged toward its neighbours, so
    isolated bright detail is suppressed.
 2. 5·130 − 4·40 = 650 − 160 = **490** → clamps to 255. Sharpen.
 3. Sum 1: brightness-preserving smoothing (e.g. box ÷9, Gaussian ÷16).
    Sum 0: responds to change, zero on flat regions (e.g. Sobel).
-4. Nearby pixels count more than distant ones — smoothing without the
+4. Nearby pixels count more than distant ones: smoothing without the
    box's blocky artifacts; repeated small Gaussians compose sensibly.
 5. Global equalisation spreads the *whole* histogram, so a dominant
    region (sky) drags everything; CLAHE equalises **locally** (per tile,
@@ -374,9 +374,9 @@ interpolation 20 · sources 10.
 6. Blur the image, subtract the blur from the original to isolate fine
    detail, add a scaled copy of that detail back. The blur defines what
    counts as "detail."
-7. (a) area-averaging — many-to-one shrink wants averaging, not picking;
-   (b) nearest-neighbour — it keeps hard edges hard and invents no new
-   colours; (c) bilinear/bicubic over Lanczos — Lanczos is sharper but
+7. (a) area-averaging: many-to-one shrink wants averaging, not picking;
+   (b) nearest-neighbour: it keeps hard edges hard and invents no new
+   colours; (c) bilinear/bicubic over Lanczos: Lanczos is sharper but
    can ring; when ringing is unacceptable you trade sharpness (accept
    bicubic; criteria answer).
 8. Uneven lighting *multiplies* the underlying surface brightness
@@ -388,7 +388,7 @@ interpolation 20 · sources 10.
 
 ---
 
-## Unit 2 — Black and white
+## Unit 2: Black and white
 
 *Subject: thresholding, masks, components, and morphology.*
 
@@ -416,16 +416,16 @@ interpolation 20 · sources 10.
 
 1. A threshold. Too low: faint strokes vanish; too high: paper texture
    becomes ink.
-2. The shadowed paper is darker than the lit ink — no single global value
+2. The shadowed paper is darker than the lit ink, so no single global value
    separates them everywhere. (Unit answer: adapt the threshold locally.)
 3. A shape that selects where an operation applies; digitally, a binary
-   image used to keep/discard pixels — bitwise AND with the stencil.
+   image used to keep/discard pixels (bitwise AND with the stencil).
 4. A convention: 4-connectivity says two, 8-connectivity says one. You
    must pick and say so.
-5. Shrink everything until specks vanish, then grow back — you invented
+5. Shrink everything until specks vanish, then grow back. You invented
    opening.
-6. Grow until gaps close, then shrink back — closing.
-7. Which foreground pixels belong together — connected-component
+6. Grow until gaps close, then shrink back: closing.
+7. Which foreground pixels belong together: connected-component
    labelling, then count the components.
 8. Convention: many operations treat nonzero as "thing"; a consistent
    foreground makes masks, counts, and morphology read the same way
@@ -433,27 +433,27 @@ interpolation 20 · sources 10.
 
 </details>
 
-### Programming assignment — Whiteboard Rescue (6–8 hours)
+### Programming assignment: Whiteboard Rescue (6–8 hours)
 
 Photograph a real whiteboard (or chalkboard) with writing, at an angle,
 with glare if you can manage it. Turn it into a clean, legible, shareable
-black-on-white image — the office-life version of this unit. Own loops
+black-on-white image, the office-life version of this unit. Own loops
 only; Pillow for I/O.
 
 **Build:**
 
 1. Grayscale, then **global threshold** with a slider/flag; save the best
    you can achieve and keep it for comparison.
-2. **Otsu**: implement it (histogram → pick the cutoff maximizing
+2. Otsu: implement it (histogram → pick the cutoff maximizing
    between-class variance); report the value chosen and compare with your
    hand-tuned one.
-3. **Adaptive threshold**: mean of each pixel's neighbourhood minus a
+3. Adaptive threshold: mean of each pixel's neighbourhood minus a
    constant; show it beating both globals on the glare/shadow regions.
-4. **Morphological cleanup**: your own erosion and dilation with a 3×3
+4. Morphological cleanup: your own erosion and dilation with a 3×3
    square element, composed into opening (kill marker speckle) and
    closing (heal broken strokes). Pick the order and justify it in the
    README.
-5. **Connected components** (flood fill with an explicit stack — no
+5. Connected components (flood fill with an explicit stack, no
    recursion; you will thank yourself in Unit 6): remove any component
    smaller than N pixels as residual noise, and report how many
    components the final board has.
@@ -464,9 +464,9 @@ only; Pillow for I/O.
 20 · morphology composed and justified 25 · component cleanup with stack
 flood fill 20 · strip and README 15.
 
-### Research paper — Morphology Was Born in a Mining School (1,500–2,000 words)
+### Research paper: Morphology Was Born in a Mining School (1,500–2,000 words)
 
-Mathematical morphology — erosion, dilation, and their algebra — was
+Mathematical morphology (erosion, dilation, and their algebra) was
 invented in the 1960s by Georges Matheron and Jean Serra at the École des
 Mines, to answer questions about ore and porous rock from images of thin
 sections. Tell that story: the industrial question, why "probe the image
@@ -479,7 +479,7 @@ that coincidence is welcome; no more.)
 **Rubric (100):** the industrial origin, accurately told 35 · the idea
 explained through the probe metaphor 30 · worked example 20 · sources 15.
 
-### Midterm exam (40 minutes, closed docs — take after the *Thresholding and masks* cluster)
+### Midterm exam (40 minutes, closed docs: take after the *Thresholding and masks* cluster)
 
 1. Otsu in one sentence: what does it maximize, over what?
 2. For each scan, pick global-fixed, Otsu, or adaptive and defend in one
@@ -510,17 +510,17 @@ explained through the probe metaphor 30 · worked example 20 · sources 15.
 1. The threshold that maximizes between-class variance (equivalently,
    minimizes within-class variance) between the two histogram
    populations.
-2. (a) global-fixed — exposure is controlled, a constant is cheap and
-   deterministic across the batch; (b) Otsu — one clean bimodal page,
-   let the histogram choose; (c) adaptive — illumination varies across
+2. (a) global-fixed: exposure is controlled, a constant is cheap and
+   deterministic across the batch; (b) Otsu: one clean bimodal page,
+   let the histogram choose; (c) adaptive: illumination varies across
    the page, so the cutoff must too.
 3. `A AND B`; `A AND (NOT B)`.
-4. 4-connectivity: **4** — the top-left 2×2 block; the lone `#` at row
+4. 4-connectivity: **4**. The top-left 2×2 block; the lone `#` at row
    2, column 5; the group at rows 3–4, columns 4–5; the bottom-left
-   group at rows 5–6. 8-connectivity: **3** — the lone `#` at (2,5)
+   group at rows 5–6. 8-connectivity: **3**. The lone `#` at (2,5)
    touches the rows-3–4 group diagonally and merges with it; the other
    two groups are unchanged.
-5. Area (pixel count), bounding box, centroid, perimeter — any two;
+5. Area (pixel count), bounding box, centroid, perimeter (any two);
    per-object measurement is the door CCL opens.
 
 </details>
@@ -561,8 +561,8 @@ explained through the probe metaphor 30 · worked example 20 · sources 15.
    Six sensible stages with reasons = pass.
 5. Everything smaller than the element is gone forever, and surviving
    shapes return smoothed. Morphology is a deliberate forgetting of
-   detail below a chosen scale — that selectivity is its use.
-6. Recursion depth equals blob size in the worst case — a big region
+   detail below a chosen scale. That selectivity is its use.
+6. Recursion depth equals blob size in the worst case, so a big region
    overflows the call stack. An explicit stack lives on the heap, grows
    as needed, and makes the traversal order visible and controllable.
 
@@ -570,7 +570,7 @@ explained through the probe metaphor 30 · worked example 20 · sources 15.
 
 ---
 
-## Unit 3 — Edges, contours, and shape
+## Unit 3: Edges, contours, and shape
 
 *Subject: finding outlines, describing them, and choosing among competing
 detections.*
@@ -598,26 +598,26 @@ detections.*
 <details markdown="1">
 <summary>Answer key</summary>
 
-1. The outline is a list of boundary points — far less data; it costs
+1. The outline is a list of boundary points, far less data; it costs
    everything interior (color, texture, fill).
-2. Area, perimeter, circularity, aspect ratio, solidity — any three;
+2. Area, perimeter, circularity, aspect ratio, solidity (any three);
    this unit turns each into a formula.
-3. Between them — a steep brightness *change*, which is why edge
+3. Between them: a steep brightness *change*, which is why edge
    detection is gradient detection.
 4. Three parallel responses for one true edge; you want the single
-   strongest — thinning (non-maximum suppression).
-5. One box — keep the best-scoring, suppress near-duplicates that
+   strongest: thinning (non-maximum suppression).
+5. One box. Keep the best-scoring, suppress near-duplicates that
    overlap it too much. That rule is NMS, and "too much" is IoU.
-6. A parent — the hole's contour is *inside* another contour. Contour
+6. A parent, because the hole's contour is *inside* another contour. Contour
    hierarchy is that family tree.
-7. The corners — points whose removal changes the path most. That
+7. The corners: points whose removal changes the path most. That
    instinct is Ramer–Douglas–Peucker.
 8. Features live at different scales: fine texture at full size,
    structure when small. One scale's noise is another's signal.
 
 </details>
 
-### Programming assignment — The Leaf Field Guide (8–10 hours)
+### Programming assignment: The Leaf Field Guide (8–10 hours)
 
 Collect and photograph 10–15 leaves of 3–4 distinct kinds on plain paper.
 Build the guide that tells them apart by shape alone. Own loops; Pillow
@@ -628,20 +628,20 @@ for I/O; your Unit 2 code is the front half.
 1. Reuse Whiteboard Rescue's pipeline to a clean binary mask per photo
    (threshold → morphology → components; keep components above a size
    floor).
-2. **Boundary tracing**: for each leaf component, walk its outline into
+2. Boundary tracing: for each leaf component, walk its outline into
    an ordered point list (Moore neighborhood tracing or your own
-   scheme — document it).
-3. **Descriptors** per leaf: area, perimeter, circularity `4πA/P²`,
+   scheme; document it).
+3. Descriptors per leaf: area, perimeter, circularity `4πA/P²`,
    bounding-box extent, aspect ratio, and solidity (area ÷ convex-hull
-   area — implement the hull with the gift-wrapping method; the pages
-   give you the orientation test it needs).
-4. **RDP-simplify** each outline with configurable ε; report point
+   area). Implement the hull with the gift-wrapping method; the pages
+   give you the orientation test it needs.
+4. RDP-simplify each outline with configurable ε; report point
    counts before and after; render simplified outlines as an SVG or
    ASCII contact sheet.
-5. **Classify**: from your own measurements, hand-write threshold rules
+5. Classify: from your own measurements, hand-write threshold rules
    ("circularity > 0.6 and aspect < 1.4 → oak-ish") and report the
    guide's accuracy on your photos, including the failures.
-6. **Candidate filtering finale**: photograph two overlapping leaves,
+6. Candidate filtering finale: photograph two overlapping leaves,
    run detection, and apply your own NMS over the component bounding
    boxes with IoU to keep the dominant one. Report the IoU it decided
    with.
@@ -650,7 +650,7 @@ for I/O; your Unit 2 code is the front half.
 by hand on one leaf) 30 · RDP + rendering 15 · honest classification
 report 20 · NMS finale 15.
 
-### Research paper — Reading the Mail (1,500–2,000 words)
+### Research paper: Reading the Mail (1,500–2,000 words)
 
 By the 1980s, machines read most US addresses. Research postal OCR: how
 envelopes were segmented into lines and characters (connected components
@@ -664,7 +664,7 @@ sources**, one contemporary to the era.
 features explained with your worked example 40 · the handwriting
 difficulty, honestly analyzed 15 · sources 10.
 
-### Midterm exam (50 minutes, closed docs, calculator allowed — take after the *Edges, lines, and contours* cluster)
+### Midterm exam (50 minutes, closed docs, calculator allowed: take after the *Edges, lines, and contours* cluster)
 
 1. Sobel kernels: Gx `[[-1,0,1],[-2,0,2],[-1,0,1]]`, Gy
    `[[-1,-2,-1],[0,0,0],[1,2,1]]`. For the neighbourhood
@@ -687,22 +687,22 @@ difficulty, honestly analyzed 15 · sources 10.
 
 1. Gx = 0 (columns identical); Gy = (90·1 + 90·2 + 90·1) − (10·1 + 10·2
    + 10·1) = 360 − 40 = **320**. Gradient points down the image
-   (brightening downward), so the *edge is horizontal* — all change is
+   (brightening downward), so the *edge is horizontal*: all change is
    vertical, none horizontal.
 2. Gaussian smooth (denoise) → Sobel gradients (strength + direction) →
    non-maximum suppression (thin to one-pixel ridges) → hysteresis
    (two-threshold linking).
 3. "Am I the strongest along my own gradient direction, versus my two
-   neighbours?" Only local maxima survive — one-pixel-wide edges.
-4. Strong: kept. Weak-touching-strong: kept — it extends a real edge.
+   neighbours?" Only local maxima survive: one-pixel-wide edges.
+4. Strong: kept. Weak-touching-strong: kept (it extends a real edge).
    Weak-alone: discarded as noise.
 5. Each edge pixel votes for every line that could pass through it (all
    its (angle, offset) pairs); collinear pixels' votes pile onto the
    same cell, and peaks in the accumulator are lines.
-6. An *ordered, closed* boundary of a specific component — connectivity
+6. An *ordered, closed* boundary of a specific component: connectivity
    and ownership. Canny yields unordered edge pixels belonging to
    nobody in particular.
-7. Two — the outer boundary and the hole; the hierarchy records the
+7. Two, the outer boundary and the hole; the hierarchy records the
    hole's contour as a child of the outer one.
 
 </details>
@@ -717,7 +717,7 @@ difficulty, honestly analyzed 15 · sources 10.
    extent (bounding box 4×4), and say in words what each measures.
 3. Boxes A = (0,0)–(3,3) and B = (1,1)–(4,4): compute IoU.
 4. Detections: X score 0.9; Y score 0.8, IoU(X,Y) = 0.5; Z score 0.7,
-   IoU(X,Z) = 0.1, IoU(Y,Z) = 0.05. Run NMS with threshold 0.4 — what
+   IoU(X,Z) = 0.1, IoU(Y,Z) = 0.05. Run NMS with threshold 0.4. What
    survives, in what order of decisions?
 5. NMS is called a *greedy* algorithm. What does greedy mean here, and
    what is the standard risk greedy strategies accept?
@@ -736,15 +736,15 @@ difficulty, honestly analyzed 15 · sources 10.
 1. Area 16, perimeter 16, circularity 4π·16/256 = π/4 ≈ **0.79**. The
    circle is the maximum-area-per-perimeter shape; corners spend
    perimeter without buying area.
-2. Solidity 12/14 ≈ **0.86** — how convex the shape is (dents and bays
-   lower it). Extent 12/16 = **0.75** — how much of its bounding box it
+2. Solidity 12/14 ≈ **0.86**: how convex the shape is (dents and bays
+   lower it). Extent 12/16 = **0.75**: how much of its bounding box it
    fills (protrusions and diagonal poses lower it).
 3. Intersection (1,1)–(3,3) = 4; union 9 + 9 − 4 = 14; IoU = **2/7 ≈
    0.29**.
 4. Keep X (best). Y overlaps X at 0.5 ≥ 0.4 → suppressed. Z overlaps X
    at 0.1 < 0.4 → kept. Survivors: **X and Z**.
 5. Take the best-scoring remaining candidate, commit, discard what
-   conflicts with it, repeat — no lookahead. Risk: a locally-best
+   conflicts with it, repeat. No lookahead. Risk: a locally-best
    commitment can force a globally worse outcome (two adjacent true
    objects, one suppressed).
 6. ε = 0.5: the middle point deviates |2.3 − 2|/√2 ≈ 0.21 < ε from the
@@ -766,7 +766,7 @@ difficulty, honestly analyzed 15 · sources 10.
 
 ---
 
-## Unit 4 — Vectors and transforms
+## Unit 4: Vectors and transforms
 
 *Subject: direction, projection, rotation, and the algebra of moving
 things.*
@@ -779,7 +779,7 @@ things.*
    Which way does it go?
 3. Your shadow at noon versus late afternoon: what does its length on
    the ground have to do with *you*?
-4. A clock's hands and a protractor's degrees both measure angles — but
+4. A clock's hands and a protractor's degrees both measure angles, but
    from different zeros, turning different ways. Name a real mixup this
    causes.
 5. Rotate a photo 90° then slide it right 100 px. Slide first, then
@@ -793,54 +793,54 @@ things.*
 <details markdown="1">
 <summary>Answer key</summary>
 
-1. A magnitude (30 m) and a direction (northeast) — a vector.
-2. Northeast — vector addition of the two pushes.
-3. It is your projection onto the ground along the light's direction —
+1. A magnitude (30 m) and a direction (northeast): a vector.
+2. Northeast (vector addition of the two pushes).
+3. It is your projection onto the ground along the light's direction,
    the same operation as the dot product's shadow.
 4. Compass bearings run clockwise from north; math angles
    counterclockwise from east. Mixing them rotates everything by a
-   wrong, consistent amount — this repository has a page precisely
+   wrong, consistent amount. This repository has a page precisely
    because of it.
-5. No — rotate-then-slide is not slide-then-rotate. Order matters;
+5. No, rotate-then-slide is not slide-then-rotate. Order matters;
    that is the day's most important fact.
-6. Same direction, unit length — (3,4) normalized by its magnitude 5.
+6. Same direction, unit length: (3,4) normalized by its magnitude 5.
    Unit vectors carry direction with no size attached.
-7. A scale, a rotation, and an offset (translation) — precisely the
+7. A scale, a rotation, and an offset (translation), which is precisely the
    similarity transform.
-8. So translation becomes matrix multiplication like everything else —
-   homogeneous coordinates; chains of moves collapse into one matrix.
+8. So translation becomes matrix multiplication like everything else
+   (homogeneous coordinates); chains of moves collapse into one matrix.
 
 </details>
 
-### Programming assignment — The Flock and the Kaleidoscope (8–10 hours)
+### Programming assignment: The Flock and the Kaleidoscope (8–10 hours)
 
 Two halves, one vector library. Plain Python plus `math`; render to SVG
-(text you write yourself) or a simple canvas — your choice.
+(text you write yourself) or a simple canvas, your choice.
 
-**Part 0 — vectors.py** (used by both halves): magnitude, normalize,
+**Part 0: vectors.py** (used by both halves): magnitude, normalize,
 add/subtract/scale, dot, 2D cross, angle-between, rotate-by-θ,
 project-a-onto-b. Unit-test each against hand-computed cases (include
 (3,4)·(4,3) = 24 and rotate (2,0) by 90° → (0,2) among them).
 
-**Part A — Boids** (simulation domain): 40 birds with position and
+**Part A: Boids** (simulation domain): 40 birds with position and
 velocity in a 2D box.
 
 - Each frame, every bird steers by three rules over neighbours within
   radius r: separation (away from too-close), alignment (match average
-  heading — normalize!), cohesion (toward local centroid).
-- **Field of view**: a bird only sees neighbours within ±120° of its
-  heading — implement with the dot product against its unit heading.
+  heading; normalize!), cohesion (toward local centroid).
+- Field of view: a bird only sees neighbours within ±120° of its
+  heading. Implement with the dot product against its unit heading.
 - Cap speed by clamping velocity magnitude. Emit every 10th frame as an
   SVG frame or dump positions to CSV and describe the motion.
 - README: which rule uses which vector operation, one line each.
 
-**Part B — Kaleidoscope** (art domain): take a short polyline "doodle"
+**Part B: Kaleidoscope** (art domain): take a short polyline "doodle"
 you define (10–20 points).
 
 - Build 3×3 homogeneous matrices for translate, rotate, scale; a
   `compose(...)` that multiplies them; and `apply(matrix, points)`.
 - Render the doodle repeated N = 8 ways around the centre (rotation
-  matrices), then a second ring scaled 0.5 and offset — **one composed
+  matrices), then a second ring scaled 0.5 and offset: **one composed
   matrix per copy**, no per-point ad-hoc math.
 - Demonstrate order-matters: render translate∘rotate and rotate∘translate
   of the same doodle in different colors, and caption which is which.
@@ -850,11 +850,11 @@ boids rules via the named operations (dot-product view cone included)
 35 · kaleidoscope with genuinely composed matrices 25 · order-matters
 demo and README 15.
 
-### Research paper — How GPS Finds You (1,500–2,500 words)
+### Research paper: How GPS Finds You (1,500–2,500 words)
 
 A receiver knows its distance to several satellites and computes where
 you are. Explain trilateration: distances from time-of-flight, spheres
-intersecting, why three satellites are not quite enough (the clock —
+intersecting, why three satellites are not quite enough (the clock,
 the fourth unknown), and where vectors live in the solution. Include a
 2D toy worked by hand: three known points, three distances, your
 position recovered (pick numbers that come out clean). One paragraph at
@@ -864,14 +864,14 @@ course's theme of honest uncertainty. **At least 4 sources.**
 **Rubric (100):** trilateration correct and clear 35 · the clock/fourth
 unknown explained 25 · the 2D worked example 30 · sources 10.
 
-### Midterm exam (45 minutes, closed docs, calculator allowed — take after the *Vectors and linear algebra* cluster)
+### Midterm exam (45 minutes, closed docs, calculator allowed: take after the *Vectors and linear algebra* cluster)
 
 1. u = (3,4), v = (4,3). Compute u·v, |u|, |v|, and cos θ. Are they
    nearly parallel or nearly perpendicular?
 2. Normalize (5,12).
 3. Project (3,4) onto the direction (1,0). What single sentence says
    what projection *is*?
-4. 2D cross product of (3,4) and (4,3): value and sign — and what does
+4. 2D cross product of (3,4) and (4,3): value and sign, and what does
    the sign tell you about the turn from the first to the second?
 5. u = (1,0,0), v = (0,1,0). Compute u × v and say what the result is
    *for*, geometrically.
@@ -883,14 +883,14 @@ unknown explained 25 · the 2D worked example 30 · sources 10.
 <details markdown="1">
 <summary>Answer key</summary>
 
-1. u·v = 12 + 12 = **24**; |u| = |v| = 5; cos θ = 24/25 = **0.96** —
+1. u·v = 12 + 12 = **24**; |u| = |v| = 5; cos θ = 24/25 = **0.96**, so
    nearly parallel (θ ≈ 16°).
 2. Magnitude 13 → **(5/13, 12/13)** ≈ (0.385, 0.923).
 3. (3,4)·(1,0) = 3 → the point (3,0). Projection is the shadow: how
    much of one vector lies along another's direction.
 4. 3·3 − 4·4 = **−7**; negative → the turn from u to v is clockwise
    (v lies to u's right).
-5. (0,0,1) — a vector perpendicular to both: the plane normal, which
+5. (0,0,1), a vector perpendicular to both: the plane normal, which
    is how a face's orientation becomes one vector.
 6. Unit length, mutually perpendicular. Coordinates in that basis come
    from plain dot products, and lengths/angles survive the change of
@@ -930,13 +930,13 @@ unknown explained 25 · the 2D worked example 30 · sources 10.
    composition is order-sensitive because each step acts on the
    previous step's output.
 3. Translation becomes a matrix multiply like rotation and scale, so
-   transforms compose by multiplication — five transforms collapse
+   transforms compose by multiplication. Five transforms collapse
    into one 3×3 matrix applied once per point.
 4. Similarity preserves shape: angles and length *ratios* (rotation +
    uniform scale + translation). Affine preserves parallelism and
-   ratios along lines but allows shear and non-uniform scale — a
+   ratios along lines but allows shear and non-uniform scale: a
    square may become a parallelogram.
-5. Four: one scale, one rotation angle, two translation components —
+5. Four: one scale, one rotation angle, two translation components,
    exactly "how big, which way around, where."
 6. math = 90° − azimuth (mod 360) = 90 − 240 = −150 ≡ **210°**.
 7. Rotations appear to run the wrong way (and vertical flips creep
@@ -948,7 +948,7 @@ unknown explained 25 · the 2D worked example 30 · sources 10.
 
 ---
 
-## Unit 5 — Geometry and numbers
+## Unit 5: Geometry and numbers
 
 *Subject: polygon truths, and arithmetic you can trust.*
 
@@ -960,7 +960,7 @@ unknown explained 25 · the 2D worked example 30 · sources 10.
    describe "we turned left" as geometry?
 3. Two straight roads each connect two towns. Without drawing, what
    would convince you the roads must cross?
-4. You are "inside the fairgrounds" — invent a test using only a walk
+4. You are "inside the fairgrounds." Invent a test using only a walk
    to the horizon.
 5. A hiking trail's elevation is measured every kilometre. What is the
    honest way to state the elevation at 2.5 km?
@@ -974,51 +974,51 @@ unknown explained 25 · the 2D worked example 30 · sources 10.
 <details markdown="1">
 <summary>Answer key</summary>
 
-1. Count grid squares (and part-squares) it covers — quantized area,
+1. Count grid squares (and part-squares) it covers: quantized area,
    the intuition the shoelace formula makes exact.
-2. The signed direction of the turn at B — the orientation test's
+2. The signed direction of the turn at B, the orientation test's
    left/right, the unit's most reused primitive.
-3. Each road's endpoints lie on opposite sides of the other road —
-   exactly the two-orientation-tests criterion.
+3. Each road's endpoints lie on opposite sides of the other road,
+   which is exactly the two-orientation-tests criterion.
 4. Walk straight out; count fence crossings; odd = inside. Ray
    casting.
-5. About halfway between the 2 km and 3 km readings — *and saying* it
+5. About halfway between the 2 km and 3 km readings, *and saying* it
    is an interpolation, not a measurement.
 6. `False`; neither 0.1 nor 0.2 is exactly representable in binary
    floating point, and the errors do not cancel.
-7. A tail of very low scores dragged the mean below most students —
+7. A tail of very low scores dragged the mean below most students, but
    the median resisted. Robustness.
 8. Nearer samples should count more, correlated directions matter, and
-   you want an uncertainty attached — the road to kriging.
+   you want an uncertainty attached: the road to kriging.
 
 </details>
 
-### Programming assignment — The Gerrymander Detector (8–10 hours)
+### Programming assignment: The Gerrymander Detector (8–10 hours)
 
 Civics, not trenches: measure the shapes of voting districts. Invent a
 small rectangular "state," define 4–6 districts as coordinate polygons
-(make two deliberately ugly — long tentacles, near-pinches), and place
+(make two deliberately ugly: long tentacles, near-pinches), and place
 30–50 "addresses" as points.
 
-**Part A — geometry engine (own code, formulas from the pages):**
+**Part A: geometry engine (own code, formulas from the pages):**
 
 1. Signed area / orientation test as one shared primitive.
-2. **Shoelace area** and perimeter per district; normalize all polygon
+2. Shoelace area and perimeter per district; normalize all polygon
    windings to counterclockwise using the signed area, and say so in
    the README.
-3. **Compactness** = 4πA/P² per district (in civics this is
-   Polsby–Popper — one README sentence on the coincidence that it is
+3. Compactness = 4πA/P² per district (in civics this is
+   Polsby–Popper; one README sentence on the coincidence that it is
    Unit 3's circularity); rank districts, ugliest first.
-4. **Point-in-polygon** by ray casting: assign every address to its
+4. Point-in-polygon by ray casting: assign every address to its
    district; include one address that lands on a shared edge and
    document your tie rule.
-5. **Validation**: segment-intersection test over every polygon —
-   reject self-intersecting district boundaries with a message naming
+5. Validation: segment-intersection test over every polygon. Reject
+   self-intersecting district boundaries with a message naming
    the two offending edges.
 6. Report: table of districts (area, perimeter, compactness, address
    count) plus verdicts.
 
-**Part B — the outlier lab (stats, ~2 h):** fabricate a CSV of
+**Part B: the outlier lab (stats, ~2 h):** fabricate a CSV of
 (study-hours, exam-score) for 20 students, one wild outlier included.
 Compute mean, median, variance, CV of scores; fit ordinary least
 squares by the closed form (slope = Σ(x−x̄)(y−ȳ) / Σ(x−x̄)²); fit
@@ -1032,7 +1032,7 @@ point-in-polygon with documented tie rule 20 · self-intersection
 validation with located message 15 · outlier lab computations and
 writeup 25.
 
-### Research paper — The Night Before Challenger (1,800–2,500 words)
+### Research paper: The Night Before Challenger (1,800–2,500 words)
 
 On 27 January 1986, engineers argued about O-rings and cold using a
 data display that omitted the flights with no incidents. Tell the
@@ -1049,7 +1049,7 @@ transcript).
 argument (omitted data, extrapolation) 35 · the evidence-display
 analysis 20 · sources 10.
 
-### Midterm exam (50 minutes, closed docs, calculator allowed — take after the *Computational geometry* cluster)
+### Midterm exam (50 minutes, closed docs, calculator allowed: take after the *Computational geometry* cluster)
 
 1. Orientation test on A = (0,0), B = (4,1), C = (2,5): compute
    (B−A) × (C−A) and interpret the sign.
@@ -1057,11 +1057,11 @@ analysis 20 · sources 10.
 3. Do segments (0,0)–(4,4) and (0,4)–(4,0) intersect? Argue with
    orientations, not a sketch. Then the same for (0,0)–(2,2) and
    (3,0)–(5,2).
-4. Ray casting: point (2,2), square (0,0)/(4,0)/(4,4)/(0,4) — count
+4. Ray casting: point (2,2), square (0,0)/(4,0)/(4,4)/(0,4). Count
    crossings for a +x ray and conclude. Name the classic degenerate
    case and one standard way implementations defuse it.
-5. Linear interpolation: elevations 104 m at km 2 and 112 m at km 3 —
-   the lerp value at km 2.25? And what *must* a scientific system
+5. Linear interpolation: elevations 104 m at km 2 and 112 m at km 3.
+   The lerp value at km 2.25? And what *must* a scientific system
    record alongside that number?
 6. Polyline clipping to a window: a segment enters and exits a
    rectangular window. What does clipping output, and why do
@@ -1086,14 +1086,14 @@ analysis 20 · sources 10.
    half-open edge rules (count an edge only if one endpoint is
    strictly above the ray) or by nudging the ray angle.
 5. 104 + 0.25·(112 − 104) = **106 m**; that the value is interpolated,
-   not measured — provenance of the number.
+   not measured: provenance of the number.
 6. The portion of the segment inside the window, with new endpoints
    computed at the window's edges; measuring after clipping keeps
    out-of-frame geometry from polluting lengths, areas, and
    intersections.
 7. Benefit: nearby-but-unequal coordinates unify, so equality,
    deduplication, and hashing behave. Danger: distinct close points
-   collapse — resolution is permanently spent.
+   collapse. Resolution is permanently spent.
 
 </details>
 
@@ -1128,9 +1128,9 @@ analysis 20 · sources 10.
    (fixed epsilon becomes meaninglessly small).
 2. Mean **5**; variance (9+1+1+9)/4 = **5**; σ = √5 ≈ **2.24**; CV =
    2.24/5 ≈ **0.45**. CV asks "large spread *relative to the size of
-   the thing measured*?" — comparable across scales and units.
+   the thing measured*?" Comparable across scales and units.
 3. Mean 12, median 6 (was 5). The median: one wild value moved it one
-   step; the mean it dragged by 7 — robust statistics for data with
+   step; the mean it dragged by 7. Robust statistics for data with
    glitches.
 4. The sum of *squared* vertical residuals; squaring makes one large
    residual outweigh many small ones, so the line chases the outlier.
@@ -1140,7 +1140,7 @@ analysis 20 · sources 10.
    per-estimate uncertainty.
 6. The polyline *is* the measurements plus honest straight-line
    interpolation between them; a fitted curve invents smoothness the
-   evidence never claimed — interpolation versus measurement again.
+   evidence never claimed. Interpolation versus measurement again.
 7. The epsilon is absolute; at coordinate magnitude ~10⁶,
    representable spacing (ULP) exceeds 1e−9, so no two computed
    values ever compare equal. The relative term exists precisely for
@@ -1150,7 +1150,7 @@ analysis 20 · sources 10.
 
 ---
 
-## Unit 6 — Graphs and the structures beneath
+## Unit 6: Graphs and the structures beneath
 
 *Subject: relationships as data, and the containers that make them fast.*
 
@@ -1158,7 +1158,7 @@ analysis 20 · sources 10.
 
 1. A subway map versus a satellite photo of the same city: what did the
    map throw away, and why is it better for planning a route?
-2. "Socks before shoes, shirt before jacket" — getting dressed is a set
+2. "Socks before shoes, shirt before jacket": getting dressed is a set
    of before/after constraints. Is there always a valid order? When is
    there not?
 3. Spreadsheet cell C1 is `=A1+B1`, and someone makes A1 `=C1*2`. What
@@ -1178,55 +1178,55 @@ analysis 20 · sources 10.
 <details markdown="1">
 <summary>Answer key</summary>
 
-1. Geometry — distances, curves, true positions. Only connectivity
+1. Geometry (distances, curves, true positions). Only connectivity
    remains, which is exactly what routing needs: a graph.
 2. Yes, if the constraints have no cycle; a cycle ("A before B before
-   A") makes any order impossible — this unit names both facts.
+   A") makes any order impossible. This unit names both facts.
 3. A circular reference: C1 needs A1 needs C1. The spreadsheet should
    detect the cycle and refuse with an error, not loop.
 4. Contacts are hashed/indexed for direct jumps; the paper list is a
    linear scan. Hash tables are the difference.
-5. A stack — last action undone first. LIFO is the semantics of
+5. A stack: last action undone first. LIFO is the semantics of
    "undo."
-6. No — wandering (depth-first) finds *a* route; fewest-hops requires
+6. No. Wandering (depth-first) finds *a* route; fewest-hops requires
    exploring in rings: breadth-first.
-7. "Are these two in the same group yet?" — asked repeatedly under
+7. "Are these two in the same group yet?" asked repeatedly under
    merges: the Union-Find problem.
 8. Any defensible rule; the classic is least-recently-used, betting
    that recent past predicts near future.
 
 </details>
 
-### Programming assignment — A Tiny Spreadsheet, and a Maze (9–11 hours)
+### Programming assignment: A Tiny Spreadsheet, and a Maze (9–11 hours)
 
 Two builds, one toolbox. Plain Python.
 
-**Part A — the spreadsheet engine** (office-tools domain):
+**Part A: the spreadsheet engine** (office-tools domain):
 
 1. A sheet is a dict mapping cell names (`A1`) to either a number or a
    formula string like `=A1+B2*2` (numbers, cell refs, `+ - *`,
-   parentheses optional — keep the grammar tiny and document it).
-2. Extract each formula's references (a small regex is fine — you will
+   parentheses optional). Keep the grammar tiny and document it.
+2. Extract each formula's references (a small regex is fine; you will
    formalize regexes in Unit 7), building the dependency graph.
-3. **Evaluate the sheet in topological order**; report a valid order.
-4. **Cycle detection**: on a circular sheet, print the actual loop
+3. Evaluate the sheet in topological order; report a valid order.
+4. Cycle detection: on a circular sheet, print the actual loop
    (`C1 → A1 → C1`), refuse to evaluate, and exit nonzero.
-5. **Levels**: report which cells could be computed in parallel
-   (BFS-style level assignment — the "semesters" of the sheet).
-6. **Impact analysis**: for a given cell, list every cell that
+5. Levels: report which cells could be computed in parallel
+   (BFS-style level assignment, the "semesters" of the sheet).
+6. Impact analysis: for a given cell, list every cell that
    transitively depends on it (reachability).
 7. Include two demo sheets: one 12+ cells with a diamond dependency,
    one with a deliberate cycle.
 
-**Part B — the maze** (games domain): a text-file maze (`#` walls,
+**Part B: the maze** (games domain): a text-file maze (`#` walls,
 `.` floors, `S` start, `E` exit).
 
-1. **BFS** for the shortest path (render the path on the maze);
+1. BFS for the shortest path (render the path on the maze);
    report its length and the number of cells explored.
-2. **DFS with an explicit stack** on the same maze; report *its* path
+2. DFS with an explicit stack on the same maze; report *its* path
    length and cells explored. Two README sentences comparing them.
-3. **Connected components** over floor cells: how many isolated
-   regions the maze has (reuse your Unit 2 flood-fill thinking — say
+3. Connected components over floor cells: how many isolated
+   regions the maze has (reuse your Unit 2 flood-fill thinking, and say
    so in a comment).
 4. Stretch: weight some floor as mud (cost 3) and find the cheapest
    path with a priority queue (`heapq`).
@@ -1236,16 +1236,16 @@ named and refused 15 · levels + impact analysis 15 · BFS shortest path
 correct 20 · DFS comparison honest 10 · components 5 · README and demo
 files 10.
 
-### Research paper — Choose One: Ranked Pages, Critical Paths, or Package Managers (1,500–2,500 words)
+### Research paper. Choose One: Ranked Pages, Critical Paths, or Package Managers (1,500–2,500 words)
 
 One graph algorithm, told through its habitat:
 
-- **PageRank** — the web as a graph; why counting links beat counting
+- PageRank: the web as a graph; why counting links beat counting
   words, and what the random surfer actually computes.
-- **The critical path method** — 1950s construction and missile
+- The critical path method: 1950s construction and missile
   programs discovered the longest path through a task DAG *is* the
   schedule; slack, and why crashing a non-critical task buys nothing.
-- **Package managers** — how `apt`/`npm` turn "install this" into a
+- Package managers. How `apt`/`npm` turn "install this" into a
   dependency graph problem: topological install order, version
   conflicts, and why resolution can genuinely be hard.
 
@@ -1256,7 +1256,7 @@ least 4 sources.**
 **Rubric (100):** the algorithm in its habitat 35 · the worked
 example 35 · what breaks or is hard, honestly 20 · sources 10.
 
-### Midterm exam (50 minutes, closed docs — take after the *Graphs* cluster)
+### Midterm exam (50 minutes, closed docs: take after the *Graphs* cluster)
 
 1. Edges: A→B, A→C, B→D, C→D, A→D. Is it a DAG? List every valid
    topological order.
@@ -1278,16 +1278,16 @@ example 35 · what breaks or is hard, honestly 20 · sources 10.
 <details markdown="1">
 <summary>Answer key</summary>
 
-1. Yes — no cycles. Orders: **A,B,C,D** and **A,C,B,D**.
-2. A→D — implied by A→B→D (and A→C→D); reachability is unchanged:
+1. Yes: no cycles. Orders: **A,B,C,D** and **A,C,B,D**.
+2. A→D, implied by A→B→D (and A→C→D); reachability is unchanged:
    every ordering constraint the edge stated still holds via longer
    paths.
-3. E.g. DFS from A: A→B→D→A — reaching a vertex still on the current
+3. E.g. DFS from A: A→B→D→A. Reaching a vertex still on the current
    path (a back edge) names the loop A,B,D. (Equivalently: repeated
    zero-indegree removal stalls with {A,B,C,D} left.)
 4. {A}, {B,C}, {D}. Everything in a layer can be done in parallel
-   once earlier layers finish — the "minimum semesters" structure.
-5. Matrix: V² cells ≈ 10⁸ — mostly zeros; list: V + E ≈ 310,000
+   once earlier layers finish: the "minimum semesters" structure.
+5. Matrix: V² cells ≈ 10⁸, mostly zeros; list: V + E ≈ 310,000
    entries. List wins. The matrix answers "is there an edge u→v?" in
    O(1).
 6. Groups: {1,2,3,4}, {5}, {6} → **3**; find(4) = find(1) is true.
@@ -1303,7 +1303,7 @@ example 35 · what breaks or is hard, honestly 20 · sources 10.
 1. A cell store maps `"A1" → value` in a hash table. Why is lookup
    roughly constant time, what is a collision, and name one standard
    way tables survive collisions.
-2. `x in my_list` versus `x in my_set` — you measured this in Unit
+2. `x in my_list` versus `x in my_set`: you measured this in Unit
    0's harness. State the observed shapes and, now, the reason.
 3. Give one job in this unit's assignment for each: a stack, a
    queue, a heap. One line each.
@@ -1323,7 +1323,7 @@ example 35 · what breaks or is hard, honestly 20 · sources 10.
 <details markdown="1">
 <summary>Answer key</summary>
 
-1. The key hashes straight to a bucket index — no scan. A collision:
+1. The key hashes straight to a bucket index (no scan). A collision:
    two keys, one bucket; survived by chaining (lists per bucket) or
    open addressing (probe onward).
 2. List membership grew linearly with N; set stayed near-flat.
@@ -1335,26 +1335,26 @@ example 35 · what breaks or is hard, honestly 20 · sources 10.
    least recent; D evicts **B**; cache = {C, A, D}. The bet:
    recently used predicts soon used.
 5. Unique iff at every step exactly one vertex has no remaining
-   prerequisites — equivalently the order forms a single forced
+   prerequisites. Equivalently the order forms a single forced
    chain (a Hamiltonian path through the DAG).
-6. Full reachability stores up to V² pairs — the transitive
-   *closure*; the matrix keeps only direct relations (the closure's
+6. Full reachability stores up to V² pairs (the transitive
+   *closure*); the matrix keeps only direct relations (the closure's
    information at minimum edge cost) and recomputes reach on
    demand.
-7. A row is a rank in the partial order — everything below depends
+7. A row is a rank in the partial order: everything below depends
    on (or is later than) things above. Both domains are DAGs whose
    only message is relative order, so position-as-order is the
    honest rendering.
 8. A complete binary tree with the parent ≤ children invariant
    (min-heap); insert bubbles a leaf up, pop-min moves the last
-   leaf to the root and sinks it down — both walk one root-to-leaf
+   leaf to the root and sinks it down. Both walk one root-to-leaf
    path: log n.
 
 </details>
 
 ---
 
-## Unit 7 — Bytes, threads, and things that fail
+## Unit 7: Bytes, threads, and things that fail
 
 *Subject: data at rest, work in parallel, and surviving both.*
 
@@ -1380,63 +1380,63 @@ example 35 · what breaks or is hard, honestly 20 · sources 10.
 <details markdown="1">
 <summary>Answer key</summary>
 
-1. Fingerprint both with a hash and compare the digests — the
+1. Fingerprint both with a hash and compare the digests, the
    unit's opening move.
 2. Text is redundant (patterns compress); JPEG is already
    compressed, so little redundancy remains. Compression is
    redundancy spending.
-3. Big end first (0x01 0x02) or little end first (0x02 0x01) —
+3. Big end first (0x01 0x02) or little end first (0x02 0x01):
    endianness, and both camps shipped hardware.
-4. 150 — one clerk's 50 vanished: a lost update from unsynchronized
+4. 150. One clerk's 50 vanished: a lost update from unsynchronized
    read-modify-write.
 5. Where the file stands (offset/chunk index) and that re-sending a
-   chunk is harmless — resumability is idempotency plus position.
+   chunk is harmless. Resumability is idempotency plus position.
 6. The user (battery, blocked UI) and the struggling server (a
    retry stampede keeps it down); hence backoff, jitter, budgets.
-7. Buffered writes not yet flushed — the file existed part-written:
+7. Buffered writes not yet flushed, so the file existed part-written:
    the atomic-write problem.
 8. Idempotent: pressing an elevator call button. Not: pressing
    "send payment."
 
 </details>
 
-### Programming assignment — The Save-Game Vault and the Race Lab (9–11 hours)
+### Programming assignment: The Save-Game Vault and the Race Lab (9–11 hours)
 
 Games and systems, no archaeology.
 
-**Part A — the vault.** A tiny text adventure needs bulletproof saves.
+**Part A: the vault.** A tiny text adventure needs bulletproof saves.
 Model a game state (player name, position, inventory list, play
 seconds).
 
-1. **Two serializers**: JSON, and your own binary format via
-   `struct` — magic bytes, a format version, then fields with
-   explicit little-endian encoding. A README table: bytes on disk
+1. Two serializers: JSON, and your own binary format via
+   `struct` (magic bytes, a format version, then fields with
+   explicit little-endian encoding). A README table: bytes on disk
    for each, and one advantage per side.
-2. **Checksummed**: append the SHA-256 of the payload; on load,
+2. Checksummed: append the SHA-256 of the payload; on load,
    verify before parsing. Truncate a save by hand and show the
-   clean refusal (message, nonzero exit — never a stack trace).
-3. **Atomic saves**: temp file, flush, `os.replace`. Add `--crash`
+   clean refusal (message, nonzero exit, never a stack trace).
+3. Atomic saves: temp file, flush, `os.replace`. Add `--crash`
    to kill mid-write and demonstrate the old save surviving.
-4. **Versioned**: v2 adds an `achievements` list. Loading a v1 save
+4. Versioned: v2 adds an `achievements` list. Loading a v1 save
    migrates it (empty list), writes a `.bak` first, and reports the
    migration.
-5. **Content-addressed snapshots** (stretch): `snapshot` copies the
+5. Content-addressed snapshots (stretch): `snapshot` copies the
    save into `vault/<first-2-hex>/<digest>`; identical states
    dedupe by construction.
 
-**Part B — the race lab.**
+**Part B: the race lab.**
 
 1. Two threads each increment a shared counter 100,000 times, no
    lock. Report expected versus observed across five runs. Explain
-   the loss in terms of read-modify-write interleaving — and why
+   the loss in terms of read-modify-write interleaving, and why
    the GIL did not save you.
 2. Fix it with a `threading.Lock`; show the clean 200,000.
-3. **Flaky downloader**: a stub `fetch_chunk(i)` fails 40% of the
-   time (seed your random generator for reproducibility — that is
+3. Flaky downloader: a stub `fetch_chunk(i)` fails 40% of the
+   time (seed your random generator for reproducibility; that is
    determinism practiced, note it). Download 20 chunks with
    exponential backoff plus jitter, a retry budget of 5 per chunk,
    and resume-from-manifest so a rerun refetches nothing already
-   verified (chunk hashes in the manifest — idempotency by
+   verified (chunk hashes in the manifest: idempotency by
    content).
 
 **Rubric (100):** binary format with explicit endianness 20 ·
@@ -1444,7 +1444,7 @@ checksum + refusal 15 · atomic + crash demo 15 · migration with
 backup 10 · race demonstrated, explained, fixed 20 · downloader
 (backoff, jitter, budget, resumable manifest) 20.
 
-### Research paper — Why Your Card Was Not Charged Twice (1,500–2,000 words)
+### Research paper: Why Your Card Was Not Charged Twice (1,500–2,000 words)
 
 Payment APIs let a client retry a charge safely by attaching an
 idempotency key. Research how this works (Stripe's design is well
@@ -1459,7 +1459,7 @@ engineering post from a payments company).
 **Rubric (100):** the mechanism, precisely described 40 · the
 race/retry analysis 30 · the exactly-once discussion 20 · sources 10.
 
-### Midterm exam (45 minutes, closed docs, calculator allowed — take after the *Hashing, encoding, and serialisation* cluster)
+### Midterm exam (45 minutes, closed docs, calculator allowed: take after the *Hashing, encoding, and serialisation* cluster)
 
 1. Name three properties of SHA-256 that make it a trustworthy file
    fingerprint, and the one thing equal digests do *not* prove in the
@@ -1476,7 +1476,7 @@ race/retry analysis 30 · the exactly-once discussion 20 · sources 10.
 5. JSON versus your binary format: one axis where each wins,
    grounded in your vault measurements.
 6. Regex `\d{4}-\d{2}-\d{2}` under *search* semantics: which of
-   these contain a match — `2026-08-14` · `2026-8-14` ·
+   these contain a match: `2026-08-14` · `2026-8-14` ·
    `date:2026-08-14end` · `20260814`? What changes under
    *fullmatch*?
 
@@ -1484,7 +1484,7 @@ race/retry analysis 30 · the exactly-once discussion 20 · sources 10.
 <summary>Answer key</summary>
 
 1. Deterministic; fixed-size output; avalanche (tiny change, wholly
-   different digest); one-way; collision-resistant — any three.
+   different digest); one-way; collision-resistant (any three).
    Equal digests prove identical content only against accident and
    present-day capability; the docs treat engineered collisions as
    infeasible, not impossible in principle.
@@ -1499,13 +1499,13 @@ race/retry analysis 30 · the exactly-once discussion 20 · sources 10.
    → refuse before parsing garbage. Version: "a save from a
    different era" → migrate or refuse knowingly, instead of
    misparsing silently.
-5. JSON: human-readable, self-describing, toolable — debugging and
+5. JSON: human-readable, self-describing, toolable; debugging and
    interop. Binary: smaller and faster to parse, with explicit
-   layout — but opaque and fragile without its spec. (Your byte
+   layout, but opaque and fragile without its spec. (Your byte
    counts justify the size claim.)
 6. Search: matches in `2026-08-14` and `date:2026-08-14end`; not in
    `2026-8-14` (two-digit month required) or `20260814` (no
-   hyphens). Fullmatch: only the bare `2026-08-14` — the entire
+   hyphens). Fullmatch: only the bare `2026-08-14`, because the entire
    string must match.
 
 </details>
@@ -1541,7 +1541,7 @@ race/retry analysis 30 · the exactly-once discussion 20 · sources 10.
 
 1. The GIL serializes *bytecodes*, not logical operations;
    `counter += 1` is several bytecodes (load, add, store), and the
-   interpreter can switch threads between them — two loads of the
+   interpreter can switch threads between them: two loads of the
    same value, two stores, one update lost.
 2. B's write succeeds, bumping to v4; A's write presents expected
    v3 against current v4 → rejected; A rereads and redoes. Better
@@ -1549,7 +1549,7 @@ race/retry analysis 30 · the exactly-once discussion 20 · sources 10.
    (endless retry work a lock would have serialized).
 3. Write to a temp file in the target's directory → flush (fsync if
    promised durable) → `os.replace` over the target. Rename is
-   atomic only within a filesystem — across devices it degrades to
+   atomic only within a filesystem. Across devices it degrades to
    copy-then-delete, which has a half-state. A reader sees either
    the whole old file or the whole new one, never a mix.
 4. Waits 0.25, 0.5, 1, 2 → after the 4th failure the wait is
@@ -1558,17 +1558,17 @@ race/retry analysis 30 · the exactly-once discussion 20 · sources 10.
    attempts so a dead dependency fails fast instead of consuming
    forever.
 5. Idempotency (re-fetching a chunk is harmless; verified chunks
-   are skipped) — encoded in the manifest with per-chunk hashes;
+   are skipped), encoded in the manifest with per-chunk hashes;
    and determinism of what remains (the manifest says exactly which
    chunks are outstanding). Rerun = converge, not repeat.
-6. Debounce: act once after the input goes quiet — (a). Throttle:
-   act at most once per interval while input continues — (b).
+6. Debounce: act once after the input goes quiet, so (a). Throttle:
+   act at most once per interval while input continues, so (b).
 7. The relative order of equal keys. Deterministic ordering makes
-   runs comparable — diffs mean changes in *data*, not in
-   iteration whim — which is what makes outputs reviewable and
+   runs comparable (diffs mean changes in *data*, not in
+   iteration whim), which is what makes outputs reviewable and
    cacheable by content.
-8. Refuse to load, say why, point at the backup — fail closed. The
-   alternative — "salvage what parses" — silently promotes corrupt
+8. Refuse to load, say why, point at the backup: fail closed. The
+   alternative, "salvage what parses," silently promotes corrupt
    state to trusted state, and the player finds out much later,
    with less evidence.
 
@@ -1576,7 +1576,7 @@ race/retry analysis 30 · the exactly-once discussion 20 · sources 10.
 
 ---
 
-## Unit 8 — Boundaries, blueprints, and honest computing
+## Unit 8: Boundaries, blueprints, and honest computing
 
 *Subject: keeping bad data out, structure that survives change, and the
 ethics of computed numbers.*
@@ -1588,14 +1588,14 @@ ethics of computed numbers.*
    if checks live at the tables instead?
 2. Name two "outsides" a program receives data from besides its
    human user.
-3. `filename = "../../secrets.txt"` — what is the filename trying to
+3. `filename = "../../secrets.txt"`: what is the filename trying to
    do, and to what?
 4. A 40 KB file claims, in its own header, to be a 100-megapixel
    image. What should a careful program do before decoding, and why?
-5. Why do big programs get organized into layers at all — what goes
+5. Why do big programs get organized into layers at all? What goes
    wrong with an "everything calls everything" design?
 6. A function that reads a global config, writes a log, and returns
-   a value — what makes it awkward to test compared with one that
+   a value: what makes it awkward to test compared with one that
    takes inputs and returns outputs?
 7. An instrument measured 4.1 and 4.5; software reports 4.3 for the
    point between. What is the one honest thing the report must
@@ -1607,39 +1607,39 @@ ethics of computed numbers.*
 <details markdown="1">
 <summary>Answer key</summary>
 
-1. The door is where outside data enters (parse/ingest points) —
+1. The door is where outside data enters (parse/ingest points):
    the trust boundary. Checks scattered at tables get forgotten,
    duplicated, and disagree; bad data is already inside.
 2. Files on disk, network responses, environment variables, other
-   programs' output — any two.
-3. Climb out of the directory it was supposed to stay in — path
+   programs' output (any two).
+3. Climb out of the directory it was supposed to stay in. Path
    traversal against the program's file store.
-4. Refuse or cap using the *declared* size before decoding — the
+4. Refuse or cap using the *declared* size before decoding, because the
    expansion happens at decode time; after is too late. A
    decompression bomb.
 5. Every change ripples everywhere; nothing is testable alone;
    dependencies point every direction. Layers give change a
    direction to flow.
-6. Its behavior depends on hidden state and it leaves footprints —
+6. Its behavior depends on hidden state and it leaves footprints, so
    you must stage the world to test it. Pure functions need only
    arguments and assertions.
-7. That 4.3 is interpolated, not measured — provenance of the
+7. That 4.3 is interpolated, not measured: provenance of the
    number.
 8. A human review of the transcription against the source, at the
-   point of *commitment* — later, the transcript has already been
+   point of *commitment*. Later, the transcript has already been
    trusted, cited, and copied.
 
 </details>
 
-### Programming assignment — The Hardened Lab Notebook (9–12 hours)
+### Programming assignment: The Hardened Lab Notebook (9–12 hours)
 
-A command-line notebook for any hobby that generates observations —
+A command-line notebook for any hobby that generates observations:
 sourdough bakes, telescope nights, marathon training. The point is not
 the notebook; it is that every page of Unit 8 shows up in one small
 tool.
 
 **Architecture (drawn in the README):** three modules with one legal
-dependency direction — `storage.py` (leaf: file I/O, atomic writes,
+dependency direction: `storage.py` (leaf: file I/O, atomic writes,
 no imports from the others), `logic.py` (validation, provenance,
 queries; imports storage only), `cli.py` (argument parsing and
 printing; imports logic only). One sentence in the README on what
@@ -1647,37 +1647,37 @@ this buys, citing the leaf-module idea.
 
 **Features:**
 
-1. `add` — an entry with fields (date, title, notes, numeric
+1. `add`: an entry with fields (date, title, notes, numeric
    measurement with unit). **Validation at the boundary**: every
    field checked at parse time; errors carry an **error taxonomy**:
    user-fixable (exit 2, friendly message), internal bug (exit 70,
-   asks for a report), environment (exit 69, e.g. disk full) — the
+   asks for a report), environment (exit 69, e.g. disk full). The
    README maps the classes.
-2. `attach <file>` — copies a file into the notebook's store under
+2. `attach <file>`: copies a file into the notebook's store under
    a **content-addressed name**; the requested filename is used
    only as a display label, and any path from the user is resolved
    and **contained** (two independent traversal defenses, tested by
    an attack you script).
 3. A size cap on attachments enforced **before** reading the whole
    file (bomb thinking; document the limit).
-4. `import-csv` — bulk observations land in a **staging area**, not
+4. `import-csv`: bulk observations land in a **staging area**, not
    the notebook; `review` shows staged entries with validation
-   verdicts; `approve <id>` commits them — two-phase commit with a
-   human between. Approved entries record `source: imported+reviewed`;
+   verdicts; `approve <id>` commits them (two-phase commit with a
+   human between). Approved entries record `source: imported+reviewed`;
    hand-typed ones `source: manual` (provenance).
 5. Every entry stores the schema version; ship a v1→v2 migration
    (adds `tags`) with a `.bak`, reusing your Unit 7 pattern.
-6. **Pure core**: validation and query functions are pure; pytest
+6. Pure core: validation and query functions are pure; pytest
    tests cover them without touching the filesystem. Listing output
-   is deterministically ordered (stable sort by date then title) —
-   a README sentence on why.
+   is deterministically ordered (stable sort by date then title).
+   A README sentence on why.
 
 **Rubric (100):** layering with legal imports (checked by reading)
 15 · taxonomy-coded validation 20 · containment + content addressing
 with scripted attack test 20 · staged import with review gate 20 ·
 migration 10 · pure core with tests + deterministic listing 15.
 
-### Research paper — The Reproducibility Crisis, for Programmers (1,800–2,500 words)
+### Research paper: The Reproducibility Crisis, for Programmers (1,800–2,500 words)
 
 Large swaths of published computational results cannot be
 regenerated from what was published. Research the crisis as it
@@ -1687,7 +1687,7 @@ Pick one documented case study (any field), tell what failed to
 reproduce and why, then map each cause onto a practice from this
 course's pages (determinism, provenance and lineage, schema
 versioning, validation, human review). End with the strongest
-counterargument you can construct — what reproducibility costs — and
+counterargument you can construct (what reproducibility costs) and
 answer it. **At least 5 sources, one primary** (the case's paper,
 retraction, or postmortem).
 
@@ -1695,7 +1695,7 @@ retraction, or postmortem).
 mapped to named practices 35 · the counterargument taken seriously
 20 · sources 10.
 
-### Midterm exam (45 minutes, closed docs — take after the *Validation* and *Architecture* clusters)
+### Midterm exam (45 minutes, closed docs: take after the *Validation* and *Architecture* clusters)
 
 1. Sort these eight failures into user-fixable / internal bug /
    environment: malformed date in an added entry · `KeyError` in
@@ -1750,7 +1750,7 @@ mapped to named practices 35 · the counterargument taken seriously
    argument `i=i` or a factory function).
 8. Same inputs → same output; no side effects. The first removes
    hidden state from setup; the second removes teardown and
-   world-staging — the test is a call and an assertion.
+   world-staging. The test is a call and an assertion.
 
 </details>
 
@@ -1794,12 +1794,12 @@ mapped to named practices 35 · the counterargument taken seriously
    instead of accepting names at all.
 2. A tiny input that decodes into an enormous allocation
    (compressed pixels, nested archives). The defense acts on
-   *declared* size before decoding — afterward the memory is
+   *declared* size before decoding. Afterward the memory is
    already spent.
 3. Scheme and host validation against an allowlist (and no
-   redirects off it) — blocks the notebook being used as a proxy
+   redirects off it), which blocks the notebook being used as a proxy
    to fetch internal/other-origin resources it should never touch.
-4. Escaping text for display (HTML/shell) — at output, the goal is
+4. Escaping text for display (HTML/shell): at output, the goal is
    representing data safely in a context, not judging it;
    rejecting is meaningless there.
 5. Source identifier and its content hash · tool/step name and
@@ -1808,17 +1808,17 @@ mapped to named practices 35 · the counterargument taken seriously
    what?
 6. Commit is the last moment before the data becomes trusted and
    copied onward; reporting-time review is advisory and skippable.
-   Sampling trades certainty for cost — acceptable when errors are
+   Sampling trades certainty for cost: acceptable when errors are
    independent, ruinous when one systematic error repeats across
    every record.
 7. Stage the automated result as a proposal; a human compares it
    against the source; only approval commits. Accepted cost:
-   throughput — the pipeline is only as fast as the reviewer.
+   throughput (the pipeline is only as fast as the reviewer).
 8. E.g.: precision beyond the instrument (4.73218 from a tape
    measure) · values too regular (identical deltas, reused
    digits) · impossible ranges or unit mismatches · perfect
    agreement between supposedly independent sources. Limitation: a
-   detector flags *suspicion*, not proof — plausible fabrication
+   detector flags *suspicion*, not proof. Plausible fabrication
    passes every statistical sniff.
 9. Criteria: measured values inherit evidence, interpolated ones
    inherit assumptions · downstream consumers cannot weigh what
@@ -1831,11 +1831,11 @@ mapped to named practices 35 · the counterargument taken seriously
 
 ---
 
-## Unit 9 — Synthesis
+## Unit 9: Synthesis
 
 *Subject: all of it, at once, on a photograph you take yourself.*
 
-### Pre-reading quiz — calibration inventory (15 minutes)
+### Pre-reading quiz: calibration inventory (15 minutes)
 
 Rate your confidence 1–5 per unit (0 through 8), then take the five spot
 checks closed-book. The product is the *calibration*: any unit rated 4+
@@ -1863,44 +1863,44 @@ Spot checks:
 
 </details>
 
-### Programming assignment — capstone: The Meter Reader (12–16 hours)
+### Programming assignment, capstone: The Meter Reader (12–16 hours)
 
 Seven-segment displays are everywhere: microwave clocks, ovens, bathroom
 scales, utility meters. Photograph one daily for a week and build the
-tool that reads it — image in, trusted number out, every unit of this
+tool that reads it: image in, trusted number out, every unit of this
 course on duty. Own loops; Pillow for I/O.
 
 **Requirements, each naming its unit:**
 
-1. **Prepare** (U1): grayscale, contrast or equalisation as your photos
+1. Prepare (U1): grayscale, contrast or equalisation as your photos
    need, optional blur; keep the prepared image as an artifact.
-2. **Binarize and clean** (U2): threshold (adaptive if your photos have
+2. Binarize and clean (U2): threshold (adaptive if your photos have
    glare), opening/closing as needed.
-3. **Find the digits** (U2–U3): connected components; filter candidates
+3. Find the digits (U2–U3): connected components; filter candidates
    by size, aspect ratio, and extent; sort surviving boxes left to
    right. If overlapping candidates survive, resolve with IoU/NMS.
-4. **Sample the segments** (U4–U5): within each digit's box, define the
+4. Sample the segments (U4–U5): within each digit's box, define the
    seven segment zones in *normalized* coordinates (so any digit size
-   works — that is a scale transform), and decide lit/unlit by the ink
+   works; that is a scale transform), and decide lit/unlit by the ink
    ratio in each zone.
-5. **Decode** (U6): a hash table from seven-bit segment patterns to
+5. Decode (U6): a hash table from seven-bit segment patterns to
    digits; unknown patterns are reported as unreadable, never guessed
    (fail closed, U7/U8).
-6. **Validate** (U8): range and format rules for your instrument
+6. Validate (U8): range and format rules for your instrument
    ("scale reads 30.0–150.0 kg, one decimal"); violations produce
    taxonomy-coded errors.
-7. **Log** (U7–U8): append accepted readings to a JSON log with schema
+7. Log (U7–U8): append accepted readings to a JSON log with schema
    version, and provenance per reading: source photo path *and its
    SHA-256*, tool name, parameters, timestamp. Atomic writes. Rerunning
    on an already-logged photo must not duplicate (idempotency by photo
    hash).
-8. **Report** (U5): across the week's readings — count, mean, median,
+8. Report (U5). Across the week's readings: count, mean, median,
    and a one-line trend statement; note explicitly that days you missed
    are gaps, not interpolations, unless you choose to interpolate *and
    flag it*.
-9. **README** (U0): quickstart in the workflow-page shape, and an
+9. README (U0): quickstart in the workflow-page shape, and an
    honest capability table for your own tool (supported / experimental /
-   not-implemented — glare handling and decimal points are where
+   not-implemented; glare handling and decimal points are where
    honesty gets exercised).
 
 **Rubric (100):** segmentation robust on your real photos 20 · segment
@@ -1909,18 +1909,18 @@ taxonomy-coded validation 10 · provenance + atomic, idempotent log 20 ·
 stats report with the interpolation stance 10 · README with honest
 capability table 15.
 
-This is the digestion proof: the course's whole arc — photograph to
-validated, provenanced number — rebuilt by you, on your own kitchen
+This is the digestion proof: the course's whole arc (photograph to
+validated, provenanced number) rebuilt by you, on your own kitchen
 counter.
 
-### Research paper — One Real Pipeline, Mapped (2,000–3,000 words)
+### Research paper: One Real Pipeline, Mapped (2,000–3,000 words)
 
 Choose a documented, real image-to-data pipeline from any field:
 astronomical survey photometry (e.g. a sky-survey's difference-imaging
 pipeline), digital pathology slide analysis, archive-scale OCR, or a
 self-driving perception stack. From published descriptions, map its
 stages onto **at least ten techniques from at least six units** of this
-course — name the technique, the stage, and the evidence. Then evaluate
+course. Name the technique, the stage, and the evidence. Then evaluate
 its honesty practices against Unit 8: what provenance is kept, where
 humans review, what happens to low-confidence output. Close with the
 one thing the pipeline does that this course did not teach, as your
@@ -1930,7 +1930,7 @@ next thing to learn. **At least 6 sources.**
 mappings, specific and defensible 40 · the honesty evaluation 25 ·
 sources 10.
 
-### Midterm exam — the integration matrix (60 minutes: Part A closed, Part B open-docs)
+### Midterm exam, the integration matrix (60 minutes: Part A closed, Part B open-docs)
 
 **Part A (closed).** For each unit 1–8, from memory: name one technique
 from that unit *and* one sentence of its "why this and not the obvious
@@ -1940,7 +1940,7 @@ alternative" reasoning. Sixteen sentences total.
 techniques, find via the [algorithm index](../architecture/algorithm-index.md)
 one repository module that uses it. Cite module paths.
 
-**Part C (closed) — confusables, rapid fire.** One distinguishing
+**Part C (closed): confusables, rapid fire.** One distinguishing
 sentence each: erosion/opening · Otsu/adaptive · BFS/DFS ·
 similarity/affine · mean/median · validation/sanitisation ·
 checksum/schema-version · debounce/throttle.
@@ -1958,9 +1958,9 @@ above.
 
 </details>
 
-### Final exam — the course final (three parts, ~2.5–3 hours; sittings may split)
+### Final exam: the course final (three parts, ~2.5–3 hours; sittings may split)
 
-**Part A — comprehensive (75 minutes, closed docs, calculator
+**Part A: comprehensive (75 minutes, closed docs, calculator
 allowed).** Twenty-five questions; pass ≥ 20.
 
 1. The seven sections of a CS page, in order.
@@ -1979,7 +1979,7 @@ allowed).** Twenty-five questions; pass ≥ 20.
 10. Boxes A (0,0)–(2,2), B (1,0)–(3,2): IoU.
 11. In RDP, which points are guaranteed to survive, and why?
 12. Normalize (8,6).
-13. (1,2)·(2,−1) — value, and the geometric conclusion.
+13. (1,2)·(2,−1): value, and the geometric conclusion.
 14. Rotate (0,3) by 90° counterclockwise.
 15. Why does transform order matter? One sentence.
 16. Compass azimuth 135° as a math angle.
@@ -1996,24 +1996,24 @@ allowed).** Twenty-five questions; pass ≥ 20.
 23. Bytes `0x00 0x10` as a 16-bit integer, big- and little-endian.
 24. Two threads, `n += 1` each, no lock, from n = 0: worst-case final
     value and the mechanism.
-25. The atomic write pattern — and in one sentence, why automated
+25. The atomic write pattern, and in one sentence, why automated
     transcription commits only after human review (two-phase commit's
     reason).
 
-**Part B — essays (45 minutes, closed docs; both).**
+**Part B: essays (45 minutes, closed docs; both).**
 
 1. *One mechanism, many operations.* Convolution is the unit thesis of
    image processing: show it by tracing the same mechanism from box
    blur through Gaussian, sharpening, Sobel, and into Canny's first
-   two stages — what changes each time, and what never does.
+   two stages; what changes each time, and what never does.
    (10–15 sentences.)
 2. *From photons to a number you can defend.* Trace one pixel of your
    Meter Reader's photograph to a logged, validated reading: name
    every transformation, every decision that could reject it, and
-   every artifact that records what happened — at least one technique
-   from every unit, 1 through 8. (10–15 sentences.)
+   every artifact that records what happened (at least one technique
+   from every unit, 1 through 8). (10–15 sentences.)
 
-**Part C — practical (45 minutes, docs closed until stuck).** A fresh
+**Part C: practical (45 minutes, docs closed until stuck).** A fresh
 photo of your display, through your capstone, unaided. Checklist:
 prepared artifact saved · digits found (or failures honestly reported) ·
 reading decoded or refused with a named reason · validation verdict ·
@@ -2021,7 +2021,7 @@ log entry with provenance and intact hash · stats updated · rerun on
 the same photo does not duplicate.
 
 <details markdown="1">
-<summary>Answer key — Part A</summary>
+<summary>Answer key: Part A</summary>
 
 1. What it is · The picture · Where this project uses it · Why this
    and not something else · What it costs · Where else you meet it ·
@@ -2032,7 +2032,7 @@ the same photo does not duplicate.
    zero on flat regions.
 5. The threshold maximizing between-class variance of the histogram's
    two populations.
-6. Opening — erosion then dilation.
+6. Opening: erosion then dilation.
 7. Convention: 4-connectivity two, 8-connectivity one; you must
    choose and document.
 8. Gaussian smooth → Sobel gradient → non-maximum suppression →
@@ -2040,7 +2040,7 @@ the same photo does not duplicate.
 9. 4π·16/400 ≈ **0.50**.
 10. 2/(4+4−2) = **1/3**.
 11. The endpoints, and recursively every point farther than ε from
-    the current chord — the farthest-deviation points are exactly
+    the current chord. The farthest-deviation points are exactly
     what the algorithm keeps.
 12. Magnitude 10 → **(0.8, 0.6)**.
 13. 2 − 2 = **0** → perpendicular.
@@ -2049,7 +2049,7 @@ the same photo does not duplicate.
     is multiplication, and matrix multiplication does not commute.
 16. 90 − 135 = −45 ≡ **315°**.
 17. ½·6·4 = **12** (shoelace confirms).
-18. Cast a ray; odd crossings inside — with a consistent tie rule at
+18. Cast a ray; odd crossings inside, with a consistent tie rule at
     vertices and edges.
 19. 0.1 and 0.2 are not exactly representable in binary; use
     |a−b| ≤ max(abs_tol, rel_tol·max(|a|,|b|)).
@@ -2059,7 +2059,7 @@ the same photo does not duplicate.
 22. List grew linearly, set stayed near-flat; hashing jumps to a
     bucket instead of scanning.
 23. Big: **16**; little: **4096**.
-24. **1** — both read 0 before either writes: lost update via
+24. **1**, because both read 0 before either writes: lost update via
     interleaved read-modify-write.
 25. Temp file, same directory → write and flush → atomic rename.
     Because automated transcription's failure mode is plausible
@@ -2067,7 +2067,7 @@ the same photo does not duplicate.
     catch it before it becomes trusted data.
 
 **Part B criteria.** Essay 1: the kernel is the only thing that
-changes; sliding weighted sums never do — and Canny is shown to open
+changes; sliding weighted sums never do; and Canny is shown to open
 with two convolutions (Gaussian, Sobel). Essay 2: touches ≥ 8 units
 with concrete stations (prepare → threshold/morphology → components/
 shape filter → normalized-zone sampling → hash decode → validation →
@@ -2085,13 +2085,13 @@ required the docs goes on a reread list and is redone another day.
 
 Passing Part A at 20/25 with both essays meeting criteria and a clean
 capstone run means you have digested the computer science this
-repository uses — with receipts: nine programs, a capstone that reads a
+repository uses, with receipts: nine programs, a capstone that reads a
 real instrument, and answer-key-verified exams across every cluster.
 
 Two natural continuations: the [full course](plan.md), whose phases 1–5
 teach what the archaeologists are doing with these techniques; or the
 codebase itself, entered through the
-[algorithm index](../architecture/algorithm-index.md) — you now speak
+[algorithm index](../architecture/algorithm-index.md). You now speak
 its language.
 
 <!-- Local-only enhancement: a "Copy for feedback" button on every quiz

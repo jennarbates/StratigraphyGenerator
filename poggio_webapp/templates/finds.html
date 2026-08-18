@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Log a Find — Poggio Civitate</title>
+  <title>Log a Find · Poggio Civitate</title>
   <link rel="stylesheet" href="/static/style.css">
   <link rel="stylesheet" href="/static/finds/finds.css">
 </head>
@@ -30,7 +30,7 @@
           <option value="">Choose a job</option>
           {% for job in jobs %}
             <option value="{{ job.job_id }}">
-              {{ job.job_id }} — {{ job.source_label }} · {{ job.status }}
+              {{ job.job_id }} · {{ job.source_label }} · {{ job.status }}
             </option>
           {% endfor %}
         </select>

@@ -1,6 +1,6 @@
 """The site's horizontal coordinate frame.
 
-Poggio Civitate runs a **local site grid** — a 10 m grid, independent of GPS,
+Poggio Civitate runs a **local site grid**: a 10 m grid, independent of GPS,
 WGS84 and UTM, oriented to an artificial **Grid North**. Everything the
 application computes lives in that frame. This module is the one place that
 knows how to read a grid label, and the one place that names the frame.
@@ -20,8 +20,8 @@ downstream can detect it: every distance, every slope and every model stays
 internally consistent while being reflected. It is isolated in
 ``label_to_grid`` so it has exactly one place to go wrong.
 
-**There are two local grids** — the hill of Poggio Civitate and Vescovado di
-Murlo — so a bare pair of numbers is not a location. Callers name the grid.
+**There are two local grids**, the hill of Poggio Civitate and Vescovado di
+Murlo, so a bare pair of numbers is not a location. Callers name the grid.
 The two origins are about 1.5 million metres apart once projected, so mixing
 them is never a near miss a tolerance could absorb.
 
@@ -143,7 +143,7 @@ def grid_to_site(grid_x, grid_y):
     """Grid coordinates to model coordinates: the identity.
 
     Model X is grid easting and model Y is grid northing, both in metres. This
-    is not a simplification made here — ``convert_coords.convert`` already
+    is not a simplification made here: ``convert_coords.convert`` already
     computes ``X = originX + x·sin(bearing)``, ``Y = originY + x·cos(bearing)``
     with bearing clockwise from north, which is the same frame the total
     station uses (HA 0° Grid North, 90° East, 180° South, 270° West).

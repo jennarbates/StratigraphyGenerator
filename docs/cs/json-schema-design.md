@@ -28,7 +28,7 @@ Three design questions recur, and how they are answered decides what the data
 can say:
 
 **Optional or required?** A required field forces a value to exist. An optional
-one permits "not recorded" — which is different from "recorded as absent."
+one permits "not recorded", which is different from "recorded as absent."
 
 **Null or omitted?** In this project `null` consistently means *not recorded*,
 and that is load-bearing: a boundary point with a null coordinate is a point the
@@ -58,7 +58,7 @@ extraction shapes. Nearly every field is `| None`, and that is deliberate: an
 archival sheet may not record a date, an illustrator, or a north arrow, and a
 schema that demanded them would force fabrication.
 
-The exception proves the rule — in `harris_matrix.py`, a
+The exception proves the rule. In `harris_matrix.py`, a
 [relation](graphs-and-terminology.md) requires its evidence:
 
 ```python
@@ -82,8 +82,8 @@ class _HarrisModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 ```
 
-Every Harris model inherits this. A typo'd key — `younger_unit` for
-`younger_id` — becomes an error instead of a silently ignored field alongside a
+Every Harris model inherits this. A typo'd key (`younger_unit` for
+`younger_id`) becomes an error instead of a silently ignored field alongside a
 missing required one. `extract_text._ContractModel` does the same.
 
 ### Constrained types instead of bare strings
@@ -96,7 +96,7 @@ NonNegativeInteger = Annotated[int, Field(strict=True, ge=0)]
 ```
 
 The ID format is enforced by the type, so no function has to check it. `strict=True`
-on the integer refuses `"3"` — JSON's habit of stringifying numbers cannot
+on the integer refuses `"3"`: JSON's habit of stringifying numbers cannot
 sneak past.
 
 `Literal` types make the vocabulary part of the schema:
@@ -173,7 +173,7 @@ def is_field_wall(data):
     return "trenchProfiles" not in data and ("loci" in data or "layers" in data)
 ```
 
-Structural detection — no `schemaType` discriminator in the payload. That
+Structural detection: no `schemaType` discriminator in the payload. That
 tolerates documents produced before any version field existed. See
 [schema versioning](schema-versioning.md).
 
@@ -182,7 +182,7 @@ tolerates documents produced before any version field existed. See
 | Alternative | How it would define the shape | Why it lost |
 |---|---|---|
 | **Plain dicts, no schema** | Duck typing | The pipeline crosses a language boundary and a model boundary. Errors would surface as `KeyError` three stages downstream instead of at the point of entry. |
-| **JSON Schema documents** | A `.json` schema file per shape | Language-neutral, and the browser could validate against the same file — a real advantage. Pydantic gives Python types *and* validation from one definition, and it can also emit JSON Schema, which is exactly how the extraction models are handed to Gemini as `response_schema`. |
+| **JSON Schema documents** | A `.json` schema file per shape | Language-neutral, and the browser could validate against the same file, a real advantage. Pydantic gives Python types *and* validation from one definition, and it can also emit JSON Schema, which is exactly how the extraction models are handed to Gemini as `response_schema`. |
 | **`dataclasses`** | Type hints only | No runtime validation. Type hints are not checked at runtime, so malformed JSON would populate the object happily. |
 | **A relational database** | Tables and constraints | Stronger integrity, and it makes a job directory no longer a self-contained, copyable, inspectable artefact. |
 | **Protocol Buffers** | A `.proto` schema | Efficient and strongly versioned, and binary, so a job directory stops being human-readable. |
@@ -190,7 +190,7 @@ tolerates documents produced before any version field existed. See
 
 The decisive property is that **a job directory stays inspectable**. Someone can
 open `extraction_output.json` in a text editor five years from now and read it.
-That is an archival requirement, not a developer convenience — see
+That is an archival requirement, not a developer convenience. See
 [accuracy and provenance](../concepts/accuracy-and-provenance.md).
 
 ## What it costs
@@ -200,37 +200,37 @@ which is why the [lithology volume](binary-serialisation.md) is *not* JSON.
 
 The costs that matter:
 
-- **A schema is a commitment.** Adding a required field breaks every stored
+- A schema is a commitment. Adding a required field breaks every stored
   document. Hence the near-universal optionality and the
   [versioning](schema-versioning.md) on the models that have it.
-- **`extra="forbid"` is strict both ways.** A document from a *newer* version
+- `extra="forbid"` is strict both ways. A document from a *newer* version
   with an added field is rejected by an older reader. That is the intended
-  trade — silent data loss is worse — and it means schema changes need
+  trade (silent data loss is worse), and it means schema changes need
   migration thought.
-- **JSON has no date, no decimal, and no comment.** Dates are strings here;
+- JSON has no date, no decimal, and no comment. Dates are strings here;
   `AwareDatetime` on the Harris models forces a timezone so "2024-06-01T09:00"
   cannot be ambiguous.
-- **Nulls are load-bearing.** `null` means *not recorded*. Any code treating
-  null as zero would convert an unreadable coordinate into a measurement — which
+- Nulls are load-bearing. `null` means *not recorded*. Any code treating
+  null as zero would convert an unreadable coordinate into a measurement, which
   is why `validator.check_boundary` reports a null coordinate with no
   explanation as an **error**.
 
 ## Where else you meet it
 
-- **Every web API**, where request and response schemas are the contract.
-- **OpenAPI and GraphQL**, which are schema languages for exactly this.
-- **Configuration files**, where a schema turns a typo into an error.
-- **Database migrations**, which are schema evolution under another name.
-- **LLM structured output** — this project passes its Pydantic models directly
+- Every web API, where request and response schemas are the contract.
+- OpenAPI and GraphQL, which are schema languages for exactly this.
+- Configuration files, where a schema turns a typo into an error.
+- Database migrations, which are schema evolution under another name.
+- LLM structured output: this project passes its Pydantic models directly
   as `response_schema`, so the schema constrains the model's generation.
 
 ## Related pages
 
-- [Schema versioning](schema-versioning.md) — evolving a shape over time.
-- [Validation at trust boundaries](validation-at-trust-boundaries.md) — where
+- [Schema versioning](schema-versioning.md): evolving a shape over time.
+- [Validation at trust boundaries](validation-at-trust-boundaries.md): where
   the models are enforced.
-- [Structural versus schema validation](structural-vs-schema-validation.md) —
+- [Structural versus schema validation](structural-vs-schema-validation.md):
   the checks that run *before* Pydantic.
-- [Regular expressions](regular-expressions.md) — the ID constraints.
-- [Data schemas](../reference/data-schemas.md) — the two extraction formats in
+- [Regular expressions](regular-expressions.md): the ID constraints.
+- [Data schemas](../reference/data-schemas.md): the two extraction formats in
   full.

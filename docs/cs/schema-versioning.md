@@ -29,7 +29,7 @@ for data written before any version field existed.
 
 **Compatibility shims.** Accept an old shape, convert it, and say so.
 
-They are complementary, and this repository uses all three — for data of
+They are complementary, and this repository uses all three, for data of
 different ages and different provenance.
 
 The hardest decision is what to do with a **newer** version. Refusing is safe and
@@ -42,7 +42,7 @@ flowchart TB
   R["read a document"] --> V{"version field present?"}
   V -->|yes| C{"a version I know?"}
   C -->|yes| OK["parse"]
-  C -->|no| Ref["refuse — say which version"]
+  C -->|no| Ref["refuse, say which version"]
   V -->|no| S["structural detection:<br/>which fields are present?"]
   S --> Sh["shim: convert, and note it"]
 ```
@@ -61,7 +61,7 @@ class HarrisMatrix(_HarrisModel):
     ...
 ```
 
-`Literal[1]` — not `int`. A document declaring version 2 fails Pydantic
+`Literal[1]`, not `int`. A document declaring version 2 fails Pydantic
 validation immediately, with a message naming the field. The refusal is in the
 type, so no function has to check it.
 
@@ -99,10 +99,10 @@ manifest["volume"] = {
 ```
 
 Two independently versioned sub-documents, because the surface model and the
-volume can evolve separately — and they have: the manifest is at 2 (labels
+volume can evolve separately, and they have: the manifest is at 2 (labels
 added), the volume still at 1.
 
-The reader checks strictly — `poggio_webapp/backend/services/viewer_files.py`:
+The reader checks strictly (`poggio_webapp/backend/services/viewer_files.py`):
 
 ```python
 type(manifest.get("schema_version")) is int
@@ -118,7 +118,7 @@ As of this writing the sides disagree: the writer stamps 2 and the browser's
 so a freshly built manifest fails it. The strictness is working as designed;
 the pin was not bumped alongside the writer.
 
-And the browser checks again — `volume3d-core.mjs`:
+And the browser checks again (`volume3d-core.mjs`):
 
 ```javascript
 if (raw.schema_version !== SUPPORTED_SCHEMA_VERSION) {
@@ -129,7 +129,7 @@ if (raw.dtype !== SUPPORTED_DTYPE) {
 }
 ```
 
-`kind` is worth noting alongside the version. A version alone says "which
+`kind` matters alongside the version. A version alone says "which
 revision of *something*"; `kind` says *what*. Together they mean a reader can
 distinguish "a manifest I am too old for" from "not a manifest at all."
 
@@ -193,7 +193,7 @@ what to do about it. It also refuses to mix the two:
 if using_legacy_bottoms:
     warnings.append(
         "classification mixes locus-top and legacy bottom-of-locus "
-        "labels — legacy-labelled markers were ignored"
+        "labels. Legacy-labelled markers were ignored"
     )
 ```
 
@@ -202,7 +202,7 @@ if using_legacy_bottoms:
 
 ```python
 notes.append(
-    f"locus {num or i} has no topBoundary — using its bottomBoundary "
+    f"locus {num or i} has no topBoundary, using its bottomBoundary "
     "as a legacy fallback; re-extract to avoid a one-line locus shift"
 )
 ```
@@ -217,12 +217,12 @@ is a migration path.
 | **No versioning** | Parse and hope | A future format is misread as the current one. On a lithology volume that means rendering noise as geology. |
 | **Version, ignored on read** | Write it, never check it | Documentation, not protection. |
 | **Version, refuse mismatches** *(chosen)* | Error naming the expected version | Safe. The cost is that a newer file is unreadable by an older reader, which is the correct failure. |
-| **Forward-compatible parsing** | Ignore unknown fields, use known ones | Reasonable for additive changes, and `extra="forbid"` deliberately rejects them — because in this data a new field may *change the meaning* of existing ones. Ignoring it would silently misread. |
+| **Forward-compatible parsing** | Ignore unknown fields, use known ones | Reasonable for additive changes, and `extra="forbid"` deliberately rejects them, because in this data a new field may *change the meaning* of existing ones. Ignoring it would silently misread. |
 | **Migration on read** | Convert old to new automatically | What the shims do for specific known cases. Doing it generally means maintaining every historical shape forever. |
 | **Structural detection** *(chosen where no version exists)* | Infer from the fields present | The only option for pre-existing data, and it refuses what it cannot classify. |
 
 The judgement worth extracting is the third row against the fourth. Being strict
-about unknown fields is unusual — most systems ignore them for forward
+about unknown fields is unusual. Most systems ignore them for forward
 compatibility. Here the data is **archaeological evidence**, and a field whose
 absence changes an interpretation is exactly the kind of thing that must not be
 silently dropped.
@@ -233,32 +233,32 @@ A few bytes per document and a comparison on read.
 
 The costs:
 
-- **Strictness cuts both ways.** A document from a newer version is unreadable
+- Strictness cuts both ways. A document from a newer version is unreadable
   by an older reader. Intended, and it means a shape change requires thought
   about deployment order.
-- **Shims accumulate.** Two legacy paths exist in `assign_markers` today. Each
+- Shims accumulate. Two legacy paths exist in `assign_markers` today. Each
   is code that must keep working, and the warnings exist to make removal
   eventually possible.
-- **Structural detection is fragile.** `is_field_wall` keys on the *absence* of
+- Structural detection is fragile. `is_field_wall` keys on the *absence* of
   `trenchProfiles`, so a future shape carrying both would be misclassified.
-- **Bumping a version is a migration**, not a code change — every stored
+- Bumping a version is a migration, not a code change: every stored
   document needs converting or the reader needs to accept both.
 
 ## Where else you meet it
 
-- **File formats** — PNG chunks, PDF version headers, ELF.
-- **Database migrations**, where a schema version table drives the upgrade path.
-- **API versioning**, in the URL, a header, or a content type.
-- **Protocol negotiation** — TLS version agreement is exactly this.
-- **Serialisation frameworks** — Protobuf and Avro build schema evolution into
+- File formats: PNG chunks, PDF version headers, ELF.
+- Database migrations, where a schema version table drives the upgrade path.
+- API versioning, in the URL, a header, or a content type.
+- Protocol negotiation: TLS version agreement is exactly this.
+- Serialisation frameworks: Protobuf and Avro build schema evolution into
   the format.
 
 ## Related pages
 
-- [JSON and schema design](json-schema-design.md) — the shapes being versioned.
-- [Validation at trust boundaries](validation-at-trust-boundaries.md) — where
+- [JSON and schema design](json-schema-design.md): the shapes being versioned.
+- [Validation at trust boundaries](validation-at-trust-boundaries.md): where
   the version is checked.
-- [Binary serialisation](binary-serialisation.md) — the volume's format
+- [Binary serialisation](binary-serialisation.md): the volume's format
   declarations.
-- [Error taxonomies](error-taxonomies.md) — how a version mismatch is reported.
-- [Data schemas](../reference/data-schemas.md) — the two extraction formats.
+- [Error taxonomies](error-taxonomies.md): how a version mismatch is reported.
+- [Data schemas](../reference/data-schemas.md): the two extraction formats.

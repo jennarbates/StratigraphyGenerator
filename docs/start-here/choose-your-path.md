@@ -48,7 +48,7 @@ setup.
 
 ## Do this
 
-### Manual tracing — [`supported`](../project/capability-status.md#capability-table)
+### Manual tracing: [`supported`](../project/capability-status.md#capability-table)
 
 Choose manual tracing when you have an illustrated trench sheet or a
 hand-drawn field sheet and can identify its boundaries yourself. This is the
@@ -58,7 +58,7 @@ Start with **Use an existing drawing**, upload the file, and continue to
 **Trace the layers**. Manual tracing works without Gemini and without an API
 key. The primary tracer creates one face from each uploaded drawing.
 
-### Importing JSON — [`supported`](../project/capability-status.md#capability-table)
+### Importing JSON: [`supported`](../project/capability-status.md#capability-table)
 
 Choose import only when you already have a JSON data file made by this
 application. In **Other ways to add data**, select **Choose an existing data
@@ -69,7 +69,7 @@ two top-level data shapes. It does not fully validate the data at import
 time, so continue to the application's checking step before relying on it.
 Importing does not need an API key.
 
-### AI-assisted extraction — [`experimental`](../project/capability-status.md#capability-table)
+### AI-assisted extraction: [`experimental`](../project/capability-status.md#capability-table)
 
 Choose automatic reading only when you have been asked to test it and can
 carefully compare its output with the original drawing. It requires a Gemini
@@ -79,7 +79,7 @@ Automatic reading can misread labels or invent plausible-looking geometry.
 Treat its output as a transcription to review, not as verified evidence. It
 is not the primary beginner path.
 
-### Field-sheet marker workflow — [`backend-only`](../project/capability-status.md#capability-table)
+### Field-sheet marker workflow: [`backend-only`](../project/capability-status.md#capability-table)
 
 Do not choose automated marker detection and assignment as a browser
 workflow. Its backend routes and an unregistered frontend stage exist, but
@@ -108,16 +108,16 @@ audit is authoritative for current status.
 
 ## Common problems
 
-- **You do not have JSON made by this application.** Use manual tracing
+- You do not have JSON made by this application. Use manual tracing
   instead of inventing a file structure.
-- **You do not have an API key.** Use manual tracing or import; neither
+- You do not have an API key. Use manual tracing or import; neither
   requires one.
-- **You expected the marker review stage.** It is backend-only and is not
+- You expected the marker review stage. It is backend-only and is not
   registered in the live workflow.
-- **You have a PDF but want the smallest setup.** Export an approved page as
+- You have a PDF but want the smallest setup. Export an approved page as
   PNG, JPEG, or TIFF, or install the optional PDF system dependency described
   in the [quickstart](quickstart.md).
-- **A path produced data successfully.** Success means the application could
+- A path produced data successfully. Success means the application could
   read the data, not that the archaeological interpretation is correct.
 
 ## Under the hood

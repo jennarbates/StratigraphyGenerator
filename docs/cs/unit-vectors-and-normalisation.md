@@ -28,7 +28,7 @@ independent, and each can be handled by the code that cares about it.
 
 The consequences that matter downstream:
 
-- A [dot product](dot-product.md) with a unit vector is a pure **projection** —
+- A [dot product](dot-product.md) with a unit vector is a pure **projection**:
   "how far along this direction," in the original units.
 - Rotating a unit vector keeps it a unit vector, so a basis built from one stays
   well behaved.
@@ -69,10 +69,10 @@ if toward_lowest < 0:
 
 Three things happen in six lines:
 
-1. **`pixel_span` guard first.** A zero-length vector has no direction; the
+1. `pixel_span` guard first. A zero-length vector has no direction; the
    check precedes the division rather than trailing it.
-2. **`(ux, uy)` is the along-wall direction**, normalised.
-3. **`(vx, vy) = (−uy, ux)`** is the perpendicular — and because `u` is a unit
+2. `(ux, uy)` is the along-wall direction, normalised.
+3. `(vx, vy) = (−uy, ux)` is the perpendicular, and because `u` is a unit
    vector, so is `v`, for free. Rotating a unit vector by 90° cannot change its
    length.
 
@@ -120,7 +120,7 @@ const u = { x: referenceX / referenceLength, y: referenceY / referenceLength };
 let v = { x: -u.y, y: u.x };
 ```
 
-Three implementations — Python manual tracing, Python CV, browser overlay — of
+Three implementations (Python manual tracing, Python CV, browser overlay) of
 the same construction, in three languages, each with its own degenerate-input
 guard. Each is pinned by its own tests to fixed expected values, because a
 browser overlay that disagreed with the stored coordinates would silently
@@ -146,7 +146,7 @@ different numbers, and a bug in one cannot masquerade as a bug in the other.
 One `hypot` and two divisions per axis. Negligible.
 
 The failure mode is division by zero, and all three implementations guard it
-explicitly with a message aimed at the user who caused it — "click the wall's
+explicitly with a message aimed at the user who caused it: "click the wall's
 two top corners" rather than "ZeroDivisionError."
 
 There is also a small precision consideration: `û` is stored as floats, so
@@ -156,21 +156,21 @@ against exactly 1, which is the discipline that keeps that harmless. See
 
 ## Where else you meet it
 
-- **Surface normals** in 3D graphics, which must be unit length for lighting
+- Surface normals in 3D graphics, which must be unit length for lighting
   calculations to be correct.
-- **Cosine similarity** in search and machine learning: normalise both vectors,
+- Cosine similarity in search and machine learning: normalise both vectors,
   then a [dot product](dot-product.md) *is* the cosine of the angle between
   them.
-- **Physics simulations**, where a direction of force is separated from its
+- Physics simulations, where a direction of force is separated from its
   magnitude.
-- **Navigation and robotics**, where a heading is a unit vector.
-- **Gradient descent**, where normalised gradients keep step sizes controlled.
+- Navigation and robotics, where a heading is a unit vector.
+- Gradient descent, where normalised gradients keep step sizes controlled.
 
 ## Related pages
 
-- [Vectors and magnitude](vectors-and-magnitude.md) — what is being normalised.
-- [Dot product](dot-product.md) — the operation unit vectors make meaningful.
-- [Orthonormal bases](orthonormal-bases.md) — what `û` and `v̂` form together.
-- [Similarity transforms](similarity-transforms.md) — the transform they build.
-- [Vector projection](vector-projection.md) — what the projection actually
+- [Vectors and magnitude](vectors-and-magnitude.md): what is being normalised.
+- [Dot product](dot-product.md): the operation unit vectors make meaningful.
+- [Orthonormal bases](orthonormal-bases.md): what `û` and `v̂` form together.
+- [Similarity transforms](similarity-transforms.md): the transform they build.
+- [Vector projection](vector-projection.md): what the projection actually
   computes.

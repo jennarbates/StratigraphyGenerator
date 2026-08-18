@@ -3,7 +3,7 @@ export function ingest(d){
   // Already in trenchProfiles shape (a real illustrator extraction, OR a
   // field sheet pre-adapted server-side by fieldwall_to_profiles). The
   // server adapter keys depth as `depthMeters` because that is what the
-  // coordinate converter reads — remap in place so the visualizer's
+  // coordinate converter reads. Remap in place so the visualizer's
   // xCoordinateMeters/yCoordinateMeters filter can see the points.
   if(d.trenchProfiles){
     const fix=p=>{ if(!p||typeof p!=="object")return;

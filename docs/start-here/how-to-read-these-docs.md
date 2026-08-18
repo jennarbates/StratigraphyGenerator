@@ -56,7 +56,7 @@ tells you which route suits your drawing, and which steps need an API key.
 
 ### 3. I want to understand why it works this way
 
-The **Concepts** section. These pages are not sequential — read the one you
+The **Concepts** section. These pages are not sequential. Read the one you
 need.
 
 Every numbered workflow page has an **Under the hood** section linking to the
@@ -103,12 +103,12 @@ use their own recurring shapes.
 
 Two conventions worth knowing:
 
-- **Every page ends with a `Next` or `Related` section.** There are no dead
+- Every page ends with a `Next` or `Related` section. There are no dead
   ends; if you have finished a page, the links at the bottom are the intended
   continuations.
-- **Every page's front matter names the source files it describes** and the
+- Every page's front matter names the source files it describes and the
   commit it was verified against. If a page and the code disagree, the source
-  file wins — and the front matter tells you exactly where to look.
+  file wins, and the front matter tells you exactly where to look.
 
 ## Two warnings
 

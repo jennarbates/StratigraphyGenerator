@@ -22,12 +22,12 @@ solidity = area / convex hull area
 
 The hull is always a superset of the shape, so solidity is always in `(0, 1]`.
 
-- **1.0** — the shape is convex. No dents at all.
-- **near 1** — a filled disk, a blob, an ellipse.
-- **low** — a crescent, a star, a ring, a cross, a stroke junction.
+- 1.0: the shape is convex. No dents at all.
+- near 1: a filled disk, a blob, an ellipse.
+- low: a crescent, a star, a ring, a cross, a stroke junction.
 
 What makes it valuable is that it isolates one specific defect.
-[Circularity](circularity.md) falls for two different reasons — a shape can be
+[Circularity](circularity.md) falls for two different reasons: a shape can be
 non-circular because it is *elongated* or because it is *ragged*. Solidity is
 blind to elongation: a long convex ellipse scores ≈ 1.0. It responds only to
 concavity.
@@ -58,7 +58,7 @@ flowchart LR
 
 ## Where this project uses it
 
-### A hard gate at 0.9 — marker detection
+### A hard gate at 0.9: marker detection
 
 `poggio_webapp/pipeline/detect_markers.py`:
 
@@ -87,12 +87,12 @@ The module docstring names its purpose:
 > and nested contour duplicates are not**
 
 A pencil dot is convex, so 0.9 is easily cleared. Anything with a dent falls
-well short — including the two failure cases this module was tuned against: a
+well short, including the two failure cases this module was tuned against: a
 drawn stone's outline (the hull spans its hollow middle) and a dot that
 [morphological opening](morphological-opening.md) did not fully separate from
 its boundary line (a concave junction).
 
-### A weak reject *and* a scoring term at 0.34 — feature detection
+### A weak reject *and* a scoring term at 0.34: feature detection
 
 `poggio_webapp/pipeline/detect_features.py`:
 
@@ -111,7 +111,7 @@ if solidity < 0.34 or extent < 0.09:
 score = 0.45 * compactness + 0.35 * min(1.0, solidity) + 0.20 * min(1.0, extent)
 ```
 
-**0.34, not 0.9** — nearly three times looser, because the target is different.
+**0.34, not 0.9**: nearly three times looser, because the target is different.
 A recorder's dot is manufactured and therefore convex. A stone is a *natural*
 object: lobed, irregular, sometimes lensed. A 0.9 gate would reject most real
 features.
@@ -128,17 +128,17 @@ threshold and its purpose.
 
 | Alternative | What it measures | Why it lost |
 |---|---|---|
-| **[Circularity](circularity.md) alone** | Elongation *and* raggedness | Conflates them. Cannot separate a smooth ellipse from a dented blob — the pair that matters when deciding whether a mark is a manufactured dot. |
+| **[Circularity](circularity.md) alone** | Elongation *and* raggedness | Conflates them. Cannot separate a smooth ellipse from a dented blob, the pair that matters when deciding whether a mark is a manufactured dot. |
 | **[Extent](extent-and-fill-ratio.md)** | `area / bounding-box area` | Also used. Orientation-dependent: a diagonal convex ellipse has low extent despite being perfectly convex. Solidity has no orientation bias, because the hull rotates with the shape. |
-| **[Fill ratio](extent-and-fill-ratio.md)** | `area / enclosing-circle area` | Also used, and it catches hollowness of a different kind — a ring whose hull happens to be tight. The two overlap but are not equivalent. |
-| **Convexity defects** | The individual dents and their depths | Strictly more informative — how many, how deep. It returns a variable-length list, so it cannot be a threshold or a score term. Right for counting fingers; wrong for "dented at all?" |
-| **Concave hull / alpha shape** | A tighter non-convex boundary | Would fit an irregular stone better, and needs an alpha length-scale parameter — reintroducing exactly the tuning that solidity avoids. |
+| **[Fill ratio](extent-and-fill-ratio.md)** | `area / enclosing-circle area` | Also used, and it catches hollowness of a different kind: a ring whose hull happens to be tight. The two overlap but are not equivalent. |
+| **Convexity defects** | The individual dents and their depths | Strictly more informative: how many, how deep. It returns a variable-length list, so it cannot be a threshold or a score term. Right for counting fingers; wrong for "dented at all?" |
+| **Concave hull / alpha shape** | A tighter non-convex boundary | Would fit an irregular stone better, and needs an alpha length-scale parameter, reintroducing exactly the tuning that solidity avoids. |
 | **Perimeter of hull vs perimeter of shape** | A perimeter-based convexity ratio | More sensitive to small boundary wobbles, since perimeter is noisier than area on a digitised contour. Area integrates, and integration smooths. |
 | **Solidity** *(chosen)* | Concavity alone, in one number | Parameter-free, scale-invariant, rotation-invariant, and it isolates a defect the other measures cannot. |
 
 ## What it costs
 
-The [convex hull](convex-hull.md) is O(n log n) — the most expensive
+The [convex hull](convex-hull.md) is O(n log n), the most expensive
 per-contour measure in either detector. The division itself is free.
 
 Because of that, it is computed **last**, after
@@ -162,18 +162,18 @@ in conjunction rather than trusting any one.
 
 ## Where else you meet it
 
-- **Cell biology**, distinguishing round cells from spread or lobed ones.
-- **Sedimentology**, classifying grain angularity.
-- **Gesture recognition**, where a low-solidity hand indicates extended fingers.
-- **Handwriting analysis**, separating characters with enclosed regions from
+- Cell biology, distinguishing round cells from spread or lobed ones.
+- Sedimentology, classifying grain angularity.
+- Gesture recognition, where a low-solidity hand indicates extended fingers.
+- Handwriting analysis, separating characters with enclosed regions from
   simple strokes.
-- **Quality control**, detecting chips and voids in moulded parts.
+- Quality control, detecting chips and voids in moulded parts.
 
 ## Related pages
 
-- [Convex hull](convex-hull.md) — the denominator, and how it is computed.
-- [Circularity](circularity.md) — the complementary measure.
-- [Extent and fill ratio](extent-and-fill-ratio.md) — the hollowness measures.
-- [Contour area and perimeter](contour-area-and-perimeter.md) — the numerator.
-- [Morphological opening](morphological-opening.md) — the step that prevents the
+- [Convex hull](convex-hull.md): the denominator, and how it is computed.
+- [Circularity](circularity.md): the complementary measure.
+- [Extent and fill ratio](extent-and-fill-ratio.md): the hollowness measures.
+- [Contour area and perimeter](contour-area-and-perimeter.md): the numerator.
+- [Morphological opening](morphological-opening.md): the step that prevents the
   merged dot-and-line case.

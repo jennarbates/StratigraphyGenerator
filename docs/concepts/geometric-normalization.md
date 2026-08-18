@@ -99,7 +99,7 @@ The pipeline processes the $\theta$ values to determine how many degrees each li
 
 To determine the final angle of rotation, the pipeline must aggregate the surviving horizontal lines into a single scalar value.
 
-Crucially, the pipeline calculates the **median** angle of these lines rather than the mean. The mathematical median is inherently robust against extreme outliers; this intentional design choice ensures that a handful of near-vertical lines or steep stratigraphic boundaries that slip through the filter do not artificially drag the estimated skew angle.
+The pipeline calculates the **median** angle of these lines rather than the mean. The mathematical median is inherently robust against extreme outliers; this intentional design choice ensures that a handful of near-vertical lines or steep stratigraphic boundaries that slip through the filter do not artificially drag the estimated skew angle.
 
 > **Fallback Condition:** If no lines survive the $\pm 15^\circ$ tolerance filter, the calculated skew is reported as $0.0$, and the image matrix passes through the remainder of the stage unrotated.
 >

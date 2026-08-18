@@ -71,7 +71,7 @@ def messages(issues) -> str:
     return "\n".join(str(issue) for issue in issues)
 
 
-# --------------------------------------------------------------- the happy path
+# the happy path
 
 
 def test_valid_manifest_passes(tmp_path: Path) -> None:
@@ -86,7 +86,7 @@ def test_repository_manifest_is_valid() -> None:
     assert run_checks(Path(__file__).resolve().parents[2]) == []
 
 
-# ------------------------------------------------------------ structural rules
+# structural rules
 
 
 @pytest.mark.parametrize("key", REQUIRED_KEYS)
@@ -148,7 +148,7 @@ def test_empty_pages_list_fails(tmp_path: Path) -> None:
     )
 
 
-# -------------------------------------------------------------------- the path
+# the path
 
 
 def test_asset_outside_assets_directory_fails(tmp_path: Path) -> None:
@@ -189,7 +189,7 @@ def test_unstable_job_id_in_filename_fails(tmp_path: Path) -> None:
     assert "unstable job id" in messages(validate_manifest_entries([bad], repo))
 
 
-# ------------------------------------------------------------- per-type rules
+# per-type rules
 
 
 def test_mermaid_entry_may_not_carry_a_path(tmp_path: Path) -> None:
@@ -231,7 +231,7 @@ def test_screenshot_needs_capture_metadata(tmp_path: Path, key: str) -> None:
     assert f"screenshots need {key}" in messages(validate_manifest_entries([bad], repo))
 
 
-# ------------------------------------------------------- the reverse direction
+# the reverse direction
 
 
 def test_embedded_image_without_manifest_entry_fails(tmp_path: Path) -> None:
@@ -277,7 +277,7 @@ def test_remote_images_are_ignored(tmp_path: Path) -> None:
     assert find_unmanifested_images([], repo) == []
 
 
-# ------------------------------------------------------------------- the tool
+# the tool
 
 
 def test_manifest_must_be_a_list(tmp_path: Path) -> None:
@@ -325,7 +325,7 @@ def test_main_returns_zero_on_a_good_manifest(tmp_path: Path, capsys) -> None:
     assert "Visual manifest passed" in capsys.readouterr().out
 
 
-# ---------------------------------------------------------- the SVG contract
+# the SVG contract
 
 
 def write_svg(tmp_path: Path, markup: str) -> Path:

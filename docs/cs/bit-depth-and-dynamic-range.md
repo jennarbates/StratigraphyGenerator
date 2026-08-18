@@ -85,8 +85,8 @@ not decoration.
 ### Choosing a width to fit the data
 
 `poggio_webapp/pipeline/build_gempy.py` writes lithology identifiers, and picks
-`uint16` deliberately — one byte would cap at 255 surfaces, four would double
-the file for no benefit:
+`uint16` deliberately (one byte would cap at 255 surfaces, four would double
+the file for no benefit):
 
 ```python
 if np.any(values > 65535):
@@ -118,7 +118,7 @@ For pixel arithmetic:
 | Alternative | Why it lost |
 |---|---|
 | **Work in `float32` throughout** | Removes every overflow concern and quadruples memory. Reasonable for a small analysis image; wasteful for a 20 MP photo, and OpenCV's fastest paths are `uint8`. |
-| **Rely on OpenCV's saturating operators** (`cv2.subtract`) | Genuinely safe — it clamps at 0 instead of wrapping. But it clamps, so `55 − 200` becomes 0, not −145, and the *magnitude* of the redness is gone. The test needs the signed value. |
+| **Rely on OpenCV's saturating operators** (`cv2.subtract`) | Genuinely safe: it clamps at 0 instead of wrapping. But it clamps, so `55 − 200` becomes 0, not −145, and the *magnitude* of the redness is gone. The test needs the signed value. |
 | **Widen only where needed** *(what this does)* | One `astype` at the point of danger, everything else stays `uint8`. |
 
 For the volume format:
@@ -133,27 +133,27 @@ For the volume format:
 
 Memory scales linearly with width: the same image is 1×, 2×, or 4× depending
 on `uint8`, `uint16`, or `float32`. Nothing else about bit depth costs
-anything — the arithmetic is the same speed. The cost of getting it *wrong* is
+anything: the arithmetic is the same speed. The cost of getting it *wrong* is
 a wrong answer with no error message, which is why the guards are explicit.
 
 ## Where else you meet it
 
-- **Audio.** 16-bit versus 24-bit recording is exactly this trade-off, and
+- Audio. 16-bit versus 24-bit recording is exactly this trade-off, and
   clipping a loud passage is saturation.
-- **HDR photography** exists because 8 bits per channel cannot span a scene
+- HDR photography exists because 8 bits per channel cannot span a scene
   containing both sky and shadow.
-- **The Ariane 5 flight 501 failure** was a 64-bit float converted to a 16-bit
+- The Ariane 5 flight 501 failure was a 64-bit float converted to a 16-bit
   signed integer that did not fit.
-- **Medical imaging.** CT scans are 12- or 16-bit precisely because 256 levels
+- Medical imaging. CT scans are 12- or 16-bit precisely because 256 levels
   cannot distinguish the tissue densities that matter.
-- **Timestamp overflows** — the 2038 problem is a 32-bit signed integer running
+- Timestamp overflows: the 2038 problem is a 32-bit signed integer running
   out of seconds.
 
 ## Related pages
 
-- [Colour-channel arithmetic](colour-channel-arithmetic.md) — the subtraction
+- [Colour-channel arithmetic](colour-channel-arithmetic.md): the subtraction
   that needs the widening.
-- [Floating-point representation](floating-point-representation.md) — the other
+- [Floating-point representation](floating-point-representation.md): the other
   numeric trap in this codebase.
-- [Endianness](endianness.md) — the *order* those bytes are written in.
-- [Binary serialisation](binary-serialisation.md) — writing the volume to disk.
+- [Endianness](endianness.md): the *order* those bytes are written in.
+- [Binary serialisation](binary-serialisation.md): writing the volume to disk.

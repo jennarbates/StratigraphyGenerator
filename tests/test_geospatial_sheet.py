@@ -35,9 +35,7 @@ def sheet(repo_root):
     return read_sheet(text)
 
 
-# ---------------------------------------------------------------------------
 # Corner cells
-# ---------------------------------------------------------------------------
 
 
 @pytest.mark.parametrize(
@@ -75,9 +73,7 @@ def test_cells_that_are_not_corners_are_not_read_as_corners(text):
     assert parse_corner(text) is None
 
 
-# ---------------------------------------------------------------------------
 # The sheet as a whole
-# ---------------------------------------------------------------------------
 
 
 def test_every_trench_in_the_season_is_read(sheet):
@@ -143,9 +139,7 @@ def test_an_empty_sheet_is_refused():
         read_sheet("")
 
 
-# ---------------------------------------------------------------------------
 # Wall names from corner labels
-# ---------------------------------------------------------------------------
 
 
 def test_walls_are_named_by_the_cardinal_their_corners_share():
@@ -158,9 +152,7 @@ def test_unlabelled_vertices_produce_no_name():
     assert wall_names(corners) == ["", "", ""]
 
 
-# ---------------------------------------------------------------------------
 # Straight into a grid config
-# ---------------------------------------------------------------------------
 
 
 def test_a_trench_registers_itself_from_the_spreadsheet(sheet):
@@ -236,9 +228,7 @@ def test_an_unknown_phase_refuses(sheet):
         layout_for(sheet["trenches"]["T900"], phase="midway")
 
 
-# ---------------------------------------------------------------------------
 # What the sheet says about elevations
-# ---------------------------------------------------------------------------
 
 
 def test_the_sheet_carries_no_elevations_at_all(sheet):

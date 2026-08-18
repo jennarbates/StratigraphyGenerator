@@ -29,9 +29,9 @@ out(x, y) = 255  if  in(x, y) < local_reference(x, y) − C   else 0
 
 Two ways to compute the reference:
 
-- **`ADAPTIVE_THRESH_MEAN_C`** — the plain mean of the window. Fast, one box
+- `ADAPTIVE_THRESH_MEAN_C`: the plain mean of the window. Fast, one box
   filter, and treats every neighbour equally.
-- **`ADAPTIVE_THRESH_GAUSSIAN_C`** — a [Gaussian-weighted](gaussian-blur.md)
+- `ADAPTIVE_THRESH_GAUSSIAN_C`: a [Gaussian-weighted](gaussian-blur.md)
   mean. Nearby pixels count more, so the reference is smoother and less prone
   to blocky artefacts.
 
@@ -105,8 +105,8 @@ ink = _ink_mask(img, block_px=max(11, int(2.0 * mm_px) | 1))
 ```
 
 `mm_px` is pixels per paper millimetre, computed from the user's calibration
-clicks. So the window is *two millimetres of paper* — comfortably larger than
-any pencil stroke, small enough to track lighting — regardless of camera
+clicks. So the window is *two millimetres of paper* (comfortably larger than
+any pencil stroke, small enough to track lighting) regardless of camera
 resolution or how close the photo was taken. The `| 1` forces an odd number,
 which OpenCV requires so the window has a centre pixel, and `max(11, ...)` sets
 a floor for very low-resolution input.
@@ -133,7 +133,7 @@ def high_contrast(gray, upscale=2):
     return binimg
 ```
 
-Note that this runs *after*
+This runs *after*
 [background flattening](homomorphic-illumination-correction.md), which has
 already removed the gradient. Belt and braces: flattening *estimates* the
 illumination rather than measuring it, and a residual gradient costs nothing
@@ -146,51 +146,52 @@ reference suits an image a human will look at.
 |---|---|---|
 | **Fixed global threshold** | `gray < 130` | Documented as failing on real input: fragments light pencil, breaks under uneven lighting. |
 | **[Otsu](otsu-thresholding.md)** | Compute one `T` per image automatically | Removes the magic number and keeps the one-threshold-per-image assumption, which is the assumption that actually breaks. |
-| **[Flatten](homomorphic-illumination-correction.md) then global** | Correct the image, then one `T` fits | Genuinely viable, and it is half of what `preprocess.py` does. It produces a corrected grayscale image as a by-product, which adaptive alone does not — so the two are complementary rather than competing. |
+| **[Flatten](homomorphic-illumination-correction.md) then global** | Correct the image, then one `T` fits | Genuinely viable, and it is half of what `preprocess.py` does. It produces a corrected grayscale image as a by-product, which adaptive alone does not, so the two are complementary rather than competing. |
 | **Sauvola or Niblack binarisation** | Local threshold using mean **and** standard deviation | The state of the art for degraded historical documents, and measurably better on faded text. It needs a second local statistic and two tuning parameters, and OpenCV does not ship it. For a drawing that has already been flattened, the gain over mean-C is small. |
 | **Adaptive thresholding** *(chosen)* | Local reference per pixel | Directly addresses the spatial problem, one extra filter pass, two intuitive parameters, and available everywhere. |
 
 The parameter that decides quality is `blockSize`, and its rule is the same as
 [Gaussian blur's σ](gaussian-blur.md): **larger than any feature you want to
 keep, smaller than the illumination variation you want to ignore.** This project
-gets that right by expressing it in millimetres of paper rather than pixels —
-the one detail that makes it work across a 12 MP and a 40 MP camera alike.
+gets that right by expressing it in millimetres of paper rather than pixels.
+That is the one detail that makes it work across a 12 MP and a 40 MP camera
+alike.
 
 ## What it costs
 
-O(n) with a box filter for the mean variant, O(n·k) — or O(n) with a separable
-implementation — for the Gaussian variant. In practice one extra pass over the
-image.
+O(n) with a box filter for the mean variant, and O(n·k) for the Gaussian
+variant, or O(n) with a separable implementation. In practice one extra pass
+over the image.
 
 Two known weaknesses:
 
-- **Large uniform regions become noise.** With no ink in the window, the local
+- Large uniform regions become noise. With no ink in the window, the local
   mean *is* the paper, and pixels a hair below it get called ink. `C` is the
   defence, and it is why `C = 10` rather than 0.
-- **Very thick strokes hollow out.** If a stroke is wider than the window, the
+- Very thick strokes hollow out. If a stroke is wider than the window, the
   interior's own neighbourhood is all ink, so the reference is dark and the
-  interior reads as paper. Sizing the window at 2 mm — far wider than a pencil
-  line — avoids this entirely here.
+  interior reads as paper. Sizing the window at 2 mm, far wider than a pencil
+  line, avoids this entirely here.
 
 ## Where else you meet it
 
-- **Phone document scanners.** The crisp black-on-white output of any "scan"
+- Phone document scanners. The crisp black-on-white output of any "scan"
   mode is adaptive thresholding.
-- **OCR preprocessing**, universally, for photographed rather than scanned
+- OCR preprocessing, universally, for photographed rather than scanned
   pages.
-- **Licence-plate and sign recognition**, where part of the plate is often in
+- Licence-plate and sign recognition, where part of the plate is often in
   shadow.
-- **Astronomy**, where source detection thresholds against a locally estimated
-  sky background — the same idea under a different name.
+- Astronomy, where source detection thresholds against a locally estimated
+  sky background, the same idea under a different name.
 
 ## Related pages
 
-- [Global thresholding](global-thresholding.md) — what this replaces, and where
+- [Global thresholding](global-thresholding.md): what this replaces, and where
   it is still correct here.
-- [Otsu's method](otsu-thresholding.md) — the automatic global alternative.
-- [Homomorphic illumination correction](homomorphic-illumination-correction.md) —
+- [Otsu's method](otsu-thresholding.md): the automatic global alternative.
+- [Homomorphic illumination correction](homomorphic-illumination-correction.md):
   the complementary fix, applied to the image instead of the rule.
-- [Binary masks and bitwise operations](binary-masks-and-bitwise-operations.md) —
+- [Binary masks and bitwise operations](binary-masks-and-bitwise-operations.md):
   what the output feeds.
-- [Morphological opening](morphological-opening.md) — the next step in
+- [Morphological opening](morphological-opening.md): the next step in
   `detect_markers.py`.

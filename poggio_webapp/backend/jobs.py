@@ -74,7 +74,7 @@ def read_meta(job, default=_REQUIRED):
     """A job's metadata.
 
     With no default, a missing file raises FileNotFoundError and a corrupt one
-    raises JSONDecodeError — callers acting on one known job want to know.
+    raises JSONDecodeError. Callers acting on one known job want to know.
 
     With a default, both cases return it. A meta.json that cannot be parsed is
     no more usable than one that is not there, and the callers that scan every
@@ -96,7 +96,7 @@ def read_meta(job, default=_REQUIRED):
 def write_meta(job, meta, *, stamp=True):
     """Persist a job's metadata, stamping ``updated_at`` by default.
 
-    ``job_list`` sorts on ``updated_at``, so every write stamps it — including
+    ``job_list`` sorts on ``updated_at``, so every write stamps it, including
     the extraction-flow writes that previously did not, and whose jobs
     therefore always sorted on ``created_at``.
     """
@@ -129,9 +129,7 @@ def safe_job_path(job_id, rel_path):
     return target
 
 
-# ---------------------------------------------------------------------------
 # Job record assembly, moved out of app.py in Phase 1.
-# ---------------------------------------------------------------------------
 
 
 def job_status(job_directory, meta):

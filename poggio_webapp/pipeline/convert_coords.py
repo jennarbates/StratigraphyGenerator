@@ -1,5 +1,5 @@
 """
-convert_coords.py — face-local (x, depth) -> site-wide (X, Y, Z) for GemPy.
+Face-local (x, depth) -> site-wide (X, Y, Z) for GemPy.
 Adapted from 05_convert_coords/convertCoords.py into importable functions.
 
 Two extraction shapes feed in here:
@@ -48,7 +48,7 @@ def least_squares_slope(xs, ds):
     """Best-fit slope (dz/dx) of depth vs. x over ALL points, not just the
     endpoints. Falls back to 0.0 if x has no spread (can't determine a slope).
 
-    Restored from commit b01638d — this was dropped when the files were
+    Restored from commit b01638d. This was dropped when the files were
     reorganized into numbered folders (c7ec511), silently reverting the
     orientation seeds to an endpoint-only slope."""
     n = len(xs)
@@ -75,9 +75,7 @@ def get_x(p):
     return p.get("xMeters")
 
 
-# ---------------------------------------------------------------------------
 # FieldWallProfile -> trenchProfiles adapter
-# ---------------------------------------------------------------------------
 
 
 def is_field_wall(data):
@@ -143,7 +141,7 @@ def fieldwall_to_profiles(data, face_name=None):
         label = _munsell_label(entry)
         if num in munsell_by_locus:
             notes.append(
-                f"locus {num} is listed more than once in loci[] — "
+                f"locus {num} is listed more than once in loci[], "
                 f"using the first Munsell reading ({munsell_by_locus[num]}) "
                 f"and ignoring {label!r}"
             )
@@ -161,7 +159,7 @@ def fieldwall_to_profiles(data, face_name=None):
         else:
             surface = f"layer_{i}"
             display = surface
-            notes.append(f"layer at index {i} has no locusNumber — named {surface!r}")
+            notes.append(f"layer at index {i} has no locusNumber, named {surface!r}")
 
         # Field sheets name an interface for the locus that starts at it, so
         # the model surface for Locus N is that locus's top boundary. The
@@ -172,7 +170,7 @@ def fieldwall_to_profiles(data, face_name=None):
         if not model_boundary and layer.get("bottomBoundary"):
             model_boundary = layer["bottomBoundary"]
             notes.append(
-                f"locus {num or i} has no topBoundary — using its bottomBoundary "
+                f"locus {num or i} has no topBoundary, using its bottomBoundary "
                 "as a legacy fallback; re-extract to avoid a one-line locus shift"
             )
         bb = []
@@ -194,7 +192,7 @@ def fieldwall_to_profiles(data, face_name=None):
         )
 
     if not layers:
-        notes.append("no layers[] in this field-wall extraction — nothing to convert")
+        notes.append("no layers[] in this field-wall extraction. Nothing to convert")
 
     adapted = {"trenchProfiles": [{"face": fname, "layers": layers}]}
     return adapted, notes

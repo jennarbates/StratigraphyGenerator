@@ -27,7 +27,7 @@ The vocabulary needed to read the rest of these pages:
 | **Path** | A sequence of nodes joined by edges. |
 | **Cycle** | A path returning to where it started. |
 | **Acyclic** | Containing no cycle. |
-| **[DAG](directed-acyclic-graphs.md)** | Directed and acyclic — the important case here. |
+| **[DAG](directed-acyclic-graphs.md)** | Directed and acyclic, the important case here. |
 | **Degree** | How many edges touch a node. **In-degree** counts incoming edges, **out-degree** outgoing. |
 | **[Connected component](connected-components.md)** | A group of nodes reachable from one another. |
 | **Reachability** | Whether a path exists from one node to another. |
@@ -52,11 +52,11 @@ flowchart TB
 
 Reading it:
 
-- **Nodes** are stratigraphic units.
-- **Edges** run from younger to older.
-- **Locus 4** has in-degree 2 and out-degree 1.
+- Nodes are stratigraphic units.
+- Edges run from younger to older.
+- Locus 4 has in-degree 2 and out-degree 1.
 - There are **two components**: everything connected, and Locus 6 alone.
-- No **cycle** — nothing is both younger and older than something else.
+- No **cycle**: nothing is both younger and older than something else.
 - The edge `Locus 1 → Locus 4` is *implied* by two paths and would be
   [transitively redundant](transitive-reduction.md) if recorded.
 
@@ -84,8 +84,8 @@ A relation **is** a directed edge, and it carries more than endpoints:
 precedes, other), and `source` (a person, or an accepted suggestion). The
 edge is a piece of scholarship, not just a pointer.
 
-There is also a second, subtler structure. A **correlation** — the judgement
-that two separately recorded units are the same deposit — is an *undirected*
+There is also a second, subtler structure. A **correlation** (the judgement
+that two separately recorded units are the same deposit) is an *undirected*
 grouping laid over the directed graph:
 
 ```python
@@ -96,8 +96,8 @@ class HarrisCorrelation(_HarrisModel):
 ```
 
 Those groups are collapsed into single display nodes by
-[Union-Find](union-find.md), producing a **quotient graph** —
-`_collapsed_graph()` — on which everything else operates.
+[Union-Find](union-find.md), producing a **quotient graph**,
+`_collapsed_graph()`, on which everything else operates.
 
 ### Layer order across several walls
 
@@ -124,15 +124,15 @@ Two graphs, two node types, the same algorithms.
 
 | Alternative | How it would model chronology | Why it lost |
 |---|---|---|
-| **A flat ordered list** | Number the units 1..n oldest to youngest | Forces a **total** order where the evidence gives only a **partial** one. Two deposits on opposite sides of a trench may have no relationship at all, and a list forces one — inventing chronology. |
+| **A flat ordered list** | Number the units 1..n oldest to youngest | Forces a **total** order where the evidence gives only a **partial** one. Two deposits on opposite sides of a trench may have no relationship at all, and a list forces one, inventing chronology. |
 | **A tree** | Parent/child | A unit can be younger than several others *and* older than several others. Locus 4 above has two parents; a tree cannot express that. |
-| **A relational table of pairs** | `(younger, older)` rows in a database | This *is* a graph — an edge list. The question is only whether the code treats it as one, and using graph algorithms is what makes cycle detection and transitive reduction available. |
+| **A relational table of pairs** | `(younger, older)` rows in a database | This *is* a graph: an edge list. The question is only whether the code treats it as one, and using graph algorithms is what makes cycle detection and transitive reduction available. |
 | **A matrix of "is younger than" booleans** | An adjacency matrix | Equivalent for small graphs and O(n²) in memory. See [adjacency representations](adjacency-representations.md). |
 | **A directed graph** *(chosen)* | Nodes and directed edges | Matches the evidence exactly: it records the relationships an excavator observed and asserts nothing about pairs they did not. |
 
 The decisive property is **partiality**. Excavation yields relationships between
 *some* pairs of units, and a graph represents precisely that. Any structure
-requiring a total order would have to manufacture the missing relationships —
+requiring a total order would have to manufacture the missing relationships,
 which is why `merge_walls.merged_series_order` refuses when the walls
 contradict each other rather than picking an order:
 
@@ -146,37 +146,37 @@ covered on their own pages.
 
 The conceptual costs:
 
-- **A partial order needs care to display.** A list can be printed. A graph needs
+- A partial order needs care to display. A list can be printed. A graph needs
   [layout](layered-graph-drawing.md).
-- **Not every edge set is valid.** A chronology must be
+- Not every edge set is valid. A chronology must be
   [acyclic](cycle-detection.md), and the code has to check.
-- **Some edges are redundant**, implied by longer paths, and showing them all
+- Some edges are redundant, implied by longer paths, and showing them all
   makes a diagram unreadable. See
   [transitive reduction](transitive-reduction.md).
-- **The graph is an interpretation.** Every edge is an archaeologist's judgement,
+- The graph is an interpretation. Every edge is an archaeologist's judgement,
   which is why `HarrisRelation` carries `evidence` and why suggestions must be
   individually accepted.
 
 ## Where else you meet it
 
-- **Build systems and package managers**, where dependencies form a DAG and
+- Build systems and package managers, where dependencies form a DAG and
   a cycle is an error.
-- **Spreadsheets**, where cell references form a DAG and a cycle is a circular
+- Spreadsheets, where cell references form a DAG and a cycle is a circular
   reference.
-- **Git history**, which is a DAG of commits.
-- **Social networks**, road networks, and the web — the canonical examples.
-- **Task scheduling**, where "must happen before" is exactly the Harris Matrix
+- Git history, which is a DAG of commits.
+- Social networks, road networks, and the web: the canonical examples.
+- Task scheduling, where "must happen before" is exactly the Harris Matrix
   relation with different nouns.
-- **Neural networks**, whose computation graph is a DAG.
+- Neural networks, whose computation graph is a DAG.
 
 ## Related pages
 
-- [Directed acyclic graphs](directed-acyclic-graphs.md) — the specific class
+- [Directed acyclic graphs](directed-acyclic-graphs.md): the specific class
   used here.
-- [Adjacency representations](adjacency-representations.md) — how a graph is
+- [Adjacency representations](adjacency-representations.md): how a graph is
   stored.
-- [Union-Find](union-find.md) — how correlations collapse into display nodes.
-- [Topological sorting](topological-sorting.md) — turning a partial order into a
+- [Union-Find](union-find.md): how correlations collapse into display nodes.
+- [Topological sorting](topological-sorting.md): turning a partial order into a
   sequence.
-- [Harris Matrix](../archaeology/index.md) — the archaeological concept.
-- [Build a Harris Matrix](../workflows/harris-matrix.md) — the workflow.
+- [Harris Matrix](../archaeology/index.md): the archaeological concept.
+- [Build a Harris Matrix](../workflows/harris-matrix.md): the workflow.

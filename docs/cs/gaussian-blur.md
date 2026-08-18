@@ -29,14 +29,14 @@ preserved.
 
 Why the bell curve rather than a plain average:
 
-- **No ringing.** A box average has sharp edges in its weights, which produces
+- No ringing. A box average has sharp edges in its weights, which produces
   visible banding and halos. The Gaussian has none.
-- **Separable.** A 2D Gaussian equals a 1D Gaussian applied horizontally then
+- Separable. A 2D Gaussian equals a 1D Gaussian applied horizontally then
   vertically, so a σ=25 blur costs ~150 multiplies per pixel instead of ~5600.
-- **Rotationally symmetric.** It blurs equally in every direction, so it does
-  not favour horizontal or vertical structure — which matters when the next
+- Rotationally symmetric. It blurs equally in every direction, so it does
+  not favour horizontal or vertical structure, which matters when the next
   stage is looking for lines at arbitrary angles.
-- **Repeated blurs compose.** Two Gaussians of σ₁ and σ₂ give one of
+- Repeated blurs compose. Two Gaussians of σ₁ and σ₂ give one of
   √(σ₁² + σ₂²), which is what makes scale-space theory work.
 
 ## The picture
@@ -47,20 +47,20 @@ Why the bell curve rather than a plain average:
 flowchart TB
   S1["σ = 1.2<br/>a few pixels"] --> U1["removes sensor noise,<br/>keeps ink strokes"]
   S2["σ = 3×3 kernel<br/>(σ ≈ 0.8, auto)"] --> U2["stops gradients<br/>amplifying speckle"]
-  S3["σ = 25<br/>a large fraction of the sheet"] --> U3["erases ALL detail —<br/>what is left is the lighting"]
+  S3["σ = 25<br/>a large fraction of the sheet"] --> U3["erases ALL detail,<br/>what is left is the lighting"]
   U1 --> P1["input to unsharp masking"]
   U2 --> P2["input to Canny"]
   U3 --> P3["divisor for background flattening"]
 ```
 
 That third use is the counter-intuitive one. Blurring so heavily that the
-drawing disappears is not a mistake — the residue *is* the illumination field,
+drawing disappears is not a mistake: the residue *is* the illumination field,
 and dividing by it removes the illumination. See
 [homomorphic illumination correction](homomorphic-illumination-correction.md).
 
 ## Where this project uses it
 
-### Estimating the lighting field — σ = 25
+### Estimating the lighting field: σ = 25
 
 `poggio_webapp/pipeline/preprocess.py`:
 
@@ -77,14 +77,14 @@ def flatten_background(gray):
 `np.where(bg == 0, 1, bg)` guard prevents division by zero in a region that
 blurred to pure black.
 
-### Building the sharpening mask — σ = 1.2
+### Building the sharpening mask: σ = 1.2
 
 ```python
 blur = cv2.GaussianBlur(eq, (0, 0), sigmaX=1.2)
 sharp = cv2.addWeighted(eq, 1.5, blur, -0.5, 0)
 ```
 
-### Denoising before edge detection — 3×3
+### Denoising before edge detection: 3×3
 
 `poggio_webapp/pipeline/detect_features.py`:
 
@@ -101,14 +101,14 @@ the Canny algorithm as originally specified.
 
 | Alternative | How it would work here | Why it lost |
 |---|---|---|
-| **Box blur (plain average)** | Uniform weights over a k×k window | Faster — constant time per pixel with a summed-area table, regardless of radius. But it rings: sharp weight edges create halos and directional artefacts along the axes. On a σ=25 background estimate those artefacts would be divided into every pixel. |
-| **Median filter** | Replace each pixel with the median of its neighbourhood | Far better at removing salt-and-pepper speckle while keeping edges crisp. It is non-linear, so it does not compose, is not separable, and is much slower at large radii. It also *preserves* edges, which is exactly wrong for a background estimate — the drawing would survive into the divisor. |
+| **Box blur (plain average)** | Uniform weights over a k×k window | Faster (constant time per pixel with a summed-area table, regardless of radius). But it rings: sharp weight edges create halos and directional artefacts along the axes. On a σ=25 background estimate those artefacts would be divided into every pixel. |
+| **Median filter** | Replace each pixel with the median of its neighbourhood | Far better at removing salt-and-pepper speckle while keeping edges crisp. It is non-linear, so it does not compose, is not separable, and is much slower at large radii. It also *preserves* edges, which is exactly wrong for a background estimate: the drawing would survive into the divisor. |
 | **Bilateral filter** | Gaussian in space *and* in intensity, so edges are preserved | Excellent for denoising photographs. Same objection for the background estimate, plus an order of magnitude more cost. |
 | **Morphological opening or closing with a huge kernel** | Estimate the background by grey-scale morphology | A standard alternative for document background estimation, and genuinely good on text. Costs more at radius 25 and produces a piecewise-flat estimate where the real illumination is smooth. |
 | **Fit a low-order polynomial surface** | Least-squares fit a 2D quadratic to the intensities | Very cheap and gives an explicitly smooth field. It assumes the lighting has a simple shape. A phone photo with a shadow from the photographer's own hand does not. |
 
-The blur is chosen once and used at three scales because its properties —
-smooth, symmetric, separable, composable — hold at every scale. A filter that
+The blur is chosen once and used at three scales because its properties
+(smooth, symmetric, separable, composable) hold at every scale. A filter that
 had to be swapped depending on radius would be three decisions instead of one.
 
 ## What it costs
@@ -124,18 +124,18 @@ At σ = 25 that is a kernel around 151 wide: 22 801 multiplies per pixel naively
 
 ## Where else you meet it
 
-- **Portrait mode** on a phone camera — the background blur is a depth-guided
+- Portrait mode on a phone camera: the background blur is a depth-guided
   Gaussian.
-- **CSS `filter: blur()`** and every frosted-glass interface effect.
-- **Scale-space and SIFT features**, built entirely from Gaussians at
+- CSS `filter: blur()` and every frosted-glass interface effect.
+- Scale-space and SIFT features, built entirely from Gaussians at
   successive σ.
-- **Anti-aliasing** in rendering, which is low-pass filtering before sampling.
-- **Statistics.** Kernel density estimation is a Gaussian blur of a histogram.
+- Anti-aliasing in rendering, which is low-pass filtering before sampling.
+- Statistics. Kernel density estimation is a Gaussian blur of a histogram.
 
 ## Related pages
 
-- [Convolution](convolution.md) — the mechanism.
-- [Homomorphic illumination correction](homomorphic-illumination-correction.md) —
+- [Convolution](convolution.md): the mechanism.
+- [Homomorphic illumination correction](homomorphic-illumination-correction.md):
   the σ=25 use.
-- [Unsharp masking](unsharp-masking.md) — the σ=1.2 use.
-- [Canny edge detection](canny-edge-detection.md) — the 3×3 use.
+- [Unsharp masking](unsharp-masking.md): the σ=1.2 use.
+- [Canny edge detection](canny-edge-detection.md): the 3×3 use.

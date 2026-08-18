@@ -64,7 +64,7 @@ it every later stage would carry two branches forever.
 
 `backend/routes/scans.py`. Extension allowlist, sheet-type gate, and a cheap
 dimension probe that reads the header without decoding pixels, so the upscale
-recommendation costs nothing. The recommendation is explicitly non-fatal —
+recommendation costs nothing. The recommendation is explicitly non-fatal:
 "a nicety, not required to proceed."
 
 The uploaded filename is passed through `secure_filename` before it is joined
@@ -100,18 +100,18 @@ flowchart LR
 6. [Unsharp masking](../cs/unsharp-masking.md) sharpens.
 
 `recommend_upscale()` targets roughly 3000 px on the long side *because
-extraction caps at 3072 anyway* — the two stages are tuned against each other
+extraction caps at 3072 anyway*. The two stages are tuned against each other
 so preprocessing never does work a later stage immediately undoes.
 
 `high_contrast()` uses [adaptive thresholding](../cs/adaptive-thresholding.md)
-and is labelled "BOUNDARY TRACING ONLY (destroys fine fills)" — a warning
+and is labelled "BOUNDARY TRACING ONLY (destroys fine fills)", a warning
 placed at the point of danger rather than in a document nobody reads.
 
 ## 03 · Extraction
 
 Three routes into the same schema, with very different trust properties.
 
-### Manual tracing — the supported path
+### Manual tracing: the supported path
 
 `pipeline/manual_extraction.py`. Three calibration clicks plus one real
 measurement define a [2D similarity transform](../cs/similarity-transforms.md):
@@ -125,7 +125,7 @@ px_per_m = ‖ref − origin‖ / ref_meters
 
 Because the *drawn* top edge defines horizontal rather than the image's raster
 rows, a photograph taken at a tilt is corrected for free. The same construction
-appears three times — Python manual, Python CV, and the browser visualizer —
+appears three times (Python manual, Python CV, and the browser visualizer)
 and is pinned by tests across all three.
 
 See [unit vectors](../cs/unit-vectors-and-normalisation.md),
@@ -192,15 +192,15 @@ log the interface shows.
 The stratigraphic checks use
 [piecewise-linear interpolation](../cs/piecewise-linear-functions.md) to compare
 one boundary against another at arbitrary x. A bottom above the previous bottom
-is an **error** — layers crossing is physically impossible. A top far from the
-previous bottom is a **warning** — a void or overlap can be real.
+is an **error**: layers crossing is physically impossible. A top far from the
+previous bottom is a **warning**: a void or overlap can be real.
 
 The fabrication detectors exist because the extraction prompt already forbade
 fabrication and it happened anyway:
 
-- **[Coefficient of variation](../cs/coefficient-of-variation.md) of vertex
-  spacing.** Real traced boundaries sit near 0.20; fabricated ones at 0.00.
-- **Constant-offset comparison.** Two layers with identical x-stations whose
+- [Coefficient of variation](../cs/coefficient-of-variation.md) of vertex
+  spacing. Real traced boundaries sit near 0.20; fabricated ones at 0.00.
+- Constant-offset comparison. Two layers with identical x-stations whose
   depth differences barely vary are one boundary copied down.
 
 Both are skipped when `source == "manual_editor"`, because a human tracing on a
@@ -218,7 +218,7 @@ Z = Z0 − depth
 ```
 
 `sin` on X and `cos` on Y because θ is a **compass bearing**, not a
-mathematical angle — see
+mathematical angle. See
 [compass bearings versus mathematical angles](../cs/compass-bearings-vs-mathematical-angles.md).
 The convention is honoured identically in `merge_walls.face_endpoints`,
 `true_dip._grouped`, and `_dip_from_normal`.
@@ -226,7 +226,7 @@ The convention is honoured identically in `merge_walls.face_endpoints`,
 Orientation seeds use
 [ordinary least squares](../cs/ordinary-least-squares.md) over every point
 rather than the endpoints. The docstring records that this was silently lost in
-a folder reorganisation and later restored — a regression story kept where it
+a folder reorganisation and later restored, a regression story kept where it
 prevents recurrence.
 
 ## 07 · Merge walls
@@ -246,12 +246,12 @@ matter) → duplicate check.
 [topological sorting](../cs/topological-sorting.md) over the union of per-face
 constraints, using a [heap](../cs/index.md) of first-seen indices so ties break
 deterministically. A [cycle](../cs/cycle-detection.md) means the walls
-contradict each other, and it **refuses** — guessing there would invent
+contradict each other, and it **refuses**, because guessing there would invent
 stratigraphy.
 
 `check_trench_grid_config()` uses [Union-Find](../cs/union-find.md) to group
 walls meeting at a corner and flags any wall left outside the largest
-[component](../cs/connected-components.md) — the trench itself.
+[component](../cs/connected-components.md), the trench itself.
 
 ## 08 · True dip
 
@@ -260,8 +260,8 @@ is always shallower than the truth. Two non-parallel walls determine the plane
 exactly, via the [cross product](../cs/cross-product.md) of their trace
 directions and the resulting [plane normal](../cs/plane-normals.md).
 
-Wall pairs are scored by `|sin(Δbearing)|` — 1 for perpendicular, 0 for
-parallel — and refused below 10°. The merged trench build applies the solve
+Wall pairs are scored by `|sin(Δbearing)|` (1 for perpendicular, 0 for
+parallel) and refused below 10°. The merged trench build applies the solve
 automatically after conversion (`apply_true_dip`); a single sheet never can.
 Where no solve is available, nothing is emitted:
 
@@ -282,14 +282,14 @@ host-independent.
 reader which parts of the model are data and which are the interpolator's
 guess. The same honesty applies to the stack itself:
 `poggio_webapp/pipeline/series_order.py` records *where* the young-to-old
-order came from — a supplied order, the trench's Harris matrix, the recorded
-layer sequence, or a mean-elevation assumption — and the build log and viewer
+order came from (a supplied order, the trench's Harris matrix, the recorded
+layer sequence, or a mean-elevation assumption), and the build log and viewer
 manifest carry that label, along with any adjacent pairs the record never
 actually ordered.
 
 ## Related concepts
 
-- [Pipeline architecture](pipeline.md) — the module map.
-- [Codebase review](code-review.md) — what is strong here, and what is not.
-- [Algorithm index](algorithm-index.md) — techniques by module.
-- [Computer science concepts](../cs/index.md) — one page per technique.
+- [Pipeline architecture](pipeline.md): the module map.
+- [Codebase review](code-review.md): what is strong here, and what is not.
+- [Algorithm index](algorithm-index.md): techniques by module.
+- [Computer science concepts](../cs/index.md): one page per technique.

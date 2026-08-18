@@ -13,7 +13,7 @@ verified_against: ae2fc1d
 # Floating-point representation
 
 Computers store real numbers approximately. Knowing where the approximation
-bites — and where it does not — explains several guards in this codebase that
+bites, and where it does not, explains several guards in this codebase that
 otherwise look like superstition.
 
 ## What it is
@@ -25,7 +25,7 @@ relative precision rather than an absolute one.
 Three consequences do all the damage:
 
 **Most decimals are not representable.** `0.1` in binary is a repeating
-fraction, so it is stored as the nearest double — slightly off. Hence the
+fraction, so it is stored as the nearest double, slightly off. Hence the
 classic `0.1 + 0.2 !== 0.3`.
 
 **Precision is relative.** Near 1.0, doubles resolve about 2×10⁻¹⁶. Near
@@ -37,7 +37,7 @@ propagates through arithmetic, and `-0.0` equals `0.0` but behaves differently
 under `atan2`.
 
 Some numbers *are* exact: integers up to 2⁵³, and any fraction whose denominator
-is a power of two — 0.5, 0.25, 0.125. That fact is used deliberately here.
+is a power of two: 0.5, 0.25, 0.125. That fact is used deliberately here.
 
 ## The picture
 
@@ -69,8 +69,8 @@ dip = math.degrees(math.acos(max(-1.0, min(1.0, z))))
 
 After dividing by the vector's own length, `z` should lie in `[−1, 1]`.
 Floating-point rounding can produce `1.0000000000000002`, and `math.acos` raises
-`ValueError` on it. The clamp is not defensive programming in the vague sense —
-it is guarding a known, reproducible consequence of division.
+`ValueError` on it. The clamp is not defensive programming in the vague sense.
+It is guarding a known, reproducible consequence of division.
 
 ### Handling negative zero
 
@@ -83,7 +83,7 @@ if math.hypot(x, y) == 0.0:
     return dip, 0.0
 ```
 
-`-0.0 == 0.0` is `True`, so the values look identical — but
+`-0.0 == 0.0` is `True`, so the values look identical, but
 `atan2(-0.0, -0.0)` returns π while `atan2(0.0, 0.0)` returns 0. A perfectly
 flat surface would be reported as dipping **due south**. The comment names the
 mechanism, which is what makes the guard maintainable.
@@ -124,7 +124,7 @@ def _point_coordinates(point: dict) -> tuple[float, float] | None:
 ```
 
 Two checks in one expression. `math.isfinite` excludes `NaN` and `inf`, which
-would otherwise propagate silently through every geometric predicate — `NaN`
+would otherwise propagate silently through every geometric predicate: `NaN`
 comparisons are all `False`, so a self-intersection test would quietly report
 "no intersection."
 
@@ -151,9 +151,9 @@ where untrusted JSON becomes numbers. See
 
 | Alternative | How it would work here | Why it lost |
 |---|---|---|
-| **`decimal.Decimal`** | Exact decimal arithmetic | Removes the base-2 representation error entirely. It is orders of magnitude slower, has no equivalent in the browser, and does not help with the actual problems here — `acos` overshoot comes from division, and geometry needs transcendental functions Decimal handles poorly. |
+| **`decimal.Decimal`** | Exact decimal arithmetic | Removes the base-2 representation error entirely. It is orders of magnitude slower, has no equivalent in the browser, and does not help with the actual problems here: `acos` overshoot comes from division, and geometry needs transcendental functions Decimal handles poorly. |
 | **Rational arithmetic (`fractions.Fraction`)** | Exact ratios | Exact for the arithmetic that stays rational, and square roots and trigonometry are not rational. Denominators also grow without bound. |
-| **Fixed-point integers** | Store micrometres as integers | Exact, fast, and used in some CAD systems. It would mean reimplementing every geometric operation, and interoperating with OpenCV, NumPy, and JSON — all of which are float — at every boundary. |
+| **Fixed-point integers** | Store micrometres as integers | Exact, fast, and used in some CAD systems. It would mean reimplementing every geometric operation, and interoperating with OpenCV, NumPy, and JSON (all of which are float) at every boundary. |
 | **Doubles, with guards at the known failure points** *(chosen)* | Clamp, check finiteness, choose exact constants, use tolerances where arithmetic has occurred | The failure points are few, well understood, and individually cheap to guard. Everything interoperates. |
 | **Doubles, ungraded** | Ignore it | Produces the exact bugs this codebase's comments describe: a `ValueError` from `acos`, a flat surface dipping south, a `NaN` silently passing a validity check. |
 
@@ -164,7 +164,7 @@ does not remove it as redundant.
 
 ## What it costs
 
-The guards themselves are free — a comparison, a clamp, a type check.
+The guards themselves are free: a comparison, a clamp, a type check.
 
 The real cost is that **equality is unreliable after arithmetic**, which forces
 the tolerance decisions documented in [epsilon comparison](epsilon-comparison.md).
@@ -178,27 +178,27 @@ Two policies, each justified by what has happened to the numbers.
 
 ## Where else you meet it
 
-- **Currency.** Never store money in floats; `0.1 + 0.2` problems become
+- Currency. Never store money in floats; `0.1 + 0.2` problems become
   accounting discrepancies. Fixed-point or integer cents is standard.
-- **The Patriot missile failure (1991)**, where accumulated error in a
+- The Patriot missile failure (1991), where accumulated error in a
   time counter caused a targeting miss.
-- **Game physics**, where accumulated float error causes objects to drift
+- Game physics, where accumulated float error causes objects to drift
   through walls.
-- **GIS**, where global coordinates in single precision lose sub-metre accuracy —
+- GIS, where global coordinates in single precision lose sub-metre accuracy,
   which is why local grids like this project's exist.
-- **Machine learning**, where reduced-precision training is a deliberate
+- Machine learning, where reduced-precision training is a deliberate
   trade of accuracy for speed.
-- **JavaScript**, where all numbers are doubles, so integers above 2⁵³ silently
-  lose precision — hence `Number.isSafeInteger` in `volume3d-core.mjs`.
+- JavaScript, where all numbers are doubles, so integers above 2⁵³ silently
+  lose precision, hence `Number.isSafeInteger` in `volume3d-core.mjs`.
 
 ## Related pages
 
-- [Epsilon comparison](epsilon-comparison.md) — how to compare inexact values.
-- [Grid snapping and quantisation](grid-snapping-and-quantisation.md) — rounding
+- [Epsilon comparison](epsilon-comparison.md): how to compare inexact values.
+- [Grid snapping and quantisation](grid-snapping-and-quantisation.md): rounding
   deliberately, and choosing exact constants.
-- [Bit depth and dynamic range](bit-depth-and-dynamic-range.md) — the integer
+- [Bit depth and dynamic range](bit-depth-and-dynamic-range.md): the integer
   side of the same concern.
-- [Plane normals](plane-normals.md) — where the `acos` clamp and negative-zero
+- [Plane normals](plane-normals.md): where the `acos` clamp and negative-zero
   guard live.
-- [Validation at trust boundaries](validation-at-trust-boundaries.md) — where non-finite values are
+- [Validation at trust boundaries](validation-at-trust-boundaries.md): where non-finite values are
   rejected.

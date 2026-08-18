@@ -32,7 +32,7 @@ flowchart LR
 
 Manual tracing remains the main path. Use these alternatives only when you already have a data file, have been told to test AI output, or need to skip the manual drawing step for a specific reason.
 
-Two related paths are documented elsewhere. A field sheet's written labels can be read automatically and reviewed in the app's "Check the writing" step without replacing any geometry. And locus records from a downloaded Kobo Locus Entry export can be imported for a trench through `POST /api/trenches/<label>/loci/import` — see [Kobo locus import](../archaeology/kobo-locus-import.md); that import supplies locus metadata, not drawing geometry.
+Two related paths are documented elsewhere. A field sheet's written labels can be read automatically and reviewed in the app's "Check the writing" step without replacing any geometry. And locus records from a downloaded Kobo Locus Entry export can be imported for a trench through `POST /api/trenches/<label>/loci/import` (see [Kobo locus import](../archaeology/kobo-locus-import.md)); that import supplies locus metadata, not drawing geometry.
 
 Synthetic documentation example: the JSON below is invented for documentation and is not a real excavation record.
 

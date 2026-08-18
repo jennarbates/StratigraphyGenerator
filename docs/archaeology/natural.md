@@ -12,7 +12,7 @@ verified_against: ae2fc1d
 # Natural
 
 The undisturbed geological deposit beneath everything human. Reaching it means
-the sequence is complete — there is nothing older to find.
+the sequence is complete: there is nothing older to find.
 
 ## What it is
 
@@ -32,10 +32,10 @@ base of the sequence here*.
 
 ```mermaid
 flowchart TB
-  L1["Locus 1 — topsoil (youngest)"]
-  L2["Locus 2 — occupation deposit"]
-  L3["Locus 3 — earlier occupation"]
-  N["<b>NATURAL</b> — undisturbed geology"]
+  L1["Locus 1, topsoil (youngest)"]
+  L2["Locus 2, occupation deposit"]
+  L3["Locus 3, earlier occupation"]
+  N["<b>NATURAL</b>, undisturbed geology"]
   L1 --> L2 --> L3 --> N
   N -.-> B["nothing older exists here.<br/>The excavation stops."]
 ```
@@ -48,15 +48,15 @@ dug. Reaching natural turns "we found nothing earlier" into "there was nothing
 earlier."
 
 **It bounds the [cuts](cut.md).** A pit cut into natural is dated relative to
-geology rather than to another deposit — which anchors it firmly.
+geology rather than to another deposit, which anchors it firmly.
 
 **It is a stopping rule.** Excavation is destructive and expensive; natural is
 where it stops.
 
 ## How this project stores it
 
-`natural` is one of the six unit types in the Harris vocabulary —
-`poggio_webapp/pipeline/harris_matrix.py`:
+`natural` is one of the six unit types in the Harris vocabulary
+(`poggio_webapp/pipeline/harris_matrix.py`):
 
 ```python
 UnitType = Literal[
@@ -69,8 +69,8 @@ UnitType = Literal[
 ]
 ```
 
-and one of the drawable unit types —
-`poggio_webapp/pipeline/site_vocab.py`:
+and one of the drawable unit types
+(`poggio_webapp/pipeline/site_vocab.py`):
 
 ```python
 (
@@ -88,11 +88,11 @@ and one of the drawable unit types —
 context, not something bagged as a find. The comment above the list draws that
 line:
 
-> `unit` entries are stratigraphic and carry a Harris unit type instead — they
+> `unit` entries are stratigraphic and carry a Harris unit type instead -- they
 > are contexts, not finds.
 
 Note `"surveyCode": None`. `site_vocab.SURVEY_POINT_CODES` has `TOPO` for ground
-surface and codes for walls, stones, and features — but nothing for natural,
+surface and codes for walls, stones, and features, but nothing for natural,
 because it is a *region* recognised in section rather than a point shot with a
 total station.
 
@@ -105,11 +105,11 @@ usual route. Being the deepest, it defines the model's lower extent:
 zmin, zmax = points["Z"].min(), points["Z"].max()
 ```
 
-It is also the layer whose *bottom* is often absent — a section drawn down to
+It is also the layer whose *bottom* is often absent: a section drawn down to
 natural typically records natural's top and nothing below it. That is correct:
 the bottom of natural was never observed.
 
-`normalizer.dedupe_floor` handles a related recording habit — a "floor" drawn as
+`normalizer.dedupe_floor` handles a related recording habit, a "floor" drawn as
 both a feature and the deepest layer's bottom:
 
 ```python
@@ -128,11 +128,11 @@ twice. One is kept, and the removal is logged.
 
 | Not a… | Because |
 |---|---|
-| **[Layer](layer.md)** | Structurally identical in the data — natural is a deposit with a boundary. Conceptually it is the one deposit nobody made. |
+| **[Layer](layer.md)** | Structurally identical in the data: natural is a deposit with a boundary. Conceptually it is the one deposit nobody made. |
 | **Bedrock** | Bedrock is one kind of natural. Till, subsoil, and river gravels are others. |
 | **[Fill](fill.md)** | A fill is human-associated material in a [cut](cut.md). Natural predates all of it. |
 | **Trench floor** | The floor is where digging stopped, which may or may not be natural. Recording the floor is not the same as recording that natural was reached. |
-| **Sterile deposit** | A deposit with no finds may still be human-made — a clean dumped clay, say. Sterile is about content; natural is about origin. |
+| **Sterile deposit** | A deposit with no finds may still be human-made (a clean dumped clay, say). Sterile is about content; natural is about origin. |
 
 ## Getting it wrong
 
@@ -142,7 +142,7 @@ the other truncates the sequence and discards the units beneath.
 
 **Assuming natural is flat.** It is a weathered geological surface and can
 undulate substantially. A model treating it as horizontal misrepresents the
-depth of everything above it — which is why its boundary is
+depth of everything above it, which is why its boundary is
 [traced like any other](boundary.md) rather than assumed.
 
 **Recording it without a bottom, and expecting a closed model.** Correct
@@ -158,8 +158,8 @@ natural surface elsewhere in the same trench.
 
 ## Related pages
 
-- [Layer](layer.md) — natural's data representation.
-- [Cut](cut.md) — what may descend into it.
-- [Stratigraphy](stratigraphy.md) — the sequence it terminates.
-- [Law of superposition](law-of-superposition.md) — why deepest means earliest.
-- [Harris Matrix](harris-matrix.md) — where it sits at the bottom.
+- [Layer](layer.md): natural's data representation.
+- [Cut](cut.md): what may descend into it.
+- [Stratigraphy](stratigraphy.md): the sequence it terminates.
+- [Law of superposition](law-of-superposition.md): why deepest means earliest.
+- [Harris Matrix](harris-matrix.md): where it sits at the bottom.

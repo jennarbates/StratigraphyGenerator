@@ -45,7 +45,7 @@ The [worked example](../worked-example/index.md) is the complement: an invented
 trench modelled on the shape of a real season's paperwork, complete with a
 corner nobody measured, a transposed digit, a redundant stratigraphic
 assertion, and five findspots that contradict their loci. It is equally
-fictional and equally unusable as evidence — but it is where the refusals are
+fictional and equally unusable as evidence, but it is where the refusals are
 demonstrated, because a clean fixture cannot trigger one.
 
 ## Safety and validation

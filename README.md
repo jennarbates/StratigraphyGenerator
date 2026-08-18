@@ -1,7 +1,7 @@
 # Trench Digitization Pipeline
 
-Turn a drawing of a vertical trench wall — an archival illustrator sheet or a
-modern field recording sheet — into structured, reviewable data, and from there
+Turn a drawing of a vertical trench wall (an archival illustrator sheet or a
+modern field recording sheet) into structured, reviewable data, and from there
 into a 3D geological model.
 
 ![Excavated trench wall, its measured drawing, the structured coordinate data, and the interpolated model, in sequence](docs/assets/diagrams/archaeology-to-3d.svg)
@@ -14,7 +14,7 @@ machine.
 then follow the [quickstart](docs/start-here/quickstart.md).**
 
 > This README is a complete illustrated tour. The **documentation guide** is the
-> manual — same material, with search, cross-links, and interactive components.
+> manual: same material, with search, cross-links, and interactive components.
 > Read it at <https://jennarbates.github.io/StratigraphyGenerator/>, or from
 > [`docs/index.md`](docs/index.md) in this repository.
 
@@ -71,7 +71,7 @@ Leave that running and open <http://localhost:5000>. Stop it with
 <kbd>Ctrl</kbd>+<kbd>C</kbd>.
 
 > There is **one** virtual environment, at the repository root. Every `make`
-> target uses it, so keep it there — a `.venv` created anywhere else will leave
+> target uses it, so keep it there. A `.venv` created anywhere else will leave
 > `make test` and `make docs` unable to find their tools.
 
 `make` shows what else it can do:
@@ -81,7 +81,7 @@ Leave that running and open <http://localhost:5000>. Stop it with
 | `make run` | Start the app on <http://localhost:5000> |
 | `make test` | Run the Python test suite |
 | `make lint` | Check style and import hygiene |
-| `make check` | Lint, docs checks, both test suites, diagrams — what CI runs |
+| `make check` | Lint, docs checks, both test suites, diagrams (what CI runs) |
 | `make demo` | Seed the two demonstration trenches (one refuses, one builds) |
 | `make docs` | Build this documentation site |
 | `make help` | List every target |
@@ -89,15 +89,15 @@ Leave that running and open <http://localhost:5000>. Stop it with
 | Dependency group | Needed first run? | Install with |
 |---|---|---|
 | Flask, image processing, the supported manual path | **Yes** | `pip install -r poggio_webapp/requirements.txt` |
-| `pytest`, `ruff` — needed by `make test`, `make lint` | No | `pip install pytest ruff` |
+| `pytest`, `ruff`: needed by `make test`, `make lint` | No | `pip install pytest ruff` |
 | Building the documentation site (`make docs`) | No | `pip install -r requirements-docs.txt` |
-| Poppler — reading PDF pages | No | System package manager, not pip |
-| `gempy`, `gempy_viewer` — the 3D model build | No | `pip install gempy gempy_viewer` (heavy) |
+| Poppler: reading PDF pages | No | System package manager, not pip |
+| `gempy`, `gempy_viewer`: the 3D model build | No | `pip install gempy gempy_viewer` (heavy) |
 
-<!-- screenshot slot: quickstart-first-screen — see docs/assets/visual-manifest.yml -->
+<!-- screenshot slot: quickstart-first-screen (see docs/assets/visual-manifest.yml) -->
 
 Never used it before? The demo card in the application's sidebar loads a
-demonstration trench with nothing to trace or type — one trench the build
+demonstration trench with nothing to trace or type: one trench the build
 refuses, one it completes. [Run the demo](docs/start-here/demo.md) explains
 the pair; `make demo` seeds the same two from the command line.
 
@@ -126,8 +126,8 @@ what it creates and what commonly goes wrong.
 | 01 | [Add a drawing](docs/workflows/01-add-drawing.md) | Upload a PNG, JPEG, TIFF, or PDF and pick the sheet type |
 | 02 | [Prepare the image](docs/workflows/02-prepare-image.md) | Upscale, deskew, and clean it up |
 | 03 | [Trace the layers](docs/workflows/03-trace-layers.md) | Calibrate, then click along each boundary |
-| — | [Import or AI extraction](docs/workflows/03-alternative-import-and-ai.md) | Optional alternatives to tracing by hand |
-| — | [Markers and features](docs/workflows/03-markers-and-features.md) | Scale references and inclusions |
+| n/a | [Import or AI extraction](docs/workflows/03-alternative-import-and-ai.md) | Optional alternatives to tracing by hand |
+| n/a | [Markers and features](docs/workflows/03-markers-and-features.md) | Scale references and inclusions |
 | 04 | [Clean up the data](docs/workflows/04-clean-data.md) | Normalize formatting, never geometry |
 | 05 | [Check for problems](docs/workflows/05-check-problems.md) | Validate; errors block, warnings do not |
 | 06 | [Place on site](docs/workflows/06-place-on-site.md) | Enter surveyed registration per face |
@@ -139,7 +139,7 @@ Two more workflows sit outside the numbered path:
 [build a Harris Matrix](docs/workflows/harris-matrix.md) and
 [log a find](docs/workflows/logging-finds.md).
 
-<!-- screenshot slots: w08-viewer-3d, first-model-result — see docs/assets/visual-manifest.yml -->
+<!-- screenshot slots: w08-viewer-3d, first-model-result (see docs/assets/visual-manifest.yml) -->
 
 ### The two source drawing types
 
@@ -148,10 +148,10 @@ Two more workflows sit outside the numbered path:
 They use different extraction schemas because they record material differently,
 but both converge on the same coordinate conversion and model build.
 
-- **Trench 23** (Poggio Civitate, 1980) — an illustrator sheet with a
+- Trench 23 (Poggio Civitate, 1980): an illustrator sheet with a
   hatch-pattern legend and three faces, scanned well below the 300 DPI the
   drawing guidelines recommend.
-- **T104, southern baulk wall** (2025 field sheet) — hand-drawn on graph paper,
+- T104, southern baulk wall (2025 field sheet): hand-drawn on graph paper,
   using locus numbers and Munsell colour instead of a legend, one wall only.
 
 More: [source drawing types](docs/concepts/source-drawing-types.md) and the
@@ -164,7 +164,7 @@ only by a shared trench label.
 
 ![Four separately drawn walls positioned by their registration to enclose one rectangular pit](docs/assets/diagrams/w09-walls-to-pit.svg)
 
-This build **refuses** rather than guessing — most importantly, it refuses to
+This build **refuses** rather than guessing, and most importantly, it refuses to
 run on the starter placeholder registration:
 
 ![The same four walls laid out in a parallel row because every face shares the placeholder bearing](docs/assets/diagrams/w09-placeholder-failure.svg)
@@ -175,7 +175,7 @@ nothing. Full detail:
 [combine walls into one trench](docs/workflows/09-multi-wall-trench.md).
 
 > **The page is easy to miss.** The demo card links to it once a demonstration
-> is seeded; otherwise open `/trenches` directly — like the finds page, it
+> is seeded; otherwise open `/trenches` directly. Like the finds page, it
 > works and is tested, but you have to know the address.
 
 ### Harris matrices
@@ -186,27 +186,27 @@ units from several finished jobs without changing them.
 ![A small Harris matrix with the youngest units at the top and arrows running downward to older units](docs/assets/diagrams/wh-reading-a-matrix.svg)
 
 Relationships run from younger to older, so the youngest units sit at the top.
-Correlation — the interpretation that two units are the same deposit — is
+Correlation, the interpretation that two units are the same deposit, is
 separate and always human-confirmed; equal labels never merge on their own.
 Every proposal must be individually accepted or rejected.
 
 The matrix is an archaeological interpretation, not an automatically verified
 result. See [build and review a Harris Matrix](docs/workflows/harris-matrix.md).
 
-<!-- screenshot slot: wh-matrix-editor — see docs/assets/visual-manifest.yml -->
+<!-- screenshot slot: wh-matrix-editor (see docs/assets/visual-manifest.yml) -->
 
 ---
 
 ## Worked example
 
 The workflow pages each cover one step. The worked example covers one **trench**
-— eight loci, a sounding, a Harris matrix and 26 findspots — and shows what the
+(eight loci, a sounding, a Harris matrix and 26 findspots) and shows what the
 application does with a record that is complete in some places and simply absent
 in others.
 
 ![Plan of a five metre square trench showing a cobbled surface and a wall in its northern half, a two by one metre sounding, a corner with no opening elevation, a corner whose height is a spoil heap, and two finds plotted outside the trench](docs/assets/diagrams/we-trench-plan.svg)
 
-The trench is **T905**, and it is invented — but not invented tidily. The
+The trench is **T905**, and it is invented, but not invented tidily. The
 [synthetic fixtures](docs/fixtures/README.md) are clean examples that show what
 a well-formed input looks like. T905 is modelled on the shape of a real season's
 paperwork instead, with the gaps, transposed digits and contradictions that
@@ -215,14 +215,14 @@ has never been shown to refuse anything.
 
 Three results come out of it:
 
-- **One of the four walls cannot be registered.** Its origin corner sat inside a
+- One of the four walls cannot be registered. Its origin corner sat inside a
   previous season's backfilled trench, so no opening elevation was ever measured
   there. The application will not invent one, and the build stops.
-- **The record agrees with itself more often than it disagrees.** Four vertices
+- The record agrees with itself more often than it disagrees. Four vertices
   recorded twice on different loci match exactly; the sounding's four surfaces
   chain without a gap. That is what makes the disagreements worth noticing.
-- **Five of the 26 findspots contradict their locus**, and no single check
-  catches all five — two fail on plan position, one only on elevation, one on
+- Five of the 26 findspots contradict their locus, and no single check
+  catches all five: two fail on plan position, one only on elevation, one on
   both.
 
 Start at [a trench, end to end](docs/worked-example/index.md).
@@ -234,7 +234,7 @@ Start at [a trench, end to end](docs/worked-example/index.md).
 Why the system works the way it does. Each page is reachable from the workflow
 step where it matters.
 
-The one that causes the most confusion is **coordinate spaces** — a point can be
+The one that causes the most confusion is **coordinate spaces**: a point can be
 correct in one space and meaningless in another.
 
 ![One point shown in pixel coordinates, in face-local metres, and in surveyed site coordinates, with the conversion required between each pair](docs/assets/diagrams/three-coordinate-spaces.svg)
@@ -260,7 +260,7 @@ An extraction can look immaculate and be invented.
 ![A boundary following the drawn ink on the left; on the right a smooth evenly spaced curve lying away from the ink entirely](docs/assets/diagrams/genuine-vs-fabricated.svg)
 
 A boundary that does not lie on ink is fabricated by definition. Statistical
-signatures — suspiciously even spacing, implausible smoothness — are hints;
+signatures (suspiciously even spacing, implausible smoothness) are hints;
 overlap with actual ink pixels would be direct evidence, and automating that
 check is on the [roadmap](docs/project/roadmap.md).
 
@@ -281,10 +281,10 @@ flowchart LR
   HarrisRoutes --> Matrices[Matrix folders]
 ```
 
-- **Routes** own request handling and persistence.
-- **Services** chain several pipeline stages together.
-- **Pipeline modules** stay focused on transformation.
-- **`storage.py`** is a leaf module defining every writable root, so both layers
+- Routes own request handling and persistence.
+- Services chain several pipeline stages together.
+- Pipeline modules stay focused on transformation.
+- `storage.py` is a leaf module defining every writable root, so both layers
   can depend on it without inverting the dependency direction.
 
 Pages: [system overview](docs/architecture/system-overview.md) ·
@@ -332,7 +332,7 @@ subject, or at the [algorithm index](docs/architecture/algorithm-index.md),
 which groups them by source module.
 
 The pages are written for someone who knows the archaeology and not the
-computer science. [Union-Find](docs/cs/union-find.md) is a worked example — it
+computer science. [Union-Find](docs/cs/union-find.md) is a worked example: it
 is how this project decides whether four separately drawn walls actually
 enclose a pit, and how it collapses correlated units into one node of a Harris
 Matrix.
@@ -347,13 +347,13 @@ in excavation practice, why the practice exists, which schema field holds it,
 and which neighbouring term it is constantly confused with.
 
 That last part matters. This application makes distinctions a drawing does
-not — a marker is not a feature, a feature is not a find, and a layer is not
-always a locus — and recording one as another produces data that validates
+not (a marker is not a feature, a feature is not a find, and a layer is not
+always a locus), and recording one as another produces data that validates
 cleanly and means something else.
 
 Start at the [term catalogue](docs/archaeology/index.md).
 [Locus](docs/archaeology/locus.md) is a worked example, including the
-one-line shift that silently moves every unit in the model down by one — and
+one-line shift that silently moves every unit in the model down by one, and
 [locus numbering epochs](docs/archaeology/locus-numbering-epochs.md) explains
 why a trench reopened after a gap cannot simply be merged with its earlier
 seasons.
@@ -362,15 +362,15 @@ seasons.
 
 ## Reference
 
-- [Data schemas](docs/reference/data-schemas.md) — the two extraction formats
-- [Validation rules](docs/reference/validation-rules.md) — every error and warning code
-- [API routes](docs/reference/api-routes.md) — every endpoint, with its status
-- [Output files](docs/reference/output-files.md) — what each stage writes
-- [Configuration](docs/reference/configuration.md) — environment variables and paths
-- [Drawing guidelines](docs/reference/drawing-guidelines.md) — how to draw an extractable sheet
+- [Data schemas](docs/reference/data-schemas.md): the two extraction formats
+- [Validation rules](docs/reference/validation-rules.md): every error and warning code
+- [API routes](docs/reference/api-routes.md): every endpoint, with its status
+- [Output files](docs/reference/output-files.md): what each stage writes
+- [Configuration](docs/reference/configuration.md): environment variables and paths
+- [Drawing guidelines](docs/reference/drawing-guidelines.md): how to draw an extractable sheet
 - [Running the tests](docs/reference/running-the-tests.md)
 - [Troubleshooting](docs/reference/troubleshooting.md)
-- [Synthetic fixtures](docs/fixtures/README.md) — safe, invented example data
+- [Synthetic fixtures](docs/fixtures/README.md): safe, invented example data
 
 ### Running the tests
 
@@ -386,8 +386,8 @@ The browser-side suite, which needs Node rather than Python:
 node --test "poggio_webapp/static/**/*.test.mjs" "docs/javascripts/**/*.test.mjs"
 ```
 
-The documentation checks — links and front matter, module coverage, the
-visual manifest, README synchronisation, and a strict site build:
+The documentation checks (links and front matter, module coverage, the
+visual manifest, README synchronisation, and a strict site build):
 
 ```bash
 make check-docs
@@ -408,9 +408,9 @@ end, in an order where nothing is needed before it is taught.
 - The [CS study plan](docs/learning/cs-plan.md) takes the 128 technique pages
   alone, in ten units, and skips the archaeology entirely.
 
-Each has its own assessment pack — a pre-reading quiz, programming assignment,
+Each has its own assessment pack: a pre-reading quiz, programming assignment,
 research paper, midterm, and final for every phase or unit, with answer keys in
-collapsed blocks: [assessments](docs/learning/assessments.md) and
+collapsed blocks. See [assessments](docs/learning/assessments.md) and
 [CS assessments](docs/learning/cs-assessments.md). The quizzes and exams face
 the documentation; the assignments deliberately face away from it, applying the
 same ideas to recipes, jogging routes, and photo libraries, because transfer is
@@ -425,23 +425,23 @@ the test of understanding.
 Stated plainly, because a model that looks convincing and is wrong is the main
 risk this project carries.
 
-- **Registration is the binding constraint.** The starter values `0, 0, 100, 90`
+- Registration is the binding constraint. The starter values `0, 0, 100, 90`
   are smoke-test placeholders. The config now declares
   `"source": "placeholder"` and the multi-wall build refuses it, but a
   single-sheet build still accepts it, and nothing marks the resulting model
   as unsurveyed.
-- **AI extraction is experimental.** It needs a key and network access, has no
+- AI extraction is experimental. It needs a key and network access, has no
   end-to-end test, and its output must be compared against the drawing by a
   human.
-- **Marker detection and feature detection are backend-only.** The routes
+- Marker detection and feature detection are backend-only. The routes
   exist and are tested; no browser control reaches them. The multi-wall
   trenches page works and is tested, but only the demo card links to it.
-- **Task state is in memory.** Restarting the server loses the status of a
+- Task state is in memory. Restarting the server loses the status of a
   running build, though the files it already wrote survive.
-- **A single face is extrapolated** across the whole model extent, so confidence
+- A single face is extrapolated across the whole model extent, so confidence
   falls off away from recorded points.
-- **Single-sheet builds use apparent dips**, which are systematically too
-  shallow. `true_dip.py` corrects this on *merged* trenches only — one wall
+- Single-sheet builds use apparent dips, which are systematically too
+  shallow. `true_dip.py` corrects this on *merged* trenches only: one wall
   cannot determine a surface's true orientation, so there is nothing to correct
   from. See [apparent and true dip](docs/archaeology/apparent-and-true-dip.md).
 
@@ -461,8 +461,8 @@ make it general.
 The pipeline began as numbered folders (`02_preprocess` … `07_visualizer`) run
 by hand. They were retired in the `webapp` commit; every stage's logic is now an
 importable module under `poggio_webapp/pipeline/`. The old scripts and outputs
-are all recoverable from git history — see
-[project history](docs/project/history.md).
+are all recoverable from git history (see
+[project history](docs/project/history.md)).
 
 ### Contributing to the documentation
 
@@ -476,13 +476,13 @@ build. See [contributing to the docs](docs/project/contributing-docs.md).
 ## Repository layout
 
 ```
-Makefile                 one documented command per task — run `make help`
+Makefile                 one documented command per task (run `make help`)
 mkdocs.yml               configuration for the documentation site
 pyproject.toml           dependencies, test settings, and lint rules
 .venv/                   the one virtual environment (you create this)
 
 scans/                   raw drawings
-local/                   real excavation records — gitignored, never committed
+local/                   real excavation records: gitignored, never committed
 docs/                    the documentation guide (MkDocs)
 tools/docs/              documentation checkers and asset generators
 tests/                   the Python test suite

@@ -11,7 +11,7 @@ verified_against: ae2fc1d
 
 # Similarity transforms
 
-Translate, rotate, and scale uniformly — nothing else. The transform family this
+Translate, rotate, and scale uniformly. Nothing else. The transform family this
 project's calibration belongs to, chosen because it is the least expressive one
 that can represent a flat drawing photographed square-on.
 
@@ -20,14 +20,14 @@ that can represent a flat drawing photographed square-on.
 A similarity transform is the composition of a translation, a rotation, and a
 **uniform** scale. It preserves:
 
-- **angles** — a right angle stays a right angle;
-- **shape** — a circle stays a circle, never becoming an ellipse;
-- **ratios of distances** — if A is twice as far as B, it still is.
+- angles: a right angle stays a right angle;
+- shape: a circle stays a circle, never becoming an ellipse;
+- ratios of distances: if A is twice as far as B, it still is.
 
 It does *not* preserve absolute distances, because of the scale.
 
 In 2D it has four degrees of freedom: two for translation, one for rotation, one
-for scale. Two corresponding point pairs determine it exactly — which is why
+for scale. Two corresponding point pairs determine it exactly, which is why
 this project asks for two calibration clicks plus one real measurement.
 
 The family sits between rigid motion and affine:
@@ -58,7 +58,7 @@ What each family can absorb:
 
 ```
 rigid        ▭ → ▭   (moved and turned)
-similarity   ▭ → ▭   (moved, turned, resized — still a rectangle)
+similarity   ▭ → ▭   (moved, turned, resized, still a rectangle)
 affine       ▭ → ▱   (sheared into a parallelogram)
 projective   ▭ → ⬟   (keystoned; parallel edges converge)
 ```
@@ -67,7 +67,7 @@ projective   ▭ → ⬟   (keystoned; parallel edges converge)
 
 Three implementations, one specification.
 
-`poggio_webapp/pipeline/manual_extraction.py` — the supported manual path:
+`poggio_webapp/pipeline/manual_extraction.py`, the supported manual path:
 
 ```python
 @dataclass(frozen=True)
@@ -94,7 +94,7 @@ Every component of the transform is visible: `origin_*` is the translation,
 `(ux, uy)` and `(vx, vy)` are the [rotation](orthonormal-bases.md), `px_per_m`
 is the single uniform scale.
 
-`poggio_webapp/pipeline/detect_markers.py` — the CV path, with the reason in its
+`poggio_webapp/pipeline/detect_markers.py`, the CV path, with the reason in its
 docstring:
 
 ```python
@@ -112,7 +112,7 @@ def create_section_coordinate_transform(
     """
 ```
 
-`poggio_webapp/static/visualizer/coordinates.mjs` — the browser overlay, which
+`poggio_webapp/static/visualizer/coordinates.mjs`, the browser overlay, which
 must reproduce the same mapping so a redrawn boundary lands on the ink it was
 traced from:
 
@@ -129,7 +129,7 @@ function projectMeters(point, axes) {
 }
 ```
 
-That is the *inverse* transform — metres back to pixels — and because the basis
+That is the *inverse* transform (metres back to pixels), and because the basis
 is orthonormal, the inverse is the transpose. No matrix solve, no division.
 
 The browser also short-circuits when it can:
@@ -147,14 +147,14 @@ round-tripping through metres and accumulating floating-point error.
 
 | Alternative | Degrees of freedom | Why it lost |
 |---|---|---|
-| **Rigid (no scale)** | 3 | Cannot convert pixels to metres at all — scale is the whole point of calibration. |
+| **Rigid (no scale)** | 3 | Cannot convert pixels to metres at all: scale is the whole point of calibration. |
 | **Similarity** *(chosen)* | 4 | Exactly what a flat sheet photographed square-on requires: it may be shifted, turned, and at any zoom, but it is not stretched or skewed. |
-| **[Affine](affine-transforms.md)** | 6 | Adds shear and non-uniform scale. Would fit a stretched or skewed sheet — and would also **silently absorb a mis-clicked calibration point** as apparent geometry, producing a self-consistent but wrong coordinate system. A similarity transform has nowhere to put that error, so a bad click shows up as a visibly wrong overlay. |
+| **[Affine](affine-transforms.md)** | 6 | Adds shear and non-uniform scale. Would fit a stretched or skewed sheet, and would also **silently absorb a mis-clicked calibration point** as apparent geometry, producing a self-consistent but wrong coordinate system. A similarity transform has nowhere to put that error, so a bad click shows up as a visibly wrong overlay. |
 | **Projective (homography)** | 8 | Corrects perspective from an angled photograph. Needs four clicks, and is sensitive to the accuracy of each. This is the real limitation of the current design and a genuine [roadmap](../project/roadmap.md) candidate. |
 | **Polynomial or thin-plate warp** | many | Can fit almost any distortion, including one that is not there. On a project that separately hunts for [fabricated geometry](fabrication-detection.md), a transform that can bend to fit noise is the wrong tool. |
 
 The principle worth naming: **choose the least expressive transform that can
-represent the truth.** Extra degrees of freedom are not free capability — they
+represent the truth.** Extra degrees of freedom are not free capability. They
 are places for user error to hide. Over-fitting a coordinate system is
 over-fitting.
 
@@ -163,39 +163,39 @@ over-fitting.
 Four parameters, derived in a handful of operations. Application is two
 multiplies and an add per axis, plus one division.
 
-What it cannot represent — and none of these is corrected anywhere in the
-pipeline:
+What it cannot represent (and none of these is corrected anywhere in the
+pipeline):
 
-- **Perspective**, from a photograph taken at an angle. Scale then varies across
+- Perspective, from a photograph taken at an angle. Scale then varies across
   the sheet, and the error grows with distance from the calibration points.
-- **Non-uniform stretch**, from paper that has aged unevenly.
-- **Lens distortion**, near the edges of a wide-angle phone photograph.
+- Non-uniform stretch, from paper that has aged unevenly.
+- Lens distortion, near the edges of a wide-angle phone photograph.
 
-The mitigation is procedural — the
+The mitigation is procedural: the
 [drawing guidelines](../reference/drawing-guidelines.md) ask for a square-on
-photograph — and the honest framing is that these are known unmodelled errors
+photograph. The honest framing is that these are known unmodelled errors
 rather than solved problems. See
 [accuracy and provenance](../concepts/accuracy-and-provenance.md).
 
 ## Where else you meet it
 
-- **Image registration**, aligning two photographs of the same scene.
-- **Map georeferencing**, where two known control points fix a scan to a
-  coordinate system — the identical problem to this project's calibration.
-- **Feature matching** — SIFT and ORB descriptors are designed to be invariant
+- Image registration, aligning two photographs of the same scene.
+- Map georeferencing, where two known control points fix a scan to a
+  coordinate system, the identical problem to this project's calibration.
+- Feature matching: SIFT and ORB descriptors are designed to be invariant
   under similarity transforms precisely because that is what a moving camera
   produces at a distance.
-- **CAD and vector graphics**, where a "transform" handle offers move, rotate,
+- CAD and vector graphics, where a "transform" handle offers move, rotate,
   and uniform scale by default.
-- **Point-set registration** (Procrustes analysis), which finds the best
+- Point-set registration (Procrustes analysis), which finds the best
   similarity transform between two labelled point sets.
 
 ## Related pages
 
-- [Translation, rotation, and scaling](translation-rotation-scaling.md) — the
+- [Translation, rotation, and scaling](translation-rotation-scaling.md): the
   three components.
-- [Orthonormal bases](orthonormal-bases.md) — how the rotation is represented.
-- [Affine transforms](affine-transforms.md) — the next family up, and why it was
+- [Orthonormal bases](orthonormal-bases.md): how the rotation is represented.
+- [Affine transforms](affine-transforms.md): the next family up, and why it was
   not chosen.
-- [Vector projection](vector-projection.md) — what applying it computes.
-- [Coordinate spaces](../concepts/coordinate-spaces.md) — the spaces it connects.
+- [Vector projection](vector-projection.md): what applying it computes.
+- [Coordinate spaces](../concepts/coordinate-spaces.md): the spaces it connects.

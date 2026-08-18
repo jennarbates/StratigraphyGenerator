@@ -25,13 +25,13 @@ output, or a module written by someone else.
 The discipline is to validate **at** the boundary rather than at the point of
 use. Two payoffs:
 
-- **Errors are attributable.** A malformed manifest is reported as a malformed
+- Errors are attributable. A malformed manifest is reported as a malformed
   manifest, not as a `TypeError` three functions later.
-- **The interior simplifies.** Code past the boundary can assume shape and type,
+- The interior simplifies. Code past the boundary can assume shape and type,
   so it needs no defensive checks.
 
 The boundaries in this application are not only the obvious network ones. A file
-written by an earlier run of the *same program* is a boundary — it may have been
+written by an earlier run of the *same program* is a boundary: it may have been
 written by a different version, edited by hand, or truncated by a crash.
 
 ## The picture
@@ -48,7 +48,7 @@ flowchart LR
 
 ## Where this project uses it
 
-### The viewer manifest — validate, then degrade
+### The viewer manifest: validate, then degrade
 
 `poggio_webapp/backend/services/viewer_files.py` states the policy in its
 docstring:
@@ -78,12 +78,12 @@ def _has_valid_manifest_fields(manifest):
     )
 ```
 
-Note `type(...) is int` rather than `isinstance` — because `bool` is a subclass
+Note `type(...) is int` rather than `isinstance`, because `bool` is a subclass
 of `int` in Python, and `True` would otherwise pass as a schema version. (The
-`== 1` pin is currently stale against the writer, which now stamps 2 — see
-[schema versioning](schema-versioning.md) — so this degrade path fires for
-freshly built manifests.) The same trap is handled explicitly in the number
-check:
+`== 1` pin is currently stale against the writer, which now stamps 2, so this
+degrade path fires for freshly built manifests. See
+[schema versioning](schema-versioning.md).) The same trap is handled explicitly
+in the number check:
 
 ```python
 def _valid_number(value):
@@ -94,7 +94,7 @@ def _valid_number(value):
     )
 ```
 
-The same guard — exclude `bool`, require a finite value — appears four times
+The same guard (exclude `bool`, require a finite value) appears four times
 across the codebase: here, `true_dip._number`,
 `editor/geometry._point_coordinates`, and `manual_extraction._positive_number`,
 each at a point where untrusted JSON becomes a number.
@@ -102,7 +102,7 @@ each at a point where untrusted JSON becomes a number.
 Semantic checks sit alongside the type checks: `extent[0] < extent[1]` is not a
 type constraint, it is the statement that a bounding box must be non-degenerate.
 
-### Artifact paths — containment, not just existence
+### Artifact paths: containment, not just existence
 
 ```python
 def _resolve_manifest_artifact(manifest_directory, job_directory, path_str):
@@ -117,7 +117,7 @@ def _resolve_manifest_artifact(manifest_directory, job_directory, path_str):
     return candidate
 ```
 
-The manifest is a file this application wrote — and it is still treated as
+The manifest is a file this application wrote, and it is still treated as
 untrusted, because a file on disk can be edited. Absolute paths and `..`
 segments are rejected, then containment is verified after resolution. See
 [path traversal and containment](path-traversal-and-containment.md).
@@ -152,11 +152,11 @@ if (!Number.isInteger(id) || id < 0 || id > MAX_UINT16) {
 }
 ```
 
-Neither side trusts the other's word, and the boundary is crossed twice — once
+Neither side trusts the other's word, and the boundary is crossed twice: once
 into a file, once into a different language runtime. See
 [binary serialisation](binary-serialisation.md).
 
-### Storage — validate on read *and* on write
+### Storage: validate on read *and* on write
 
 `poggio_webapp/backend/harris_store.py`:
 
@@ -175,7 +175,7 @@ def _validate_candidate(candidate) -> HarrisMatrix:
 ```
 
 Called by `create_matrix`, by `save_matrix`, and by `load_matrix`. Validating on
-*load* is the part people skip — and it is what catches a file edited by hand,
+*load* is the part people skip, and it is what catches a file edited by hand,
 written by an older version, or corrupted.
 
 Two layers: Pydantic for shape, `validate_matrix_graph` for
@@ -193,7 +193,7 @@ def _validate_matrix_id(matrix_id: str) -> str:
     return matrix_id
 ```
 
-**Order matters.** Validate, then touch the disk — never the reverse.
+**Order matters.** Validate, then touch the disk, never the reverse.
 
 ## Why this and not something else
 
@@ -215,38 +215,38 @@ Microseconds per document. Irrelevant next to the work being guarded.
 
 The costs:
 
-- **Verbosity.** `_has_valid_manifest_fields` is a 35-line boolean expression.
+- Verbosity. `_has_valid_manifest_fields` is a 35-line boolean expression.
   The alternative is discovering the problem in the browser.
-- **Duplication across the boundary.** The volume contract is asserted in Python
+- Duplication across the boundary. The volume contract is asserted in Python
   and again in JavaScript. Genuine duplication, and deliberate: a single shared
   schema would need a build step the frontend does not have.
-- **Strictness can reject valid data.** `extra="forbid"` means a document from a
-  newer version is refused. That is the intended trade — see
+- Strictness can reject valid data. `extra="forbid"` means a document from a
+  newer version is refused. That is the intended trade. See
   [schema versioning](schema-versioning.md).
-- **It cannot check meaning.** A manifest can be perfectly well-formed and
+- It cannot check meaning. A manifest can be perfectly well-formed and
   describe a model built on placeholder registration. That is what
   [fabrication detection](fabrication-detection.md) and the
   [validator](error-taxonomies.md) are for.
 
 ## Where else you meet it
 
-- **Web application security**, where the rule is "validate all input at the
-  perimeter" — the origin of the phrase.
-- **Parser design**, and "parse, don't validate": turn untrusted input into a
+- Web application security, where the rule is "validate all input at the
+  perimeter", the origin of the phrase.
+- Parser design, and "parse, don't validate": turn untrusted input into a
   type that cannot be malformed.
-- **Microservice boundaries**, where each service validates its own inputs
+- Microservice boundaries, where each service validates its own inputs
   rather than trusting its callers.
-- **Database constraints**, the last line of defence inside the store.
-- **Foreign function interfaces**, where data crossing a language boundary is
+- Database constraints, the last line of defence inside the store.
+- Foreign function interfaces, where data crossing a language boundary is
   always suspect.
 
 ## Related pages
 
-- [Structural versus schema validation](structural-vs-schema-validation.md) —
+- [Structural versus schema validation](structural-vs-schema-validation.md):
   the two-layer split in the editor.
-- [JSON and schema design](json-schema-design.md) — the shape layer.
-- [Path traversal and containment](path-traversal-and-containment.md) — the
+- [JSON and schema design](json-schema-design.md): the shape layer.
+- [Path traversal and containment](path-traversal-and-containment.md): the
   filesystem boundary.
-- [Error taxonomies](error-taxonomies.md) — how failures are reported.
-- [Fail-closed design](fail-closed-design.md) — what happens when validation
+- [Error taxonomies](error-taxonomies.md): how failures are reported.
+- [Fail-closed design](fail-closed-design.md): what happens when validation
   fails.

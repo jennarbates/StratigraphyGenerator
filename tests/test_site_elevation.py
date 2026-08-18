@@ -23,9 +23,7 @@ BELOW_DATUM = {
 ABSOLUTE = {"frame": MAE, "entryForm": "absolute"}
 
 
-# ---------------------------------------------------------------------------
 # Frames
-# ---------------------------------------------------------------------------
 
 
 @pytest.mark.parametrize(
@@ -52,9 +50,7 @@ def test_an_unknown_frame_raises_and_explains_mae():
     assert "meters absolute elevation" in str(caught.value)
 
 
-# ---------------------------------------------------------------------------
 # Below datum -> absolute
-# ---------------------------------------------------------------------------
 
 
 def test_a_below_datum_reading_is_subtracted_from_the_nail():
@@ -80,9 +76,7 @@ def test_non_numeric_readings_raise(bad):
         absolute_from_below_datum(bad, 29.34)
 
 
-# ---------------------------------------------------------------------------
 # Resolving against a trench's vertical block
-# ---------------------------------------------------------------------------
 
 
 def test_absolute_readings_pass_through():
@@ -121,9 +115,7 @@ def test_datum_absolute_z_reads_the_nail_or_returns_none():
     assert datum_absolute_z(None) is None
 
 
-# ---------------------------------------------------------------------------
 # Uncertainty
-# ---------------------------------------------------------------------------
 
 
 def test_the_documented_ranged_reading_arithmetic():
@@ -144,9 +136,7 @@ def test_a_precise_reading_has_no_uncertainty():
     assert midpoint_and_uncertainty_cm(27.25, 27.25) == (27.25, 0.0)
 
 
-# ---------------------------------------------------------------------------
 # Describing a trench's vertical state
-# ---------------------------------------------------------------------------
 
 
 def test_describe_names_the_frame_for_absolute_records():
@@ -165,9 +155,7 @@ def test_describe_flags_an_unresolvable_datum():
     assert "not yet known" in text
 
 
-# ---------------------------------------------------------------------------
 # Uncertainty survives tracing and validation
-# ---------------------------------------------------------------------------
 
 
 def _traced(uncertainty=None, **extra):

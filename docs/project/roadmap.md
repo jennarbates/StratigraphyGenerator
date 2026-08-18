@@ -24,12 +24,12 @@ Nothing in phases 2–3 matters while the underlying geometry is still invalid.
 
     This roadmap was migrated from the root README and corrected against `d23b842`. Items the README listed as outstanding but which have since shipped are marked **done** rather than deleted, because the reasoning behind them still explains the current design.
 
-## Phase 1 — unblock the science
+## Phase 1: unblock the science
 
 ### 1. Real grid registration
 
 **Partly done.** The binding constraint: get the four registration values per
-face from the site records. That path now exists — a surveyed trench layout or
+face from the site records. That path now exists: a surveyed trench layout or
 a season's Geospatial Spreadsheet derives the grid config
 (`POST /api/trenches/<label>/layout`, `POST /api/trenches/geospatial-sheet`),
 and the trenches page prefills a stored derived registration where one exists.
@@ -62,8 +62,8 @@ See [markers and features](../workflows/03-markers-and-features.md) and
 
 ### 3. Re-extract Trench 23's South and West faces
 
-The evidence so far — the East face genuine in the per-section run, the
-all-faces-at-once run fully fabricated — says extract **one face per API
+The evidence so far (the East face genuine in the per-section run, the
+all-faces-at-once run fully fabricated) says extract **one face per API
 call**. Make per-face extraction the default for illustrator sheets and
 validate each face independently.
 
@@ -74,19 +74,19 @@ materials. This settles resolution-limit versus prompting-problem, which is
 currently a hypothesis rather than a finding. See [drawing
 guidelines](../reference/drawing-guidelines.md).
 
-## Phase 2 — verification infrastructure
+## Phase 2: verification infrastructure
 
 ### 5. Tests
 
 **Largely done.** Several hundred Python tests and over two hundred JavaScript
 tests now run without a key or network access. The pure functions this item
-named — the coordinate transform, `fieldwall_to_profiles`, the fabrication
-heuristics — are covered, and the merge layer added 55 more.
+named (the coordinate transform, `fieldwall_to_profiles`, the fabrication
+heuristics) are covered, and the merge layer added 55 more.
 
 CI exists now: `.github/workflows/docs.yml` runs the documentation checkers,
 both test suites, a strict site build, and the diagram regeneration check on
 every push and pull request. One gap remains: there is still no golden-file
-test running a known extraction end-to-end through convert → validate — the
+test running a known extraction end-to-end through convert → validate. The
 merge-integration and T905 worked-example suites run synthetic records, not a
 real extraction.
 
@@ -105,7 +105,7 @@ evidence, and can run automatically at validation.
 
 ### 7. Hygiene
 
-- **Done:** uploads now pass through `secure_filename` (with a safe fallback
+- Done: uploads now pass through `secure_filename` (with a safe fallback
   name); the download routes were already guarded.
 - Pin versions in `poggio_webapp/requirements.txt`, which is currently
   unpinned. The documentation requirements are already pinned.
@@ -115,7 +115,7 @@ evidence, and can run automatically at validation.
   [documented](../reference/troubleshooting.md) but not fixed.
 - Add an age-based sweep for `jobs/`.
 
-## Phase 3 — generalize past these two drawings
+## Phase 3: generalize past these two drawings
 
 ### 8. Ensemble extraction as an uncertainty signal
 
@@ -146,7 +146,7 @@ extraction is trustworthy: a batch queue, persistent job naming, and
 site-level aggregation of multiple trenches into one model.
 
 The [multi-wall merge](../workflows/09-multi-wall-trench.md) is the first step
-of this — it aggregates walls into a trench. Aggregating trenches into a site
+of this. It aggregates walls into a trench. Aggregating trenches into a site
 is the same problem one level up. The season-wide [Geospatial Spreadsheet
 registration](../archaeology/geospatial-spreadsheet.md) is a second step: it
 registers every trench in a season from one file.
@@ -154,7 +154,7 @@ registers every trench in a season from one file.
 ### 12. Standards-compliant export
 
 GeoJSON in site coordinates for GIS, and propagation of the per-point
-`confidence` fields — captured in the schema, unused downstream — into the
+`confidence` fields (captured in the schema, unused downstream) into the
 exports.
 
 Harris matrix export, which this item originally included, is **done**. See
@@ -164,11 +164,11 @@ Harris matrix export, which this item originally included, is **done**. See
 
 Items 6 and 9 deserve to jump the queue. Together they turn the workflow from
 *extract, inspect statistically, hope* into *extract, score against the scan,
-correct by hand* — the realistic shape of a production digitization tool.
+correct by hand*, the realistic shape of a production digitization tool.
 
 ## Related
 
-- [Capability status](capability-status.md) — what works today.
-- [Project history](history.md) — how it got here.
-- [Accuracy and provenance](../concepts/accuracy-and-provenance.md) — why
+- [Capability status](capability-status.md): what works today.
+- [Project history](history.md): how it got here.
+- [Accuracy and provenance](../concepts/accuracy-and-provenance.md): why
   fabrication detection is the recurring theme above.

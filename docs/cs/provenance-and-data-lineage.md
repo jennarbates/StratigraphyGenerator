@@ -28,7 +28,7 @@ coordinate a model invented are all just numbers in a CSV. Nothing about the
 number says which it is.
 
 So provenance has to be **carried alongside the data**, at the granularity where
-the distinction matters — per point, not per file.
+the distinction matters: per point, not per file.
 
 ## The picture
 
@@ -64,7 +64,7 @@ obtained**; `sourcePixel` keeps **the pixel it came from**, so the browser can
 redraw it on the original image and a reader can check it against the ink.
 
 The values in use are `"human-traced"`, `"human-entered"`, and
-`"human-verified"` — and the third is assigned only when verified text backed it:
+`"human-verified"`. The third is assigned only when verified text backed it:
 
 ```python
 "confidence": (
@@ -89,7 +89,7 @@ marginalia.append(
 ```
 
 A sentence, in the data, saying which component produced the geometry and which
-did not — with counts. Anyone reading the extraction in five years learns how it
+did not, with counts. Anyone reading the extraction in five years learns how it
 was made without reading the code.
 
 That claim is backed by [construction](separation-of-concerns.md), not merely
@@ -110,8 +110,8 @@ class SourceRef(_HarrisModel):
     source_label: str | None
 ```
 
-Every Harris unit carries a list of these — which job, which face, which layer
-index, and **the label as originally written**:
+Every Harris unit carries a list of these (which job, which face, which layer
+index, and **the label as originally written**):
 
 ```python
 preserved_label = _source_label(raw_label)
@@ -119,8 +119,8 @@ clean_label = _clean_text(preserved_label)
 ```
 
 `source_label` keeps the raw value even when the display label was cleaned or
-substituted. The unit's own ID is derived from this same source position — see
-[content-addressed identifiers](content-addressed-identifiers.md) — so identity
+substituted. The unit's own ID is derived from this same source position (see
+[content-addressed identifiers](content-addressed-identifiers.md)), so identity
 *is* provenance.
 
 Re-importing merges references rather than replacing them, so a unit recorded on
@@ -139,8 +139,8 @@ RelationSource = Literal["manual", "suggestion"]
 ```
 
 A relation records whether a person asserted it or a machine proposal was
-accepted. And `evidence` is required, so the *reason* travels with the claim —
-see [JSON schema design](json-schema-design.md).
+accepted. And `evidence` is required, so the *reason* travels with the claim.
+See [JSON schema design](json-schema-design.md).
 
 ### Machine proposal versus human decision
 
@@ -160,8 +160,8 @@ person disagreed.
 ### Links back to the published record
 
 `poggio_webapp/pipeline/provenance.py` extends the same idea beyond the
-machine: it records which site record a job's data came from — an Open Context
-or ARK URI, a Kobo submission UUID, a trenchbook page. Each value is validated
+machine: it records which site record a job's data came from (an Open Context
+or ARK URI, a Kobo submission UUID, a trenchbook page). Each value is validated
 by its shape and never fetched, and only the project's own hosts are accepted,
 so a stored link is one the operator vouched for. See
 [provenance links](../archaeology/provenance-links.md) for the archaeological
@@ -169,9 +169,9 @@ side of these fields.
 
 ### Lineage as directory structure
 
-Each stage writes into its own folder — `01_scan/`, `02_preprocess/`,
+Each stage writes into its own folder (`01_scan/`, `02_preprocess/`,
 `03_extraction/`, `04_normalize_validate/`, `05_convert_coords/`,
-`06_gempy_model/` — and `01_scan/` holds the **untouched upload**. Every derived
+`06_gempy_model/`), and `01_scan/` holds the **untouched upload**. Every derived
 artifact can be traced back, and every step re-run.
 
 `meta.json` records the chain: `scan_path`, `clean_image_path`,
@@ -180,7 +180,7 @@ artifact can be traced back, and every step re-run.
 
 `normalizer` returns a log of every change it made; `validator` returns a report;
 `merge_walls`, `true_dip`, and `convert_coords` all return `notes`. Diagnostics
-as data rather than as side effects — see
+as data rather than as side effects. See
 [pure functions](pure-functions-and-testability.md).
 
 ### Evidence drawn over inference
@@ -207,7 +207,7 @@ shipped **alongside** the model so the two can be seen together.
 |---|---|---|
 | **Nothing** | Trust the reader to remember | Six months later nobody remembers which extraction was traced and which was machine-generated. |
 | **A note in the README** | Document the process | Describes the *typical* case. It cannot say that *this* boundary was traced and *that* one detected. |
-| **File-level metadata only** | One provenance record per document | Too coarse. A single extraction can mix CV-detected geometry with human-verified labels — which `assign_markers` produces routinely. |
+| **File-level metadata only** | One provenance record per document | Too coarse. A single extraction can mix CV-detected geometry with human-verified labels, which `assign_markers` produces routinely. |
 | **A full provenance graph (PROV-O)** | Formal W3C provenance model | The rigorous answer, and heavy machinery for a local single-user tool. The fields here capture the distinctions that actually matter. |
 | **Per-value fields plus stage folders** *(chosen)* | `confidence`, `sourcePixel`, `source_refs`, `source`, notes, and untouched originals | Granular where it matters, cheap, and readable in a text editor. |
 
@@ -223,35 +223,35 @@ bytes.
 
 The costs:
 
-- **Verbosity.** `sourcePixel` roughly doubles a point's size. Worth it: it is
+- Verbosity. `sourcePixel` roughly doubles a point's size. Worth it: it is
   what lets an overlay land on the exact ink.
-- **It must be maintained through every transformation.** A stage that dropped
+- It must be maintained through every transformation. A stage that dropped
   `confidence` would silently erase the distinction.
-- **`confidence` is free text**, not an enumeration, so `"human-traced"` and
+- `confidence` is free text, not an enumeration, so `"human-traced"` and
   `"human traced"` would differ. Convention rather than constraint.
-- **It records the *claim*, not the truth.** A point marked `"human-traced"` was
+- It records the *claim*, not the truth. A point marked `"human-traced"` was
   produced by the tracing path. It does not prove a human traced it accurately.
 
 ## Where else you meet it
 
-- **Museum and archival practice**, where provenance is the object's ownership
+- Museum and archival practice, where provenance is the object's ownership
   history and is itself evidence.
-- **Scientific data management** — FAIR principles, ORCID, DOIs.
-- **Machine learning**, where dataset lineage decides whether a model can be
+- Scientific data management: FAIR principles, ORCID, DOIs.
+- Machine learning, where dataset lineage decides whether a model can be
   audited.
-- **Build systems and SBOMs**, tracking which source produced which artifact.
-- **Version control**, which is lineage for source code.
-- **Journalism**, where sourcing conventions do exactly this job for prose.
+- Build systems and SBOMs, tracking which source produced which artifact.
+- Version control, which is lineage for source code.
+- Journalism, where sourcing conventions do exactly this job for prose.
 
 ## Related pages
 
-- [Interpolation versus measurement](interpolation-vs-measurement.md) — the
+- [Interpolation versus measurement](interpolation-vs-measurement.md): the
   distinction provenance preserves.
-- [Human-in-the-loop review](human-in-the-loop-review.md) — where the human's
+- [Human-in-the-loop review](human-in-the-loop-review.md): where the human's
   decision is recorded.
-- [Separation of concerns](separation-of-concerns.md) — why the CV/model split is
+- [Separation of concerns](separation-of-concerns.md): why the CV/model split is
   structural.
-- [Content-addressed identifiers](content-addressed-identifiers.md) — identity
+- [Content-addressed identifiers](content-addressed-identifiers.md): identity
   derived from source position.
-- [Accuracy and provenance](../concepts/accuracy-and-provenance.md) — the concept
+- [Accuracy and provenance](../concepts/accuracy-and-provenance.md): the concept
   page.

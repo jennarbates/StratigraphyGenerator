@@ -18,8 +18,8 @@ machines.
 
 When a phone or camera takes a picture sideways, it usually does **not** rotate
 the pixels. Rotating a 20-megapixel array costs time and battery. Instead it
-writes the sensor data as-is and adds an EXIF metadata tag — `Orientation`,
-values 1 through 8 — saying how a viewer should turn it before display.
+writes the sensor data as-is and adds an EXIF metadata tag (`Orientation`,
+values 1 through 8) saying how a viewer should turn it before display.
 
 The consequence is that "the image" is ambiguous. The same file is either
 
@@ -79,7 +79,7 @@ frame. From `poggio_webapp/backend/routes/pages.py`:
 # working copy written by markers/detect, not the raw scan or the
 # (possibly differently-sized) preprocessed clean image. Serving any
 # other image alongside it would silently misplace the overlay, so if
-# calibration exists, that rotated copy — not clean/scan — is the image
+# calibration exists, that rotated copy (not clean/scan) is the image
 # this job hands to the visualizer.
 ```
 
@@ -88,7 +88,7 @@ than pairing it with an image it does not match:
 
 ```python
 # calib exists but we can't trust it against whatever image we just
-# served (rotated copy missing) — omit it rather than misalign.
+# served (rotated copy missing), so omit it rather than misalign.
 ```
 
 That is [fail-closed design](fail-closed-design.md): the degraded outcome is "no overlay,"
@@ -99,7 +99,7 @@ not "an overlay in the wrong place."
 | Alternative | How it would work here | Why it lost |
 |---|---|---|
 | **Honour EXIF and let the library rotate** | Drop the flag; `cv2.imread` or PIL's `ImageOps.exif_transpose` handles it | Sounds like the friendly default, and it makes the pixel frame depend on the library version, the platform, and whether the file was ever re-saved by software that stripped the tag. A stored calibration would silently stop matching its image. |
-| **Strip EXIF on upload and normalise once** | Rotate to upright at ingest, discard the tag | Genuinely clean, and it changes the bytes of the archival scan. This project keeps `01_scan/` as the untouched upload on purpose — see [files and artifacts](../architecture/files-and-artifacts.md). |
+| **Strip EXIF on upload and normalise once** | Rotate to upright at ingest, discard the tag | Genuinely clean, and it changes the bytes of the archival scan. This project keeps `01_scan/` as the untouched upload on purpose. See [files and artifacts](../architecture/files-and-artifacts.md). |
 | **Detect orientation automatically** | Guess from the drawing's own content, e.g. text direction | Guessing, on an application whose selling point is not guessing. It would also be wrong on a section drawn in an unusual aspect. |
 | **Ignore EXIF and ask the user** *(what this does)* | The user picks 0/90/180/270 and sees the result | The user is already looking at the drawing and can see whether it is upright. One explicit parameter beats an inferred one, and the parameter means the same thing everywhere. |
 
@@ -110,7 +110,7 @@ differ between two readings of the same file is unsuitable as a reference.
 ## What it costs
 
 Ignoring the tag is free. Applying a 90° rotation is O(pixels) and allocates a
-second image — `cv2.rotate` is a transpose plus a flip, memory-bandwidth bound,
+second image. `cv2.rotate` is a transpose plus a flip, memory-bandwidth bound,
 a few tens of milliseconds on a phone photo.
 
 The real cost is one extra artifact on disk: `marker_source_rotated.png`, the
@@ -118,21 +118,21 @@ frame everything else is measured against. That file is the contract.
 
 ## Where else you meet it
 
-- **Every photo upload form** you have used that showed your picture sideways —
+- Every photo upload form you have used that showed your picture sideways:
   that is a library disagreeing with the tag.
-- **Machine-learning training pipelines**, where inconsistent EXIF handling
+- Machine-learning training pipelines, where inconsistent EXIF handling
   between training and inference silently rotates a fraction of the data.
-- **Digital forensics**, where the tag is evidence about the device.
-- **Web browsers**, which honour EXIF for `<img>` but historically did not for
-  images drawn into a `<canvas>` — the same split as here.
+- Digital forensics, where the tag is evidence about the device.
+- Web browsers, which honour EXIF for `<img>` but historically did not for
+  images drawn into a `<canvas>`, the same split as here.
 
 ## Related pages
 
-- [Raster images and pixels](raster-images-and-pixels.md) — what a pixel
+- [Raster images and pixels](raster-images-and-pixels.md): what a pixel
   coordinate means.
-- [Coordinate spaces](../concepts/coordinate-spaces.md) — the frames a point
+- [Coordinate spaces](../concepts/coordinate-spaces.md): the frames a point
   can be correct in.
-- [Similarity transforms](similarity-transforms.md) — the calibration this
+- [Similarity transforms](similarity-transforms.md): the calibration this
   protects.
-- [Fail-closed design](fail-closed-design.md) — omitting the overlay rather than misplacing
+- [Fail-closed design](fail-closed-design.md): omitting the overlay rather than misplacing
   it.

@@ -21,7 +21,7 @@ model of the whole trench.
 
 !!! note
 
-    **This workflow has a page, but nothing links to it.** Open <http://localhost:5000/trenches> directly. Like the [finds page](logging-finds.md), it works and is tested, but you have to know the address — no control anywhere else in the application will take you there. See [capability status](../project/capability-status.md).
+    **This workflow has a page, but nothing links to it.** Open <http://localhost:5000/trenches> directly. Like the [finds page](logging-finds.md), it works and is tested, but you have to know the address. No control anywhere else in the application will take you there. See [capability status](../project/capability-status.md).
 
     The page lists every trench, shows which walls are ready, and runs the build (the button is labelled "Build the combined model") with task polling. When a stored registration exists for a trench the page pre-fills the grid textarea from it (see step 2), and demonstration trenches carry a provenance badge on their heading. The HTTP requests documented below are what it calls, and remain the way to script the workflow or read a response in full.
 
@@ -45,7 +45,7 @@ Each wall's job must already have:
 Both labels are optional form fields on upload, handled in
 `poggio_webapp/backend/routes/scans.py`, as are the season, site grid, and
 locus epoch fields the build consults before combining sheets. A job with no
-trench label is skipped silently — most jobs are single sheets that were never
+trench label is skipped silently. Most jobs are single sheets that were never
 assigned to a trench.
 
 You also need real surveyed registration for every wall. This workflow will
@@ -108,7 +108,7 @@ curl -X POST http://localhost:5000/api/trenches/DEMO-TRENCH/build \
 
 The response has `"needs_grid": true`, a `starter` config with one entry per
 face, and a `notes` list. **Read the notes.** They record every judgement the
-merge made — derived wall labels, disagreeing Munsell readings, and inferred
+merge made: derived wall labels, disagreeing Munsell readings, and inferred
 layer ordering.
 
 You may not need the starter at all. When a registration has already been
@@ -119,7 +119,7 @@ directory, as the demo seeder writes), `GET
 stored, the ordinary case for hand-entered values. The trenches page calls
 this on load and pre-fills the grid textarea from it, so pasting a config into
 an empty textarea is only the fallback. Configs can also be derived on demand
-from survey records — see [place on site](06-place-on-site.md) for `POST
+from survey records. See [place on site](06-place-on-site.md) for `POST
 /api/trenches/<label>/layout` and `POST /api/trenches/geospatial-sheet`.
 
 ### 3. Replace every placeholder value
@@ -143,7 +143,7 @@ A successful response returns a `task_id`, the accumulated `notes`, and
 `grid_warnings`. Poll the task as described in
 [asynchronous tasks](../architecture/asynchronous-tasks.md).
 
-`grid_warnings` are non-fatal geometry observations — walls that do not meet at
+`grid_warnings` are non-fatal geometry observations: walls that do not meet at
 a corner, for instance. The repository's convention is to report rather than
 guess, so judging them is yours.
 
@@ -173,7 +173,7 @@ extraction and never mutates its input.
 ## Check your result
 
 - Every wall you expected appears in `merged.json` under `trenchProfiles`.
-- The notes list contains no surprises — particularly no derived wall labels
+- The notes list contains no surprises, particularly no derived wall labels
   you did not intend and no Munsell disagreements you have not reviewed.
 - The face count in `points.csv` matches the number of walls.
 
@@ -214,8 +214,8 @@ nothing, so the build refuses rather than producing it.
 
 ## Under the hood
 
-`pipeline/merge_walls.py` exists because everything downstream of extraction —
-grid config, conversion, and the GemPy build — is already multi-face, while a
+`pipeline/merge_walls.py` exists because everything downstream of extraction
+(grid config, conversion, and the GemPy build) is already multi-face, while a
 `FieldWallProfile` sheet is single-wall. The merge has to happen *before*
 coordinate conversion.
 
@@ -225,13 +225,13 @@ two walls is one deposit and must receive one identical name; two different
 deposits must never collide.
 
 A surface's name is therefore its **identity**, and only a deposit's identity
-belongs in it. Field sheets name surfaces `Locus N` — the locus number alone.
+belongs in it. Field sheets name surfaces `Locus N`, the locus number alone.
 The Munsell reading travels beside it as a display label, `Locus 6 (10YR 5/3
 brown)`, which is what you see in the viewer.
 
 This used to work the other way, and the difference is worth knowing if you
 have older models. When the reading was part of the name, two walls describing
-one deposit slightly differently produced two model surfaces — so the merge
+one deposit slightly differently produced two model surfaces, so the merge
 computed a trench-wide canonical reading and rewrote every sheet to use it,
 forcing a field observation to agree so that an identity would. Taking the
 colour out of the identity removed the failure and the workaround together. A
@@ -258,18 +258,18 @@ was measured on, and the dip measured *along* that wall. On one wall that is
 all anyone can know. On a merged trench that is wrong in a systematic way: one
 surface arrives with a seed dipping toward the north wall's bearing and another
 toward the east wall's, and an apparent dip is always shallower than the true
-dip — so the model would fit a compromise plane matching neither drawing.
+dip, so the model would fit a compromise plane matching neither drawing.
 
 `poggio_webapp/pipeline/true_dip.py` solves the real problem: two walls that
 are not parallel pin a plane down exactly, giving one true dip and dip azimuth
 per surface. The trench build applies it after conversion:
 `true_dip.apply_true_dip` rewrites the orientations CSV in place, changing
-only each corrected seed's dip and azimuth — its position stays on its own
-wall — and adds a note per corrected surface. Single-sheet builds never run
+only each corrected seed's dip and azimuth (its position stays on its own
+wall) and adds a note per corrected surface. Single-sheet builds never run
 this pass, because one wall alone cannot determine the plane.
 
-Where a solve is not available — a surface drawn on only one wall, or two walls
-too nearly parallel — the seed keeps its apparent dip and the notes say why,
+Where a solve is not available (a surface drawn on only one wall, or two walls
+too nearly parallel), the seed keeps its apparent dip and the notes say why,
 rather than inventing an orientation that would look like an improvement.
 
 ## Next
@@ -278,5 +278,5 @@ rather than inventing an orientation that would look like an improvement.
   these CSV exports.
 - [Coordinate spaces](../concepts/coordinate-spaces.md) for the registration
   formula the merge relies on.
-- [Running the tests](../reference/running-the-tests.md) — the merge layer has
+- [Running the tests](../reference/running-the-tests.md): the merge layer has
   the densest test coverage in the repository.

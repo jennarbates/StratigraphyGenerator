@@ -80,14 +80,14 @@ The browser steps in `poggio_webapp/static/app/stages/scan.js`, `poggio_webapp/s
 The numbered steps above describe **one sheet**, which is what a job holds. Two
 branches leave that path:
 
-- **Several walls of one trench.** A hand-drawn field sheet records a single
+- Several walls of one trench. A hand-drawn field sheet records a single
   wall, so a whole trench spans several jobs. Take each wall through step 4
   (normalization) independently, then [combine walls into one
   trench](09-multi-wall-trench.md) to merge them and build one model. An
   illustrated sheet may already carry several faces, in which case no merge is
   needed. See [jobs, sheets, and
   trenches](../concepts/jobs-sheets-and-trenches.md).
-- **Chronology rather than geometry.** A [Harris Matrix](harris-matrix.md) is
+- Chronology rather than geometry. A [Harris Matrix](harris-matrix.md) is
   built separately from any drawing job, and can import units from several
   finished jobs without changing them.
 

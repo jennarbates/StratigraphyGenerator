@@ -12,7 +12,7 @@ verified_against: ae2fc1d
 # Binary serialisation
 
 Writing numbers to a file as raw bytes rather than as text. Fast and compact,
-and it carries no self-description — so everything the reader needs must be
+and it carries no self-description, so everything the reader needs must be
 stated somewhere else.
 
 ## What it is
@@ -84,7 +84,7 @@ def write_lithology_binary(lith_block, resolution, output_path, lithology_names=
 ```
 
 **Seven checks before the file is opened.** Because the format is opaque, a bad
-value cannot be detected later — a negative number silently becomes a huge
+value cannot be detected later: a negative number silently becomes a huge
 unsigned one, a float truncates, an out-of-range value wraps. Every one of those
 would render as a wrong lithology rather than as an error.
 
@@ -132,7 +132,7 @@ manifest["volume"] = {
 ```
 
 Every assumption made explicit, including the mapping from numeric ID to
-lithology name — without which the volume is just integers.
+lithology name, without which the volume is just integers.
 
 ### Reading, refusing anything unexpected
 
@@ -181,7 +181,7 @@ file, and the browser that decodes it. None trusts another's word.
 |---|---|---|
 | **JSON array** | `[1, 1, 2, …]` | Self-describing and readable, and several megabytes of text against 1.4 MB binary, with a much slower parse. |
 | **CSV** | One value per line | Same objection, plus no natural way to express three dimensions. |
-| **`.npy` (NumPy's own)** | Header declares dtype, order, shape | Genuinely self-describing and exactly right — for a Python reader. The consumer is a browser, which would need an `.npy` parser. |
+| **`.npy` (NumPy's own)** | Header declares dtype, order, shape | Genuinely self-describing and exactly right, for a Python reader. The consumer is a browser, which would need an `.npy` parser. |
 | **HDF5 or Zarr** | Chunked, compressed, self-describing | The right answer at scientific scale, and both need a browser-side library. |
 | **Protocol Buffers / MessagePack** | Schema-driven binary | Well-suited to structured records, unnecessary overhead for a flat numeric array. |
 | **Raw binary + JSON manifest** *(chosen)* | Bytes plus a declaration | Compact, decodable in six lines with no dependency, and the contract is written down rather than implied. |
@@ -191,7 +191,7 @@ vendors nothing beyond Three.js, so any format needing a decoder library is out.
 Raw plus a manifest is the only option that is both compact and dependency-free.
 
 The manifest is what makes it defensible. Raw binary *without* a declaration
-would be an undocumented format — the thing that becomes unreadable in five
+would be an undocumented format, the thing that becomes unreadable in five
 years. With `dtype`, `layout`, `axes`, and `shape` written down, the file is
 self-contained evidence.
 
@@ -202,34 +202,34 @@ The file is 2 bytes per voxel: 1.4 MB at 100 × 100 × 70. JSON would be roughly
 
 The costs:
 
-- **Opacity.** You cannot look at the file. Debugging needs a decoder.
-- **A four-part contract** that must stay in step across three
-  implementations — hence the assertions on all three sides.
-- **No compression.** A lithology block is highly repetitive and would compress
+- Opacity. You cannot look at the file. Debugging needs a decoder.
+- A four-part contract that must stay in step across three
+  implementations, hence the assertions on all three sides.
+- No compression. A lithology block is highly repetitive and would compress
   enormously. Adding compression means a decoder in the browser, which is the
   constraint that shaped the whole choice.
-- **`.npz` is written too**, alongside, for Python consumers:
+- `.npz` is written too, alongside, for Python consumers:
   `np.savez(lith_path, lith_block=..., resolution=..., extent=...)`. Two formats
   for two audiences rather than one compromise.
 
 ## Where else you meet it
 
-- **Image and audio formats** — the pixel data in a BMP or the samples in a WAV
+- Image and audio formats: the pixel data in a BMP or the samples in a WAV
   are raw arrays behind a header that declares exactly these properties.
-- **Machine-learning weights** — safetensors is raw tensors plus a JSON header,
+- Machine-learning weights: safetensors is raw tensors plus a JSON header,
   the identical pattern.
-- **Scientific data** — FITS in astronomy, NIfTI in medical imaging, both
+- Scientific data: FITS in astronomy, NIfTI in medical imaging, both
   header-plus-payload.
-- **Memory-mapped files and databases**, where fixed-width binary records allow
+- Memory-mapped files and databases, where fixed-width binary records allow
   direct offset arithmetic.
-- **Network protocols**, where a fixed binary layout is what makes parsing fast.
+- Network protocols, where a fixed binary layout is what makes parsing fast.
 
 ## Related pages
 
-- [Endianness](endianness.md) — one of the four declarations.
-- [Bit depth and dynamic range](bit-depth-and-dynamic-range.md) — why `uint16`.
-- [Schema versioning](schema-versioning.md) — how the reader refuses a future
+- [Endianness](endianness.md): one of the four declarations.
+- [Bit depth and dynamic range](bit-depth-and-dynamic-range.md): why `uint16`.
+- [Schema versioning](schema-versioning.md): how the reader refuses a future
   format.
-- [Validation at trust boundaries](validation-at-trust-boundaries.md) — the
+- [Validation at trust boundaries](validation-at-trust-boundaries.md): the
   checks on both sides.
-- [Output files](../reference/output-files.md) — what each stage writes.
+- [Output files](../reference/output-files.md): what each stage writes.

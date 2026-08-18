@@ -12,7 +12,7 @@ verified_against: ae2fc1d
 
 # Series order
 
-The single young-to-old ordering of surfaces that the model is built from —
+The single young-to-old ordering of surfaces that the model is built from
 and, just as importantly, the record of **which evidence supplied it**. Three
 sources are available, they are not equally trustworthy, and one of them is
 wrong at this site in a way the others are not.
@@ -31,7 +31,7 @@ ranks them:
 | `SUPPLIED` | an order sent with the build request | whatever the operator knows |
 | `HARRIS` | the trench's [Harris Matrix](harris-matrix.md) | the excavation's own record of relationships |
 | `RECORDED` | each wall's layer sequence, top to bottom | real evidence, about what one wall saw |
-| `ELEVATION` | mean elevation of each surface's points | **not evidence** — an assumption |
+| `ELEVATION` | mean elevation of each surface's points | **not evidence**, an assumption |
 
 The module's whole purpose is that the fourth is still available and is never
 allowed to pass for the first three.
@@ -48,8 +48,8 @@ flowchart TB
   E -.-> W["labelled as an assumption<br/>in the build log AND the manifest"]
 ```
 
-The dotted path is the important one. Elevation ordering is not removed — a
-model with no other information still has to be buildable — but it never
+The dotted path is the important one. Elevation ordering is not removed (a
+model with no other information still has to be buildable), but it never
 arrives unlabelled.
 
 ## Why excavation records it
@@ -69,7 +69,7 @@ in as many words:
 
 T104 is exactly that case: the 2025 report describes the Intermediate Phase
 surface diving over 2 m below the contemporary floor of OC2/Workshop. Sort those
-by elevation and the model confidently inverts them — and looks entirely
+by elevation and the model confidently inverts them, and looks entirely
 plausible doing it.
 
 ## How this project stores it
@@ -143,7 +143,7 @@ def from_harris(...):
 
 A trench's matrix covers the whole excavation; a model covers whichever walls
 were traced. The mismatch is normal, so it is filtered rather than treated as an
-error — but only in this direction. The opposite case, an order missing a
+error, but only in this direction. The opposite case, an order missing a
 surface the points contain, is still a refusal.
 
 Reachability is computed before the drop, so an ordering implied through a chain
@@ -165,7 +165,7 @@ The module docstring states the mismatch plainly:
 > one.
 
 `from_harris` returns `(order, arbitrary_pairs, notes)`. The second element is
-the list of adjacent pairs the matrix does not order — deposits the excavation
+the list of adjacent pairs the matrix does not order: deposits the excavation
 recorded as simultaneous, which the stack forced into a sequence.
 
 This is the same honesty move as [wall traces](interface-point.md): the model
@@ -177,7 +177,7 @@ where it was arbitrary. See
 
 | Not a… | Because |
 |---|---|
-| **[Harris Matrix](harris-matrix.md)** | The matrix is a partial order — a graph with genuinely unordered pairs. A series order is a total order flattened out of it. |
+| **[Harris Matrix](harris-matrix.md)** | The matrix is a partial order, a graph with genuinely unordered pairs. A series order is a total order flattened out of it. |
 | **[Stratigraphy](stratigraphy.md)** | Stratigraphy is the sequence as excavated. A series order is one linearisation of it that a particular modelling library needs. |
 | **A phasing** | Phases group units into periods of activity. This is an ordering of individual surfaces and does no grouping. |
 | **[Topological sort](../cs/topological-sorting.md) output alone** | The sort produces *an* order; this module decides which evidence is sorted and labels the result. |
@@ -207,11 +207,11 @@ works from correlation representatives for exactly this reason.
 
 ## Related pages
 
-- [Harris Matrix](harris-matrix.md) — the authoritative source.
+- [Harris Matrix](harris-matrix.md): the authoritative source.
 - [Stratigraphy](stratigraphy.md) and
-  [Law of superposition](law-of-superposition.md) — why order is meaning.
-- [Correlation](correlation.md) — what collapses units before ordering.
-- [Topological sorting](../cs/topological-sorting.md) — the algorithm.
-- [Directed acyclic graphs](../cs/directed-acyclic-graphs.md) — the structure.
-- [Interpolation versus measurement](../cs/interpolation-vs-measurement.md) —
+  [Law of superposition](law-of-superposition.md): why order is meaning.
+- [Correlation](correlation.md): what collapses units before ordering.
+- [Topological sorting](../cs/topological-sorting.md): the algorithm.
+- [Directed acyclic graphs](../cs/directed-acyclic-graphs.md): the structure.
+- [Interpolation versus measurement](../cs/interpolation-vs-measurement.md):
   the same honesty principle applied to geometry.

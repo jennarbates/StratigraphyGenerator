@@ -411,7 +411,7 @@ test("verified loci produce chooser display labels", () => {
       munsellRaw: "10YR 5/3",
       description: "brown silty soil",
     }),
-    "1042 — 10YR 5/3 — brown silty soil",
+    "1042 · 10YR 5/3 · brown silty soil",
   );
   assert.equal(
     verifiedLocusDisplayLabel({
@@ -419,7 +419,7 @@ test("verified loci produce chooser display labels", () => {
       munsellRaw: "7.5YR 4/4",
       description: null,
     }),
-    "1043 — 7.5YR 4/4",
+    "1043 · 7.5YR 4/4",
   );
 });
 
@@ -435,8 +435,8 @@ test("missing chooser metadata never renders null text", () => {
     description: null,
   });
 
-  assert.equal(missingMunsell, "1044 — Munsell unreadable — silty soil");
-  assert.equal(missingDescription, "1045 — 5YR 4/6");
+  assert.equal(missingMunsell, "1044 · Munsell unreadable · silty soil");
+  assert.equal(missingDescription, "1045 · 5YR 4/6");
   assert.equal(missingMunsell.includes("null"), false);
   assert.equal(missingDescription.includes("null"), false);
 });

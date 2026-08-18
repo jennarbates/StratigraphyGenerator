@@ -10,7 +10,7 @@ verified_against: 636b160
 # Layered graph drawing
 
 Placing the nodes of a DAG in horizontal rows so every edge points downward.
-The layout method behind a Harris Matrix — and the reason this project renders
+The layout method behind a Harris Matrix, and the reason this project renders
 one deterministically, with no layout library at all.
 
 ## What it is
@@ -18,19 +18,19 @@ one deterministically, with no layout library at all.
 The **Sugiyama framework** is the standard approach to drawing a directed graph
 readably, in four phases:
 
-1. **Cycle removal** — reverse edges until the graph is acyclic. *(Not needed
+1. Cycle removal: reverse edges until the graph is acyclic. *(Not needed
    here: a chronology with a [cycle](cycle-detection.md) is an error, so the
    graph is already a DAG.)*
-2. **Layer assignment** — give each node a rank, so every edge goes from a lower
+2. Layer assignment: give each node a rank, so every edge goes from a lower
    rank to a higher one.
-3. **Crossing reduction** — order nodes within each rank to minimise edge
+3. Crossing reduction: order nodes within each rank to minimise edge
    crossings.
-4. **Coordinate assignment** — give each node an x position.
+4. Coordinate assignment: give each node an x position.
 
 Phase 2 has two natural choices, and they are not equivalent:
 
-- **Shortest path from a root** — the [BFS](breadth-first-search.md) levelling.
-- **Longest path** — each node sits one below its *deepest* predecessor.
+- Shortest path from a root: the [BFS](breadth-first-search.md) levelling.
+- Longest path: each node sits one below its *deepest* predecessor.
 
 For a Harris Matrix only the second is correct, and the difference is
 archaeological rather than aesthetic.
@@ -61,7 +61,7 @@ diagram would be chronologically false while looking perfectly tidy.
 `poggio_webapp/pipeline/harris_render.py` implements phases 2 and 4 and handles
 phase 3 by fiat.
 
-### Layer assignment — longest path
+### Layer assignment: longest path
 
 ```python
 def _longest_path_ranks(order, edges):
@@ -84,7 +84,7 @@ def _longest_path_ranks(order, edges):
 Five lines, and correct because of one precondition: `order` is the
 [topological order](topological-sorting.md). Iterating in that order guarantees
 every predecessor's rank is final before its successors are examined, so a
-single pass suffices — no iteration to convergence.
+single pass suffices: no iteration to convergence.
 
 `max(...)` is what makes it longest-path rather than first-wins. Locus 4 above
 gets rank 1 from the direct edge and rank 2 from the two-step path, and keeps 2.
@@ -92,7 +92,7 @@ gets rank 1 from the direct edge and rank 2 from the two-step path, and keeps 2.
 The result: **every edge points strictly downward**, so the diagram cannot draw
 a unit level with or above one it is younger than.
 
-### Ordering within a rank — determinism over optimality
+### Ordering within a rank: determinism over optimality
 
 ```python
 def _ranked_nodes(nodes):
@@ -144,7 +144,7 @@ def _estimated_text_width(text: str, *, size=14) -> int:
     return max(1, round(len(text) * size * 0.62))
 ```
 
-0.62 em per character is an approximation for a proportional font — good enough
+0.62 em per character is an approximation for a proportional font: good enough
 that labels fit, and deterministic, which a real measurement in a browser would
 not be.
 
@@ -166,7 +166,7 @@ A stated limit with a clear message, rather than an unreadable diagram.
 
 | Alternative | How it would lay out | Why it lost |
 |---|---|---|
-| **Graphviz `dot`** | The reference implementation of Sugiyama | Excellent layouts, and it is an external binary dependency, its output can change between versions, and its crossing-reduction heuristics make the layout unstable under small data changes. This project needs a diagram that is reproducible and diffable — see the CI step that regenerates every diagram and fails on any difference. |
+| **Graphviz `dot`** | The reference implementation of Sugiyama | Excellent layouts, and it is an external binary dependency, its output can change between versions, and its crossing-reduction heuristics make the layout unstable under small data changes. This project needs a diagram that is reproducible and diffable. See the CI step that regenerates every diagram and fails on any difference. |
 | **A JavaScript layout library (d3-dag, elkjs)** | Layout in the browser | Would need a build step, which this project deliberately does not have, and it would put the canonical rendering in the client rather than in a testable server function. |
 | **Force-directed layout** | Physics simulation | Produces organic, non-deterministic layouts with no notion of rank. Completely wrong for a diagram whose entire meaning is vertical order. |
 | **Shortest-path levelling** | BFS from roots | Cheaper, and it draws units level with ones they are younger than. Chronologically false. |
@@ -186,14 +186,14 @@ units.
 
 The costs:
 
-- **More edge crossings** than a heuristic layout would produce. Accepted
+- More edge crossings than a heuristic layout would produce. Accepted
   deliberately.
-- **Longest-path ranking makes tall diagrams.** A node one step from a root but
+- Longest-path ranking makes tall diagrams. A node one step from a root but
   many steps down another path is pushed to the bottom, stretching the drawing.
-  The alternative — a shorter, wrong diagram — is not a trade worth making.
-- **Text width is estimated**, so an unusually wide glyph run can overflow its
+  The alternative (a shorter, wrong diagram) is not a trade worth making.
+- Text width is estimated, so an unusually wide glyph run can overflow its
   box slightly.
-- **No edge routing.** Edges are straight lines between node centres and can pass
+- No edge routing. Edges are straight lines between node centres and can pass
   through intervening boxes. Sugiyama's full treatment inserts dummy nodes for
   long edges; that is a real gap, and a candidate improvement.
 
@@ -216,22 +216,22 @@ plus a `<title>`, a `<desc>` stating that younger units are at the top, and a
 
 ## Where else you meet it
 
-- **Graphviz `dot`**, the canonical implementation, used for everything from
+- Graphviz `dot`, the canonical implementation, used for everything from
   compiler passes to org charts.
-- **UML class diagrams** and entity-relationship diagrams.
-- **Git history visualisers**, laying out the commit DAG.
-- **Build and CI pipeline views** — Jenkins, GitLab, Airflow.
-- **Metro and transit maps**, which are hand-drawn layered layouts.
-- **Family trees**, where generational rank is the layer.
+- UML class diagrams and entity-relationship diagrams.
+- Git history visualisers, laying out the commit DAG.
+- Build and CI pipeline views: Jenkins, GitLab, Airflow.
+- Metro and transit maps, which are hand-drawn layered layouts.
+- Family trees, where generational rank is the layer.
 
 ## Related pages
 
-- [Topological sorting](topological-sorting.md) — the precondition that makes
+- [Topological sorting](topological-sorting.md): the precondition that makes
   one-pass ranking correct.
-- [Transitive reduction](transitive-reduction.md) — which edges are drawn.
-- [Breadth-first search](breadth-first-search.md) — the levelling that would be
+- [Transitive reduction](transitive-reduction.md): which edges are drawn.
+- [Breadth-first search](breadth-first-search.md): the levelling that would be
   wrong here.
-- [Directed acyclic graphs](directed-acyclic-graphs.md) — why phase 1 is
+- [Directed acyclic graphs](directed-acyclic-graphs.md): why phase 1 is
   unnecessary.
-- [Union-Find](union-find.md) — how correlated units become one box.
-- [Build a Harris Matrix](../workflows/harris-matrix.md) — the workflow.
+- [Union-Find](union-find.md): how correlated units become one box.
+- [Build a Harris Matrix](../workflows/harris-matrix.md): the workflow.

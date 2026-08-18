@@ -43,7 +43,7 @@ text { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-se
   <line x1="130.0" y1="110.00000000000114" x2="490.0" y2="169.99999999999986" class="edge"/>
   <text x="118.0" y="114.00000000000114" text-anchor="end" class="mono">23.99</text>
   <text x="502.0" y="173.99999999999986" text-anchor="start" class="mono">23.87</text>
-  <text x="556.0" y="173.99999999999986" text-anchor="start" class="sm muted">Locus 6 opening — the floor surface</text>
+  <text x="556.0" y="173.99999999999986" text-anchor="start" class="sm muted">Locus 6 opening (the floor surface)</text>
   <line x1="130.0" y1="210.0000000000008" x2="490.0" y2="235.00000000000114" class="edge"/>
   <text x="118.0" y="214.0000000000008" text-anchor="end" class="mono">23.79</text>
   <text x="502.0" y="239.00000000000114" text-anchor="start" class="mono">23.74</text>
@@ -56,7 +56,7 @@ text { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-se
   <text x="490.0" y="60" text-anchor="middle" class="sm muted">24S</text>
   <text x="310.0" y="155.00000000000108" text-anchor="middle" class="sm bold">Locus 6</text>
   <text x="310.0" y="265.0000000000005" text-anchor="middle" class="sm bold">Locus 7</text>
-  <text x="310.0" y="349.99999999999955" text-anchor="middle" class="sm bold">Locus 8 — unexcavated</text>
+  <text x="310.0" y="349.99999999999955" text-anchor="middle" class="sm bold">Locus 8 (unexcavated)</text>
   <text x="24" y="424" text-anchor="start" class="sm">One locus's closing surface is the next one's opening surface, at all four corners. Nothing is interpolated here:</text>
   <text x="24" y="444" text-anchor="start" class="sm">every line is two recorded elevations joined. Locus 6 measures 0.20 m thick at the northwest corner and 0.13 m at the southwest,</text>
   <text x="24" y="464" text-anchor="start" class="sm">so the season's single stated figure of “about 20 cm” describes one corner rather than the layer.</text>

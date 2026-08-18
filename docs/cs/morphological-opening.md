@@ -20,7 +20,7 @@ opening(A, B) = dilate(erode(A, B), B)
 ```
 
 [Erosion](erosion.md) removes anything the structuring element cannot fit
-inside — thin lines, small specks, narrow bridges. It also shrinks whatever
+inside: thin lines, small specks, narrow bridges. It also shrinks whatever
 survives. [Dilation](dilation.md) by the *same* element grows the survivors
 back to roughly their original size.
 
@@ -29,10 +29,10 @@ element are gone, structures wider than it are unchanged.
 
 Two properties make it well behaved:
 
-- **Idempotent.** Opening an already-opened image changes nothing. There is no
+- Idempotent: opening an already-opened image changes nothing. There is no
   "apply it twice for more effect."
-- **Anti-extensive.** The result is always a subset of the input. Opening can
-  only remove, never add — so it cannot invent structure.
+- Anti-extensive: the result is always a subset of the input. Opening can
+  only remove, never add, so it cannot invent structure.
 
 That second property matters in a pipeline that elsewhere spends real effort
 detecting [fabricated geometry](fabrication-detection.md). Opening is incapable of
@@ -86,13 +86,13 @@ earlier CLI tool:
 > non-circular contour and being lost
 
 That sentence is the whole justification. Without opening, the discriminating
-measures — [circularity](circularity.md), [solidity](solidity.md),
-[fill ratio](extent-and-fill-ratio.md) — are computed on the wrong object,
+measures ([circularity](circularity.md), [solidity](solidity.md),
+[fill ratio](extent-and-fill-ratio.md)) are computed on the wrong object,
 because [contour tracing](contour-tracing.md) has no notion of "the round part
 of this shape." Opening turns one bad contour into one good one.
 
 The kernel is `line_kill_paper_mm = 0.35` mm, converted through the
-calibration — so it is 0.35 mm of paper regardless of camera resolution. See
+calibration, so it is 0.35 mm of paper regardless of camera resolution. See
 [structuring elements](structuring-elements.md) for the conversion, and note
 the deliberately narrow margin: wider than any drawn line, narrower than any
 dot.
@@ -103,10 +103,10 @@ dot.
 |---|---|---|
 | **[Erosion](erosion.md) alone** | Erode and use the result | Removes the lines and leaves every dot k pixels smaller. The next filter is a **diameter band in paper millimetres**, so uniformly shrunken dots fail their own size test. |
 | **Filter contours by shape, no morphology** | Reject non-circular contours after tracing | Does not work: the dot and its line are a *single* contour, so the dot never appears as a candidate. There is nothing to filter. |
-| **[Hough circle transform](hough-line-transform.md)** | Search parameter space for circles directly | Purpose-built for circles and would find the dot even while attached. It has four coupled parameters, is sensitive to all of them, and — decisively — finds *outlines* of circles. This filter specifically wants **filled disks**, since a drawn stone's outline is round and must be rejected. That is a [solidity](solidity.md) test, which needs a contour. |
+| **[Hough circle transform](hough-line-transform.md)** | Search parameter space for circles directly | Purpose-built for circles and would find the dot even while attached. It has four coupled parameters, is sensitive to all of them, and, decisively, finds *outlines* of circles. This filter specifically wants **filled disks**, since a drawn stone's outline is round and must be rejected. That is a [solidity](solidity.md) test, which needs a contour. |
 | **Distance transform + local maxima** | Peaks of the distance transform mark blob centres | Elegant for touching round objects, and a whole extra pipeline with its own thresholds where a 3-pixel kernel suffices. |
-| **Skeletonisation, then junction analysis** | Thin everything, find where a blob meets a line | Destroys exactly the property being measured — whether the mark is filled. Solidity and fill ratio are meaningless on a skeleton. |
-| **Top-hat transform** | `input − opening(input)`, i.e. keep what opening removed | The complement of what is wanted. Useful if you wanted the *lines* — which is a genuinely interesting future direction for tracing boundaries directly. |
+| **Skeletonisation, then junction analysis** | Thin everything, find where a blob meets a line | Destroys exactly the property being measured: whether the mark is filled. Solidity and fill ratio are meaningless on a skeleton. |
+| **Top-hat transform** | `input − opening(input)`, i.e. keep what opening removed | The complement of what is wanted. Useful if you wanted the *lines*, which is a genuinely interesting future direction for tracing boundaries directly. |
 
 Opening wins because the discriminating property is purely **thickness**, and
 opening is precisely a thickness filter. Every alternative either solves a
@@ -133,24 +133,24 @@ The filter's mistakes stay visible to a person. See
 
 ## Where else you meet it
 
-- **Scanned document cleanup**, removing speckle and dust before OCR.
-- **Fingerprint processing**, isolating ridge structures.
-- **Astronomy**, separating point sources from diffuse nebulosity — an opening
+- Scanned document cleanup, removing speckle and dust before OCR.
+- Fingerprint processing, isolating ridge structures.
+- Astronomy, separating point sources from diffuse nebulosity: an opening
   with a small element keeps stars and removes the background structure, or the
   reverse via the top-hat.
-- **Materials science**, measuring grain and pore size distributions by opening
+- Materials science, measuring grain and pore size distributions by opening
   at a sequence of element sizes (granulometry).
-- **Road and vessel extraction** in aerial and medical imaging, where linear
+- Road and vessel extraction in aerial and medical imaging, where linear
   structures are separated from blobs by exactly this contrast.
 
 ## Related pages
 
-- [Erosion](erosion.md) and [dilation](dilation.md) — the two halves.
-- [Morphological closing](morphological-closing.md) — the dual operation, used
+- [Erosion](erosion.md) and [dilation](dilation.md): the two halves.
+- [Morphological closing](morphological-closing.md): the dual operation, used
   elsewhere in this repository.
-- [Structuring elements](structuring-elements.md) — the probe, and why its size
+- [Structuring elements](structuring-elements.md): the probe, and why its size
   is in millimetres of paper.
-- [Circularity](circularity.md), [solidity](solidity.md) — the measures this
+- [Circularity](circularity.md), [solidity](solidity.md): the measures this
   makes computable.
-- [Markers and features](../workflows/03-markers-and-features.md) — the
+- [Markers and features](../workflows/03-markers-and-features.md): the
   workflow step.

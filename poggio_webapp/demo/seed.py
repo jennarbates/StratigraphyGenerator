@@ -210,9 +210,7 @@ def _wall_lengths(grid: dict, wall_names: list[str]) -> dict[str, float]:
     return lengths
 
 
-# ---------------------------------------------------------------------------
 # Removing a previous run
-# ---------------------------------------------------------------------------
 
 
 def reset(trench_label: str) -> list[str]:
@@ -240,9 +238,7 @@ def reset(trench_label: str) -> list[str]:
     return removed
 
 
-# ---------------------------------------------------------------------------
 # Writing each kind of artifact
-# ---------------------------------------------------------------------------
 
 
 def _write_wall_job(
@@ -455,9 +451,7 @@ def _write_finds(dataset, job_id, wall_label):
     return written, skipped
 
 
-# ---------------------------------------------------------------------------
 # The seeder
-# ---------------------------------------------------------------------------
 
 
 def seed(scenario_name: str, *, dataset_label: str | None = None) -> dict:
@@ -577,9 +571,7 @@ def _drawing_surfaces(grid, wall_names, layout, loci_document):
     return surfaces
 
 
-# ---------------------------------------------------------------------------
 # Command line
-# ---------------------------------------------------------------------------
 
 
 def _format(summary: dict) -> str:

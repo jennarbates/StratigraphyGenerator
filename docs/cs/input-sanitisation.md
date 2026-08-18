@@ -13,20 +13,20 @@ verified_against: ae2fc1d
 # Input sanitisation
 
 Cleaning untrusted input before it is used. The important distinction is between
-**rejecting** what is not allowed and **transforming** it into something safe —
-and which of the two is right depends entirely on what the value is for.
+**rejecting** what is not allowed and **transforming** it into something safe.
+Which of the two is right depends entirely on what the value is for.
 
 ## What it is
 
 Three strategies, in decreasing order of safety:
 
-**Allowlist** — accept only what matches a known-good set. Anything unexpected
+**Allowlist**: accept only what matches a known-good set. Anything unexpected
 is refused. The safest, because it fails closed on inputs nobody anticipated.
 
-**Transform** — convert the input into a safe form. Useful when the value must
+**Transform**: convert the input into a safe form. Useful when the value must
 survive rather than be rejected, and it changes what the user supplied.
 
-**Denylist** — reject known-bad patterns. The weakest, because the list is never
+**Denylist**: reject known-bad patterns. The weakest, because the list is never
 complete.
 
 The trap is applying a transform where a rejection belongs, or vice versa. A
@@ -99,7 +99,7 @@ scan_path = d / "01_scan" / filename
 file.save(scan_path)
 ```
 
-A transform is right here because the filename is **cosmetic** — it is a label
+A transform is right here because the filename is **cosmetic**: it is a label
 on an archival copy, not an identifier anything looks up. Mangling it costs
 nothing. Rejecting an upload because its name contains a space would be
 obstructive.
@@ -130,8 +130,8 @@ def canonical_trench(value) -> str:
 ```
 
 This is the most careful of the three. A transform that mangles what it does not
-understand would corrupt a legitimate label it had never seen. The rule —
-**transform only what matches the expected shape, otherwise pass through** — is
+understand would corrupt a legitimate label it had never seen. The rule
+(**transform only what matches the expected shape, otherwise pass through**) is
 the safe default for a canonicaliser.
 
 The docstring even declines a tempting further transform:
@@ -164,7 +164,7 @@ This is **output** sanitisation, not input. A unit label containing a control
 character would produce an SVG no parser could read. Replacing with U+FFFD keeps
 the document valid and makes the substitution visible.
 
-Note that `ElementTree` handles the *structural* escaping — `<`, `&`, quotes —
+`ElementTree` handles the *structural* escaping (`<`, `&`, quotes),
 so this is not hand-rolled HTML escaping. It handles only what the library
 cannot: characters XML 1.0 forbids outright.
 
@@ -173,7 +173,7 @@ cannot: characters XML 1.0 forbids outright.
 The extraction schemas transcribe the sheet **verbatim**. From
 `assign_markers.build_prompt`:
 
-> PART 1 — transcribe the sheet's text, verbatim ... gridTiePoints: the
+> PART 1. Transcribe the sheet's text, verbatim ... gridTiePoints: the
 > coordinate labels along the top edge, rawText exactly as written
 
 `convert_coords.make_starter_config`:
@@ -188,24 +188,24 @@ The extraction schemas transcribe the sheet **verbatim**. From
 ```
 
 Transcription and interpretation are separated rather than merged. The label is
-*parsed* — `site_grid.label_to_grid` reads `190E/53S` as `(190, -53)` by the
-site's own sign rule — but `rawText` is kept beside the parse, and neither is
+*parsed* (`site_grid.label_to_grid` reads `190E/53S` as `(190, -53)` by the
+site's own sign rule), but `rawText` is kept beside the parse, and neither is
 applied to a face.
 
 Transcribed text is **evidence**. Cleaning it in place would destroy what was
 recorded.
 The safety comes from never using it as a path, an identifier, or executable
-content — see [path traversal](path-traversal-and-containment.md).
+content. See [path traversal](path-traversal-and-containment.md).
 
 ## Why this and not something else
 
-| Alternative | How it would handle the upload | Why it lost — or won |
+| Alternative | How it would handle the upload | Why it lost, or won |
 |---|---|---|
 | **No sanitisation** | Join the client's name onto a path | The name is attacker-controlled and joined onto a storage root. |
-| **Denylist** | Reject names containing `..` or `/` | Incomplete by nature — encodings, Unicode look-alikes, platform quirks. |
+| **Denylist** | Reject names containing `..` or `/` | Incomplete by nature: encodings, Unicode look-alikes, platform quirks. |
 | **Allowlist the extension** *(chosen)* | Reject unknown types | Cheap, complete for the question it answers, and it fails closed. |
 | **Transform the name** *(chosen)* | `secure_filename` | Right because the name is cosmetic. Rejecting a file for having a space in its name would be obstructive. |
-| **Discard the name entirely** | Store as `scan.png` | Safest, and it loses information a person may want — the original name is a small piece of provenance. |
+| **Discard the name entirely** | Store as `scan.png` | Safest, and it loses information a person may want. The original name is a small piece of provenance. |
 | **Content sniffing** | Verify the file really is a PNG | Stronger than trusting the extension, and OpenCV already fails on a non-image, so the extension check is a fast reject rather than the only guard. |
 
 The judgement running through all of these is **what the value is for**:
@@ -221,36 +221,36 @@ Microseconds.
 
 The costs:
 
-- **A transform changes what the user gave you.** Acceptable for a filename,
-  unacceptable for an identifier — hence `canonical_trench` returning unmatched
+- A transform changes what the user gave you. Acceptable for a filename,
+  unacceptable for an identifier, hence `canonical_trench` returning unmatched
   input unchanged.
-- **Allowlists must be maintained.** Supporting a new image format means editing
+- Allowlists must be maintained. Supporting a new image format means editing
   `ALLOWED_SCAN_EXT`. That is the intended friction.
-- **Sanitisation is not validation.** A file with a `.png` extension may not be a
+- Sanitisation is not validation. A file with a `.png` extension may not be a
   PNG. The extension check is a fast reject; the decoder is the real test.
-- **Verbatim data needs discipline downstream.** Transcribed text is safe only
+- Verbatim data needs discipline downstream. Transcribed text is safe only
   because nothing uses it as a path or a key.
 
 ## Where else you meet it
 
-- **SQL injection**, prevented properly by parameterised queries — a form of
-  never mixing data with code, rather than by escaping.
-- **Cross-site scripting**, prevented by output encoding, the same distinction
+- SQL injection, prevented properly by parameterised queries (a form of
+  never mixing data with code), rather than by escaping.
+- Cross-site scripting, prevented by output encoding, the same distinction
   `_xml_text` draws.
-- **Command injection**, prevented by passing argument lists rather than shell
+- Command injection, prevented by passing argument lists rather than shell
   strings.
-- **Email and URL validation**, the canonical example of a transform that
+- Email and URL validation, the canonical example of a transform that
   mangles legitimate input if done carelessly.
-- **Unicode normalisation**, where two visually identical strings compare
+- Unicode normalisation, where two visually identical strings compare
   unequal until normalised.
 
 ## Related pages
 
-- [Path traversal and containment](path-traversal-and-containment.md) — the
+- [Path traversal and containment](path-traversal-and-containment.md): the
   filesystem case.
-- [Sets and membership](sets-and-membership.md) — allowlists as sets.
-- [Regular expressions](regular-expressions.md) — shape validation.
-- [Validation at trust boundaries](validation-at-trust-boundaries.md) — where
+- [Sets and membership](sets-and-membership.md): allowlists as sets.
+- [Regular expressions](regular-expressions.md): shape validation.
+- [Validation at trust boundaries](validation-at-trust-boundaries.md): where
   these run.
-- [Provenance and data lineage](provenance-and-data-lineage.md) — why some data
+- [Provenance and data lineage](provenance-and-data-lineage.md): why some data
   is left untouched.

@@ -54,8 +54,8 @@ The validator returns:
 
 (The `[WARN]` prefix carries two spaces, aligning it with `[ERROR]`.)
 
-- **`ok: true`** — no errors (warnings permitted)
-- **`ok: false`** — one or more errors; data should not proceed to conversion
+- `ok: true`: no errors (warnings permitted)
+- `ok: false`: one or more errors; data should not proceed to conversion
 
 ---
 
@@ -65,7 +65,7 @@ The validator returns:
 
 | Rule | Level | Trigger | Message |
 |------|-------|---------|---------|
-| Null-string detection | warning | Field contains `"null"`, `"None"`, `"n/a"` (as strings) | `literal string "<value>" — should this be a real null?` |
+| Null-string detection | warning | Field contains `"null"`, `"None"`, `"n/a"` (as strings) | `literal string "<value>" (should this be a real null?)` |
 | Root structure | error | No `trenchProfiles` AND not a field-wall profile | `root: no trenchProfiles` |
 | Face structure | warning | Face has no layers | `<face>: no layers` |
 
@@ -82,19 +82,19 @@ The validator returns:
 
 | Rule | Level | Trigger | Notes |
 |------|-------|---------|-------|
-| Layer crossing | **error** | Bottom of layer N is ABOVE bottom of layer N-1 by > `monotonic_tolerance` | `<layer>: bottom at x=<x> is ABOVE <prev_layer>'s bottom — layers cross` |
-| Layer overlap/void | warning | Top of layer N differs from bottom of layer N-1 by > `top_continuity_tolerance` | `<layer>: top at x=<x> is far from <prev_layer> bottom — possible void/overlap` |
+| Layer crossing | **error** | Bottom of layer N is ABOVE bottom of layer N-1 by > `monotonic_tolerance` | `<layer>: bottom at x=<x> is ABOVE <prev_layer>'s bottom: layers cross` |
+| Layer overlap/void | warning | Top of layer N differs from bottom of layer N-1 by > `top_continuity_tolerance` | `<layer>: top at x=<x> is far from <prev_layer> bottom: possible void/overlap` |
 | Grid label mismatch | warning | `gridLabels` and `gridLabelXMeters` length differ | `<face>: gridLabels (...) and gridLabelXMeters (...) differ in length` |
 
 ### 4. Fabrication Detection
 
-These warnings flag automatic extraction results that may be computer-generated rather than hand-traced. Both checks are skipped when the document's `source` is `"manual_editor"` — hand-traced boundaries are exempt.
+These warnings flag automatic extraction results that may be computer-generated rather than hand-traced. Both checks are skipped when the document's `source` is `"manual_editor"`: hand-traced boundaries are exempt.
 
 #### Uniform Spacing (Field-Wall and Illustrator)
 
 | Rule | Level | Trigger | Notes |
 |------|-------|---------|-------|
-| Regular intervals | warning | Boundary vertices spaced at uniform intervals with coefficient of variation < 0.02 | `<layer> bottom: boundary vertices are evenly spaced every <interval> m — signature of estimated points, not marked vertices` |
+| Regular intervals | warning | Boundary vertices spaced at uniform intervals with coefficient of variation < 0.02 | `<layer> bottom: boundary vertices are evenly spaced every <interval> m. This is the signature of points estimated at a fixed interval rather than read off the recorder's marked vertices` |
 
 **Coefficient of Variation (CV):** $\text{CV} = \frac{\sigma}{\mu}$ of x-interval spacings. Real boundaries: CV ≈ 0.20; fabricated: CV ≈ 0.00.
 
@@ -102,7 +102,7 @@ These warnings flag automatic extraction results that may be computer-generated 
 
 | Rule | Level | Trigger | Notes |
 |------|-------|---------|-------|
-| Copied boundaries | warning | Two layers have identical boundary shapes offset by constant depth within 0.5 cm tolerance | `layers <layer1> and <layer2> have identical boundary shapes offset by a constant <offset> m — almost certainly one boundary copied down` |
+| Copied boundaries | warning | Two layers have identical boundary shapes offset by constant depth within 0.5 cm tolerance | `layers <layer1> and <layer2> have identical boundary shapes offset by a constant <offset> m, almost certainly one boundary copied down` |
 
 ---
 
@@ -112,7 +112,7 @@ These warnings flag automatic extraction results that may be computer-generated 
 
 | Rule | Level | Trigger | Notes |
 |------|-------|---------|-------|
-| Missing geometry | warning | Feature has no `shapePoints` AND no `approx*` coordinates | `<feature>: no shapePoints and no approx* coords — geometry may be trapped in description` |
+| Missing geometry | warning | Feature has no `shapePoints` AND no `approx*` coordinates | `<feature>: no shapePoints and no approx* coords. Geometry may be trapped in description` |
 | Shape outside layer band | warning | Feature polygon depth outside [layer top, layer bottom] by > `monotonic_tolerance` | `<feature>[i]: point depth <value> lies outside layer band [<top>, <bottom>]` |
 
 ---
@@ -126,7 +126,7 @@ These checks apply only to `FieldWallProfile` extractions (identified by `loci` 
 | Rule | Level | Trigger | Notes |
 |------|-------|---------|-------|
 | Missing locus entry | warning | `layers[].locusNumber` references a locus not in `loci[]` | `<face>: layer references locus <num>, which has no entry in loci[] (no Munsell reading)` |
-| Duplicate locus | warning | `loci[]` contains the same `locusNumber` more than once (readings are not compared) | `<face>: locus <num> appears <count> times in loci[] with different Munsell readings — the converter will use the first` |
+| Duplicate locus | warning | `loci[]` contains the same `locusNumber` more than once (readings are not compared) | `<face>: locus <num> appears <count> times in loci[] with different Munsell readings. The converter will use the first` |
 
 ### Grid Tie Points
 
@@ -218,9 +218,9 @@ POST /api/jobs/<job_id>/validate
 
 ### Example Use Cases
 
-- **High overlap tolerance** (e.g., 0.20 m): Accept drawings with larger gaps between layers
-- **Strict monotonicity** (e.g., 0.01 m): Catch even small layer inversions
-- **Deep trench** (e.g., 15 m): Suppress implausible-depth warnings in very deep excavations
+- High overlap tolerance (e.g., 0.20 m): Accept drawings with larger gaps between layers
+- Strict monotonicity (e.g., 0.01 m): Catch even small layer inversions
+- Deep trench (e.g., 15 m): Suppress implausible-depth warnings in very deep excavations
 
 ---
 
@@ -260,7 +260,7 @@ The user can accept warnings and continue, or re-extract/re-trace.
 
 ### Scenario 2: Layer Crossing Error After Manual Tracing
 
-**Symptom:** `bottom at x=<x> is ABOVE <prev_layer>'s bottom — layers cross`
+**Symptom:** `bottom at x=<x> is ABOVE <prev_layer>'s bottom: layers cross`
 
 **Cause:** User traced layer bottom above the previous layer's bottom (possible calibration or tracing error)
 

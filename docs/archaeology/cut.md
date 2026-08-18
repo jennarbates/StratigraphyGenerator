@@ -11,14 +11,14 @@ verified_against: ae2fc1d
 
 # Cut
 
-A hole. Specifically, the surface left behind when something was removed —
+A hole. Specifically, the surface left behind when something was removed:
 a pit dug, a ditch excavated, a foundation trench opened. A cut is a
 stratigraphic unit made of nothing.
 
 ## What it is
 
 Most stratigraphic units are material that was *added*: a layer of silt, a spread
-of destruction debris. A **cut** is the opposite — the record of material
+of destruction debris. A **cut** is the opposite, the record of material
 *removed*.
 
 The cut is the **surface** of the hole: its sides and base. Not the hole's
@@ -26,20 +26,20 @@ contents, which are the [fill](fill.md), and not the deposits it was dug through
 
 Three properties follow:
 
-- **A cut has no material.** It is an interface, and the excavator records its
+- A cut has no material. It is an interface, and the excavator records its
   shape, not its composition. There is no Munsell reading for a cut.
-- **A cut is younger than everything it passes through.** You cannot dig a pit
+- A cut is younger than everything it passes through. You cannot dig a pit
   through a layer that does not exist yet. This is the single most reliable
   dating relationship in stratigraphy.
-- **A cut is older than its fill.** The hole exists before anything goes into it.
+- A cut is older than its fill. The hole exists before anything goes into it.
 
 ## The picture
 
 ```mermaid
 flowchart TB
-  L1["Locus 1 — topsoil"]
-  L2["Locus 2 — occupation deposit"]
-  L3["Locus 3 — natural"]
+  L1["Locus 1, topsoil"]
+  L2["Locus 2, occupation deposit"]
+  L3["Locus 3, natural"]
   C["<b>the CUT</b><br/>a pit's sides and base"]
   F["the FILL inside it"]
   L1 --> L2 --> L3
@@ -58,13 +58,13 @@ than **every** unit it passes through, however many that is, and each of those
 becomes a separate dated relationship.
 
 Recording the cut separately from its fill also separates two events. The digging
-and the filling are different moments — sometimes centuries apart, as with a
+and the filling are different moments, sometimes centuries apart, as with a
 robbed-out wall trench left open before silting up.
 
 ## How this project stores it
 
-A cut is a **unit type** in the Harris Matrix vocabulary —
-`poggio_webapp/pipeline/harris_matrix.py`:
+A cut is a **unit type** in the Harris Matrix vocabulary
+(`poggio_webapp/pipeline/harris_matrix.py`):
 
 ```python
 UnitType = Literal[
@@ -97,7 +97,7 @@ stronger. A relation records which:
 }
 ```
 
-`evidence` is **required** — see [JSON schema design](../cs/json-schema-design.md).
+`evidence` is **required**. See [JSON schema design](../cs/json-schema-design.md).
 A chronological assertion without a stated reason is not something the schema
 will store.
 
@@ -137,7 +137,7 @@ candidates, and is careful not to claim more:
 ## Getting it wrong
 
 **Recording the cut and fill as one unit.** The commonest error. It collapses two
-events into one and loses the relationship between them — and the fill's contents
+events into one and loses the relationship between them, and the fill's contents
 then appear to date the digging, which they do not.
 
 **Missing the cut entirely.** A pit whose fill resembles the surrounding deposit
@@ -155,10 +155,10 @@ with a soil colour is probably its fill.
 
 ## Related pages
 
-- [Fill](fill.md) — what goes into it.
-- [Layer](layer.md) — material added rather than removed.
-- [Stratigraphic relationships](stratigraphic-relationships.md) — `cuts` and
+- [Fill](fill.md): what goes into it.
+- [Layer](layer.md): material added rather than removed.
+- [Stratigraphic relationships](stratigraphic-relationships.md): `cuts` and
   `fills` among the others.
-- [Harris Matrix](harris-matrix.md) — where the relationships are drawn.
-- [Feature](feature.md) — the drawn-shape vocabulary.
-- [Law of superposition](law-of-superposition.md) — what a cut strengthens.
+- [Harris Matrix](harris-matrix.md): where the relationships are drawn.
+- [Feature](feature.md): the drawn-shape vocabulary.
+- [Law of superposition](law-of-superposition.md): what a cut strengthens.

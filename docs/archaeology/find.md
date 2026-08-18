@@ -12,7 +12,7 @@ verified_against: ae2fc1d
 # Find
 
 An object recovered from a deposit and recorded with where it came from. The
-association between the object and its [locus](locus.md) is what dates it — and
+association between the object and its [locus](locus.md) is what dates it, and
 that association is the record's whole value.
 
 ## What it is
@@ -33,7 +33,7 @@ Poggio Civitate distinguishes three kinds, each with its own
 | **Special find** | `sf-T111-2025-1-1` | An individually significant object, recorded on its own |
 | **Catalogued object** | `pc20240001` | An object entered in the site catalogue |
 
-Bulk finds are collected by **material letter** — `T` tile, `P` plaster,
+Bulk finds are collected by **material letter**: `T` tile, `P` plaster,
 `C` pottery, `B` bone, and so on. Four categories are bulk-collected from the
 start of every trench.
 
@@ -57,13 +57,13 @@ Bulk collection makes the volume tractable. A trench produces thousands of tile
 fragments; recording each individually would be impossible, and recording them as
 "all the tile from Locus 14" preserves the association that matters.
 
-Special finds are the exception — something whose individual position is worth
+Special finds are the exception, something whose individual position is worth
 recording, often with a total-station shot giving its exact coordinates. See
 [survey point codes](survey-point-codes.md).
 
 ## How this project stores it
 
-Finds are attached to a job and can be logged **independently of any drawing** —
+Finds are attached to a job and can be logged **independently of any drawing**.
 `poggio_webapp/pipeline/editor/finds.py`:
 
 ```python
@@ -75,7 +75,7 @@ def add_find(job_id: str, find: dict) -> dict:
     """
 ```
 
-The required fields —
+The required fields, in
 `poggio_webapp/pipeline/editor/schema.py`:
 
 ```python
@@ -113,9 +113,9 @@ if "find_id" not in stored_find:
 finds.append(stored_find)
 ```
 
-Two sherds from the same locus are two finds. Deduplicating them would be wrong —
+Two sherds from the same locus are two finds. Deduplicating them would be wrong,
 unlike unit import, which *is*
-[idempotent](../cs/idempotency.md). Note the caller may supply its own
+[idempotent](../cs/idempotency.md). The caller may supply its own
 `find_id`, which is the escape hatch for a retry that should not duplicate.
 
 ### Copied into the finalized output, replacing rather than appending
@@ -153,7 +153,7 @@ That last sentence is the argument. A `uuid4` is unique and meaningless; a
 
 | Not a… | Because |
 |---|---|
-| **[Feature](feature.md)** | A feature is a shape *drawn* in section. A find is an object *recovered*. The same stone can be both — drawn on the section and bagged — and the two records serve different purposes. |
+| **[Feature](feature.md)** | A feature is a shape *drawn* in section. A find is an object *recovered*. The same stone can be both (drawn on the section and bagged), and the two records serve different purposes. |
 | **[Marker](marker.md)** | A marker is a pencil dot at a boundary vertex. |
 | **[Locus](locus.md)** | A find comes *from* a locus. `locus` is one of its required fields. |
 | **[Interface point](interface-point.md)** | An interface point is boundary geometry feeding the model. A find is an object and never contributes to a surface. |
@@ -180,16 +180,16 @@ the site database. The formats exist so the record survives leaving this
 software.
 
 **Mixing lowercase and canonical spellings and expecting a mismatch.** Both are
-in circulation — hand-written tags use lowercase, the Kobo forms use the
-canonical trench spelling — so parsing is deliberately case-insensitive.
+in circulation (hand-written tags use lowercase, the Kobo forms use the
+canonical trench spelling), so parsing is deliberately case-insensitive.
 
 ## Related pages
 
-- [Find identifiers](find-identifiers.md) — the three formats in full.
-- [Feature](feature.md) — the drawn-shape record.
-- [Locus](locus.md) — the required context.
-- [Survey point codes](survey-point-codes.md) — how a special find's position is
+- [Find identifiers](find-identifiers.md): the three formats in full.
+- [Feature](feature.md): the drawn-shape record.
+- [Locus](locus.md): the required context.
+- [Survey point codes](survey-point-codes.md): how a special find's position is
   shot.
-- [Markers, features, and finds](../concepts/markers-features-and-finds.md) — the
+- [Markers, features, and finds](../concepts/markers-features-and-finds.md): the
   three compared.
-- [Log a find](../workflows/logging-finds.md) — the workflow.
+- [Log a find](../workflows/logging-finds.md): the workflow.

@@ -48,7 +48,7 @@ flowchart LR
 ```
 
 The solid arrows are the site's own publication chain. The dotted ones are all
-this module adds — and they cost a string each.
+this module adds, and they cost a string each.
 
 ## Why excavation records it
 
@@ -74,7 +74,7 @@ should be a note and never a rejection.
 
 ## How this project stores it
 
-Read off a request body or form at upload time —
+Read off a request body or form at upload time, in
 `poggio_webapp/backend/routes/scans.py`:
 
 ```python
@@ -138,7 +138,7 @@ def open_context_uri(value):
 
 The same reasoning applies to the Kobo id, which arrives with or without its
 `uuid:` prefix, and to page ranges, normalised to `17` or `17-19` from `p. 17`,
-`pp. 17–19`, and the rest — one reference, one spelling. See
+`pp. 17–19`, and the rest: one reference, one spelling. See
 [input sanitisation](../cs/input-sanitisation.md).
 
 ### Read-only, and never fetched
@@ -149,7 +149,7 @@ The same reasoning applies to the Kobo id, which arrives with or without its
 > application's promise is that data stays on the machine, and resolving a link
 > to check it would quietly break that.
 
-Validating by shape is weaker than resolving — a syntactically perfect ARK for a
+Validating by shape is weaker than resolving. A syntactically perfect ARK for a
 record that does not exist passes. That is accepted deliberately, because the
 alternative silently turns a local tool into one that talks to the network.
 
@@ -169,7 +169,7 @@ alternative silently turns a local tool into one that talks to the network.
 to locate the specific entry. A blanket reference is worse than none, because it
 looks specific.
 
-**Pasting a search-results URL.** Refused — it is not a record link. The
+**Pasting a search-results URL.** Refused, because it is not a record link. The
 allowlist is doing exactly its job here.
 
 **Assuming an even page number is an error.** It is a note. Supplemental finds
@@ -184,16 +184,16 @@ condition this module exists to end.
 
 ## Related pages
 
-- [Find identifiers](find-identifiers.md) — identifiers for the objects
+- [Find identifiers](find-identifiers.md): identifiers for the objects
   themselves.
-- [Recording sheet](recording-sheet.md) — the paper these links point at.
-- [Kobo locus import](kobo-locus-import.md) — reading the Kobo side as data
+- [Recording sheet](recording-sheet.md): the paper these links point at.
+- [Kobo locus import](kobo-locus-import.md): reading the Kobo side as data
   rather than as a link.
-- [Same-origin URL validation](../cs/same-origin-url-validation.md) — why the
+- [Same-origin URL validation](../cs/same-origin-url-validation.md): why the
   host list is closed.
-- [Input sanitisation](../cs/input-sanitisation.md) — one reference, one
+- [Input sanitisation](../cs/input-sanitisation.md): one reference, one
   spelling.
-- [Validation at trust boundaries](../cs/validation-at-trust-boundaries.md) —
+- [Validation at trust boundaries](../cs/validation-at-trust-boundaries.md):
   where these are checked.
-- [Regular expressions](../cs/regular-expressions.md) — how each form is
+- [Regular expressions](../cs/regular-expressions.md): how each form is
   recognised.

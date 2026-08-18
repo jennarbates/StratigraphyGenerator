@@ -26,9 +26,7 @@ def seeded(client):
     return client
 
 
-# ---------------------------------------------------------------------------
 # Describing what is on offer
-# ---------------------------------------------------------------------------
 
 
 # 1. Both scenarios are offered, and the shipped record set makes them runnable.
@@ -69,9 +67,7 @@ def test_seeded_state_follows_the_jobs_on_disk(seeded):
     assert after["complete"]["seeded"]["trench"] == "T906"
 
 
-# ---------------------------------------------------------------------------
 # Seeding and removing
-# ---------------------------------------------------------------------------
 
 
 # 4. Seeding answers in the request rather than handing back a task. The
@@ -123,9 +119,7 @@ def test_removing_nothing_is_not_an_error(client):
     assert response.get_json()["removed"] == []
 
 
-# ---------------------------------------------------------------------------
 # The registration route
-# ---------------------------------------------------------------------------
 
 
 # 9. The stored registration comes back, and says it is surveyed rather than
@@ -161,9 +155,7 @@ def test_a_corrupt_registration_is_refused(seeded):
     assert seeded.get("/api/trenches/T906/registration").status_code == 400
 
 
-# ---------------------------------------------------------------------------
 # Provenance reaching the interface
-# ---------------------------------------------------------------------------
 
 
 # 13. The trenches page can tell a demonstration from the operator's own work.

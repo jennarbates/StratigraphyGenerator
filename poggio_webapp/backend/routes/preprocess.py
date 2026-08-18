@@ -4,6 +4,7 @@ from flask import Blueprint, abort, jsonify, request
 
 from pipeline import preprocess as p_preprocess
 
+from ..errors import PIPELINE_INPUT_ERRORS
 from ..jobs import job_dir, load_meta, rel_url, save_meta
 
 bp = Blueprint("preprocess", __name__)
@@ -28,7 +29,7 @@ def run_preprocess(job_id):
             pdf_dpi=int(body.get("pdf_dpi", 300)),
             pdf_page=int(body.get("pdf_page", 1)),
         )
-    except Exception as e:
+    except PIPELINE_INPUT_ERRORS as e:
         return jsonify({"error": str(e)}), 400
 
     outputs = {k: rel_url(job_id, v) for k, v in result["outputs"].items()}

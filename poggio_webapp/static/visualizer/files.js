@@ -42,10 +42,10 @@ document.body.addEventListener("drop",e=>{
     readJSON(jsons[1],"B"); }
 });
 
-// --- auto-load from the pipeline job -------------------------------------
+// auto-load from the pipeline job
 // When opened from the app as /visualizer?job=<id>, fetch the job's scan and
 // extraction JSON from the server instead of making the user re-pick files
-// it already has. The pickers stay live as overrides — loading a different
+// it already has. The pickers stay live as overrides, so loading a different
 // JSON into slot B for an A/B compare works exactly as before.
 (async function autoloadFromJob(){
   const job = new URLSearchParams(location.search).get("job");
@@ -53,7 +53,7 @@ document.body.addEventListener("drop",e=>{
   state.openedFromJob = true;
   try{
     const r = await fetch(`/api/jobs/${job}/visualizer-files`);
-    if(!r.ok) return;               // unknown job — fall back to manual pickers
+    if(!r.ok) return;               // unknown job: fall back to the manual pickers
     const f = await r.json();
     state.calibration = f.calibration || null;
     state.model3d = null;

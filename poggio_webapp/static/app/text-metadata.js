@@ -552,7 +552,7 @@ export function verifiedLocusDisplayLabel(locus) {
   const description = readableText(locus.description);
   return [locusNumber, munsell, description]
     .filter((value) => value !== null)
-    .join(" — ");
+    .join(" · ");
 }
 
 /**

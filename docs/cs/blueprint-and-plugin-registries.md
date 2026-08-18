@@ -25,10 +25,10 @@ and registering it attaches them all to the application.
 
 Two ways to build the registry:
 
-**Explicit** — a literal list, maintained by hand. Adding a component requires
+**Explicit**: a literal list, maintained by hand. Adding a component requires
 an edit that shows up in a diff.
 
-**Discovered** — scan a directory or a decorator registry at import. Adding a
+**Discovered**: scan a directory or a decorator registry at import. Adding a
 component requires only creating a file.
 
 Discovery is more convenient and less predictable: import order becomes
@@ -103,11 +103,11 @@ def register_blueprints(app: Flask) -> None:
 Three details.
 
 **Every module exports the same name, `bp`,** aliased on import. That uniformity
-is what makes the file readable — seventeen lines with one shape.
+is what makes the file readable: seventeen lines with one shape.
 
-**The tuple is ordered roughly by pipeline stage** — pages, jobs, editor, then
+**The tuple is ordered roughly by pipeline stage** (pages, jobs, editor, then
 scan → preprocess → extraction → features → markers → manual → processing →
-gempy — rather than alphabetically like the imports. The registry documents the
+gempy) rather than alphabetically like the imports. The registry documents the
 application's shape as well as its contents.
 
 **A tuple, not a list.** Immutable, so nothing can append to it at runtime.
@@ -192,7 +192,7 @@ def feature_type(key):
     return None
 ```
 
-A tuple of records plus a lookup — the same shape as `BLUEPRINTS` plus
+A tuple of records plus a lookup, the same shape as `BLUEPRINTS` plus
 `register_blueprints`. The comment even documents the *ordering* decision:
 "Ordered for a dropdown: the things actually drawn on the T104 sheets first."
 
@@ -201,7 +201,7 @@ A tuple of records plus a lookup — the same shape as `BLUEPRINTS` plus
 | Alternative | How it would register routes | Why it lost |
 |---|---|---|
 | **Register each by hand in `create_app`** | 17 `app.register_blueprint(...)` calls | Works, and mixes the list of components with the construction logic. Extracting the list makes the *contents* reviewable separately from the *mechanism*. |
-| **Auto-discovery by directory scan** | `pkgutil.iter_modules` over `routes/` | Adding a file is enough — and a leftover or experimental module becomes live, import order becomes significant, and the set of registered routes no longer appears in any diff. |
+| **Auto-discovery by directory scan** | `pkgutil.iter_modules` over `routes/` | Adding a file is enough, and a leftover or experimental module becomes live, import order becomes significant, and the set of registered routes no longer appears in any diff. |
 | **Decorator registration** | `@register` on each blueprint | Elegant, and it makes registration a side effect of import, so an unimported module silently disappears. |
 | **An entry-point or plugin system** | `importlib.metadata.entry_points` | For genuinely third-party plugins. Every route here ships in this repository. |
 | **An explicit tuple** *(chosen)* | One list, one loop | Adding a route is a visible one-line diff, the order is deliberate, and nothing is registered by accident. |
@@ -211,7 +211,7 @@ reviewable**. Seventeen blueprints written down is not a burden, and it means a
 reviewer sees a new route being added rather than a new file appearing.
 
 The same repository *does* choose discovery where the set is large and
-mechanical — `check_coverage.py` walks `pipeline/` and `backend/` with `rglob`
+mechanical: `check_coverage.py` walks `pipeline/` and `backend/` with `rglob`
 to find modules needing documentation. The rule is not "always explicit"; it is
 "explicit where each addition deserves a decision."
 
@@ -221,32 +221,32 @@ One import and one tuple entry per component.
 
 The costs:
 
-- **Two edits to add a route** — a module and a registry line. The redundancy is
+- Two edits to add a route: a module and a registry line. The redundancy is
   the point.
-- **The list can drift** if someone adds a module and forgets the registry.
+- The list can drift if someone adds a module and forgets the registry.
   Caught by the route being absent, and by `tests/test_url_map.py`.
-- **Import cycles are possible.** Every blueprint is imported at package import,
+- Import cycles are possible. Every blueprint is imported at package import,
   so a route importing something that imports `routes` would fail. The
   [layered architecture](layered-architecture.md) prevents this by keeping
   dependencies pointing down.
-- **Re-export registries need a lint exemption**, which is granted per file with
+- Re-export registries need a lint exemption, which is granted per file with
   a stated reason rather than globally.
 
 ## Where else you meet it
 
-- **Django's `INSTALLED_APPS`** and `urlpatterns` — the same explicit list.
-- **Webpack, Rollup, and ESLint plugin arrays.**
-- **`pytest` fixtures and hooks**, which use discovery, with the surprises that
+- Django's `INSTALLED_APPS` and `urlpatterns`: the same explicit list.
+- Webpack, Rollup, and ESLint plugin arrays.
+- `pytest` fixtures and hooks, which use discovery, with the surprises that
   brings.
-- **Operating system driver tables**, and `/etc/*.d` configuration directories.
-- **Service locators and DI containers**, which are registries with resolution
+- Operating system driver tables, and `/etc/*.d` configuration directories.
+- Service locators and DI containers, which are registries with resolution
   attached.
 
 ## Related pages
 
-- [Application factory](application-factory.md) — what consumes the registry.
-- [Layered architecture](layered-architecture.md) — what each blueprint
+- [Application factory](application-factory.md): what consumes the registry.
+- [Layered architecture](layered-architecture.md): what each blueprint
   delegates to.
-- [Separation of concerns](separation-of-concerns.md) — one blueprint per
+- [Separation of concerns](separation-of-concerns.md): one blueprint per
   concern.
-- [API routes](../reference/api-routes.md) — every endpoint these register.
+- [API routes](../reference/api-routes.md): every endpoint these register.

@@ -47,8 +47,8 @@ text { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-se
   <text x="265" y="168" text-anchor="middle" class="sm muted">proposed, then accepted by a person</text>
   <line x1="540" y1="70" x2="540" y2="300" class="thin"/>
   <text x="590" y="100" text-anchor="start" class="bold">They stay two nodes.</text>
-  <text x="590" y="126" text-anchor="start" class="sm">Equal labels never merge on their own —</text>
-  <text x="590" y="146" text-anchor="start" class="sm">two excavators can reuse a number for</text>
+  <text x="590" y="126" text-anchor="start" class="sm">Equal labels never merge on their own.</text>
+  <text x="590" y="146" text-anchor="start" class="sm">Two excavators can reuse a number for</text>
   <text x="590" y="166" text-anchor="start" class="sm">genuinely different deposits.</text>
   <text x="590" y="200" text-anchor="start" class="sm">Boundary and label matches produce</text>
   <text x="590" y="220" text-anchor="start" class="sm">proposals only. Every proposal must be</text>

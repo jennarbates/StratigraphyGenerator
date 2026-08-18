@@ -31,24 +31,24 @@ set. Near-constant time per edge, and it absorbs new edges incrementally.
 
 For directed graphs there are two variants: **weakly connected** (ignore
 direction) and **strongly connected** (mutual reachability *respecting*
-direction). This project needs weak connectivity in both places — "are these
+direction). This project needs weak connectivity in both places: "are these
 joined at all," not "can each reach the other."
 
 ## The picture
 
 ```mermaid
 flowchart LR
-  subgraph trench["the trench — one component"]
+  subgraph trench["the trench, one component"]
     N["north wall"] --- E["east wall"]
     E --- S["south wall"]
   end
   subgraph orphan["a second component"]
-    W["west wall — joins nothing"]
+    W["west wall, joins nothing"]
   end
 ```
 
 Four walls, two components. The larger one is the trench; the singleton is a
-wall whose registration puts it somewhere else entirely — almost always a
+wall whose registration puts it somewhere else entirely, almost always a
 mis-typed survey coordinate.
 
 ## Where this project uses it
@@ -111,7 +111,7 @@ for name in endpoints:
 Three decisions in that comment:
 
 **The largest component is the trench.** A pragmatic definition, and the right
-one — a single mis-registered wall is far more likely than a majority of walls
+one: a single mis-registered wall is far more likely than a majority of walls
 being wrong.
 
 **Ties break by earliest face**, so the result does not depend on dictionary
@@ -121,7 +121,7 @@ iteration order. See [determinism and stable sorting](determinism-and-stable-sor
 unexcavated side, so requiring a closed loop would produce false alarms. The
 component test asks the weaker, correct question.
 
-It is a **warning**, not an error — bad geometry is the operator's judgement to
+It is a **warning**, not an error. Bad geometry is the operator's judgement to
 make. Compare `_check_registration` in `trench_builder.py`, which does refuse on
 placeholder registration, because that failure produces "a confident-looking
 model of nothing."
@@ -147,8 +147,8 @@ for component in sorted(nodes - connected_components):
     )
 ```
 
-A unit with no relations is not an error — a newly imported layer legitimately
-has none yet — but it will float unplaced in the diagram, so the user is told.
+A unit with no relations is not an error (a newly imported layer legitimately
+has none yet), but it will float unplaced in the diagram, so the user is told.
 
 Note it reports the **members** of the isolated component, not the
 representative ID. After [correlation collapse](union-find.md) the
@@ -156,18 +156,18 @@ representative is one arbitrary unit's ID; the user needs the human-meaningful
 list.
 
 The same file uses connected-component thinking a second time, for the
-correlations themselves — `correlation_components` computes exactly this over
+correlations themselves: `correlation_components` computes exactly this over
 the undirected correlation graph.
 
 ## Why this and not something else
 
-| Alternative | How it would find the groups | Why it lost — or won |
+| Alternative | How it would find the groups | Why it lost, or won |
 |---|---|---|
 | **DFS or BFS per unvisited node** | Traverse and collect | Correct and O(V + E). It must be re-run entirely whenever an edge is added, and correlations change on every accepted suggestion. [Union-Find](union-find.md) absorbs each new edge incrementally. |
 | **[Union-Find](union-find.md)** *(chosen)* | Merge endpoints | Near-constant per edge, incremental, and its representative can be made [deterministic](determinism-and-stable-sorting.md) by choosing `min()`. |
 | **Adjacency matrix + transitive closure** | Close the relation, read off blocks | O(n³) time, O(n²) memory to answer what Union-Find answers in near-O(1). |
 | **Strongly connected components (Tarjan)** | Respect edge direction | Answers a different question. Two walls sharing a corner is symmetric; two units with a chronological relation are *connected* for this purpose regardless of which is younger. |
-| **Require a closed loop** | Insist every wall joins two others | Would reject a trench with an unexcavated side — a normal situation. |
+| **Require a closed loop** | Insist every wall joins two others | Would reject a trench with an unexcavated side, a normal situation. |
 
 The generalisable point: **connectivity is often the right question when a
 stronger property looks tempting.** "Do these walls form a closed rectangle?"
@@ -176,7 +176,7 @@ catches the failure that actually occurs.
 
 ## What it costs
 
-With Union-Find, near-O(E·α(V)) — effectively linear.
+With Union-Find, near-O(E·α(V)), effectively linear.
 
 In `merge_walls` the dominant cost is not the components at all but the **O(n²)
 pairwise endpoint comparison** that builds the edges: every wall's two endpoints
@@ -185,35 +185,35 @@ would need a spatial index.
 
 The costs of the interpretation:
 
-- **"Largest component is the trench" is a heuristic.** With two walls in each
-  of two groups, the tie-break decides — deterministically, and possibly wrongly.
-- **Tolerance-dependent.** Two walls 6 cm apart at a 5 cm tolerance are separate
+- "Largest component is the trench" is a heuristic. With two walls in each
+  of two groups, the tie-break decides, deterministically and possibly wrongly.
+- Tolerance-dependent. Two walls 6 cm apart at a 5 cm tolerance are separate
   components. That is why `tolerance_m` is a named parameter, not a literal. See
   [epsilon comparison](epsilon-comparison.md).
-- **Connectivity says nothing about shape.** Four walls could be connected in a
-  line rather than a rectangle and pass. The check is a floor, not a proof —
+- Connectivity says nothing about shape. Four walls could be connected in a
+  line rather than a rectangle and pass. The check is a floor, not a proof,
   which is why [the placeholder-registration refusal](../workflows/09-multi-wall-trench.md)
   exists separately and is fatal.
 
 ## Where else you meet it
 
-- **Image segmentation** — [connected-component labelling](connected-component-labelling.md)
+- Image segmentation: [connected-component labelling](connected-component-labelling.md)
   is this on a pixel grid, and its classic two-pass algorithm uses Union-Find.
-- **Network reliability**, asking whether a failure partitions a network.
-- **Social network analysis**, finding isolated communities.
-- **Kruskal's minimum spanning tree**, which adds an edge only if its endpoints
+- Network reliability, asking whether a failure partitions a network.
+- Social network analysis, finding isolated communities.
+- Kruskal's minimum spanning tree, which adds an edge only if its endpoints
   are in different components.
-- **Percolation theory**, asking whether a connected path spans a lattice.
-- **Compilers**, finding unreachable code as a connectivity question on the
+- Percolation theory, asking whether a connected path spans a lattice.
+- Compilers, finding unreachable code as a connectivity question on the
   control-flow graph.
 
 ## Related pages
 
-- [Union-Find](union-find.md) — the structure used, and why `min()` is the
+- [Union-Find](union-find.md): the structure used, and why `min()` is the
   representative.
-- [Graphs and terminology](graphs-and-terminology.md) — the vocabulary.
-- [Depth-first search](depth-first-search.md) — the traversal alternative.
-- [Connected-component labelling](connected-component-labelling.md) — the same
+- [Graphs and terminology](graphs-and-terminology.md): the vocabulary.
+- [Depth-first search](depth-first-search.md): the traversal alternative.
+- [Connected-component labelling](connected-component-labelling.md): the same
   problem on pixels.
-- [Combine walls into one trench](../workflows/09-multi-wall-trench.md) — the
+- [Combine walls into one trench](../workflows/09-multi-wall-trench.md): the
   workflow that surfaces the warning.

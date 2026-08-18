@@ -17,7 +17,7 @@ several design decisions exist only to serve it.
 
 ## What it is
 
-**A measurement** is a value someone obtained from the thing itself — a traced
+**A measurement** is a value someone obtained from the thing itself: a traced
 vertex, a surveyed coordinate, a Munsell reading.
 
 **An interpolation** is a value computed from measurements. The 3D model's
@@ -85,7 +85,7 @@ if single_face:
 ```
 
 A surface recorded on one wall and extended across a whole trench is
-extrapolation, not interpolation — a much weaker claim. It is named, and the note
+extrapolation, not interpolation: a much weaker claim. It is named, and the note
 travels into the manifest so it reaches whoever opens the model rather than only
 whoever ran the build.
 
@@ -117,7 +117,7 @@ beyond where anything was recorded.
 
 ### Restrict: claim the least between measurements
 
-Within a boundary, the interpolation is **linear** — see
+Within a boundary, the interpolation is **linear**. See
 [linear interpolation](linear-interpolation.md). A spline would be smoother and
 would claim excursions nobody recorded. Straight lines reproduce exactly what the
 recorder drew.
@@ -160,8 +160,8 @@ Every traced point carries its origin:
 "sourcePixel": [pixel_x, pixel_y],
 ```
 
-so provenance survives every downstream transformation — see
-[provenance and data lineage](provenance-and-data-lineage.md).
+so provenance survives every downstream transformation (see
+[provenance and data lineage](provenance-and-data-lineage.md)).
 
 And a value that could not be read is `null` with a reason, never zero:
 
@@ -190,7 +190,7 @@ and [capability status](../project/capability-status.md) labels the model build
 |---|---|---|
 | **Present the model as a result** | Render it and stop | The commonest failure of visualisation. A rendered surface is a claim, and an unmarked one is an unattributed claim. |
 | **Confidence values per point** | Attach uncertainty to every model value | The rigorous answer, and GemPy has no uncertainty output and the CSV has no column for it. Downstream consumes numbers, not caveats. |
-| **Only render where data exists** | Draw the traces, not the surfaces | Honest, and it discards the interpolation entirely — which is the reason for building a model at all. |
+| **Only render where data exists** | Draw the traces, not the surfaces | Honest, and it discards the interpolation entirely, which is the reason for building a model at all. |
 | **Label, restrict, refuse** *(chosen)* | Traces drawn over surfaces, extent bounded, unsolvable cases omitted | Keeps the model useful while keeping the distinction visible, and refuses only where an estimate would masquerade as an improvement. |
 
 The reasoning turns on **what the consumer can act on**. A confidence column
@@ -200,42 +200,42 @@ formally correct one.
 
 ## What it costs
 
-`wallTraces` adds every recorded point to the manifest — kilobytes.
+`wallTraces` adds every recorded point to the manifest: kilobytes.
 
 The costs:
 
-- **Nothing enforces the distinction downstream.** A user who exports the mesh
+- Nothing enforces the distinction downstream. A user who exports the mesh
   and drops the traces has a surface with no provenance attached.
-- **Refusing means less output.** A merged trench with two nearly parallel walls
+- Refusing means less output. A merged trench with two nearly parallel walls
   gets no true-dip correction at all.
-- **Labels can be ignored.** `single_face_note` is a string in a manifest. It
+- Labels can be ignored. `single_face_note` is a string in a manifest. It
   reaches the viewer, and nothing forces a reader to act on it.
-- **The distinction is not binary.** A point interpolated 5 cm from a trace is
+- The distinction is not binary. A point interpolated 5 cm from a trace is
   far better supported than one 5 m away, and the model expresses neither.
 
 ## Where else you meet it
 
-- **Weather forecasting**, which shows model output with explicit uncertainty
-  cones — and is routinely read as prediction anyway.
-- **Medical imaging**, where reconstructed slices are interpolated from
+- Weather forecasting, which shows model output with explicit uncertainty
+  cones, and is routinely read as prediction anyway.
+- Medical imaging, where reconstructed slices are interpolated from
   projections and radiologists are trained to know it.
-- **Cartography**, where contour lines are interpolated from spot heights and
-  the spot heights are shown too — the direct analogue of `wallTraces`.
-- **Machine-learning outputs**, where a confident prediction outside the training
+- Cartography, where contour lines are interpolated from spot heights and
+  the spot heights are shown too: the direct analogue of `wallTraces`.
+- Machine-learning outputs, where a confident prediction outside the training
   distribution is the same failure.
-- **Statistical graphics**, where a regression line drawn beyond the data is the
+- Statistical graphics, where a regression line drawn beyond the data is the
   canonical misleading chart.
 
 ## Related pages
 
-- [Spatial interpolation and kriging](spatial-interpolation-and-kriging.md) —
+- [Spatial interpolation and kriging](spatial-interpolation-and-kriging.md):
   what produces the model.
-- [Linear interpolation](linear-interpolation.md) — the minimal claim between
+- [Linear interpolation](linear-interpolation.md): the minimal claim between
   points.
-- [Provenance and data lineage](provenance-and-data-lineage.md) — carrying
+- [Provenance and data lineage](provenance-and-data-lineage.md): carrying
   origin with the value.
-- [Fail-closed design](fail-closed-design.md) — refusing rather than estimating.
-- [Fabrication detection](fabrication-detection.md) — catching an estimate that
+- [Fail-closed design](fail-closed-design.md): refusing rather than estimating.
+- [Fabrication detection](fabrication-detection.md): catching an estimate that
   entered as a measurement.
-- [Accuracy and provenance](../concepts/accuracy-and-provenance.md) — the concept
+- [Accuracy and provenance](../concepts/accuracy-and-provenance.md): the concept
   page.
