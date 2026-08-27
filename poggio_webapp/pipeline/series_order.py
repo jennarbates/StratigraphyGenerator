@@ -43,7 +43,7 @@ present an invented sequence as a recorded one.
 
 from __future__ import annotations
 
-from . import convert_coords
+from . import canonical, convert_coords
 
 HARRIS = "harris-matrix"
 RECORDED = "recorded-sequence"
@@ -174,7 +174,14 @@ def from_harris(matrix, available_surfaces=None):
             placed_component[surface] = component
             order.append(surface)
 
+    base_present = False
     if available_surfaces is not None:
+        # The trench base is the limit of excavation, not a deposit, so no
+        # Harris unit describes it and the coverage check must not demand one.
+        available_surfaces = set(available_surfaces)
+        base_present = canonical.BASE_SURFACE_ID in available_surfaces
+        available_surfaces.discard(canonical.BASE_SURFACE_ID)
+
         missing = sorted(set(available_surfaces) - set(order))
         if missing:
             raise SeriesOrderError(
@@ -202,6 +209,13 @@ def from_harris(matrix, available_surfaces=None):
             "instance -- but GemPy's stack needs a total order, so one was "
             "imposed. Those boundaries in the model are not evidence"
         )
+    # Appended last, which in a young-to-old order is the oldest position: the
+    # floor every deposit above it sits on. After the arbitrary-pair scan,
+    # because it belongs to no correlation component and the matrix asserts
+    # nothing about it.
+    if base_present:
+        order.append(canonical.BASE_SURFACE_ID)
+
     return order, arbitrary, notes
 
 

@@ -191,7 +191,11 @@ def check_features(layer, top, bottom, where, report, monotonic_tolerance_m):
             feat.get(k) is not None
             for k in (
                 "approxXMeters",
+                # Both spellings: the illustrator schema says approxYMeters,
+                # the field schema and the canonical form say what the axis
+                # actually is. The browser adapter already accepts either.
                 "approxYMeters",
+                "approxDepthMeters",
                 "approxWidthMeters",
                 "approxHeightMeters",
             )
@@ -355,32 +359,41 @@ def validate(
 
     scan_null_strings(data, "root", report)
 
-    profiles = data.get("trenchProfiles")
-    if not profiles:
-        # A FieldWallProfile extraction (single wall, loci + Munsell) is a
-        # valid input shape -- adapt it to the same face shape and run the
-        # same geometric checks, rather than rejecting it outright.
-        from . import convert_coords as _cc
+    # Both mediums are checked through the canonical form, so a field sheet
+    # gets the feature, continuity and crossing checks it used to miss: the
+    # old adapter handed the validator a shape with no features and no real
+    # bottom line, and the checks quietly had nothing to look at.
+    from . import canonical as _canonical
+    from . import convert_coords as _cc
 
-        if _cc.is_field_wall(data):
-            adapted, notes = _cc.fieldwall_to_profiles(data)
-            for n in notes:
-                report.warn("field wall", n)
-            profiles = adapted["trenchProfiles"]
-            _check_field_wall_extras(data, report)
-        else:
-            report.err("root", "no trenchProfiles")
-            return report
+    try:
+        document, notes = _cc.as_canonical(data)
+    except ValueError as error:
+        report.err("root", str(error))
+        return report
 
-    for face in profiles:
-        gx = face.get("gridLabelXMeters")
-        gl = face.get("gridLabels")
-        if gl and gx and len(gl) != len(gx):
-            report.warn(
-                face.get("face") or "face",
-                f"gridLabels ({len(gl)}) and gridLabelXMeters ({len(gx)}) "
-                "differ in length",
-            )
+    for note in notes:
+        report.warn("canonicalization", note)
+    if document["sourceSchema"] == _canonical.FIELD_WALL:
+        _check_field_wall_extras(data, report)
+
+    profiles = _cc.canonical_to_profiles(document)["trenchProfiles"]
+
+    for face, canonical_face in zip(profiles, document["faces"]):
+        where = face.get("face") or "face"
+        for ref in canonical_face["gridRefs"]:
+            if ref.get("rawText") and ref.get("xMeters") is None:
+                report.warn(
+                    where,
+                    f"grid label {ref['rawText']!r} has no position on the "
+                    "drawing, so it cannot register the face",
+                )
+            elif not ref.get("rawText"):
+                report.warn(
+                    where,
+                    f"a grid position at x={ref.get('xMeters')} has no label, "
+                    "so there is nothing to read it against",
+                )
         check_face(
             face,
             report,

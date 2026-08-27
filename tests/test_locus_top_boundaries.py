@@ -93,12 +93,18 @@ def test_marker_assembly_does_not_shift_locus_names_down_one_line():
     assert locus_2["bottomBoundary"][0]["depthMeters"] == 3.0
 
 
-def test_fieldwall_conversion_models_the_locus_top_not_its_bottom(calibration):
+def test_fieldwall_conversion_keeps_each_line_under_its_own_name(calibration):
+    """The adapter used to write a locus top into the key called
+    bottomBoundary, so every reader downstream had to know about the
+    inversion. It canonicalizes now and both lines keep their real names:
+    locus 1 runs from 1.0 to 2.0, locus 2 from 2.0 to the 3.0 base."""
     data, _ = build_fieldwall(_manual_payload(), calibration, None)
 
     adapted, notes = fieldwall_to_profiles(data)
 
     assert not notes
     layers = adapted["trenchProfiles"][0]["layers"]
-    assert layers[0]["bottomBoundary"][0]["depthMeters"] == 1.0
-    assert layers[1]["bottomBoundary"][0]["depthMeters"] == 2.0
+    assert layers[0]["topBoundary"][0]["depthMeters"] == 1.0
+    assert layers[0]["bottomBoundary"][0]["depthMeters"] == 2.0
+    assert layers[1]["topBoundary"][0]["depthMeters"] == 2.0
+    assert layers[1]["bottomBoundary"][0]["depthMeters"] == 3.0

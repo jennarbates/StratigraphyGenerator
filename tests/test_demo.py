@@ -19,6 +19,7 @@ import pytest
 import storage
 from demo import datasets, seed, walls
 from demo.run import run
+from pipeline import canonical
 
 pytestmark = pytest.mark.usefixtures("storage_dirs")
 
@@ -145,13 +146,20 @@ def test_complete_runs_the_whole_pipeline(complete):
     outcome = run(complete["trench"])
     assert outcome["outcome"] in {"built", "ready"}
 
-    # What the model is built from: three surfaces, points on every wall,
-    # and orientations beside them.
+    # What the model is built from: the three deposits plus the trench base
+    # D2 models, points on every wall, and orientations beside them.
     trench_directory = storage.TRENCHES_DIR / "T906"
     with open(trench_directory / "points.csv", newline="") as handle:
         rows = list(csv.DictReader(handle))
-    assert {row["surface"] for row in rows} == {"Locus 1", "Locus 2", "Locus 3"}
-    assert len(rows) == 132
+    assert {row["surface"] for row in rows} == {
+        "Locus 1",
+        "Locus 2",
+        "Locus 3",
+        canonical.BASE_SURFACE_ID,
+    }
+    # 4 walls x (3 layer tops + 1 base line) x 11 points, up from 132 when
+    # only the tops were modelled.
+    assert len(rows) == 176
     assert (trench_directory / "points_orientations.csv").is_file()
     assert (trench_directory / "merged.json").is_file()
 
@@ -167,7 +175,12 @@ def test_complete_runs_the_whole_pipeline(complete):
         meshes = sorted(
             (trench_directory / "06_gempy_model" / "trench_model_meshes").glob("*.obj")
         )
-        assert [path.stem for path in meshes] == ["Locus_1", "Locus_2", "Locus_3"]
+        assert [path.stem for path in meshes] == [
+            "Locus_1",
+            "Locus_2",
+            "Locus_3",
+            "Trench_base",
+        ]
 
 
 # 14. What a younger-to-older graph cannot hold is reported, not dropped in

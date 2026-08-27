@@ -230,8 +230,9 @@ def test_the_merged_fixture_trench_solves_every_surface(tmp_path):
     solved, notes = true_orientations(rows, GRID_T900)
 
     surfaces = {orientation["surface"] for orientation in solved}
-    assert len(solved) == 2
-    assert len(surfaces) == 2
+    # Three: the two deposits plus the trench base D2 now models.
+    assert len(solved) == 3
+    assert len(surfaces) == 3
     for orientation in solved:
         assert set(orientation["faces"]) == {"north wall", "east wall"}
         assert len(orientation["seeds"]) == 2

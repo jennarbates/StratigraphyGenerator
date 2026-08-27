@@ -192,7 +192,9 @@ def test_build_with_real_grid_starts_task_and_writes_outputs(client, monkeypatch
     assert orientations_csv.is_file()
     with points_csv.open() as handle:
         rows = list(csv.DictReader(handle))
-    assert len(rows) == 20
+    # 2 faces x 3 modelled lines x 5 points: each layer's top, plus the
+    # deepest layer's base line (D2).
+    assert len(rows) == 30
     assert {row["face"] for row in rows} == {"north wall", "east wall"}
 
     # start_task runs the build on a thread; give it a moment to land.
@@ -225,7 +227,8 @@ def test_build_hands_gempy_true_dips_solved_from_both_walls(client, monkeypatch)
     by_surface = {}
     for row in rows:
         by_surface.setdefault(row["surface"], set()).add((row["dip"], row["azimuth"]))
-    assert len(by_surface) == 2
+    # Three modelled surfaces now: two deposits and the trench base.
+    assert len(by_surface) == 3
     # Both walls' seeds for a surface now agree, and neither still carries the
     # wall-locked azimuth convert() gave it.
     for values in by_surface.values():

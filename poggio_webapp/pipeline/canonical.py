@@ -17,6 +17,11 @@ CANONICAL_VERSION = 1
 FIELD_WALL = "FieldWallProfile"
 ILLUSTRATOR = "ArchaeologicalDiagram"
 
+# The deepest drawn line on a section is the limit of excavation, not a
+# deposit. It is modelled so the lowest unit has a floor, and named so
+# nothing mistakes it for a locus.
+BASE_SURFACE_ID = "Trench base"
+
 # A field sheet declares itself by any of these, present even when null. The
 # old detectors required layers[] to be a populated list, which is how a
 # sheet with `layers: null` fell out of Harris source discovery in silence.
@@ -119,6 +124,7 @@ _ILLUSTRATOR_CAPTURE_KEYS = frozenset(
         f"{_ILLUSTRATOR_LAYER}.layerName",
         f"{_ILLUSTRATOR_LAYER}.inferredMaterial",
         f"{_ILLUSTRATOR_LAYER}.description",
+        f"{_ILLUSTRATOR_LAYER}.displayLabel",
         f"{_ILLUSTRATOR_LAYER}.visualPattern",
         "inferred_notes",
         "rawTranscription",
@@ -444,7 +450,11 @@ def _from_illustrator(doc, warnings):
                 {
                     "label": raw.get("layerName"),
                     "surfaceId": surface,
-                    "displayLabel": _display_label(surface, material or None),
+                    # A merged or adapted document already carries the label
+                    # its own medium earned; recomputing it from the material
+                    # would throw away a Munsell reading the merge resolved.
+                    "displayLabel": raw.get("displayLabel")
+                    or _display_label(surface, material or None),
                     "munsell": None,
                     "material": raw.get("inferredMaterial"),
                     "visualPattern": raw.get("visualPattern"),
@@ -469,13 +479,16 @@ def _from_illustrator(doc, warnings):
         faces.append(
             {
                 "face": face_name,
+                # Padded to the longer of the two lists rather than zipped, so
+                # a label with no position (or a position with no label) still
+                # reaches the validator instead of vanishing in the shorter one.
                 "gridRefs": [
                     {
                         "kind": "gridLabel",
-                        "rawText": label,
+                        "rawText": labels[i] if i < len(labels) else None,
                         "xMeters": positions[i] if i < len(positions) else None,
                     }
-                    for i, label in enumerate(labels)
+                    for i in range(max(len(labels), len(positions)))
                 ],
                 "layers": layers,
             }

@@ -23,7 +23,7 @@ from fixtures_merge import (
     SURFACE_L2,
 )
 
-from pipeline import convert_coords, validator
+from pipeline import canonical, convert_coords, validator
 from pipeline.merge_walls import merge_extractions, merged_series_order
 
 # GRID_T900 is keyed by the full wall names, so merge under those labels.
@@ -64,9 +64,10 @@ def test_merged_document_converts_to_site_coordinates(converted):
     result, points, _ = converted
 
     assert result["missing_faces"] == []
-    # 2 faces x 2 layers x 5 boundary points.
-    assert result["n_points"] == 20
-    assert len(points) == 20
+    # 2 faces x 3 modelled lines x 5 boundary points. Three lines, not two:
+    # each layer's top plus the deepest layer's base (D2).
+    assert result["n_points"] == 30
+    assert len(points) == 30
 
     assert {r["face"] for r in points} == set(WALL_LABELS)
 
@@ -92,17 +93,17 @@ def test_each_surface_appears_on_both_faces(converted):
     for row in points:
         faces_by_surface.setdefault(row["surface"], set()).add(row["face"])
 
-    assert set(faces_by_surface) == {SURFACE_L1, SURFACE_L2}
+    assert set(faces_by_surface) == {SURFACE_L1, SURFACE_L2, canonical.BASE_SURFACE_ID}
     for surface, faces in faces_by_surface.items():
         assert faces == set(WALL_LABELS), f"{surface} is not on both walls"
 
 
-# 3. Orientations: one per layer per face, dipping along its own wall.
+# 3. Orientations: one per modelled line per face, dipping along its own wall.
 def test_orientations_follow_each_wall_bearing(converted):
     result, _points, orientations = converted
 
-    assert result["n_orientations"] == 4
-    assert len(orientations) == 4
+    assert result["n_orientations"] == 6
+    assert len(orientations) == 6
 
     for row in rows_for(orientations, "north wall"):
         assert float(row["azimuth"]) in (90.0, 270.0)
@@ -116,7 +117,13 @@ def test_series_order_matches_the_converted_surfaces(merged, converted):
     _result, points, _ = converted
     order, _notes = merged_series_order(merged)
 
-    assert set(order) == {row["surface"] for row in points}
+    # The merged order covers every deposit. It does not yet name the trench
+    # base: merged_series_order reads the merged document's layers, which
+    # record deposits only. from_harris already places the base oldest; the
+    # matrix-free path follows in P3b, when merge_walls moves onto canonical.
+    assert set(order) == {row["surface"] for row in points} - {
+        canonical.BASE_SURFACE_ID
+    }
     assert order == [SURFACE_L1, SURFACE_L2]
 
 

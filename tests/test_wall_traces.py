@@ -25,7 +25,7 @@ from fixtures_merge import (
 from test_gempy_viewer_manifest import fake_gempy
 
 import storage
-from pipeline import convert_coords
+from pipeline import canonical, convert_coords
 from pipeline.build_gempy import run_build, wall_traces
 from pipeline.merge_walls import merge_extractions
 
@@ -59,11 +59,12 @@ def manifest(tmp_path, monkeypatch):
 def test_manifest_carries_one_trace_per_face_and_surface(manifest):
     traces = manifest["wallTraces"]
 
-    assert len(traces) == 4
+    # 2 faces x 3 modelled lines: each layer's top plus the base (D2).
+    assert len(traces) == 6
     assert {(trace["face"], trace["surface"]) for trace in traces} == {
         (face, surface)
         for face in ("north wall", "east wall")
-        for surface in (SURFACE_L1, SURFACE_L2)
+        for surface in (SURFACE_L1, SURFACE_L2, canonical.BASE_SURFACE_ID)
     }
     for trace in traces:
         assert len(trace["points"]) == 5
@@ -79,7 +80,8 @@ def test_north_wall_traces_sit_on_the_north_wall(manifest):
     """Bearing 90 from origin (0, 3): the north wall runs east at Y = 3."""
     north = [trace for trace in manifest["wallTraces"] if trace["face"] == "north wall"]
 
-    assert len(north) == 2
+    # Two layer tops and the base line the deepest layer closes on.
+    assert len(north) == 3
     for trace in north:
         assert all(point[1] == pytest.approx(3.0) for point in trace["points"])
         assert all(0.0 <= point[0] <= 4.0 for point in trace["points"])
@@ -90,7 +92,8 @@ def test_east_wall_traces_are_ordered_along_the_wall(manifest):
     has to be monotone in Y."""
     east = [trace for trace in manifest["wallTraces"] if trace["face"] == "east wall"]
 
-    assert len(east) == 2
+    # Two layer tops and the base line the deepest layer closes on.
+    assert len(east) == 3
     for trace in east:
         ys = [point[1] for point in trace["points"]]
         assert ys == sorted(ys)

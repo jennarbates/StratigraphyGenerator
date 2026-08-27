@@ -13,7 +13,7 @@ import json
 import pytest
 from fixtures_merge import EAST_WALL, GRID_T900, NORTH_WALL
 
-from pipeline import convert_coords, merge_walls
+from pipeline import canonical, convert_coords, merge_walls
 from pipeline.build_gempy import write_viewer_manifest
 from pipeline.convert_coords import surface_id
 
@@ -43,7 +43,9 @@ def test_a_colour_disagreement_no_longer_splits_one_deposit(tmp_path):
     )
 
     surfaces = {row["surface"] for row in rows}
-    assert surfaces == {"Locus 1", "Locus 2"}
+    # Three, not two: D2 models the deepest drawn line as well, and it is the
+    # limit of excavation rather than a deposit, so it gets its own name.
+    assert surfaces == {"Locus 1", "Locus 2", canonical.BASE_SURFACE_ID}
 
     # Both walls contribute to each surface -- the point of merging at all.
     for surface in surfaces:

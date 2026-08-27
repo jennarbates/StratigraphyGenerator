@@ -12,7 +12,7 @@ site-coordinate math below stays a single code path.
 import csv
 import math
 
-from . import site_elevation, site_grid
+from . import canonical, site_elevation, site_grid
 
 
 def slope_to_orientation(
@@ -114,103 +114,66 @@ def surface_id(locus_number):
     and an entire canonicalization layer existed in merge_walls to stop that
     happening. Identity here, colour in the display label.
     """
-    return f"Locus {locus_number}"
+    return canonical.surface_id_for(locus_number, canonical.FIELD_WALL)
+
+
+def as_canonical(data):
+    """A canonical document from a canonical document or either capture shape.
+
+    Returns (canonical, warnings)."""
+    if canonical.is_canonical(data):
+        return data, []
+    return canonical.canonicalize(data)
+
+
+def canonical_to_profiles(document, face_name=None):
+    """Project a canonical document into the legacy trenchProfiles shape.
+
+    The shape consumers below and in merge_walls still read. Both boundaries
+    keep their own names here: the old adapter wrote a locus top into the key
+    called ``bottomBoundary``, which every reader then had to know about.
+    """
+    profiles = []
+    for face in document.get("faces") or []:
+        layers = []
+        for layer in face.get("layers") or []:
+            layers.append(
+                {
+                    "layerName": layer["surfaceId"],
+                    "inferredMaterial": layer["surfaceId"],
+                    "displayLabel": layer["displayLabel"],
+                    "topBoundary": layer["topBoundary"],
+                    "bottomBoundary": layer["bottomBoundary"],
+                    "featuresInLayer": layer["features"] or None,
+                }
+            )
+        profiles.append(
+            {
+                "face": face_name or face["face"],
+                "gridRefs": face["gridRefs"],
+                "layers": layers,
+            }
+        )
+    return {"trenchProfiles": profiles}
 
 
 def fieldwall_to_profiles(data, face_name=None):
-    """Adapt a FieldWallProfile dict into the single-face trenchProfiles shape
-    that convert() reads. Returns (adapted_data, notes).
+    """Adapt a FieldWallProfile dict into the trenchProfiles shape.
 
-    A field sheet records ONE wall, so this produces exactly one face. Surfaces
-    are identified as 'Locus N' and carry the recorder's Munsell reading as a
-    separate display label -- see surface_id() for why the two are separate.
+    A compatibility delegate: canonicalization does the work and every
+    consumer should read the canonical form directly. Kept because
+    merge_walls and the validator still speak trenchProfiles.
     """
-    notes = []
-
-    fname = (
-        face_name or data.get("faceLabel") or data.get("trenchLabel") or "field wall"
-    )
-
-    # locus number -> munsell label. Duplicate locus numbers happen (T104 has
-    # two entries numbered 5); take the first and say so rather than merging.
-    munsell_by_locus = {}
-    for entry in data.get("loci") or []:
-        num = str(entry.get("locusNumber", "")).strip()
-        if not num:
-            continue
-        label = _munsell_label(entry)
-        if num in munsell_by_locus:
-            notes.append(
-                f"locus {num} is listed more than once in loci[], "
-                f"using the first Munsell reading ({munsell_by_locus[num]}) "
-                f"and ignoring {label!r}"
-            )
-            continue
-        munsell_by_locus[num] = label
-
-    layers = []
-    for i, layer in enumerate(data.get("layers") or []):
-        num = str(layer.get("locusNumber", "")).strip()
-        munsell = munsell_by_locus.get(num)
-        if num:
-            surface = surface_id(num)
-            # The colour rides alongside the identity, never inside it.
-            display = f"{surface} ({munsell})" if munsell else surface
-        else:
-            surface = f"layer_{i}"
-            display = surface
-            notes.append(f"layer at index {i} has no locusNumber, named {surface!r}")
-
-        # Field sheets name an interface for the locus that starts at it, so
-        # the model surface for Locus N is that locus's top boundary. The
-        # generic trenchProfiles converter happens to call its modelled
-        # interface `bottomBoundary`; place the correctly named top there in
-        # the temporary adapter shape rather than shifting every locus down.
-        model_boundary = layer.get("topBoundary") or []
-        if not model_boundary and layer.get("bottomBoundary"):
-            model_boundary = layer["bottomBoundary"]
-            notes.append(
-                f"locus {num or i} has no topBoundary, using its bottomBoundary "
-                "as a legacy fallback; re-extract to avoid a one-line locus shift"
-            )
-        bb = []
-        for p in model_boundary:
-            bb.append(
-                {
-                    "xCoordinateMeters": get_x(p),
-                    "depthMeters": p.get("depthMeters"),
-                    "confidence": p.get("confidence"),
-                }
-            )
-        layers.append(
-            {
-                "layerName": surface,
-                "inferredMaterial": surface,
-                "displayLabel": display,
-                "bottomBoundary": bb,
-            }
-        )
-
-    if not layers:
-        notes.append("no layers[] in this field-wall extraction. Nothing to convert")
-
-    adapted = {"trenchProfiles": [{"face": fname, "layers": layers}]}
-    return adapted, notes
-
-
-def as_profiles(data):
-    """Normalize either extraction shape to the trenchProfiles shape.
-    Returns (data, notes)."""
-    if is_field_wall(data):
-        return fieldwall_to_profiles(data)
-    return data, []
+    document, warnings = as_canonical(data)
+    name = face_name or data.get("faceLabel") or data.get("trenchLabel") or "field wall"
+    return canonical_to_profiles(document, face_name=name), warnings
 
 
 def make_starter_config(data):
     """Returns a starter grid-config dict with placeholder values per face.
-    Accepts either extraction shape."""
-    field_wall = is_field_wall(data)
-    profiles, _ = as_profiles(data)
+    Accepts a canonical document or either capture shape."""
+    document, _ = as_canonical(data)
+    field_wall = document["sourceSchema"] == canonical.FIELD_WALL
 
     cfg = {
         "_comment": (
@@ -249,7 +212,7 @@ def make_starter_config(data):
         },
         "faces": {},
     }
-    for i, face in enumerate(profiles.get("trenchProfiles", [])):
+    for i, face in enumerate(document["faces"]):
         name = face.get("face") or f"face_{i}"
         cfg["faces"][name] = {
             "originX": 0.0 + i * 10.0,
@@ -258,16 +221,16 @@ def make_starter_config(data):
             "bearing_deg": 90.0,
         }
 
-    if field_wall:
-        # The sheet's own tie-in labels are the likeliest source of these
-        # numbers. Grid labels like "190E/53S" now have a defined reading --
-        # site_grid.label_to_grid applies the site's sign rule -- so any that
-        # parse are offered alongside the raw text. They are still offered,
-        # not applied: which end of a face a label marks is a site-records
-        # question this module cannot answer.
-        ties = []
-        for tie in data.get("gridTiePoints") or []:
-            raw = tie.get("rawText")
+    # The sheet's own tie-in labels are the likeliest source of these numbers.
+    # Grid labels like "190E/53S" have a defined reading (site_grid.label_to_grid
+    # applies the site's sign rule), so any that parse are offered alongside the
+    # raw text. Both mediums record them: a field sheet in gridTiePoints, an
+    # illustrator sheet in gridLabels. Canonical calls both gridRefs, which is
+    # why the same hint now reaches both.
+    ties = []
+    for face in document["faces"]:
+        for ref in face["gridRefs"]:
+            raw = ref.get("rawText")
             if not raw:
                 continue
             try:
@@ -276,14 +239,17 @@ def make_starter_config(data):
                 ties.append({"rawText": raw, "gridX": None, "gridY": None})
             else:
                 ties.append({"rawText": raw, "gridX": grid_x, "gridY": grid_y})
+
+    if ties:
         cfg["_tiePointsFromSheet"] = ties
         cfg["_comment"] += (
-            " This is a single-wall field sheet, so there is one face. The "
-            "labels transcribed off the drawing are listed in "
+            " The labels transcribed off the drawing are listed in "
             "_tiePointsFromSheet, with their grid coordinates where the label "
-            "could be read. They are NOT applied here: which end of the face "
+            "could be read. They are NOT applied here: which end of a face "
             "each label marks is a site-records question. Confirm before use."
         )
+    if field_wall:
+        cfg["_comment"] += " This is a single-wall field sheet, so there is one face."
     return cfg
 
 
@@ -295,30 +261,43 @@ def surface_labels(data):
     identities. The first label seen for an id wins; a later disagreement is
     the merge layer's to report, not this function's to resolve.
     """
+    document, _ = as_canonical(data or {})
     labels = {}
-    for face in (data or {}).get("trenchProfiles") or []:
-        if not isinstance(face, dict):
-            continue
-        for layer in face.get("layers") or []:
-            if not isinstance(layer, dict):
-                continue
-            name = layer.get("inferredMaterial") or layer.get("layerName")
-            label = layer.get("displayLabel")
+    for face in document["faces"]:
+        for layer in face["layers"]:
+            name = layer["surfaceId"]
+            label = layer["displayLabel"]
             if not name or not label or label == name:
                 continue
             labels.setdefault(str(name), str(label))
     return labels
 
 
+def modelled_boundaries(face):
+    """Every drawn interface on a face, with the surface each one belongs to.
+
+    D2: a locus is a volume, and GemPy builds volumes between interfaces, so
+    each unit is enclosed by its own two lines. A layer's TOP carries that
+    layer's identity, which is the site's own practice of naming a locus by
+    the surface it opens on. The deepest layer's base line is the limit of
+    excavation rather than a deposit, so it is modelled under its own name.
+    """
+    layers = face.get("layers") or []
+    pairs = [(layer["surfaceId"], layer["topBoundary"]) for layer in layers]
+    if layers and layers[-1]["bottomBoundary"]:
+        pairs.append((canonical.BASE_SURFACE_ID, layers[-1]["bottomBoundary"]))
+    return pairs
+
+
 def convert(data, grid, out_csv):
     """Returns (rows, orient, missing_faces, notes)."""
-    profiles, notes = as_profiles(data)
+    document, notes = as_canonical(data)
     faces_cfg = grid.get("faces", {})
     rows = []
     orient = []
     missing = []
 
-    for fi, face in enumerate(profiles.get("trenchProfiles", [])):
+    for fi, face in enumerate(document["faces"]):
         fname = face.get("face") or f"face_{fi}"
         cfg = faces_cfg.get(fname)
         if cfg is None:
@@ -338,12 +317,8 @@ def convert(data, grid, out_csv):
             Z = Z0 - depth
             return X, Y, Z
 
-        for layer in face.get("layers") or []:
-            surface = (
-                layer.get("inferredMaterial") or layer.get("layerName") or "unknown"
-            )
-            bb = layer.get("bottomBoundary") or []
-            pts = [(get_x(p), get_y(p)) for p in bb]
+        for surface, boundary in modelled_boundaries(face):
+            pts = [(get_x(p), get_y(p)) for p in boundary or []]
             pts = [
                 (x, d)
                 for (x, d) in pts
@@ -408,7 +383,7 @@ def convert(data, grid, out_csv):
 def run_convert(data: dict, grid: dict, out_csv: str):
     rows, orient, missing, notes = convert(data, grid, out_csv)
     orient_csv = out_csv.rsplit(".", 1)[0] + "_orientations.csv"
-    profiles, _ = as_profiles(data)
+    document, _ = as_canonical(data)
     return {
         "points_csv": out_csv,
         "orientations_csv": orient_csv,
@@ -416,10 +391,14 @@ def run_convert(data: dict, grid: dict, out_csv: str):
         "n_orientations": len(orient),
         "missing_faces": missing,
         "notes": notes,
-        "source_shape": "field_wall" if is_field_wall(data) else "illustrator",
+        "source_shape": (
+            "field_wall"
+            if document["sourceSchema"] == canonical.FIELD_WALL
+            else "illustrator"
+        ),
         "rows_preview": rows[:200],
         # Not written into the CSV: the CSV's `surface` column is the identity
         # GemPy fuses on, and adding a colour to it is the coupling this
         # separation removes. Labels travel beside it, for display only.
-        "surface_labels": surface_labels(profiles),
+        "surface_labels": surface_labels(document),
     }
