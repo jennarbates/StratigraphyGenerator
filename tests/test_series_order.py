@@ -9,9 +9,11 @@ source is used and that the weakest one says what it is.
 """
 
 import pytest
+from fixtures_merge import GRID_T900_WEST, WEST_ILLUSTRATOR
 
-from pipeline import series_order
+from pipeline import canonical, convert_coords, series_order
 from pipeline.harris_matrix import HarrisMatrix
+from pipeline.merge_walls import merge_extractions
 
 A = "unit-00000000000a"
 B = "unit-00000000000b"
@@ -200,6 +202,68 @@ def test_matrix_units_the_model_does_not_cover_are_dropped_quietly():
     )
 
     assert order == ["Locus 1", "Locus 3"]
+
+
+def test_the_base_surface_is_exempt_from_matrix_coverage():
+    """The trench base is the limit of excavation, not a deposit, so no
+    Harris unit describes it. Coverage must not demand one, and the base
+    takes the oldest position."""
+    order, _a, _n = series_order.from_harris(
+        matrix(units=[unit(A, "1"), unit(B, "2")], relations=[relation(1, A, B)]),
+        available_surfaces={"Locus 1", "Locus 2", canonical.BASE_SURFACE_ID},
+    )
+
+    assert order == ["Locus 1", "Locus 2", canonical.BASE_SURFACE_ID]
+
+
+def _converted_illustrator_trench(tmp_path):
+    """One illustrator wall whose layers carry both a name and a material,
+    merged and converted the way the trench builder does."""
+    merged, _notes = merge_extractions([("west", WEST_ILLUSTRATOR)])
+    csv_path = tmp_path / "points.csv"
+    convert_coords.run_convert(merged, GRID_T900_WEST, str(csv_path))
+    return merged, csv_path
+
+
+def test_an_illustrator_unit_with_material_and_name_builds_with_a_matrix(
+    tmp_path,
+    storage_dirs,
+):
+    """E2: the Harris unit label and the modelled surface both come from the
+    layer name, so a matrix-linked build no longer refuses a layer that also
+    records a material."""
+    from backend.services.trench_builder import resolve_series_order
+
+    _store_matrix(
+        "T921",
+        units=[
+            unit(A, "Locus 1", schema_type="ArchaeologicalDiagram"),
+            unit(B, "Locus 2", schema_type="ArchaeologicalDiagram"),
+        ],
+        relations=[relation(1, A, B)],
+    )
+    merged, csv_path = _converted_illustrator_trench(tmp_path)
+
+    order, source, _arbitrary = resolve_series_order("T921", {}, merged, csv_path, [])
+
+    assert source == series_order.HARRIS
+    assert order == ["Locus 1", "Locus 2", canonical.BASE_SURFACE_ID]
+
+
+def test_recorded_order_from_an_illustrator_wall_names_modelled_surfaces(
+    tmp_path,
+    storage_dirs,
+):
+    """Without a matrix, the recorded sequence must name the surfaces the CSV
+    carries -- layer names, never materials -- or run_build refuses it."""
+    from backend.services.trench_builder import resolve_series_order
+
+    merged, csv_path = _converted_illustrator_trench(tmp_path)
+
+    order, source, _arbitrary = resolve_series_order("T921", {}, merged, csv_path, [])
+
+    assert source == series_order.RECORDED
+    assert order == ["Locus 1", "Locus 2", canonical.BASE_SURFACE_ID]
 
 
 def test_the_matrix_model_guarantees_every_unit_has_a_label():

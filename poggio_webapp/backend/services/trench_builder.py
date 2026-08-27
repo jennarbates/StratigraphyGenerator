@@ -26,6 +26,7 @@ from naming import canonical_trench, safe_filename
 from pipeline import (
     convert_coords,
     merge_walls,
+    normalizer,
     series_order,
     site_elevation,
     site_grid,
@@ -324,14 +325,20 @@ def check_vertical_frame(grid, notes):
 
 
 def _load_sheets(members):
+    """Each member's document, preferring the canonical artifact beside the
+    normalized file (it carries the dedupe passes); older jobs fall back to
+    the normalized extraction, which the merge canonicalizes on read (D4)."""
     sheets = []
     for member in members:
+        source = Path(member["_normalized_path"])
+        artifact = normalizer.canonical_path_for(source)
+        if artifact.is_file():
+            source = artifact
         try:
-            data = json.loads(Path(member["_normalized_path"]).read_text())
+            data = json.loads(source.read_text())
         except (OSError, UnicodeError, json.JSONDecodeError) as error:
             raise TrenchBuildError(
-                f"could not read the normalized extraction for job "
-                f"{member['job_id']}: {error}"
+                f"could not read {source.name} for job {member['job_id']}: {error}"
             ) from error
         sheets.append((member["wall_label"], data))
     return sheets

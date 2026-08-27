@@ -11,9 +11,14 @@ The one correctness rule that shapes this module: GemPy fuses interface points
 into a surface purely by exact string match on the surface name. The same
 locus on two walls is the same deposit and MUST get the identical name;
 different deposits must never collide. Surface names are built by
-convert_coords.surface_id() as 'Locus N' -- identity only, no soil colour --
-so two walls recording one deposit fuse whatever their Munsell readings say.
-This module never builds surface strings itself.
+canonical.surface_id_for() -- identity only, no soil colour or material -- so
+two walls recording one deposit fuse whatever their observations say. This
+module never builds surface strings itself.
+
+Every sheet is canonicalized before anything else, so renames, disagreement
+reporting, and the merged output read one shape regardless of which medium
+recorded a wall. The merged document is the canonical form projected back
+into trenchProfiles, the shape downstream consumers still speak.
 
 It used to do rather more here. While the Munsell reading was part of the
 surface name, a colour that differed between sheets split one deposit into two
@@ -28,11 +33,10 @@ human-readable warnings instead of silently guessing, and raise ValueError
 only on genuinely unusable input.
 """
 
-import copy
 import heapq
 import math
 
-from . import convert_coords
+from . import canonical, convert_coords
 
 
 def _validate_sheets(sheets):
@@ -62,47 +66,71 @@ def _validate_sheets(sheets):
 
 
 def _parse_correlation(correlation):
-    """'wall:locus' -> canonical, keyed for lookup as (wall_lower, locus)."""
+    """'wall:label' -> canonical label, keyed for lookup as (wall_lower,
+    label). The label is a locus number on a field wall and a layer name on
+    an illustrator wall."""
     parsed = {}
-    for key, canonical in (correlation or {}).items():
-        wall, sep, num = str(key).partition(":")
-        if not sep or not wall.strip() or not str(num).strip():
-            raise ValueError(f"correlation key {key!r} is not 'wall_label:locusNumber'")
-        parsed[(wall.strip().lower(), str(num).strip())] = str(canonical).strip()
+    for key, target in (correlation or {}).items():
+        wall, sep, name = str(key).partition(":")
+        if not sep or not wall.strip() or not str(name).strip():
+            raise ValueError(f"correlation key {key!r} is not 'wall_label:layerLabel'")
+        if not str(target).strip():
+            raise ValueError(f"correlation value for {key!r} is empty")
+        parsed[(wall.strip().lower(), str(name).strip())] = str(target).strip()
     return parsed
 
 
-def _apply_correlation(label, sheet, parsed, notes):
-    """Rename locusNumber values in loci[] and layers[] per the correlation
-    map, in place (sheet is already a private deep copy)."""
+def _layer_schema(document, layer):
+    return (layer.get("provenance") or {}).get("schemaType") or document.get(
+        "sourceSchema"
+    )
+
+
+def _layer_observation(layer):
+    """What the medium recorded about the deposit: colour or material."""
+    return canonical._munsell_text(layer.get("munsell")) or layer.get("material")
+
+
+def _apply_correlation(label, document, parsed, notes):
+    """Rename layer labels per the correlation map, on the canonical faces,
+    in place (the document is already this module's private copy). The
+    surface identity is re-derived by the layer's own medium rule, so a
+    field locus renamed '7' becomes 'Locus 7' and an illustrator layer
+    renamed 'Locus 7' fuses with it."""
     renames = {
-        num: canon for (wall, num), canon in parsed.items() if wall == label.lower()
+        name: target for (wall, name), target in parsed.items() if wall == label.lower()
     }
     if not renames:
         return
+    term = "locus" if document.get("sourceSchema") == canonical.FIELD_WALL else "layer"
     applied = set()
-    for section in ("loci", "layers"):
-        for entry in sheet.get(section) or []:
-            if not isinstance(entry, dict):
+    for face in document.get("faces") or []:
+        for layer in face.get("layers") or []:
+            name = str(layer.get("label") or layer.get("surfaceId") or "").strip()
+            if name not in renames:
                 continue
-            num = str(entry.get("locusNumber", "")).strip()
-            if num in renames:
-                entry["locusNumber"] = renames[num]
-                applied.add(num)
-    for num in sorted(applied):
+            layer["label"] = renames[name]
+            layer["surfaceId"] = canonical.surface_id_for(
+                renames[name], _layer_schema(document, layer)
+            )
+            layer["displayLabel"] = canonical._display_label(
+                layer["surfaceId"], _layer_observation(layer)
+            )
+            applied.add(name)
+    for name in sorted(applied):
         notes.append(
-            f"wall {label!r}: locus {num} renamed to "
-            f"{renames[num]} per the correlation map"
+            f"wall {label!r}: {term} {name} renamed to "
+            f"{renames[name]} per the correlation map"
         )
-    for num in sorted(set(renames) - applied):
+    for name in sorted(set(renames) - applied):
         notes.append(
-            f"correlation key {label}:{num} matched no locus on "
+            f"correlation key {label}:{name} matched no {term} on "
             f"wall {label!r} -- check the map for typos"
         )
 
 
-def _report_munsell_disagreements(field_sheets, notes):
-    """Note where two walls read one locus's colour differently.
+def _report_disagreements(documents, notes):
+    """Note where two walls record one surface's observation differently.
 
     This used to do more. When the Munsell reading was part of the GemPy
     surface name, two walls describing one deposit slightly differently
@@ -110,126 +138,128 @@ def _report_munsell_disagreements(field_sheets, notes):
     canonical reading and a companion rewrote every sheet to use it -- forcing
     a field observation to agree so that an identity would.
 
-    Surfaces are now identified by locus number alone
-    (``convert_coords.surface_id``), so the walls fuse whatever their colours
+    Surfaces are now identified by their label alone
+    (``canonical.surface_id_for``), so the walls fuse whatever their readings
     say and there is nothing left to canonicalize. The disagreement is still
     worth surfacing: it is a real fact about the recording, and a supervisor
     may want to reconcile it. It is reported and nothing is rewritten.
+    A Munsell reading and a material are parallel observations, not a
+    conflict, so only readings of the same kind are compared.
 
-    Within one sheet, only the first entry per number is considered; the
-    adapter itself notes intra-sheet duplicates when it runs.
+    Within one sheet, only the first reading per surface is considered; the
+    canonicalizer itself notes intra-sheet duplicates when it runs.
     """
-    seen = {}  # num -> (reading, wall_label that read it first)
-    for wall_label, sheet in field_sheets:
+    readings = {}  # (surfaceId, kind) -> (text, wall_label that read it first)
+    for wall_label, document in documents:
         seen_here = set()
-        for entry in sheet.get("loci") or []:
-            if not isinstance(entry, dict):
-                continue
-            num = str(entry.get("locusNumber", "")).strip()
-            if not num or num in seen_here:
-                continue
-            seen_here.add(num)
-            reading = convert_coords._munsell_label(entry)
-            if reading is None:
-                continue
-            if num not in seen:
-                seen[num] = (reading, wall_label)
-            elif seen[num][0] != reading:
-                first_reading, first_wall = seen[num]
-                notes.append(
-                    f"locus {num}: Munsell disagrees between wall "
-                    f"{first_wall!r} ({first_reading!r}) and wall "
-                    f"{wall_label!r} ({reading!r}). Both walls still model one "
-                    f"surface; {first_reading!r} is used as its label"
+        for face in document.get("faces") or []:
+            for layer in face.get("layers") or []:
+                surface = layer.get("surfaceId")
+                if not surface:
+                    continue
+                observations = (
+                    ("Munsell", canonical._munsell_text(layer.get("munsell"))),
+                    ("material", (layer.get("material") or "").strip() or None),
                 )
+                for kind, text in observations:
+                    if text is None or (surface, kind) in seen_here:
+                        continue
+                    seen_here.add((surface, kind))
+                    if (surface, kind) not in readings:
+                        readings[(surface, kind)] = (text, wall_label)
+                    elif readings[(surface, kind)][0] != text:
+                        first_text, first_wall = readings[(surface, kind)]
+                        notes.append(
+                            f"{surface}: {kind} disagrees between wall "
+                            f"{first_wall!r} ({first_text!r}) and wall "
+                            f"{wall_label!r} ({text!r}). Both walls still model "
+                            "one surface; the display label comes from the "
+                            "first sheet that recorded one"
+                        )
 
 
 def merge_extractions(sheets, correlation=None):
     """Merge per-wall extractions into one multi-face trenchProfiles document.
 
-    sheets: list of (wall_label: str, data: dict) where data is a normalized
-        extraction in either shape (FieldWallProfile or a document that
-        already has 'trenchProfiles').
-    correlation: optional dict mapping 'wall_label:locusNumber' -> canonical
-        locusNumber string, for deposits recorded under different numbers on
-        different walls.
+    sheets: list of (wall_label: str, data: dict) where data is either
+        capture shape or the canonical document.
+    correlation: optional dict mapping 'wall_label:layerLabel' -> canonical
+        label string, for deposits recorded under different labels on
+        different walls. The label is a locus number on a field wall and a
+        layer name on an illustrator wall.
 
-    Returns (merged, notes) where merged == {'trenchProfiles': [...]}.
+    Returns (merged, notes) where merged == {'trenchProfiles': [...]} and
+    every face carries the canonical conventions whatever its medium.
     Inputs are never mutated.
     """
     cleaned = _validate_sheets(sheets)
     parsed_correlation = _parse_correlation(correlation)
     notes = []
 
-    # Private deep copies from here on; callers' dicts stay untouched.
-    copies = [(label, copy.deepcopy(data)) for label, data in cleaned]
+    # 1. Canonicalize every sheet, so renames and reporting read one shape
+    #    for both mediums. canonicalize() returns fresh structure (or a deep
+    #    copy for already-canonical input), so callers' dicts stay untouched.
+    documents = []  # (wall_label, canonical document), in sheet order
+    for label, data in cleaned:
+        try:
+            document, warnings = canonical.canonicalize(data)
+        except ValueError:
+            notes.append(
+                f"sheet {label!r} has no recognizable extraction "
+                "content (no trenchProfiles, loci, or layers); "
+                "it contributed no faces"
+            )
+            continue
+        notes.extend(f"wall {label!r}: {warning}" for warning in warnings)
+        _apply_correlation(label, document, parsed_correlation, notes)
+        documents.append((label, document))
 
-    # 1. Correlation renames first, so the canonical-Munsell map is built on
-    #    the corrected numbering.
-    for label, sheet in copies:
-        if convert_coords.is_field_wall(sheet):
-            _apply_correlation(label, sheet, parsed_correlation, notes)
+    # 2. Report observation disagreements between walls. Nothing is
+    #    rewritten: surfaces are identified by label, so the walls already
+    #    fuse.
+    _report_disagreements(documents, notes)
 
-    # 2. Report colour disagreements between walls. Nothing is rewritten:
-    #    surfaces are identified by locus number, so the walls already fuse.
-    field_sheets = [
-        (label, sheet) for label, sheet in copies if convert_coords.is_field_wall(sheet)
-    ]
-    _report_munsell_disagreements(field_sheets, notes)
-
-    # 3. Adapt every sheet to faces. Field sheets go through the existing
-    #    adapter (which does ALL surface naming); illustrator-shaped sheets
-    #    pass through.
+    # 3. Project every document back into trenchProfiles faces. A field
+    #    sheet has exactly one face, named by its wall label; illustrator
+    #    faces keep the names drawn on the sheet.
     entries = []  # {'face': dict, 'name': str, 'sheet': int,
     #  'wall_label': str, 'illustrator': bool}
-    for sheet_index, (label, sheet) in enumerate(copies):
-        if convert_coords.is_field_wall(sheet):
-            adapted, adapter_notes = convert_coords.fieldwall_to_profiles(
-                sheet, face_name=label
+    for sheet_index, (label, document) in enumerate(documents):
+        field_wall = document.get("sourceSchema") == canonical.FIELD_WALL
+        projected = convert_coords.canonical_to_profiles(
+            document, face_name=label if field_wall else None
+        )
+        faces = projected["trenchProfiles"]
+        if not faces:
+            notes.append(
+                f"sheet {label!r} has no recognizable extraction "
+                "content (no trenchProfiles, loci, or layers); "
+                "it contributed no faces"
             )
-            notes.extend(adapter_notes)
-            for face in adapted.get("trenchProfiles", []):
-                entries.append(
-                    {
-                        "face": face,
-                        "name": face.get("face"),
-                        "sheet": sheet_index,
-                        "wall_label": label,
-                        "illustrator": False,
-                    }
-                )
-        else:
-            faces = sheet.get("trenchProfiles") or []
-            if not faces:
+        for j, face in enumerate(faces):
+            name = face.get("face")
+            if not name:
+                name = f"face_{j}"
+                face["face"] = name
                 notes.append(
-                    f"sheet {label!r} has no recognizable extraction "
-                    "content (no trenchProfiles, loci, or layers); "
-                    "it contributed no faces"
+                    f"sheet {label!r}: face at index {j} has no "
+                    f"name -- assigned {name!r}"
                 )
-            for j, face in enumerate(faces):
-                name = face.get("face")
-                if not name:
-                    name = f"face_{j}"
-                    face["face"] = name
-                    notes.append(
-                        f"sheet {label!r}: face at index {j} has no "
-                        f"name -- assigned {name!r}"
-                    )
-                entries.append(
-                    {
-                        "face": face,
-                        "name": name,
-                        "sheet": sheet_index,
-                        "wall_label": label,
-                        "illustrator": True,
-                    }
-                )
+            entries.append(
+                {
+                    "face": face,
+                    "name": name,
+                    "sheet": sheet_index,
+                    "wall_label": label,
+                    "illustrator": not field_wall,
+                }
+            )
 
-    # 4. Cross-sheet name collisions: prefix the illustrator face(s) with
-    #    their wall label. Decided on the pre-prefix names so order can't
-    #    matter. Field-wall faces are named by their (unique) wall labels and
-    #    are never renamed.
-    if len(copies) > 1:
+    # 4. Cross-sheet name collisions: prefix the sheet-drawn face name(s)
+    #    with their wall label. Decided on the pre-prefix names so order
+    #    can't matter. Field-wall faces are named by their (unique) wall
+    #    labels and are never renamed.
+    if len(documents) > 1:
         sheets_using = {}
         for e in entries:
             sheets_using.setdefault(e["name"], set()).add(e["sheet"])
@@ -257,16 +287,6 @@ def merge_extractions(sheets, correlation=None):
     return merged, notes
 
 
-def _surface_name(layer):
-    """The surface string convert() will write for this layer. Resolved with
-    convert()'s own precedence so the returned order matches the CSV's
-    `surface` column exactly -- GemPy fuses by exact string match, and
-    run_build rejects a series_order naming anything absent from the CSV."""
-    if not isinstance(layer, dict):
-        return None
-    return str(layer.get("inferredMaterial") or layer.get("layerName") or "unknown")
-
-
 def merged_series_order(merged):
     """One trench-wide young-to-old surface order for a merged document.
 
@@ -274,31 +294,35 @@ def merged_series_order(merged):
     Returns (order, notes) where order is a list[str] suitable to pass as
     `series_order` to build_gempy.run_build().
 
-    Each face's layers[] is already top-to-bottom, i.e. young to old, so every
-    adjacent pair within a face is an ordering constraint. The constraints from
-    all faces are merged and topologically sorted (Kahn's algorithm). Ties are
-    broken by first-seen input order, so the result is deterministic.
+    The surfaces ordered are the ones convert() models (D2): each layer's
+    top, read top-to-bottom (young to old) so every adjacent pair within a
+    face is an ordering constraint, plus the deepest drawn base line, which
+    is the limit of excavation below every deposit on its wall. Reading the
+    canonical form keeps the names matching the CSV's `surface` column
+    exactly -- GemPy fuses by exact string match, and run_build rejects a
+    series_order naming anything absent from the CSV. The constraints from
+    all faces are merged and topologically sorted (Kahn's algorithm). Ties
+    are broken by first-seen input order, so the result is deterministic.
 
     Raises ValueError if the walls contradict each other (a cycle). Guessing an
     order there would invent stratigraphy, so it refuses.
     """
-    faces = (merged or {}).get("trenchProfiles") or []
     notes = []
+    try:
+        document, _warnings = canonical.canonicalize(merged or {})
+    except ValueError:
+        # Same answer an empty merge gets: nothing to order, said out loud.
+        document = {"faces": []}
 
     order_index = {}  # surface -> first-seen position (the tie-breaker)
     faces_by_surface = {}  # surface -> [face names, in order]
     successors = {}  # surface -> {surfaces that must come after it}
     indegree = {}
 
-    for face_i, face in enumerate(faces):
-        if not isinstance(face, dict):
-            continue
+    for face_i, face in enumerate(document["faces"]):
         fname = face.get("face") or f"face_{face_i}"
         sequence = []
-        for layer in face.get("layers") or []:
-            name = _surface_name(layer)
-            if name is None:
-                continue
+        for name, _boundary in convert_coords.modelled_boundaries(face):
             if name not in order_index:
                 order_index[name] = len(order_index)
                 faces_by_surface[name] = []
@@ -345,11 +369,11 @@ def merged_series_order(merged):
             _cycle_message(order, order_index, successors, faces_by_surface)
         )
 
-    if len(faces) > 1:
+    if len(document["faces"]) > 1:
         for name in order:
             if len(faces_by_surface[name]) == 1:
                 notes.append(
-                    f"surface {name!r} has layers on only one wall "
+                    f"surface {name!r} is drawn on only one wall "
                     f"({faces_by_surface[name][0]}); it is ordered from fewer "
                     "constraints and will still be interpolated across the "
                     "whole model extent"

@@ -72,6 +72,63 @@ EAST_WALL = {
     ],
 }
 
+
+def _ipts(pairs):
+    return [{"xCoordinateMeters": x, "yCoordinateMeters": d} for x, d in pairs]
+
+
+# The same trench's west wall, recorded on the other medium: an illustrator
+# sheet naming the same two loci. Materials differ from the layer names ON
+# PURPOSE (the E2 shape), and layer 2's top is null per the illustrator
+# drawing convention (the shared line is drawn once, in layer 1's bottom).
+WEST_ILLUSTRATOR = {
+    "metadata": {"trenchLabel": "T900"},
+    "trenchProfiles": [
+        {
+            "face": "west baulk",
+            "layers": [
+                {
+                    "layerName": "Locus 1",
+                    "inferredMaterial": "compacted silt",
+                    "visualPattern": "stipple",
+                    "topBoundary": _ipts(
+                        [
+                            (0.0, 0.03),
+                            (0.7, 0.06),
+                            (1.6, 0.02),
+                            (2.2, 0.07),
+                            (3.0, 0.05),
+                        ]
+                    ),
+                    "bottomBoundary": _ipts(
+                        [
+                            (0.0, 0.43),
+                            (0.8, 0.45),
+                            (1.4, 0.40),
+                            (2.3, 0.46),
+                            (3.0, 0.44),
+                        ]
+                    ),
+                },
+                {
+                    "layerName": "Locus 2",
+                    "inferredMaterial": "ashy clay",
+                    "topBoundary": None,
+                    "bottomBoundary": _ipts(
+                        [
+                            (0.0, 0.84),
+                            (0.9, 0.89),
+                            (1.6, 0.83),
+                            (2.4, 0.90),
+                            (3.0, 0.86),
+                        ]
+                    ),
+                },
+            ],
+        }
+    ],
+}
+
 GRID_T900 = {
     "faces": {
         "north wall": {
@@ -82,6 +139,25 @@ GRID_T900 = {
         },
         "east wall": {
             "originX": 4.0,
+            "originY": 3.0,
+            "surfaceZ": 100.0,
+            "bearing_deg": 180.0,
+        },
+    }
+}
+
+# North wall plus the illustrator west baulk: the west wall runs south from
+# the shared corner (0, 3), so the two walls close at the trench's NW corner.
+GRID_T900_WEST = {
+    "faces": {
+        "north wall": {
+            "originX": 0.0,
+            "originY": 3.0,
+            "surfaceZ": 100.0,
+            "bearing_deg": 90.0,
+        },
+        "west baulk": {
+            "originX": 0.0,
             "originY": 3.0,
             "surfaceZ": 100.0,
             "bearing_deg": 180.0,

@@ -43,7 +43,7 @@ present an invented sequence as a recorded one.
 
 from __future__ import annotations
 
-from . import canonical, convert_coords
+from . import canonical
 
 HARRIS = "harris-matrix"
 RECORDED = "recorded-sequence"
@@ -80,18 +80,18 @@ def describe(source):
 def _unit_surface(unit):
     """The model surface a Harris unit refers to, or None.
 
-    A field-sheet unit is labelled with the bare locus number, so it becomes
-    ``Locus 6`` through the same function the converter uses -- the names have
-    to match as strings for GemPy to fuse anything. An illustrator unit's label
-    is already the layer name the converter emits.
+    Derived by ``canonical.surface_id_for``, the same rule the converter
+    uses -- the names have to match as strings for GemPy to fuse anything.
+    A field-sheet unit is labelled with the bare locus number and becomes
+    ``Locus 6``; an illustrator unit's label is the layer name itself.
     """
     label = (unit.label or "").strip()
     if not label:
         return None
     schema_types = {ref.schema_type for ref in unit.source_refs}
-    if "FieldWallProfile" in schema_types:
-        return convert_coords.surface_id(label)
-    return label
+    if canonical.FIELD_WALL in schema_types:
+        return canonical.surface_id_for(label, canonical.FIELD_WALL)
+    return canonical.surface_id_for(label, canonical.ILLUSTRATOR)
 
 
 def _component_surfaces(matrix):

@@ -7,8 +7,10 @@ from fixtures_merge import (
     NORTH_WALL,
     SURFACE_L1,
     SURFACE_L2,
+    WEST_ILLUSTRATOR,
 )
 
+from pipeline import canonical
 from pipeline.merge_walls import (
     check_trench_grid_config,
     face_endpoints,
@@ -116,6 +118,73 @@ def test_cross_sheet_collision_prefixes_illustrator_face():
     assert any("renamed" in n and "plan: north" in n for n in notes)
 
 
+# Cross-medium merge: one field wall and one illustrator wall of the same
+# trench come out as one homogeneous document (E5).
+
+
+def merge_cross_medium(**kwargs):
+    return merge_extractions(
+        [("north wall", NORTH_WALL), ("west", WEST_ILLUSTRATOR)], **kwargs
+    )
+
+
+def test_cross_medium_merge_is_homogeneous():
+    """Every face reads the same regardless of medium: surface identity in
+    both name keys, a display label, canonical point keys, and both
+    boundaries populated."""
+    merged, _ = merge_cross_medium()
+    assert len(merged["trenchProfiles"]) == 2
+    for face in merged["trenchProfiles"]:
+        assert face["layers"], face["face"]
+        for layer in face["layers"]:
+            assert layer["layerName"] == layer["inferredMaterial"]
+            assert layer["displayLabel"].startswith(layer["layerName"])
+            assert layer["topBoundary"] and layer["bottomBoundary"]
+            for key in ("topBoundary", "bottomBoundary"):
+                for point in layer[key]:
+                    assert "xMeters" in point and "depthMeters" in point
+                    assert "xCoordinateMeters" not in point
+
+
+def test_cross_medium_layers_share_surface_strings():
+    """The illustrator wall's layers are identified by layer name, never by
+    material, so the same locus is one surface string on both mediums."""
+    merged, _ = merge_cross_medium()
+    assert surfaces_of(merged, "north wall") == [SURFACE_L1, SURFACE_L2]
+    assert surfaces_of(merged, "west baulk") == [SURFACE_L1, SURFACE_L2]
+
+
+def test_illustrator_null_top_is_derived_in_the_merge():
+    """The drawing convention leaves a shared line in one layer only; the
+    merged document carries it in both, and a note names the wall."""
+    merged, notes = merge_cross_medium()
+    (west,) = [f for f in merged["trenchProfiles"] if f["face"] == "west baulk"]
+    lower = west["layers"][1]
+    assert lower["topBoundary"] == west["layers"][0]["bottomBoundary"]
+    assert any("west" in n and "derived" in n for n in notes)
+
+
+def test_correlation_renames_an_illustrator_layer():
+    merged, notes = merge_cross_medium(correlation={"west:Locus 2": "Locus 9"})
+    assert surfaces_of(merged, "west baulk") == [SURFACE_L1, "Locus 9"]
+    assert surfaces_of(merged, "north wall") == [SURFACE_L1, SURFACE_L2]
+    assert any("west" in n and "Locus 9" in n and "renamed" in n for n in notes)
+
+
+def test_material_disagreement_noted_between_illustrator_walls():
+    """Two illustrator walls reading one deposit's material differently is
+    the same recording fact as a Munsell disagreement, reported the same
+    way."""
+    other = copy.deepcopy(WEST_ILLUSTRATOR)
+    other["trenchProfiles"][0]["face"] = "south baulk"
+    other["trenchProfiles"][0]["layers"][1]["inferredMaterial"] = "burnt clay"
+    merged, notes = merge_extractions([("west", WEST_ILLUSTRATOR), ("south", other)])
+    assert surfaces_of(merged, "south baulk") == [SURFACE_L1, SURFACE_L2]
+    disagreement = [n for n in notes if "material disagrees" in n and "ashy clay" in n]
+    assert len(disagreement) == 1
+    assert "burnt clay" in disagreement[0]
+
+
 # Extra: a locus used in layers[] but missing from loci[] on one wall still
 # gets the trench-wide canonical name, so the deposit stays one surface.
 def test_layer_locus_missing_from_loci_still_shares_one_surface():
@@ -151,11 +220,12 @@ def doc(*faces):
     return {"trenchProfiles": list(faces)}
 
 
-# 1. The A6 fixture: locus 1 above locus 2 on both walls.
+# 1. The A6 fixture: locus 1 above locus 2 on both walls, and the drawn base
+#    line oldest (D2: the modelled surfaces include the deepest bottom).
 def test_series_order_of_merged_fixture():
     merged, _ = merge_t900()
     order, _notes = merged_series_order(merged)
-    assert order == [SURFACE_L1, SURFACE_L2]
+    assert order == [SURFACE_L1, SURFACE_L2, canonical.BASE_SURFACE_ID]
 
 
 # 2. Constraints from two walls chain together: (P, Q) + (Q, R) -> P, Q, R.
@@ -199,8 +269,9 @@ def test_series_order_is_deterministic():
     assert merged_series_order(independent)[0] == merged_series_order(independent)[0]
 
 
-# Extra: the order names exactly the surfaces present, so it can be handed to
-# run_build's series_order without tripping its "names not found" check.
+# Extra: the order names exactly the surfaces convert() models -- each
+# layer's top plus the drawn base -- so it can be handed to run_build's
+# series_order without tripping its "names not found" check.
 def test_series_order_covers_every_surface_once():
     merged, _ = merge_t900()
     order, _ = merged_series_order(merged)
@@ -209,8 +280,15 @@ def test_series_order_covers_every_surface_once():
         for face in merged["trenchProfiles"]
         for layer in face["layers"]
     }
-    assert set(order) == present
+    assert set(order) == present | {canonical.BASE_SURFACE_ID}
     assert len(order) == len(set(order))
+
+
+# Extra: no drawn bottom, no base surface. Layer sequence alone orders the
+# deposits, and nothing invents a limit of excavation.
+def test_series_order_without_drawn_bottoms_has_no_base():
+    order, _ = merged_series_order(doc(wall("A", "P", "Q")))
+    assert order == ["P", "Q"]
 
 
 # Extra: an empty document is not an error, just an empty order plus a note.

@@ -157,7 +157,8 @@ def test_series_order_holds_identities(tmp_path):
 def test_merged_series_order_is_built_from_identities():
     merged, _ = _merged()
     order, _notes = merge_walls.merged_series_order(merged)
-    assert order == ["Locus 1", "Locus 2"]
+    # The base is ordered too: it is a modelled surface (D2), oldest.
+    assert order == ["Locus 1", "Locus 2", canonical.BASE_SURFACE_ID]
 
 
 # What the merge layer no longer does

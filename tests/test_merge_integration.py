@@ -18,9 +18,12 @@ import pytest
 from fixtures_merge import (
     EAST_WALL,
     GRID_T900,
+    GRID_T900_WEST,
+    LABEL_L1,
     NORTH_WALL,
     SURFACE_L1,
     SURFACE_L2,
+    WEST_ILLUSTRATOR,
 )
 
 from pipeline import canonical, convert_coords, validator
@@ -117,14 +120,8 @@ def test_series_order_matches_the_converted_surfaces(merged, converted):
     _result, points, _ = converted
     order, _notes = merged_series_order(merged)
 
-    # The merged order covers every deposit. It does not yet name the trench
-    # base: merged_series_order reads the merged document's layers, which
-    # record deposits only. from_harris already places the base oldest; the
-    # matrix-free path follows in P3b, when merge_walls moves onto canonical.
-    assert set(order) == {row["surface"] for row in points} - {
-        canonical.BASE_SURFACE_ID
-    }
-    assert order == [SURFACE_L1, SURFACE_L2]
+    assert set(order) == {row["surface"] for row in points}
+    assert order == [SURFACE_L1, SURFACE_L2, canonical.BASE_SURFACE_ID]
 
 
 # 5. Validator smoke test: the merged document is a legal extraction, and its
@@ -138,6 +135,63 @@ def test_validator_accepts_the_merged_document(merged, tmp_path):
     assert report["errors"] == []
     assert report["ok"] is True
     assert not [w for w in report["warnings"] if "evenly spaced" in w]
+
+
+# Cross-medium: a field wall and an illustrator wall of one trench build as
+# one trench, with one consistent surface per drawn interface (the P3b gate).
+
+
+@pytest.fixture
+def cross_medium(tmp_path):
+    merged, _notes = merge_extractions(
+        [("north wall", NORTH_WALL), ("west", WEST_ILLUSTRATOR)]
+    )
+    out_csv = str(tmp_path / "points.csv")
+    result = convert_coords.run_convert(merged, GRID_T900_WEST, out_csv)
+    return merged, result, read_csv(result["points_csv"])
+
+
+def test_cross_medium_surfaces_span_both_mediums(cross_medium):
+    _merged, result, points = cross_medium
+    assert result["missing_faces"] == []
+
+    faces_by_surface = {}
+    for row in points:
+        faces_by_surface.setdefault(row["surface"], set()).add(row["face"])
+
+    assert set(faces_by_surface) == {SURFACE_L1, SURFACE_L2, canonical.BASE_SURFACE_ID}
+    for surface, faces in faces_by_surface.items():
+        assert faces == {"north wall", "west baulk"}, surface
+
+
+def test_cross_medium_series_order_matches_the_csv(cross_medium):
+    """The recorded-sequence path must name the surfaces the CSV carries, or
+    run_build refuses the order. Before the merge read the canonical form,
+    the illustrator wall contributed material names here instead."""
+    merged, _result, points = cross_medium
+    order, _notes = merged_series_order(merged)
+
+    assert set(order) == {row["surface"] for row in points}
+    assert order == [SURFACE_L1, SURFACE_L2, canonical.BASE_SURFACE_ID]
+
+
+def test_cross_medium_labels_keep_each_mediums_observation(cross_medium):
+    """Identity fuses the walls; each medium's own reading survives as the
+    display label, first sheet's label winning."""
+    _merged, result, _points = cross_medium
+    labels = result["surface_labels"]
+    assert labels[SURFACE_L1] == LABEL_L1
+
+
+def test_validator_accepts_the_cross_medium_document(cross_medium, tmp_path):
+    merged, _result, _points = cross_medium
+    path = tmp_path / "cross.json"
+    path.write_text(json.dumps(merged))
+
+    report = validator.run_validate(str(path))
+
+    assert report["errors"] == []
+    assert report["ok"] is True
 
 
 # 6. The real build, when gempy is installed. importorskip skips rather than
