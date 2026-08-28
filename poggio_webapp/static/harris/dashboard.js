@@ -84,12 +84,25 @@ function renderSources(sources) {
   let matchedRequestedSource = false;
   for (const source of sources) {
     const item = document.createElement("div");
-    const checkbox = document.createElement("input");
     const label = document.createElement("label");
     const title = document.createElement("strong");
     const context = document.createElement("span");
 
     item.className = "source-job";
+    label.className = "source-job-label";
+    title.textContent = `Job ${source.job_id}`;
+
+    if (source.usable === false) {
+      // Not importable; shown with the reason instead of a checkbox so the
+      // operator can see why the drawing is missing from the picker.
+      context.textContent = source.reason || "Not importable.";
+      label.append(title, context);
+      item.append(label);
+      sourceList.append(item);
+      continue;
+    }
+
+    const checkbox = document.createElement("input");
     checkbox.id = `dashboard-source-${source.job_id}`;
     checkbox.type = "checkbox";
     checkbox.value = source.job_id;
@@ -97,9 +110,7 @@ function renderSources(sources) {
     checkbox.addEventListener("change", updateMatrixImportButtons);
     matchedRequestedSource ||= checkbox.checked;
 
-    label.className = "source-job-label";
     label.htmlFor = checkbox.id;
-    title.textContent = `Job ${source.job_id}`;
     context.textContent = sourceContext(source);
     label.append(title, context);
     item.append(checkbox, label);

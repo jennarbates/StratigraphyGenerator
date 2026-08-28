@@ -23,6 +23,10 @@ _GENERIC_LABEL = re.compile(
     re.IGNORECASE,
 )
 _ORDERING_REASON = "Consecutive source layers share a recorded boundary."
+_DERIVED_ORDERING_REASON = (
+    "Consecutive source layers share a boundary recorded once; the missing "
+    "side was derived from the recorded one."
+)
 _CORRELATION_REASON = "Matching normalized labels appear in different jobs or faces."
 
 
@@ -70,32 +74,13 @@ def _clean_face(value) -> str:
 
 
 def _layer_for_ref(document: dict, source_ref: SourceRef) -> dict | None:
-    if source_ref.schema_type == "FieldWallProfile":
-        if _clean_face(document.get("faceLabel")) != source_ref.face:
-            return None
-        layers = document.get("layers")
-        if not isinstance(layers, list):
-            return None
-        if source_ref.layer_index >= len(layers):
-            return None
-        layer = layers[source_ref.layer_index]
-        return layer if isinstance(layer, dict) else None
-
-    profiles = document.get("trenchProfiles")
-    if not isinstance(profiles, list):
-        return None
-    for profile in profiles:
-        if (
-            not isinstance(profile, dict)
-            or _clean_face(profile.get("face")) != source_ref.face
-        ):
+    """Resolve a source ref against the canonical faces of its job's document."""
+    for face in document.get("faces") or []:
+        if _clean_face(face.get("face")) != source_ref.face:
             continue
-        layers = profile.get("layers")
-        if not isinstance(layers, list) or source_ref.layer_index >= len(layers):
-            continue
-        layer = layers[source_ref.layer_index]
-        if isinstance(layer, dict):
-            return layer
+        layers = face.get("layers") or []
+        if source_ref.layer_index < len(layers):
+            return layers[source_ref.layer_index]
     return None
 
 
@@ -206,6 +191,14 @@ def _ordering_suggestions(
                 ):
                     continue
 
+                # The canonical form materializes a boundary the drawing
+                # records once (a null illustrator or editor top, D1). The
+                # match is then real but the line was not drawn twice, and
+                # the reviewer should know which claim they are accepting.
+                derived = bool(
+                    upper_layer.get("bottomBoundaryDerived")
+                    or lower_layer.get("topBoundaryDerived")
+                )
                 suggestion_id = _suggestion_id(
                     "ordering",
                     upper_unit.id,
@@ -215,6 +208,7 @@ def _ordering_suggestions(
                 source_refs = [upper_ref, lower_ref]
                 if existing is not None:
                     source_refs.extend(existing.source_refs)
+                    derived = derived or existing.reason == _DERIVED_ORDERING_REASON
                 suggestions_by_id[suggestion_id] = HarrisSuggestion(
                     id=suggestion_id,
                     suggestion_type="ordering",
@@ -223,7 +217,7 @@ def _ordering_suggestions(
                     older_id=lower_unit.id,
                     relation_kind="above",
                     correlation_unit_ids=[],
-                    reason=_ORDERING_REASON,
+                    reason=_DERIVED_ORDERING_REASON if derived else _ORDERING_REASON,
                     source_refs=_unique_source_refs(source_refs),
                 )
 

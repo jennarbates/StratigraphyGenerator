@@ -209,6 +209,10 @@ def test_exact_shared_field_wall_boundary_suggests_above(tmp_path):
     assert ordering[0].older_id == matrix.units[1].id
     assert ordering[0].relation_kind == "above"
     assert ordering[0].status == "pending"
+    # Both boundaries were drawn, so the reason claims a recorded line and
+    # nothing about derivation.
+    assert "recorded boundary" in ordering[0].reason
+    assert "derived" not in ordering[0].reason
 
 
 def test_exact_shared_illustrator_boundary_suggests_above(tmp_path):
@@ -225,6 +229,67 @@ def test_exact_shared_illustrator_boundary_suggests_above(tmp_path):
     assert ordering[0].younger_id == matrix.units[0].id
     assert ordering[0].older_id == matrix.units[1].id
     assert ordering[0].relation_kind == "above"
+
+
+def illustrator_convention_document():
+    """The illustrator prompt orders a shared line drawn once: the lower
+    layer's top is null."""
+    document = illustrator_document()
+    document["trenchProfiles"][0]["layers"][1]["topBoundary"] = None
+    return document
+
+
+def test_illustrator_null_top_yields_a_derived_ordering_suggestion(tmp_path):
+    """E1: the drawing convention no longer silences the shared-boundary
+    rule. The canonical form derives the missing top from the layer above,
+    the derived line matches the one it came from, and the reason says so."""
+    jobs_dir = storage.JOBS_DIR
+    matrix = imported_matrix(
+        jobs_dir,
+        [(FIELD_JOB, illustrator_convention_document())],
+    )
+
+    generated = generate_suggestions(matrix, jobs_dir)
+
+    ordering = suggestions_of_type(generated, "ordering")
+    assert len(ordering) == 1
+    assert ordering[0].younger_id == matrix.units[0].id
+    assert ordering[0].older_id == matrix.units[1].id
+    assert ordering[0].relation_kind == "above"
+    assert "derived" in ordering[0].reason
+
+
+def test_editor_field_null_top_yields_the_same_derived_suggestion(tmp_path):
+    """The canvas editor serializes field layers with null tops (E3); the
+    rule is medium-blind."""
+    jobs_dir = storage.JOBS_DIR
+    document = field_document()
+    document["layers"][1]["topBoundary"] = None
+    matrix = imported_matrix(jobs_dir, [(FIELD_JOB, document)])
+
+    generated = generate_suggestions(matrix, jobs_dir)
+
+    ordering = suggestions_of_type(generated, "ordering")
+    assert len(ordering) == 1
+    assert "derived" in ordering[0].reason
+
+
+def test_rejected_derived_suggestion_stays_rejected_across_regeneration(
+    tmp_path,
+):
+    jobs_dir = storage.JOBS_DIR
+    matrix = imported_matrix(
+        jobs_dir,
+        [(FIELD_JOB, illustrator_convention_document())],
+    )
+    generated = generate_suggestions(matrix, jobs_dir)
+    rejected = review_suggestion(generated, generated.suggestions[0].id, "reject")
+
+    regenerated = generate_suggestions(rejected, jobs_dir)
+
+    assert len(regenerated.suggestions) == 1
+    assert regenerated.suggestions[0].status == "rejected"
+    assert "derived" in regenerated.suggestions[0].reason
 
 
 def test_boundaries_inside_tolerance_match_after_sorting(tmp_path):

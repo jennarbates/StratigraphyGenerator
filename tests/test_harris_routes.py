@@ -445,6 +445,7 @@ def test_source_discovery_lists_supported_schemas_with_safe_summaries(
     assert summaries == [
         {
             "job_id": FIELD_JOB,
+            "usable": True,
             "schema_type": "FieldWallProfile",
             "trench": "T123",
             "faces": ["North baulk"],
@@ -452,10 +453,18 @@ def test_source_discovery_lists_supported_schemas_with_safe_summaries(
         },
         {
             "job_id": ILLUSTRATOR_JOB,
+            "usable": True,
             "schema_type": "ArchaeologicalDiagram",
             "trench": "T123",
             "faces": ["East", "West"],
             "unit_count": 2,
+        },
+        {
+            "job_id": MALFORMED_JOB,
+            "usable": False,
+            "reason": (
+                f"Source document for job {MALFORMED_JOB} contains malformed JSON."
+            ),
         },
     ]
     serialized = json.dumps(summaries)

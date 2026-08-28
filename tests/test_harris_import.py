@@ -1,9 +1,11 @@
+import hashlib
 import json
 from datetime import UTC, datetime
 
 import pytest
 
 import storage
+from poggio_webapp.pipeline.canonical import canonicalize
 from poggio_webapp.pipeline.harris_import import (
     HarrisImportError,
     discover_source_jobs,
@@ -39,9 +41,9 @@ def empty_matrix():
     )
 
 
-def field_document(*, marker=None):
+def field_document(*, trench="T123"):
     document = {
-        "trenchLabel": "T123",
+        "trenchLabel": trench,
         "faceLabel": "North baulk",
         "loci": [
             {
@@ -66,8 +68,6 @@ def field_document(*, marker=None):
             {"locusNumber": "8"},
         ],
     }
-    if marker is not None:
-        document["marker"] = marker
     return document
 
 
@@ -130,65 +130,43 @@ def source_snapshot(jobs_dir):
     }
 
 
-@pytest.mark.parametrize(
-    ("expected_relative_path", "meta_fields", "create_conventional"),
-    [
-        (
-            "custom/normalized.json",
-            {"normalized_path": "custom/normalized.json"},
-            True,
-        ),
-        ("04_normalize_validate/output_clean.json", {}, True),
-        (
-            "custom/extraction.json",
-            {"extraction_path": "custom/extraction.json"},
-            False,
-        ),
-        ("extraction_output.json", {}, False),
-    ],
-)
+# Best first. Each row proves its file beats every weaker candidate below
+# it: the test writes the winner plus everything after it, and asserts the
+# winner is the one read. Canonical artifacts sit above the legacy chain.
+DISCOVERY_ORDER = [
+    ("custom/canonical.json", {"canonical_path": "custom/canonical.json"}),
+    ("04_normalize_validate/canonical.json", {}),
+    ("custom/normalized.json", {"normalized_path": "custom/normalized.json"}),
+    ("04_normalize_validate/output_clean.json", {}),
+    ("custom/extraction.json", {"extraction_path": "custom/extraction.json"}),
+    ("extraction_output.json", {}),
+]
+
+
+@pytest.mark.parametrize("winner_index", range(len(DISCOVERY_ORDER)))
 def test_load_source_document_uses_every_discovery_order_branch(
     tmp_path,
-    expected_relative_path,
-    meta_fields,
-    create_conventional,
+    winner_index,
 ):
     jobs_dir = storage.JOBS_DIR
     job_dir = jobs_dir / FIELD_JOB
     job_dir.mkdir(parents=True)
-    candidates = {
-        "custom/normalized.json": "metadata-normalized",
-        "04_normalize_validate/output_clean.json": "conventional-normalized",
-        "custom/extraction.json": "metadata-extraction",
-        "extraction_output.json": "conventional-extraction",
-    }
-
-    if create_conventional:
-        write_json(
-            job_dir / "04_normalize_validate/output_clean.json",
-            field_document(
-                marker=candidates["04_normalize_validate/output_clean.json"]
-            ),
-        )
-    if expected_relative_path in meta_fields.values():
-        write_json(
-            job_dir / expected_relative_path,
-            field_document(marker=candidates[expected_relative_path]),
-        )
-        meta_fields = {
-            field: str(job_dir / relative_path)
-            for field, relative_path in meta_fields.items()
-        }
-    write_json(
-        job_dir / "extraction_output.json",
-        field_document(marker=candidates["extraction_output.json"]),
-    )
-    write_json(job_dir / "meta.json", meta_fields)
+    meta = {}
+    for relative, meta_fields in DISCOVERY_ORDER[winner_index:]:
+        content = field_document(trench=relative)
+        if relative.endswith("canonical.json"):
+            content, _warnings = canonicalize(content)
+        write_json(job_dir / relative, content)
+        for field, target in meta_fields.items():
+            meta[field] = str(job_dir / target)
+    write_json(job_dir / "meta.json", meta)
+    winner_relative, _fields = DISCOVERY_ORDER[winner_index]
 
     document, path = load_source_document(FIELD_JOB, jobs_dir)
 
-    assert path == (job_dir / expected_relative_path).resolve()
-    assert document["marker"] == candidates[expected_relative_path]
+    assert path == (job_dir / winner_relative).resolve()
+    assert document["canonicalVersion"] == 1
+    assert document["document"]["trenchLabel"] == winner_relative
 
 
 def test_outside_job_metadata_paths_are_ignored(tmp_path):
@@ -197,15 +175,16 @@ def test_outside_job_metadata_paths_are_ignored(tmp_path):
     job_dir.mkdir(parents=True)
     outside = write_json(
         tmp_path / "outside.json",
-        field_document(marker="outside"),
+        field_document(trench="outside"),
     )
     write_json(
         job_dir / "04_normalize_validate/output_clean.json",
-        field_document(marker="inside"),
+        field_document(trench="inside"),
     )
     write_json(
         job_dir / "meta.json",
         {
+            "canonical_path": str(outside),
             "normalized_path": str(outside),
             "extraction_path": "../outside.json",
         },
@@ -213,7 +192,7 @@ def test_outside_job_metadata_paths_are_ignored(tmp_path):
 
     document, path = load_source_document(FIELD_JOB, jobs_dir)
 
-    assert document["marker"] == "inside"
+    assert document["document"]["trenchLabel"] == "inside"
     assert path == (job_dir / "04_normalize_validate/output_clean.json").resolve()
 
 
@@ -241,8 +220,9 @@ def test_field_wall_units_include_labels_context_and_exact_source_refs():
     units = extract_source_units(FIELD_JOB, field_document())
 
     assert [unit.label for unit in units] == ["7", "8"]
+    # E6: prose and the Munsell reading both survive, composed.
     assert [unit.description for unit in units] == [
-        "Compact soil",
+        "Compact soil (10YR 5/3 brown)",
         "2.5Y 4/3 olive brown",
     ]
     assert [unit.unit_type for unit in units] == ["deposit", "deposit"]
@@ -273,10 +253,11 @@ def test_illustrator_units_import_every_face_without_merging_labels():
         "Shared",
         "Unlabeled layer 2",
     ]
+    # E6: the material rides beside the prose instead of behind it.
     assert [unit.description for unit in units] == [
-        "East soil",
+        "East soil (Soil)",
         "Sandy soil",
-        "West soil",
+        "West soil (Stone)",
         None,
     ]
     assert [
@@ -293,6 +274,68 @@ def test_illustrator_units_import_every_face_without_merging_labels():
         ("ArchaeologicalDiagram", "West", 1),
     ]
     assert units[1].id != units[2].id
+
+
+def test_unit_ids_preserve_the_pre_canonical_identity_inputs():
+    """The unit ID hashes job|schema|face|layer_index exactly as it did
+    before the canonical form existed, so re-importing an old matrix finds
+    its units instead of forking them."""
+
+    def expected(identity):
+        return "unit-" + hashlib.sha256(identity.encode("utf-8")).hexdigest()[:12]
+
+    field_units = extract_source_units(FIELD_JOB, field_document())
+    assert [unit.id for unit in field_units] == [
+        expected(f"{FIELD_JOB}|FieldWallProfile|North baulk|0"),
+        expected(f"{FIELD_JOB}|FieldWallProfile|North baulk|1"),
+    ]
+
+    illustrator_units = extract_source_units(ILLUSTRATOR_JOB, illustrator_document())
+    assert [unit.id for unit in illustrator_units] == [
+        expected(f"{ILLUSTRATOR_JOB}|ArchaeologicalDiagram|East|0"),
+        expected(f"{ILLUSTRATOR_JOB}|ArchaeologicalDiagram|East|1"),
+        expected(f"{ILLUSTRATOR_JOB}|ArchaeologicalDiagram|West|0"),
+        expected(f"{ILLUSTRATOR_JOB}|ArchaeologicalDiagram|West|1"),
+    ]
+
+
+def test_a_canonical_document_imports_identically_to_its_capture_shape():
+    """Both load paths (canonical.json, canonicalize-on-read) must produce
+    the same units, or a job's identity would depend on which artifact was
+    read."""
+    capture_units = extract_source_units(FIELD_JOB, field_document())
+    canonical_document, _warnings = canonicalize(field_document())
+
+    canonical_units = extract_source_units(FIELD_JOB, canonical_document)
+
+    assert [unit.model_dump() for unit in canonical_units] == [
+        unit.model_dump() for unit in capture_units
+    ]
+
+
+def test_import_reads_the_canonical_artifact_when_present(tmp_path):
+    """canonical.json carries the normalize step's dedupe passes, so import
+    must prefer it over the legacy pair beside it."""
+    jobs_dir = storage.JOBS_DIR
+    job_dir = write_job(jobs_dir, FIELD_JOB, field_document())
+    different = field_document()
+    different["loci"] = []
+    different["layers"] = [{"locusNumber": "9"}]
+    artifact, _warnings = canonicalize(different)
+    write_json(job_dir / "04_normalize_validate" / "canonical.json", artifact)
+
+    imported, _warnings = import_source_jobs(empty_matrix(), [FIELD_JOB], jobs_dir)
+
+    assert [unit.label for unit in imported.units] == ["9"]
+
+
+def test_an_observation_equal_to_the_prose_is_not_repeated():
+    document = illustrator_document()
+    document["trenchProfiles"][0]["layers"][0]["description"] = "Soil"
+
+    units = extract_source_units(ILLUSTRATOR_JOB, document)
+
+    assert units[0].description == "Soil"
 
 
 def test_two_job_import_keeps_equal_labels_as_exact_separate_source_units(
@@ -384,12 +427,18 @@ def test_reimport_is_idempotent_and_preserves_user_edits(tmp_path):
     assert reimported.units[0].description == "Reviewer description"
 
 
-def test_discovery_omits_unusable_jobs_and_exposes_no_server_paths(tmp_path):
+def test_discovery_lists_unusable_jobs_with_reasons(tmp_path):
+    """A job that cannot be imported appears with the reason instead of
+    vanishing; directories that are not job IDs at all stay out. No entry
+    exposes a server path."""
     jobs_dir = storage.JOBS_DIR
     write_job(jobs_dir, FIELD_JOB, field_document())
     unusable = jobs_dir / "333333333333"
     unusable.mkdir(parents=True)
     write_json(unusable / "meta.json", {"normalized_path": "/private/data"})
+    malformed = jobs_dir / "444444444444"
+    malformed.mkdir(parents=True)
+    (malformed / "extraction_output.json").write_text("{not-json", encoding="utf-8")
     invalid_id = jobs_dir / "not-a-job"
     invalid_id.mkdir()
     write_json(
@@ -400,8 +449,15 @@ def test_discovery_omits_unusable_jobs_and_exposes_no_server_paths(tmp_path):
     summaries = discover_source_jobs(jobs_dir)
     serialized = json.dumps(summaries)
 
-    assert [summary["job_id"] for summary in summaries] == [FIELD_JOB]
+    assert [(summary["job_id"], summary["usable"]) for summary in summaries] == [
+        (FIELD_JOB, True),
+        ("333333333333", False),
+        ("444444444444", False),
+    ]
     assert summaries[0]["schema_type"] == "FieldWallProfile"
+    assert summaries[0]["unit_count"] == 2
+    assert "no usable extraction" in summaries[1]["reason"]
+    assert "malformed JSON" in summaries[2]["reason"]
     assert str(tmp_path) not in serialized
     assert "extraction_output.json" not in serialized
 

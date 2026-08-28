@@ -1,22 +1,23 @@
-"""Read-only discovery and unit import for Harris Matrix source jobs."""
+"""Read-only discovery and unit import for Harris Matrix source jobs.
+
+Sources are read in their canonical form: the canonical artifact when the
+job has one, else the legacy artifact chain canonicalized on read (D4). One
+unit builder serves both mediums, and the unit identity inputs
+``job_id|schema_type|face|layer_index`` are the ones this module hashed
+before the canonical form existed, so re-importing an old matrix finds its
+units instead of forking them.
+"""
 
 import hashlib
 import json
 import re
 from pathlib import Path
 
+from . import canonical
 from .harris_matrix import HarrisMatrix, HarrisUnit, SourceRef
 
 _JOB_ID = re.compile(r"[0-9a-f]{12}")
 _GENERIC_LABEL = re.compile(r"Polygon\s+\d+", re.IGNORECASE)
-_FIELD_WALL_FIELDS = frozenset(
-    {
-        "faceLabel",
-        "gridSquareCm",
-        "loci",
-        "trenchLabel",
-    }
-)
 
 
 class HarrisImportError(ValueError):
@@ -68,14 +69,21 @@ def _metadata_candidate(
     return candidate
 
 
-def _schema_type(document: dict) -> str:
-    if isinstance(document.get("trenchProfiles"), list):
-        return "ArchaeologicalDiagram"
-    if isinstance(document.get("layers"), list) and _FIELD_WALL_FIELDS.intersection(
-        document
-    ):
-        return "FieldWallProfile"
-    raise HarrisImportError("Source document has an unsupported extraction schema.")
+def _canonical_document(job_id: str, document: dict) -> dict:
+    """The canonical form of a source document, canonicalized on read."""
+    if not isinstance(document, dict):
+        raise HarrisImportError(
+            f"Source document for job {job_id} has an unsupported top-level shape."
+        )
+    if canonical.is_canonical(document):
+        return document
+    try:
+        converted, _warnings = canonical.canonicalize(document)
+    except (ValueError, AttributeError, TypeError) as error:
+        raise HarrisImportError(
+            "Source document has an unsupported extraction schema."
+        ) from error
+    return converted
 
 
 def _read_source_json(job_id: str, path: Path) -> dict:
@@ -95,19 +103,16 @@ def _read_source_json(job_id: str, path: Path) -> dict:
             f"Source document for job {job_id} could not be read."
         ) from error
 
-    if not isinstance(document, dict):
-        raise HarrisImportError(
-            f"Source document for job {job_id} has an unsupported top-level shape."
-        )
-    _schema_type(document)
-    return document
+    return _canonical_document(job_id, document)
 
 
 def load_source_document(
     job_id: str,
     jobs_dir: Path,
 ) -> tuple[dict, Path]:
-    """Load the highest-priority usable artifact inside one source job."""
+    """Load the highest-priority usable artifact inside one source job.
+
+    Returns (canonical document, path of the file actually read)."""
     job_id = _validate_job_id(job_id)
     job_directory = (Path(jobs_dir) / job_id).resolve()
     if not job_directory.is_dir():
@@ -115,6 +120,12 @@ def load_source_document(
 
     metadata = _read_metadata(job_directory)
     candidates = [
+        _metadata_candidate(
+            job_directory,
+            metadata,
+            "canonical_path",
+        ),
+        (job_directory / "04_normalize_validate" / "canonical.json").resolve(),
         _metadata_candidate(
             job_directory,
             metadata,
@@ -157,17 +168,15 @@ def _source_label(value) -> str | None:
     return None
 
 
-def _munsell_text(locus: dict) -> str | None:
-    munsell = locus.get("munsell")
-    if isinstance(munsell, str):
-        return _clean_text(munsell)
-    if isinstance(munsell, dict):
-        parts = [
-            _clean_text(munsell.get("raw")),
-            _clean_text(munsell.get("colorName")),
-        ]
-        return " ".join(part for part in parts if part) or None
-    return _clean_text(locus.get("munsellRaw"))
+def _composed_description(layer: dict) -> str | None:
+    """Prose plus the medium's observation, neither displacing the other (E6)."""
+    prose = _clean_text(layer.get("description"))
+    observation = _clean_text(
+        canonical._munsell_text(layer.get("munsell"))
+    ) or _clean_text(layer.get("material"))
+    if prose and observation and observation != prose:
+        return f"{prose} ({observation})"
+    return prose or observation
 
 
 def _unit_id(
@@ -259,90 +268,32 @@ def _make_unit(
     return unit, None
 
 
-def _field_wall_units(
+def _extract_with_warnings(
     job_id: str,
     document: dict,
 ) -> tuple[list[HarrisUnit], list[dict]]:
-    face = document.get("faceLabel")
-    loci_by_label = {}
-    loci = document.get("loci")
-    if isinstance(loci, list):
-        for locus in loci:
-            if not isinstance(locus, dict):
-                continue
-            label = _clean_text(_source_label(locus.get("locusNumber")))
-            if label is not None and label not in loci_by_label:
-                loci_by_label[label] = locus
+    """One unit builder for both mediums, over the canonical faces."""
+    job_id = _validate_job_id(job_id)
+    document = _canonical_document(job_id, document)
+    schema_type = document["sourceSchema"]
 
     units = []
     warnings = []
-    for layer_index, layer in enumerate(document["layers"]):
-        if not isinstance(layer, dict):
-            continue
-        raw_label = layer.get("locusNumber")
-        clean_label = _clean_text(_source_label(raw_label))
-        locus = loci_by_label.get(clean_label, {})
-        description = _clean_text(locus.get("description"))
-        if description is None:
-            description = _munsell_text(locus)
-        unit, warning = _make_unit(
-            job_id=job_id,
-            schema_type="FieldWallProfile",
-            face=face,
-            layer_index=layer_index,
-            raw_label=raw_label,
-            description=description,
-        )
-        units.append(unit)
-        if warning is not None:
-            warnings.append(warning)
-    return units, warnings
-
-
-def _illustrator_units(
-    job_id: str,
-    document: dict,
-) -> tuple[list[HarrisUnit], list[dict]]:
-    units = []
-    warnings = []
-    for profile in document["trenchProfiles"]:
-        if not isinstance(profile, dict):
-            continue
-        layers = profile.get("layers")
-        if not isinstance(layers, list):
-            continue
-        for layer_index, layer in enumerate(layers):
-            if not isinstance(layer, dict):
-                continue
-            description = _clean_text(layer.get("description"))
-            if description is None:
-                description = _clean_text(layer.get("inferredMaterial"))
+    for face in document.get("faces") or []:
+        for layer_index, layer in enumerate(face.get("layers") or []):
+            provenance = layer.get("provenance") or {}
             unit, warning = _make_unit(
                 job_id=job_id,
-                schema_type="ArchaeologicalDiagram",
-                face=profile.get("face"),
+                schema_type=schema_type,
+                face=face.get("face"),
                 layer_index=layer_index,
-                raw_label=layer.get("layerName"),
-                description=description,
+                raw_label=provenance.get("sourceLabel", layer.get("label")),
+                description=_composed_description(layer),
             )
             units.append(unit)
             if warning is not None:
                 warnings.append(warning)
     return units, warnings
-
-
-def _extract_with_warnings(
-    job_id: str,
-    document: dict,
-) -> tuple[list[HarrisUnit], list[dict]]:
-    job_id = _validate_job_id(job_id)
-    if not isinstance(document, dict):
-        raise HarrisImportError("Source document has an unsupported top-level shape.")
-
-    schema_type = _schema_type(document)
-    if schema_type == "FieldWallProfile":
-        return _field_wall_units(job_id, document)
-    return _illustrator_units(job_id, document)
 
 
 def extract_source_units(
@@ -354,13 +305,8 @@ def extract_source_units(
     return units
 
 
-def _trench_label(document: dict, schema_type: str) -> str:
-    if schema_type == "FieldWallProfile":
-        return _clean_text(document.get("trenchLabel")) or ""
-    metadata = document.get("metadata")
-    if not isinstance(metadata, dict):
-        return ""
-    return _clean_text(metadata.get("trenchLabel")) or ""
+def _trench_label(document: dict) -> str:
+    return _clean_text((document.get("document") or {}).get("trenchLabel")) or ""
 
 
 def _faces(units: list[HarrisUnit]) -> list[str]:
@@ -374,7 +320,12 @@ def _faces(units: list[HarrisUnit]) -> list[str]:
 
 
 def discover_source_jobs(jobs_dir: Path) -> list[dict]:
-    """Summarize valid source artifacts without exposing server paths."""
+    """Summarize source artifacts without exposing server paths.
+
+    A job directory that cannot be imported is listed with the reason
+    rather than silently skipped, so the operator can see why a drawing is
+    missing from the picker. Directories that are not job IDs stay out.
+    """
     jobs_directory = Path(jobs_dir)
     if not jobs_directory.is_dir():
         return []
@@ -390,14 +341,21 @@ def discover_source_jobs(jobs_dir: Path) -> list[dict]:
         try:
             document, _path = load_source_document(job_id, jobs_directory)
             units = extract_source_units(job_id, document)
-        except HarrisImportError:
+        except HarrisImportError as error:
+            summaries.append(
+                {
+                    "job_id": job_id,
+                    "usable": False,
+                    "reason": str(error),
+                }
+            )
             continue
-        schema_type = _schema_type(document)
         summaries.append(
             {
                 "job_id": job_id,
-                "schema_type": schema_type,
-                "trench": _trench_label(document, schema_type),
+                "usable": True,
+                "schema_type": document["sourceSchema"],
+                "trench": _trench_label(document),
                 "faces": _faces(units),
                 "unit_count": len(units),
             }

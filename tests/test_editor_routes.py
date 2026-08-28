@@ -377,7 +377,10 @@ def test_results_page_keeps_unusable_harris_candidate_hidden(
 
     assert response.status_code == 200
     assert "hidden" in harris_link
-    assert client.get("/api/harris-source-jobs").get_json() == []
+    # Discovery names the job but only as unusable, with the reason; it is
+    # never offered for import.
+    listed = client.get("/api/harris-source-jobs").get_json()
+    assert [(entry["job_id"], entry["usable"]) for entry in listed] == [(job_id, False)]
 
 
 def test_complete_results_page_uses_mesh_viewer_with_section_fallback(
