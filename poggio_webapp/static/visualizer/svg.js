@@ -13,12 +13,31 @@ import { legacyViewBox } from "./viewbox.mjs";
 // extent across a face's points
 export function faceExtent(face){
   let maxX=0,maxY=0;
-  const scan=pts=>(pts||[]).forEach(p=>{if(typeof p.xCoordinateMeters==="number")maxX=Math.max(maxX,p.xCoordinateMeters);
-    if(typeof p.yCoordinateMeters==="number")maxY=Math.max(maxY,p.yCoordinateMeters);});
+  const scan=pts=>(pts||[]).forEach(p=>{if(Number.isFinite(meterX(p)))maxX=Math.max(maxX,meterX(p));
+    if(Number.isFinite(meterDepth(p)))maxY=Math.max(maxY,meterDepth(p));});
   (face.layers||[]).forEach(l=>{scan(l.topBoundary);scan(l.bottomBoundary);
-    (l.featuresInLayer||[]).forEach(ft=>scan(ft.shapePoints));});
-  (face.gridLabelXMeters||[]).forEach(x=>{if(typeof x==="number")maxX=Math.max(maxX,x);});
+    (l.features||[]).forEach(ft=>scan(ft.shapePoints));});
+  (face.gridRefs||[]).forEach(ref=>{if(typeof ref.xMeters==="number")maxX=Math.max(maxX,ref.xMeters);});
   return {maxX:maxX||1,maxY:maxY||1};
+}
+
+// Identity picks the colour; the display label is only what is read (D3).
+function layerIdentity(l){
+  const id=l.surfaceId||"?";
+  return {id,label:l.displayLabel||id,col:colorFor(id)};
+}
+
+// The site names a locus on the surface it opens on, and the field sheets
+// letter loci inside their band, so field-recorded layers label inside it;
+// illustrator sheets write along the drawn line.
+function labelsInsideBand(l){
+  return (l.provenance||{}).schemaType==="FieldWallProfile";
+}
+
+function featureDepth(ft){
+  return typeof ft.approxDepthMeters==="number"
+    ? ft.approxDepthMeters
+    : ft.approxYMeters;
 }
 
 function validSourcePixel(point){
@@ -74,10 +93,10 @@ function buildCalibratedSVG(
   const show=id=>$(id).checked;
   const s=[`<svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">`];
 
-  if(show("tGrid")&&face.gridLabelXMeters){
+  if(show("tGrid")){
     const gridDepthMeters=Math.hypot(width,height)/axes.pxPerMeter;
-    face.gridLabelXMeters.forEach((x,i)=>{if(typeof x!=="number")return;
-      const lbl=(face.gridLabels||[])[i]||"";
+    (face.gridRefs||[]).forEach(ref=>{if(typeof ref.xMeters!=="number")return;
+      const x=ref.xMeters, lbl=ref.rawText||"";
       const [start,end]=projectPolyline([
         metricPoint(x,0),
         metricPoint(x,gridDepthMeters),
@@ -91,7 +110,7 @@ function buildCalibratedSVG(
 
   const layerLabels=[];
   (face.layers||[]).forEach((l,li)=>{
-    const mat=l.inferredMaterial||l.layerName||"?", col=colorFor(mat);
+    const {label:mat,col}=layerIdentity(l);
     if(show("tFill")){
       const fillPoint=p=>({
         ...pointToSourcePixel(p,calibration),
@@ -121,8 +140,7 @@ function buildCalibratedSVG(
     const topBoundary=line(l.topBoundary, li===0);
     const bottomBoundary=line(l.bottomBoundary, false);
     if(show("tLabels")){
-      const labelsInside=l._labelBoundary==="inside";
-      const inside=labelsInside
+      const inside=labelsInsideBand(l)
         ? pointInsideBand(
             topBoundary.source,
             bottomBoundary.source,
@@ -146,7 +164,7 @@ function buildCalibratedSVG(
     }
   });
 
-  if(show("tFeatures"))(face.layers||[]).forEach(l=>(l.featuresInLayer||[]).forEach(ft=>{
+  if(show("tFeatures"))(face.layers||[]).forEach(l=>(l.features||[]).forEach(ft=>{
     const P=(ft.shapePoints||[]).filter(projectablePoint);
     if(P.length>1){
       const pixels=projectPolyline(P,calibration);
@@ -158,7 +176,7 @@ function buildCalibratedSVG(
         fill="var(--feature)" stroke="#fff" stroke-width="${width*0.0007}"
         data-info="${esc(ft.feature||'feature')} · x=${meterX(p)}m depth=${meterDepth(p)}m"/>`);});
     } else if(typeof ft.approxXMeters==="number"){
-      const x=ft.approxXMeters,y=ft.approxYMeters||0;
+      const x=ft.approxXMeters,y=featureDepth(ft)||0;
       const w=ft.approxWidthMeters||width*0.03/axes.pxPerMeter;
       const h=ft.approxHeightMeters||height*0.03/axes.pxPerMeter;
       const corners=projectPolyline([
@@ -208,9 +226,9 @@ function buildLegacySVG(face, maxX, maxY, wrap){
   const show=id=>$(id).checked;
   const s=[`<svg viewBox="0 0 ${vbW} ${vbH}" preserveAspectRatio="none">`];
 
-  if(show("tGrid")&&face.gridLabelXMeters){
-    face.gridLabelXMeters.forEach((x,i)=>{if(typeof x!=="number")return;
-      const lbl=(face.gridLabels||[])[i]||"";
+  if(show("tGrid")){
+    (face.gridRefs||[]).forEach(ref=>{if(typeof ref.xMeters!=="number")return;
+      const x=ref.xMeters, lbl=ref.rawText||"";
       s.push(`<line x1="${X(x)}" y1="${Y(0)}" x2="${X(x)}" y2="${Y(maxY)}" stroke="var(--grid)"
         stroke-width="${vbW*0.0012}" stroke-dasharray="${vbW*0.004} ${vbW*0.004}"/>`);
       s.push(`<text x="${X(x)}" y="${Y(0)-vbH*0.01}" font-size="${vbH*0.032}" fill="var(--ink-soft)"
@@ -219,49 +237,47 @@ function buildLegacySVG(face, maxX, maxY, wrap){
 
   const layerLabels=[];
   (face.layers||[]).forEach((l,li)=>{
-    const mat=l.inferredMaterial||l.layerName||"?", col=colorFor(mat);
+    const {label:mat,col}=layerIdentity(l);
     if(show("tFill")){
       const fillPoint=p=>({
-        x:X(p.xCoordinateMeters),
-        y:Y(p.yCoordinateMeters),
-        along:p.xCoordinateMeters,
+        x:X(meterX(p)),
+        y:Y(meterDepth(p)),
+        along:meterX(p),
       });
-      const has=p=>Number.isFinite(p.xCoordinateMeters)
-        &&Number.isFinite(p.yCoordinateMeters);
+      const has=p=>Number.isFinite(meterX(p))&&Number.isFinite(meterDepth(p));
       const topPts=(l.topBoundary||[]).filter(has).map(fillPoint);
       const botPts=(l.bottomBoundary||[]).filter(has).map(fillPoint);
       const d=layerFillPath(topPts,botPts);
       if(d)s.push(`<path d="${d}" fill="${col}" fill-opacity="0.4" stroke="none"/>`);
     }
     const line=(pts,isSurf)=>{
-      const P=(pts||[]).filter(p=>typeof p.xCoordinateMeters==="number"&&typeof p.yCoordinateMeters==="number");
+      const P=(pts||[]).filter(p=>Number.isFinite(meterX(p))&&Number.isFinite(meterDepth(p)));
       if(!P.length)return P;
       if(show("tBounds")&&P.length>1){
-        const d=P.map((p,k)=>`${k?"L":"M"}${X(p.xCoordinateMeters)},${Y(p.yCoordinateMeters)}`).join(" ");
+        const d=P.map((p,k)=>`${k?"L":"M"}${X(meterX(p))},${Y(meterDepth(p))}`).join(" ");
         s.push(`<path d="${d}" fill="none" stroke="${isSurf?'var(--surface-line)':col}"
           stroke-width="${vbW*(isSurf?0.003:0.0022)}" stroke-linejoin="round" stroke-linecap="round" opacity="0.92"/>`);
       }
-      if(show("tPoints"))P.forEach(p=>s.push(`<circle class="pt" cx="${X(p.xCoordinateMeters)}" cy="${Y(p.yCoordinateMeters)}"
+      if(show("tPoints"))P.forEach(p=>s.push(`<circle class="pt" cx="${X(meterX(p))}" cy="${Y(meterDepth(p))}"
         r="${vbW*0.0035}" fill="${col}" stroke="#fff" stroke-width="${vbW*0.0008}" opacity="${p.confidence?0.5:1}"
-        data-info="${esc(mat)} · x=${p.xCoordinateMeters}m depth=${p.yCoordinateMeters}m${p.confidence?' · '+esc(p.confidence):''}"/>`));
+        data-info="${esc(mat)} · x=${meterX(p)}m depth=${meterDepth(p)}m${p.confidence?' · '+esc(p.confidence):''}"/>`));
       return P;
     };
     const topPoints=line(l.topBoundary, li===0);
     const bottomPoints=line(l.bottomBoundary, false);
     if(show("tLabels")){
-      const labelsInside=l._labelBoundary==="inside";
-      const inside=labelsInside
+      const inside=labelsInsideBand(l)
         ? pointInsideBand(
             topPoints,
             bottomPoints,
-            p=>p.xCoordinateMeters,
-            p=>p.yCoordinateMeters)
+            meterX,
+            meterDepth)
         : null;
       const fallback=bottomPoints.length
         ? bottomPoints[Math.floor(bottomPoints.length/2)]
         : null;
-      const labelX=inside?inside.x:fallback?.xCoordinateMeters;
-      const labelY=inside?inside.y:fallback?.yCoordinateMeters;
+      const labelX=inside?inside.x:fallback?meterX(fallback):undefined;
+      const labelY=inside?inside.y:fallback?meterDepth(fallback):undefined;
       if(typeof labelX==="number"&&typeof labelY==="number"){
         layerLabels.push(`<text x="${X(labelX)}" y="${Y(labelY)-(inside?0:vbH*0.006)}" font-size="${vbH*0.026}"
           fill="${col}" text-anchor="middle" dominant-baseline="${inside?'middle':'auto'}"
@@ -271,16 +287,16 @@ function buildLegacySVG(face, maxX, maxY, wrap){
     }
   });
 
-  if(show("tFeatures"))(face.layers||[]).forEach(l=>(l.featuresInLayer||[]).forEach(ft=>{
-    const P=(ft.shapePoints||[]).filter(p=>typeof p.xCoordinateMeters==="number");
+  if(show("tFeatures"))(face.layers||[]).forEach(l=>(l.features||[]).forEach(ft=>{
+    const P=(ft.shapePoints||[]).filter(p=>Number.isFinite(meterX(p))&&Number.isFinite(meterDepth(p)));
     if(P.length>1){
-      const d=P.map((p,k)=>`${k?"L":"M"}${X(p.xCoordinateMeters)},${Y(p.yCoordinateMeters)}`).join(" ");
+      const d=P.map((p,k)=>`${k?"L":"M"}${X(meterX(p))},${Y(meterDepth(p))}`).join(" ");
       s.push(`<path d="${d}" fill="none" stroke="var(--feature)" stroke-width="${vbW*0.0035}" stroke-linejoin="round" opacity="0.9"/>`);
-      P.forEach(p=>s.push(`<circle class="pt" cx="${X(p.xCoordinateMeters)}" cy="${Y(p.yCoordinateMeters)}" r="${vbW*0.003}"
+      P.forEach(p=>s.push(`<circle class="pt" cx="${X(meterX(p))}" cy="${Y(meterDepth(p))}" r="${vbW*0.003}"
         fill="var(--feature)" stroke="#fff" stroke-width="${vbW*0.0007}"
-        data-info="${esc(ft.feature||'feature')} · x=${p.xCoordinateMeters}m depth=${p.yCoordinateMeters}m"/>`));
+        data-info="${esc(ft.feature||'feature')} · x=${meterX(p)}m depth=${meterDepth(p)}m"/>`));
     } else if(typeof ft.approxXMeters==="number"){
-      const x=ft.approxXMeters,y=ft.approxYMeters||0,w=ft.approxWidthMeters||maxX*0.03,h=ft.approxHeightMeters||maxY*0.03;
+      const x=ft.approxXMeters,y=featureDepth(ft)||0,w=ft.approxWidthMeters||maxX*0.03,h=ft.approxHeightMeters||maxY*0.03;
       s.push(`<rect class="pt" x="${X(x-w/2)}" y="${Y(y-h/2)}" width="${w}" height="${h}" fill="var(--feature)"
         fill-opacity="0.16" stroke="var(--feature)" stroke-width="${vbW*0.0018}"
         data-info="${esc(ft.feature||'feature')} · x=${x}m depth=${y}m ${w}×${h}m"/>`);

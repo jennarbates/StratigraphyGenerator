@@ -17,6 +17,7 @@ from flask import (
 )
 
 import storage
+from pipeline import normalizer
 
 from ..jobs import job_dir, job_list, job_record, load_meta, rel_url
 from ..services.viewer_files import find_viewer_manifest, model3d_from_manifest
@@ -52,11 +53,35 @@ def visualizer():
     return send_from_directory(current_app.static_folder, "visualizer.html")
 
 
+def _has_canonical_source(job_directory):
+    """True when load_canonical() would have something to read."""
+    candidates = (
+        Path("04_normalize_validate") / normalizer.CANONICAL_FILENAME,
+        *normalizer.CANONICAL_SOURCES,
+    )
+    return any((job_directory / candidate).is_file() for candidate in candidates)
+
+
+@bp.route("/api/jobs/<job_id>/canonical")
+def job_canonical(job_id):
+    """The job's canonical section document: the artifact when the job has
+    one, else canonicalized on read (D4)."""
+    try:
+        document = normalizer.load_canonical(job_dir(job_id))
+    except FileNotFoundError:
+        abort(404, description="job has no extraction to canonicalize")
+    except ValueError as error:
+        abort(422, description=str(error))
+    return jsonify(document)
+
+
 @bp.route("/api/jobs/<job_id>/visualizer-files")
 def visualizer_files(job_id):
     """Everything the visualizer can auto-load for this job, so the user
-    doesn't have to re-pick files the server already has. JSONs are served
-    as-is; the visualizer normalizes either extraction shape client-side."""
+    doesn't have to re-pick files the server already has. The canonical
+    document is listed first; the legacy files stay behind it for A/B
+    compare, adapted client-side by the same shim that handles old saved
+    files."""
     meta = load_meta(job_id)
     out = {"sheet_type": meta.get("sheet_type"), "jsons": []}
 
@@ -95,12 +120,11 @@ def visualizer_files(job_id):
 
     add("normalized", meta.get("normalized_path"))
     add("raw extraction", meta.get("extraction_path"))
-
-    # Field-wall JSON is served raw: the visualizer adapts the
-    # FieldWallProfile shape itself (see ingest() in visualizer.html), and
-    # unlike fieldwall_to_profiles() it keeps topBoundary and features.
-    # The Python adapter only carries what convert() needs. Serving both
-    # raw and normalized also keeps A/B compare working for field sheets.
+    if _has_canonical_source(job_dir(job_id)):
+        out["jsons"].insert(
+            0,
+            {"label": "canonical", "url": f"/api/jobs/{job_id}/canonical"},
+        )
 
     job_directory = job_dir(job_id).resolve()
     manifest_path = find_viewer_manifest(job_directory, meta)

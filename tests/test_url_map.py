@@ -30,6 +30,7 @@ EXPECTED_RULES = {
     ("/api/harris-source-jobs", "GET"),
     ("/api/jobs", "POST"),
     ("/api/jobs/<job_id>/boundaries/manual", "POST"),
+    ("/api/jobs/<job_id>/canonical", "GET"),
     ("/api/jobs/<job_id>/convert", "POST"),
     ("/api/jobs/<job_id>/extract", "POST"),
     ("/api/jobs/<job_id>/extract/upload", "POST"),

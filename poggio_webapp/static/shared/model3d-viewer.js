@@ -5,7 +5,7 @@ import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
 import {
   clampOpacity,
   deterministicSurfaceColor,
-} from "./visualizer/model3d-core.mjs";
+} from "../visualizer/model3d-core.mjs";
 
 const DEFAULT_OPACITY = 0.72;
 const CAMERA_VIEWS = new Set(["isometric", "top", "front", "side"]);

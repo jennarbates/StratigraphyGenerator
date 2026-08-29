@@ -1,0 +1,245 @@
+{
+  "canonicalVersion": 1,
+  "sourceSchema": "ArchaeologicalDiagram",
+  "source": "extraction",
+  "document": {
+    "trenchLabel": "T907",
+    "recorders": [
+      {
+        "name": "A. Fabbri",
+        "role": "illustrator"
+      }
+    ],
+    "date": "7/7/2015",
+    "marginalia": [
+      "NR. 7/80"
+    ],
+    "northArrowPresent": null,
+    "scale": {
+      "gridSquareCm": null,
+      "bar": {
+        "unit": "m",
+        "valuesMarked": [
+          0,
+          1
+        ],
+        "metricConversionAssumption": "bar printed in metres",
+        "confidence": "high"
+      }
+    },
+    "legend": [
+      {
+        "visualPattern": "stipple",
+        "material": "topsoil"
+      },
+      {
+        "visualPattern": "diagonal hatch",
+        "material": "silty clay"
+      },
+      {
+        "visualPattern": "cross hatch",
+        "material": "burnt clay"
+      }
+    ],
+    "rawTranscription": "North baulk of T907 with three layers above bedrock.",
+    "inferredNotes": [
+      "scale bar calibrated from the printed 1 m mark"
+    ]
+  },
+  "faces": [
+    {
+      "face": "N baulk",
+      "gridRefs": [
+        {
+          "kind": "gridLabel",
+          "rawText": "155.80",
+          "xMeters": 0.0
+        }
+      ],
+      "layers": [
+        {
+          "label": "Locus 1",
+          "surfaceId": "Locus 1",
+          "displayLabel": "Locus 1 (topsoil)",
+          "munsell": null,
+          "material": "topsoil",
+          "visualPattern": "stipple",
+          "description": "loose topsoil with modern root disturbance",
+          "topBoundary": [
+            {
+              "xMeters": 0.0,
+              "depthMeters": 0.0,
+              "confidence": "high",
+              "uncertaintyCm": null
+            },
+            {
+              "xMeters": 1.0,
+              "depthMeters": 0.02,
+              "confidence": "high",
+              "uncertaintyCm": null
+            }
+          ],
+          "topBoundaryDerived": false,
+          "bottomBoundary": [
+            {
+              "xMeters": 0.0,
+              "depthMeters": 0.3,
+              "confidence": "high",
+              "uncertaintyCm": 2.0
+            },
+            {
+              "xMeters": 1.0,
+              "depthMeters": 0.34,
+              "confidence": "high",
+              "uncertaintyCm": 2.0
+            }
+          ],
+          "bottomBoundaryDerived": false,
+          "features": [
+            {
+              "feature": "stone",
+              "description": "single limestone block",
+              "shapePoints": null,
+              "approxXMeters": 0.4,
+              "approxDepthMeters": 0.15,
+              "approxWidthMeters": 0.2,
+              "approxHeightMeters": 0.12,
+              "confidence": "medium"
+            }
+          ],
+          "provenance": {
+            "schemaType": "ArchaeologicalDiagram",
+            "sourceFace": "N baulk",
+            "sourceLayerIndex": 0,
+            "sourceLabel": "Locus 1"
+          }
+        },
+        {
+          "label": "Locus 2",
+          "surfaceId": "Locus 2",
+          "displayLabel": "Locus 2 (silty clay)",
+          "munsell": null,
+          "material": "silty clay",
+          "visualPattern": "diagonal hatch",
+          "description": "compact silty fill",
+          "topBoundary": [
+            {
+              "xMeters": 0.0,
+              "depthMeters": 0.3,
+              "confidence": "high",
+              "uncertaintyCm": 2.0
+            },
+            {
+              "xMeters": 1.0,
+              "depthMeters": 0.34,
+              "confidence": "high",
+              "uncertaintyCm": 2.0
+            }
+          ],
+          "topBoundaryDerived": true,
+          "bottomBoundary": [
+            {
+              "xMeters": 0.0,
+              "depthMeters": 0.55,
+              "confidence": "medium",
+              "uncertaintyCm": 3.0
+            },
+            {
+              "xMeters": 1.0,
+              "depthMeters": 0.58,
+              "confidence": "medium",
+              "uncertaintyCm": 3.0
+            }
+          ],
+          "bottomBoundaryDerived": false,
+          "features": [],
+          "provenance": {
+            "schemaType": "ArchaeologicalDiagram",
+            "sourceFace": "N baulk",
+            "sourceLayerIndex": 1,
+            "sourceLabel": "Locus 2"
+          }
+        },
+        {
+          "label": "Locus 3",
+          "surfaceId": "Locus 3",
+          "displayLabel": "Locus 3 (burnt clay)",
+          "munsell": null,
+          "material": "burnt clay",
+          "visualPattern": "cross hatch",
+          "description": "burnt destruction layer",
+          "topBoundary": [
+            {
+              "xMeters": 0.0,
+              "depthMeters": 0.55,
+              "confidence": "medium",
+              "uncertaintyCm": 3.0
+            },
+            {
+              "xMeters": 1.0,
+              "depthMeters": 0.58,
+              "confidence": "medium",
+              "uncertaintyCm": 3.0
+            }
+          ],
+          "topBoundaryDerived": true,
+          "bottomBoundary": [
+            {
+              "xMeters": 0.0,
+              "depthMeters": 0.8,
+              "confidence": "low",
+              "uncertaintyCm": null
+            },
+            {
+              "xMeters": 1.0,
+              "depthMeters": 0.83,
+              "confidence": "low",
+              "uncertaintyCm": null
+            }
+          ],
+          "bottomBoundaryDerived": false,
+          "features": [
+            {
+              "feature": "ash lens",
+              "description": "charcoal-rich lens",
+              "shapePoints": [
+                {
+                  "xMeters": 0.2,
+                  "depthMeters": 0.62,
+                  "confidence": "low",
+                  "uncertaintyCm": null
+                },
+                {
+                  "xMeters": 0.5,
+                  "depthMeters": 0.66,
+                  "confidence": "low",
+                  "uncertaintyCm": null
+                }
+              ],
+              "approxXMeters": null,
+              "approxDepthMeters": null,
+              "approxWidthMeters": null,
+              "approxHeightMeters": null,
+              "confidence": "low"
+            }
+          ],
+          "provenance": {
+            "schemaType": "ArchaeologicalDiagram",
+            "sourceFace": "N baulk",
+            "sourceLayerIndex": 2,
+            "sourceLabel": "Locus 3"
+          }
+        }
+      ]
+    }
+  ],
+  "finds": [
+    {
+      "face_id": "N baulk",
+      "x": 0.5,
+      "y": 0.4,
+      "locus": "2",
+      "label": "SF-1"
+    }
+  ]
+}

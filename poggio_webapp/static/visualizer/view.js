@@ -37,13 +37,13 @@ export function ready(){
     applyViewMode(mode);
     return;
   }
-  const faces = primary.trenchProfiles || [];
+  const faces = primary.faces || [];
   // switching to a JSON with fewer faces must not leave state.activeFace pointing
   // past the end (the old "no face #3" after a 3-face -> 1-face swap)
   if(state.activeFace >= faces.length) state.activeFace = 0;
-  const m = primary.metadata || {};
+  const m = primary.document || {};
   $("meta").innerHTML = m.trenchLabel
-    ? `Trench <b>${m.trenchLabel}</b> · ${(m.credits&&m.credits.year)||"n/a"} · ${faces.length} face(s)` : "";
+    ? `Trench <b>${esc(m.trenchLabel)}</b> · ${esc(m.date||"n/a")} · ${faces.length} face(s)` : "";
 
   const tabs=$("faceTabs"); tabs.innerHTML="";
   faces.forEach((f,i)=>{const b=document.createElement("button");
@@ -52,12 +52,14 @@ export function ready(){
     b.onclick=()=>{state.activeFace=i;draw();document.querySelectorAll(".face-tab").forEach((t,j)=>t.classList.toggle("active",j===i));};
     tabs.appendChild(b);});
 
+  // Identity drives the swatch colour and dedupe; the display label is only
+  // what is read (D3).
   const legend=$("legend"); legend.innerHTML=""; const seen=new Set();
   [state.dataA,state.dataB].forEach(D=>{ if(!D)return;
-    (D.trenchProfiles||[]).forEach(f=>(f.layers||[]).forEach(l=>{
-      const mat=l.inferredMaterial||l.layerName||"?"; if(seen.has(mat))return; seen.add(mat);
+    (D.faces||[]).forEach(f=>(f.layers||[]).forEach(l=>{
+      const id=l.surfaceId||"?"; if(seen.has(id))return; seen.add(id);
       const row=document.createElement("div");row.className="legend-item";
-      row.innerHTML=`<span class="swatch" style="background:${colorFor(mat)}"></span>${mat}`;
+      row.innerHTML=`<span class="swatch" style="background:${colorFor(id)}"></span>${esc(l.displayLabel||id)}`;
       legend.appendChild(row);}));});
 
   $("controls").style.display="block";
@@ -630,9 +632,9 @@ function configureModelRecovery(visible){
 function drawablePoints(face){
   let n=0;
   const scan=pts=>(pts||[]).forEach(p=>{
-    if(typeof p.xCoordinateMeters==="number"&&typeof p.yCoordinateMeters==="number")n++;});
+    if(typeof p.xMeters==="number"&&typeof p.depthMeters==="number")n++;});
   (face.layers||[]).forEach(l=>{scan(l.topBoundary);scan(l.bottomBoundary);
-    (l.featuresInLayer||[]).forEach(ft=>scan(ft.shapePoints));});
+    (l.features||[]).forEach(ft=>scan(ft.shapePoints));});
   return n;
 }
 
@@ -660,10 +662,10 @@ export function draw(){
   const primary=A||B; if(!primary){return;}
   const empty = $("empty"); if(empty) empty.style.display="none";
 
-  const faceA = A ? (A.trenchProfiles||[])[state.activeFace] : null;
-  const faceB = B ? (B.trenchProfiles||[])[state.activeFace] : null;
+  const faceA = A ? (A.faces||[])[state.activeFace] : null;
+  const faceB = B ? (B.faces||[])[state.activeFace] : null;
   if(!faceA && !faceB){
-    const anyFaces = [A,B].some(D=>D && (D.trenchProfiles||[]).length);
+    const anyFaces = [A,B].some(D=>D && (D.faces||[]).length);
     main.innerHTML = anyFaces
       ? `<div class="empty">This run has no face #${state.activeFace+1}.</div>`
       : `<div class="empty">No faces found in this JSON.<br>
@@ -687,7 +689,7 @@ export function draw(){
       panel are parallel copies of one another, that panel still has the offset artifact.</div>`);
   }
 
-  const notes = primary.inferred_notes;
+  const notes = (primary.document||{}).inferredNotes;
   if(notes&&notes.length){
     html.push(`<h2 class="section" style="border:none">Methodology notes${state.compare?" (Run A)":""}</h2><ul class="notes">`);
     (Array.isArray(notes)?notes:[notes]).forEach(n=>html.push(`<li>${esc(n)}</li>`));

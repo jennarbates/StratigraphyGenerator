@@ -5,6 +5,9 @@ import pytest
 
 import storage
 from app import app
+from pipeline.canonical import canonicalize
+
+FIXTURES = Path(__file__).parent / "fixtures"
 
 
 @pytest.fixture
@@ -255,6 +258,74 @@ def test_no_model_keeps_existing_visualizer_payload_unchanged(client):
         ],
         "image_url": f"/api/jobs/{job_id}/file?path=scan.png",
     }
+
+
+def _field_capture():
+    return json.loads((FIXTURES / "t907-parity-fieldwall.json").read_text())
+
+
+def test_canonical_is_listed_first_when_a_conventional_source_exists(client):
+    """The visualizer auto-loads jsons[0], so listing the canonical form
+    first is what retires the served-raw workaround: the client sees one
+    shape for both mediums, and the legacy entries stay behind it for A/B
+    compare."""
+    job_id = "canonical-listing"
+    job_dir = storage.JOBS_DIR / job_id
+    normalize_dir = job_dir / "04_normalize_validate"
+    normalize_dir.mkdir(parents=True)
+    normalized_path = normalize_dir / "output_clean.json"
+    normalized_path.write_text(json.dumps(_field_capture()))
+    _write_meta(job_dir, {"normalized_path": str(normalized_path)})
+
+    payload = client.get(f"/api/jobs/{job_id}/visualizer-files").get_json()
+
+    assert [entry["label"] for entry in payload["jsons"]] == [
+        "canonical",
+        "normalized",
+    ]
+    assert payload["jsons"][0]["url"] == f"/api/jobs/{job_id}/canonical"
+
+
+def test_canonical_endpoint_serves_the_artifact_when_present(client):
+    """canonical.json carries the normalize step's dedupe passes, so the
+    endpoint must serve it rather than re-canonicalize the legacy file."""
+    job_id = "canonical-artifact"
+    job_dir = storage.JOBS_DIR / job_id
+    normalize_dir = job_dir / "04_normalize_validate"
+    normalize_dir.mkdir(parents=True)
+    (normalize_dir / "output_clean.json").write_text(json.dumps(_field_capture()))
+    marked = _field_capture()
+    marked["trenchLabel"] = "T-artifact"
+    artifact, _warnings = canonicalize(marked)
+    (normalize_dir / "canonical.json").write_text(json.dumps(artifact))
+    _write_meta(job_dir, {})
+
+    response = client.get(f"/api/jobs/{job_id}/canonical")
+
+    assert response.status_code == 200
+    assert response.get_json() == artifact
+
+
+def test_canonical_endpoint_canonicalizes_legacy_jobs_on_read(client):
+    job_id = "canonical-on-read"
+    job_dir = storage.JOBS_DIR / job_id
+    job_dir.mkdir()
+    (job_dir / "extraction_output.json").write_text(json.dumps(_field_capture()))
+    _write_meta(job_dir, {})
+
+    response = client.get(f"/api/jobs/{job_id}/canonical")
+
+    expected, _warnings = canonicalize(_field_capture())
+    assert response.status_code == 200
+    assert response.get_json() == expected
+
+
+def test_canonical_endpoint_404s_with_nothing_to_serve(client):
+    job_id = "canonical-empty"
+    (storage.JOBS_DIR / job_id).mkdir()
+
+    assert client.get(f"/api/jobs/{job_id}/canonical").status_code == 404
+    assert client.get("/api/jobs/no-such-job/canonical").status_code == 404
 
 
 def test_metadata_manifest_returns_model3d_with_job_file_urls(client):

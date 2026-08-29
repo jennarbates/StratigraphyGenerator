@@ -1,6 +1,12 @@
+import json
+from pathlib import Path
+
 import pytest
 
 from app import app
+from pipeline.canonical import canonicalize
+
+FIXTURES = Path(__file__).parent / "fixtures"
 
 THREE_IMPORT_MAP = """<script type="importmap">
 {
@@ -102,3 +108,20 @@ def test_three_addons_import_bare_three_specifier(client, static_path):
 
     assert response.status_code == 200
     assert "from 'three';" in source or 'from "three";' in source
+
+
+@pytest.mark.parametrize(
+    "stem",
+    ("t907-parity-fieldwall", "t907-parity-illustrator"),
+)
+def test_committed_canonical_fixtures_match_the_python_canonicalizer(stem):
+    """schema-core.test.mjs locks the browser adapter against the committed
+    .canonical twins; this pins the twins against pipeline/canonical.py, so
+    a change on either side of the adapter fails one suite or the other.
+    Regenerate the twin with canonicalize() when this fails on purpose."""
+    capture = json.loads((FIXTURES / f"{stem}.json").read_text())
+    committed = json.loads((FIXTURES / f"{stem}.canonical.json").read_text())
+
+    document, _warnings = canonicalize(capture)
+
+    assert document == committed
